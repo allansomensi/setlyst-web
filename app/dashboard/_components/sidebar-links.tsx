@@ -12,7 +12,7 @@ const navLinks = [
   { name: "Setlists", href: "/dashboard/setlists", icon: ListMusic },
 ];
 
-export function SidebarLinks() {
+export function SidebarLinks({ isCollapsed }: { isCollapsed?: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -29,15 +29,17 @@ export function SidebarLinks() {
           <Link
             key={link.href}
             href={link.href}
+            title={isCollapsed ? link.name : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 transition-colors",
+              "flex items-center rounded-md px-3 py-2 transition-colors",
+              isCollapsed ? "justify-center" : "gap-3",
               isActive
                 ? "bg-muted text-foreground font-medium"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon className="h-5 w-5" />
-            {link.name}
+            <Icon className="h-5 w-5 shrink-0" />
+            {!isCollapsed && <span className="truncate">{link.name}</span>}
           </Link>
         );
       })}
