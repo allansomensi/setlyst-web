@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Disc3, Home, Music } from "lucide-react";
+import { Disc3, Home, Music, ListMusic } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Artists", href: "/dashboard/artists", icon: Disc3 },
   { name: "Songs", href: "/dashboard/songs", icon: Music },
+  { name: "Setlists", href: "/dashboard/setlists", icon: ListMusic },
 ];
 
 export function SidebarLinks() {
@@ -32,7 +33,7 @@ export function SidebarLinks() {
               "flex items-center gap-3 rounded-md px-3 py-2 transition-colors",
               isActive
                 ? "bg-muted text-foreground font-medium"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground", // Estado Inativo
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <Icon className="h-5 w-5" />
