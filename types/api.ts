@@ -21,3 +21,12 @@ export interface Artist {
 export interface CreateArtistPayload {
   name: string;
 }
+
+export interface Song {
+  id: string;
+  title: string;
+  artist_id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
