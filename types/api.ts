@@ -49,3 +49,23 @@ export interface AddSongToSetlistPayload {
   song_id: string;
   position: number;
 }
+
+export interface User {
+  id: string;
+  username: string;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  role: "user" | "moderator" | "admin";
+  status: "active" | "inactive";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateUserPayload {
+  username?: string;
+  email?: string | null;
+  password?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+}

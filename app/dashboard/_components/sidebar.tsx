@@ -59,12 +59,17 @@ export function Sidebar({ user }: SidebarProps) {
         )}
       >
         {!isCollapsed && (
-          <div className="overflow-hidden pr-2">
-            <p className="truncate text-sm font-medium">{user?.name}</p>
+          <Link
+            href="/dashboard/profile"
+            className="group cursor-pointer overflow-hidden pr-2 transition-opacity hover:opacity-80"
+          >
+            <p className="group-hover:text-primary truncate text-sm font-medium transition-colors">
+              {user?.name}
+            </p>
             <p className="text-muted-foreground truncate text-xs capitalize">
               {user?.role}
             </p>
-          </div>
+          </Link>
         )}
         <LogoutButton />
       </div>
