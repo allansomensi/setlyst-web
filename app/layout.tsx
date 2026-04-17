@@ -45,12 +45,11 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
             {children}
-            <Toaster position="top-right" theme="dark" />
+            <Toaster position="top-center" theme="system" />
           </ThemeProvider>
         </AuthProvider>
       </body>

@@ -2,7 +2,7 @@ import { fetchServerApi } from "@/lib/api-server";
 import { PaginatedResponse, Setlist, Song, Artist } from "@/types/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Play } from "lucide-react";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
 
 export default async function SetlistDetailsPage({
@@ -28,18 +28,28 @@ export default async function SetlistDetailsPage({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/setlists">
-            <ChevronLeft className="h-4 w-4" />
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" asChild>
+            <Link href="/dashboard/setlists">
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {setlist.title}
+            </h1>
+            {setlist.description && (
+              <p className="text-muted-foreground">{setlist.description}</p>
+            )}
+          </div>
+        </div>
+
+        <Button asChild size="lg" variant="outline" className="gap-2">
+          <Link href={`/dashboard/setlists/${setlist.id}/live`}>
+            <Play className="h-5 w-5" /> Live Mode
           </Link>
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{setlist.title}</h1>
-          {setlist.description && (
-            <p className="text-muted-foreground">{setlist.description}</p>
-          )}
-        </div>
       </div>
 
       <SetlistSongsManager

@@ -1,4 +1,3 @@
-"use function";
 "use client";
 
 import { useActionState } from "react";
@@ -34,11 +33,14 @@ export default function RegisterPage() {
       };
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/v1/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+        );
 
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
@@ -85,6 +87,7 @@ export default function RegisterPage() {
                 placeholder="Choose a username"
                 required
                 disabled={isPending}
+                autoComplete="username"
               />
             </div>
 
@@ -96,6 +99,7 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="john.doe@example.com"
                 disabled={isPending}
+                autoComplete="email"
               />
             </div>
 
@@ -108,6 +112,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="John"
                   disabled={isPending}
+                  autoComplete="given-name"
                 />
               </div>
               <div className="space-y-2">
@@ -118,6 +123,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Doe"
                   disabled={isPending}
+                  autoComplete="family-name"
                 />
               </div>
             </div>
@@ -133,11 +139,15 @@ export default function RegisterPage() {
                 placeholder="Create a secure password"
                 required
                 disabled={isPending}
+                autoComplete="new-password"
               />
             </div>
 
             {error && (
-              <p className="text-center text-sm font-medium text-red-500">
+              <p
+                role="alert"
+                className="text-center text-sm font-medium text-red-500"
+              >
                 {error}
               </p>
             )}
