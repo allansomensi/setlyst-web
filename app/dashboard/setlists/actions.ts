@@ -73,3 +73,21 @@ export async function removeSongFromSetlist(setlistId: string, songId: string) {
     return { success: false, error: message };
   }
 }
+
+export async function reorderSetlistSongs(
+  setlistId: string,
+  songIds: string[],
+) {
+  try {
+    await fetchServerApi(`/setlists/${setlistId}/songs/reorder`, {
+      method: "PATCH",
+      body: JSON.stringify({ song_ids: songIds }),
+    });
+    revalidatePath(`/dashboard/setlists/${setlistId}`);
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    return { success: false, error: message };
+  }
+}
