@@ -2,6 +2,7 @@
 
 import { fetchServerApi } from "@/lib/api-server";
 import { revalidatePath } from "next/cache";
+import { CreateSongPayload, UpdateSongPayload } from "@/types/api";
 
 async function handleAction(action: () => Promise<void>) {
   try {
@@ -15,16 +16,13 @@ async function handleAction(action: () => Promise<void>) {
   }
 }
 
-export async function createSong(data: { title: string; artist_id: string }) {
+export async function createSong(data: CreateSongPayload) {
   return handleAction(() =>
     fetchServerApi("/songs", { method: "POST", body: JSON.stringify(data) }),
   );
 }
 
-export async function updateSong(
-  id: string,
-  data: { title?: string; artist_id?: string },
-) {
+export async function updateSong(id: string, data: UpdateSongPayload) {
   return handleAction(() =>
     fetchServerApi(`/songs/${id}`, {
       method: "PATCH",

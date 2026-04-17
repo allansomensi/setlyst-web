@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { Song, Artist } from "@/types/api";
 import { removeSongFromSetlist, reorderSetlistSongs } from "../../actions";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -95,8 +96,29 @@ function SortableRow({
           <span className="text-muted-foreground font-medium">{index + 1}</span>
         )}
       </TableCell>
-      <TableCell className="font-medium">{song.title}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{song.title}</span>
+          {song.tonality && (
+            <Badge
+              variant="outline"
+              className="h-5 px-1.5 font-mono text-[10px]"
+            >
+              {song.tonality}
+            </Badge>
+          )}
+        </div>
+      </TableCell>
       <TableCell>{getArtistName(song.artist_id)}</TableCell>
+      <TableCell>
+        {song.tempo ? (
+          <span className="text-muted-foreground font-mono text-sm">
+            {song.tempo}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
+      </TableCell>
       <TableCell className="text-right">
         {!isReordering && (
           <Button
@@ -123,11 +145,13 @@ export function SetlistSongsManager({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
 
-  const [items, setItems] = useState<Song[]>(setlistSongs);
+  const [prevSongs, setPrevSongs] = useState<Song[]>(setlistSongs || []);
+  const [items, setItems] = useState<Song[]>(setlistSongs || []);
 
-  useEffect(() => {
-    setItems(setlistSongs);
-  }, [setlistSongs]);
+  if (setlistSongs !== prevSongs) {
+    setPrevSongs(setlistSongs || []);
+    setItems(setlistSongs || []);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -167,7 +191,7 @@ export function SetlistSongsManager({
   };
 
   const handleCancel = () => {
-    setItems(setlistSongs);
+    setItems(setlistSongs || []);
     setIsReordering(false);
   };
 
@@ -231,6 +255,7 @@ export function SetlistSongsManager({
                 </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Artist</TableHead>
+                <TableHead>BPM</TableHead>
                 <TableHead className="text-right">
                   {!isReordering && "Actions"}
                 </TableHead>
@@ -240,7 +265,7 @@ export function SetlistSongsManager({
               {items.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="text-muted-foreground h-24 text-center"
                   >
                     No songs added yet.

@@ -1,4 +1,7 @@
+"use client";
+
 import { useSession } from "next-auth/react";
+import { useCallback } from "react";
 
 export class ApiError extends Error {
   constructor(
@@ -14,36 +17,36 @@ export function useApi() {
   const { data: session } = useSession();
   const token = session?.user?.apiToken;
 
-  const fetchApi = async <T>(
-    endpoint: string,
-    options: RequestInit = {},
-  ): Promise<T> => {
-    const headers = {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    };
+  const fetchApi = useCallback(
+    async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      };
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
 
-      let message = errorData.message || `API error: ${res.status}`;
-      if (res.status === 429) {
-        message = "Too many requests. Please wait a moment and try again.";
+        let message = errorData.message || `API error: ${res.status}`;
+        if (res.status === 429) {
+          message = "Too many requests. Please wait a moment and try again.";
+        }
+
+        throw new ApiError(res.status, message);
       }
 
-      throw new ApiError(res.status, message);
-    }
+      if (res.status === 204) return {} as T;
 
-    if (res.status === 204) return {} as T;
-
-    return res.json();
-  };
+      return res.json();
+    },
+    [token],
+  );
 
   return { fetchApi };
 }

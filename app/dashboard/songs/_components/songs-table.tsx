@@ -5,6 +5,7 @@ import { Song, Artist } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -42,17 +43,12 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
 
     startTransition(async () => {
       const result = await deleteSong(id);
-      if (result.success) {
-        toast.success("Song deleted");
+      if (!result.success) {
+        toast.error(result.error || "Failed to delete song");
       } else {
-        toast.error(result.error);
+        toast.success("Song deleted successfully");
       }
     });
-  };
-
-  const getArtistName = (artistId: string) => {
-    const artist = artists.find((a) => a.id === artistId);
-    return artist ? artist.name : "Unknown Artist";
   };
 
   return (
@@ -60,10 +56,13 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Songs</h1>
-          <p className="text-muted-foreground">Manage your repertoire.</p>
+          <p className="text-muted-foreground">
+            Manage your band&apos;s songs.
+          </p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" /> Add Song
+          <Plus className="mr-2 h-4 w-4" />
+          Add Song
         </Button>
       </div>
 
@@ -75,7 +74,11 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
             <TableRow>
               <TableHead>Title</TableHead>
               <TableHead>Artist</TableHead>
-              <TableHead>Added On</TableHead>
+              <TableHead className="hidden md:table-cell">Key</TableHead>
+              <TableHead className="hidden lg:table-cell">Genre</TableHead>
+              <TableHead className="hidden text-right sm:table-cell">
+                BPM
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -83,44 +86,59 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
             {initialSongs.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={6}
                   className="text-muted-foreground h-24 text-center"
                 >
-                  No songs found.
+                  No songs found. Start by adding one.
                 </TableCell>
               </TableRow>
             ) : (
-              initialSongs.map((song) => (
-                <TableRow key={song.id}>
-                  <TableCell className="font-medium">{song.title}</TableCell>
-                  <TableCell>{getArtistName(song.artist_id)}</TableCell>
-                  <TableCell>
-                    {new Date(song.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleOpenDialog(song)}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(song.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+              initialSongs.map((song) => {
+                const artist = artists.find((a) => a.id === song.artist_id);
+                return (
+                  <TableRow key={song.id}>
+                    <TableCell className="font-medium">{song.title}</TableCell>
+                    <TableCell>{artist?.name || "Unknown Artist"}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {song.tonality ? (
+                        <Badge variant="secondary" className="px-1.5 font-mono">
+                          {song.tonality}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-xs lg:table-cell">
+                      {song.genre || "-"}
+                    </TableCell>
+                    <TableCell className="hidden text-right font-mono text-xs sm:table-cell">
+                      {song.tempo || "-"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleOpenDialog(song)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(song.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

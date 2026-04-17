@@ -1,3 +1,97 @@
+export const TONALITIES = [
+  "C",
+  "C#",
+  "Db",
+  "D",
+  "D#",
+  "Eb",
+  "E",
+  "E#",
+  "F",
+  "F#",
+  "Gb",
+  "G",
+  "G#",
+  "Ab",
+  "A",
+  "A#",
+  "Bb",
+  "B",
+  "B#",
+  "Cm",
+  "C#m",
+  "Dbm",
+  "Dm",
+  "D#m",
+  "Ebm",
+  "Em",
+  "E#m",
+  "Fm",
+  "F#m",
+  "Gbm",
+  "Gm",
+  "G#m",
+  "Abm",
+  "Am",
+  "A#m",
+  "Bbm",
+  "Bm",
+  "B#m",
+] as const;
+
+export const GENRES = [
+  "Acoustic",
+  "Alternative",
+  "Axe",
+  "Blues",
+  "BossaNova",
+  "Choro",
+  "Classical",
+  "Country",
+  "DeathMetal",
+  "Disco",
+  "Electronic",
+  "Emo",
+  "Folk",
+  "Forro",
+  "Funk",
+  "Gaucho",
+  "Gospel",
+  "Grunge",
+  "HardRock",
+  "HeavyMetal",
+  "HipHop",
+  "House",
+  "Indie",
+  "Jazz",
+  "KPop",
+  "Latin",
+  "LoFi",
+  "Metal",
+  "MPB",
+  "Pagode",
+  "Pop",
+  "PowerMetal",
+  "ProgressiveRock",
+  "PsychedelicRock",
+  "Punk",
+  "Reggae",
+  "Reggaeton",
+  "RnB",
+  "Rock",
+  "Samba",
+  "Sertanejo",
+  "Ska",
+  "Soul",
+  "SymphonicMetal",
+  "Techno",
+  "ThrashMetal",
+  "Other",
+] as const;
+
+export type Tonality = (typeof TONALITIES)[number];
+export type Genre = (typeof GENRES)[number];
+
 export interface PaginationMeta {
   total_items: number;
   current_page: number;
@@ -27,8 +121,33 @@ export interface Song {
   title: string;
   artist_id: string;
   user_id: string;
+  tempo?: number | null;
+  lyrics?: string | null;
+  tonality?: Tonality | null;
+  genre?: Genre | null;
+  duration?: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateSongPayload {
+  title: string;
+  artist_id: string;
+  tempo?: number | null;
+  lyrics?: string | null;
+  tonality?: Tonality | null;
+  genre?: Genre | null;
+  duration?: number | null;
+}
+
+export interface UpdateSongPayload {
+  title?: string;
+  artist_id?: string;
+  tempo?: number | null;
+  lyrics?: string | null;
+  tonality?: Tonality | null;
+  genre?: Genre | null;
+  duration?: number | null;
 }
 
 export interface Setlist {
