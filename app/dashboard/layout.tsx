@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { Sidebar } from "./_components/sidebar";
+import { MobileNav } from "./_components/mobile-nav";
 
 export default async function DashboardLayout({
   children,
@@ -15,7 +16,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="bg-muted/40 flex min-h-screen">
+    <div className="bg-muted/40 flex min-h-screen flex-col md:flex-row">
       <Sidebar
         user={{
           name: session.user?.name,
@@ -23,8 +24,9 @@ export default async function DashboardLayout({
         }}
       />
 
+      <MobileNav user={{ name: session.user?.name }} />
       <main className="flex h-screen flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-8">{children}</div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>
     </div>
   );

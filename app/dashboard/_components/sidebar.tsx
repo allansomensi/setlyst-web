@@ -20,7 +20,7 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "bg-background relative flex flex-col border-r transition-all duration-300",
+        "bg-background relative hidden flex-col border-r transition-all duration-300 md:flex", // Adicionado 'hidden' e 'md:flex'
         isCollapsed ? "w-20" : "w-64",
       )}
     >
