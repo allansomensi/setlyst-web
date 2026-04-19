@@ -12,11 +12,16 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const userMessage =
+    process.env.NODE_ENV === "production"
+      ? "We couldn't load the requested information."
+      : error.message || "An unexpected error occurred.";
+
   useEffect(() => {
-    toast.error(error.message || "An unexpected error occurred.", {
+    toast.error(userMessage, {
       id: "global-dashboard-error",
     });
-  }, [error]);
+  }, [userMessage]);
 
   return (
     <div className="animate-in fade-in-50 flex h-[50vh] w-full flex-col items-center justify-center space-y-4 rounded-md border border-dashed p-8 text-center">
@@ -26,9 +31,7 @@ export default function DashboardError({
       <h2 className="text-xl font-semibold tracking-tight">
         Oops! Something went wrong.
       </h2>
-      <p className="text-muted-foreground max-w-sm">
-        {error.message || "We couldn't load the requested information."}
-      </p>
+      <p className="text-muted-foreground max-w-sm">{userMessage}</p>
       <Button variant="outline" onClick={() => reset()}>
         Try again
       </Button>
