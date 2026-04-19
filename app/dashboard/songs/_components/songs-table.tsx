@@ -28,6 +28,8 @@ import {
 import { MoreHorizontal, Plus, Pencil, Trash2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 
+const SEARCHABLE_KEYS = ["title", "artist_name", "genre"] as const;
+
 interface SongsTableProps {
   initialSongs: Song[];
   artists: Artist[];
@@ -47,12 +49,9 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
   }));
 
   const { search, setSearch, sortConfig, handleSort, processedData } =
-    useTableControls(
-      songsWithArtistName as unknown as Record<string, unknown>[],
-      ["title", "artist_name", "genre"] as never[],
-    );
+    useTableControls(songsWithArtistName, SEARCHABLE_KEYS);
 
-  const songs = processedData as unknown as (Song & { artist_name: string })[];
+  const songs = processedData;
 
   const handleOpenDialog = (song?: Song) => {
     setEditingSong(song ?? null);

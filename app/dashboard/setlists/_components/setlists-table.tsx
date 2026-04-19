@@ -36,6 +36,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const SEARCHABLE_KEYS = ["title", "description"] as const;
+
 interface SetlistsTableProps {
   initialSetlists: Setlist[];
 }
@@ -47,12 +49,9 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
   const [editingSetlist, setEditingSetlist] = useState<Setlist | null>(null);
 
   const { search, setSearch, sortConfig, handleSort, processedData } =
-    useTableControls(
-      initialSetlists as unknown as Record<string, unknown>[],
-      ["title", "description"] as never[],
-    );
+    useTableControls(initialSetlists, SEARCHABLE_KEYS);
 
-  const setlists = processedData as unknown as Setlist[];
+  const setlists = processedData;
 
   const handleOpenDialog = (setlist?: Setlist) => {
     setEditingSetlist(setlist ?? null);

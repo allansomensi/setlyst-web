@@ -9,9 +9,9 @@ export interface SortConfig {
   direction: SortDirection;
 }
 
-export function useTableControls<T extends Record<string, unknown>>(
+export function useTableControls<T>(
   data: T[],
-  searchableKeys: (keyof T)[],
+  searchableKeys: readonly (keyof T)[],
 ) {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({

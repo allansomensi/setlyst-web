@@ -25,6 +25,8 @@ import {
 import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+const SEARCHABLE_KEYS = ["name"] as const;
+
 interface ArtistsTableProps {
   initialArtists: Artist[];
 }
@@ -35,12 +37,9 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
 
   const { search, setSearch, sortConfig, handleSort, processedData } =
-    useTableControls(
-      initialArtists as unknown as Record<string, unknown>[],
-      ["name"] as never[],
-    );
+    useTableControls(initialArtists, SEARCHABLE_KEYS);
 
-  const artists = processedData as unknown as Artist[];
+  const artists = processedData;
 
   const handleOpenDialog = (artist?: Artist) => {
     setEditingArtist(artist ?? null);
