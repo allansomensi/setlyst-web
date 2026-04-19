@@ -5,14 +5,14 @@ declare module "next-auth" {
     error?: "TokenExpired";
     user: {
       id: string;
-      role: string;
+      role: "user" | "moderator" | "admin";
       apiToken: string;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     id: string;
-    role: string;
+    role: "user" | "moderator" | "admin";
     apiToken: string;
   }
 }
@@ -20,7 +20,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: string;
+    role: "user" | "moderator" | "admin";
     apiToken: string;
     apiTokenExpires?: number;
     error?: "TokenExpired";

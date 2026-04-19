@@ -6,11 +6,12 @@ import { ListMusic, ChevronLeft, ChevronRight } from "lucide-react";
 import { SidebarLinks } from "./sidebar-links";
 import { LogoutButton } from "./logout-button";
 import { cn } from "@/lib/utils";
+import { User } from "@/types/api";
 
 interface SidebarProps {
   user?: {
     name?: string | null;
-    role?: string | null;
+    role?: User["role"] | null;
   };
 }
 
@@ -20,7 +21,7 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "bg-background relative hidden flex-col border-r transition-all duration-300 md:flex", // Adicionado 'hidden' e 'md:flex'
+        "bg-background relative hidden flex-col border-r transition-all duration-300 md:flex",
         isCollapsed ? "w-20" : "w-64",
       )}
     >
@@ -50,7 +51,10 @@ export function Sidebar({ user }: SidebarProps) {
         </Link>
       </div>
 
-      <SidebarLinks isCollapsed={isCollapsed} />
+      <SidebarLinks
+        isCollapsed={isCollapsed}
+        userRole={user?.role as "user" | "moderator" | "admin" | undefined}
+      />
 
       <div
         className={cn(

@@ -6,8 +6,13 @@ import { ListMusic, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";
 import { LogoutButton } from "./logout-button";
+import { User } from "@/types/api";
 
-export function MobileNav({ user }: { user?: { name?: string | null } }) {
+export function MobileNav({
+  user,
+}: {
+  user?: { name?: string | null; role?: User["role"] | null };
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -41,11 +46,19 @@ export function MobileNav({ user }: { user?: { name?: string | null } }) {
             className="flex-1 overflow-y-auto py-4"
             onClick={() => setIsOpen(false)}
           >
-            <SidebarLinks isCollapsed={false} />
+            <SidebarLinks
+              isCollapsed={false}
+              userRole={
+                user?.role as "user" | "moderator" | "admin" | undefined
+              }
+            />
           </div>
 
           <div className="flex items-center justify-between border-t p-4">
-            <p className="text-sm font-medium">{user?.name}</p>
+            <div>
+              <p className="text-sm font-medium">{user?.name}</p>
+              <p className="text-muted-foreground text-xs">{user?.role}</p>
+            </div>
             <LogoutButton />
           </div>
         </div>

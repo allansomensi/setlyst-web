@@ -187,4 +187,6 @@ export interface UpdateUserPayload {
   password?: string;
   first_name?: string | null;
   last_name?: string | null;
+  role: "user" | "moderator" | "admin";
+  status: "active" | "inactive";
 }
