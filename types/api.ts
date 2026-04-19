@@ -91,6 +91,8 @@ export const GENRES = [
 
 export type Tonality = (typeof TONALITIES)[number];
 export type Genre = (typeof GENRES)[number];
+export type UserRole = "user" | "moderator" | "admin";
+export type UserStatus = "active" | "inactive";
 
 export interface PaginationMeta {
   total_items: number;
@@ -175,18 +177,18 @@ export interface User {
   email: string | null;
   first_name: string | null;
   last_name: string | null;
-  role: "user" | "moderator" | "admin";
-  status: "active" | "inactive";
+  role: UserRole;
+  status: UserStatus;
   created_at: string;
   updated_at: string;
 }
 
 export interface UpdateUserPayload {
-  username?: string;
+  username: string;
   email?: string | null;
   password?: string;
   first_name?: string | null;
   last_name?: string | null;
-  role: "user" | "moderator" | "admin";
-  status: "active" | "inactive";
+  role: UserRole;
+  status: UserStatus;
 }

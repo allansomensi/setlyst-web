@@ -17,48 +17,57 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
+const GENERIC_ERROR =
+  "Registration failed. Please verify your data and try again.";
+
 export default function RegisterPage() {
   const router = useRouter();
 
   const [error, registerAction, isPending] = useActionState(
     async (_previousState: string | null, formData: FormData) => {
-      const rawData = Object.fromEntries(formData.entries());
+      const username = (formData.get("username") as string)?.trim();
+      const password = formData.get("password") as string;
+      const email = (formData.get("email") as string)?.trim() || undefined;
+      const first_name =
+        (formData.get("first_name") as string)?.trim() || undefined;
+      const last_name =
+        (formData.get("last_name") as string)?.trim() || undefined;
 
-      const payload = {
-        username: rawData.username as string,
-        password: rawData.password as string,
-        ...(rawData.email && { email: rawData.email as string }),
-        ...(rawData.first_name && { first_name: rawData.first_name as string }),
-        ...(rawData.last_name && { last_name: rawData.last_name as string }),
-      };
+      if (!username || username.length < 3 || username.length > 128) {
+        return "Username must be between 3 and 128 characters.";
+      }
+      if (!password || password.length < 8 || password.length > 256) {
+        return "Password must be between 8 and 256 characters.";
+      }
+
+      const payload: Record<string, string> = { username, password };
+      if (email) payload.email = email;
+      if (first_name) payload.first_name = first_name;
+      if (last_name) payload.last_name = last_name;
+
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          },
-        );
+        const res = await fetch(`${apiUrl}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          const errorMessage =
-            errorData.message || "Failed to register. Please verify your data.";
-          toast.error(errorMessage);
-          return errorMessage;
+          if (res.status === 409) {
+            return "Username or email is already in use.";
+          }
+          if (res.status === 422) {
+            return "Invalid registration data. Please check all fields.";
+          }
+          return GENERIC_ERROR;
         }
 
         toast.success("Account created successfully!");
         router.push("/login?registered=true");
         return null;
-      } catch (err: unknown) {
-        toast.error("Connection error");
-        console.error(
-          "Registration error:",
-          err instanceof Error ? err.message : err,
-        );
+      } catch {
         return "Unable to reach the server. Please try again later.";
       }
     },
@@ -86,6 +95,8 @@ export default function RegisterPage() {
                 type="text"
                 placeholder="Choose a username"
                 required
+                minLength={3}
+                maxLength={128}
                 disabled={isPending}
                 autoComplete="username"
               />
@@ -98,6 +109,7 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 placeholder="john.doe@example.com"
+                maxLength={254}
                 disabled={isPending}
                 autoComplete="email"
               />
@@ -111,6 +123,7 @@ export default function RegisterPage() {
                   name="first_name"
                   type="text"
                   placeholder="John"
+                  maxLength={64}
                   disabled={isPending}
                   autoComplete="given-name"
                 />
@@ -122,6 +135,7 @@ export default function RegisterPage() {
                   name="last_name"
                   type="text"
                   placeholder="Doe"
+                  maxLength={64}
                   disabled={isPending}
                   autoComplete="family-name"
                 />
@@ -136,8 +150,10 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Create a secure password"
+                placeholder="At least 8 characters"
                 required
+                minLength={8}
+                maxLength={256}
                 disabled={isPending}
                 autoComplete="new-password"
               />
