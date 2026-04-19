@@ -40,7 +40,6 @@ export const authOptions: NextAuthOptions = {
           }
 
           const token = await res.json();
-
           const decoded = jwtDecode<SetlystJwtPayload>(token);
 
           return {
@@ -62,10 +61,22 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.apiToken = user.apiToken;
+
+        const decoded = jwtDecode<SetlystJwtPayload>(user.apiToken as string);
+        token.apiTokenExpires = decoded.exp * 1000;
       }
+
+      if (Date.now() > (token.apiTokenExpires as number)) {
+        return { ...token, error: "TokenExpired" };
+      }
+
       return token;
     },
     async session({ session, token }) {
+      if (token.error === "TokenExpired") {
+        session.error = "TokenExpired";
+      }
+
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;

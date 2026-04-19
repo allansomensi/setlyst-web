@@ -307,7 +307,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     };
   }, [id, fetchApi, router]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     startTransition(async () => {
       const result = await updateSong(id, { lyrics });
       if (result.success) {
@@ -317,7 +317,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         toast.error(result.error ?? "Error saving lyrics");
       }
     });
-  };
+  }, [id, lyrics, router]);
 
   // Toolbar actions
 
@@ -369,7 +369,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         }
       }
     },
-    [applyBold, applyItalic, applyUnderline],
+    [applyBold, applyItalic, applyUnderline, handleSave],
   );
 
   if (isLoading) {
