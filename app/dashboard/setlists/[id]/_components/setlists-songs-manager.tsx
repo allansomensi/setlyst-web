@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Song, Artist } from "@/types/api";
 import { removeSongFromSetlist, reorderSetlistSongs } from "../../actions";
 import { Button } from "@/components/ui/button";
@@ -53,12 +54,14 @@ function SortableRow({
   index,
   getArtistName,
   handleRemove,
+  handlePlay,
   isReordering,
 }: {
   song: Song;
   index: number;
   getArtistName: (id: string) => string;
   handleRemove: (id: string) => void;
+  handlePlay: (id: string) => void;
   isReordering: boolean;
 }) {
   const {
@@ -81,7 +84,12 @@ function SortableRow({
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={isDragging ? "bg-muted" : ""}
+      className={` ${isDragging ? "bg-muted" : ""} ${!isReordering ? "hover:bg-muted/50 cursor-pointer transition-colors" : ""} `}
+      onClick={() => {
+        if (!isReordering) {
+          handlePlay(song.id);
+        }
+      }}
     >
       <TableCell className="w-16">
         {isReordering ? (
@@ -89,6 +97,7 @@ function SortableRow({
             {...attributes}
             {...listeners}
             className="hover:bg-accent cursor-grab rounded p-1 active:cursor-grabbing"
+            onClick={(e) => e.stopPropagation()}
           >
             <GripVertical className="text-muted-foreground h-4 w-4" />
           </div>
@@ -121,14 +130,19 @@ function SortableRow({
       </TableCell>
       <TableCell className="text-right">
         {!isReordering && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-red-600 hover:bg-red-50"
-            onClick={() => handleRemove(song.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative z-10 text-red-600 hover:bg-red-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemove(song.id);
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </TableCell>
     </TableRow>
@@ -141,6 +155,7 @@ export function SetlistSongsManager({
   allSongs,
   artists,
 }: SetlistSongsManagerProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
@@ -202,6 +217,10 @@ export function SetlistSongsManager({
       if (result.success) toast.success("Song removed");
       else toast.error(result.error);
     });
+  };
+
+  const handlePlay = (songId: string) => {
+    router.push(`/dashboard/setlists/${setlistId}/live?songId=${songId}`);
   };
 
   return (
@@ -283,6 +302,7 @@ export function SetlistSongsManager({
                       index={index}
                       getArtistName={getArtistName}
                       handleRemove={handleRemove}
+                      handlePlay={handlePlay}
                       isReordering={isReordering}
                     />
                   ))}

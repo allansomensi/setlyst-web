@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { Artist } from "@/types/api";
 import { deleteArtist } from "../actions";
 import { ArtistDialog } from "./artist-dialog";
+import { SearchInput } from "@/components/ui/search-input";
+import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
+import { useTableControls } from "@/hooks/use-table-controls";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -31,18 +34,25 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
 
+  const { search, setSearch, sortConfig, handleSort, processedData } =
+    useTableControls(
+      initialArtists as unknown as Record<string, unknown>[],
+      ["name"] as never[],
+    );
+
+  const artists = processedData as unknown as Artist[];
+
   const handleOpenDialog = (artist?: Artist) => {
-    setEditingArtist(artist || null);
+    setEditingArtist(artist ?? null);
     setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
     if (!confirm("Are you sure you want to delete this artist?")) return;
-
     startTransition(async () => {
       const result = await deleteArtist(id);
       if (!result.success) {
-        toast.error(result.error || "Failed to delete artist");
+        toast.error(result.error ?? "Error deleting the artist");
       } else {
         toast.success("Artist deleted successfully");
       }
@@ -51,6 +61,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Artists</h1>
@@ -64,33 +75,54 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
         </Button>
       </div>
 
+      {/* Search */}
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Search artist..."
+        className="max-w-sm"
+      />
+
+      {/* Table */}
       <div
         className={`bg-background rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
       >
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Created At</TableHead>
+              <SortableColumnHeader
+                label="Name"
+                sortKey="name"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+              />
+              <SortableColumnHeader
+                label="Registered on"
+                sortKey="created_at"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+              />
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialArtists.length === 0 ? (
+            {artists.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={3}
                   className="text-muted-foreground h-24 text-center"
                 >
-                  No artists found. Start by adding one.
+                  {search
+                    ? `No artists found for "${search}".`
+                    : "No artists registered. Start by adding one."}
                 </TableCell>
               </TableRow>
             ) : (
-              initialArtists.map((artist) => (
+              artists.map((artist) => (
                 <TableRow key={artist.id}>
                   <TableCell className="font-medium">{artist.name}</TableCell>
                   <TableCell>
-                    {new Date(artist.created_at).toLocaleDateString()}
+                    {new Date(artist.created_at).toLocaleDateString("en-US")}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -103,13 +135,15 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                         <DropdownMenuItem
                           onClick={() => handleOpenDialog(artist)}
                         >
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(artist.id)}
                           className="text-red-600"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -120,6 +154,13 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {artists.length > 0 && search && (
+        <p className="text-muted-foreground text-sm">
+          {artists.length} result{artists.length !== 1 ? "s " : " "} for &quot;
+          {search}&quot;
+        </p>
+      )}
 
       <ArtistDialog
         isOpen={isDialogOpen}

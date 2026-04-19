@@ -135,7 +135,7 @@ export function ProfileForm({ user }: { user: User }) {
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <div className="relative">
-                  <UserIcon className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+                  <UserIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="username"
                     name="username"
@@ -154,7 +154,7 @@ export function ProfileForm({ user }: { user: User }) {
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <div className="relative">
-                  <Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+                  <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="email"
                     name="email"

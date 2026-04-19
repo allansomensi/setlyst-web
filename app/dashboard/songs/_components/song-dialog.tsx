@@ -47,7 +47,6 @@ export function SongDialog({
       tonality: (formData.get("tonality") as Tonality) || null,
       genre: (formData.get("genre") as Genre) || null,
       duration: durationStr ? parseDurationToSeconds(durationStr) : null,
-      lyrics: (formData.get("lyrics") as string) || null,
     };
 
     startTransition(async () => {
@@ -56,10 +55,26 @@ export function SongDialog({
         : await createSong(data);
 
       if (result.success) {
-        toast.success(isEditing ? "Song updated!" : "Song created!");
-        onClose();
+        if (isEditing) {
+          toast.success("Song updated!");
+          onClose();
+        } else {
+          // After creation, offer to add lyrics
+          toast.success("Song created!", {
+            description: "Would you like to add lyrics now?",
+            action: {
+              label: "Add lyrics",
+              onClick: () => {
+                // We need the new song id — but actions only return success/error
+                // Re-fetch is handled by revalidatePath, so we navigate after close
+                router.push("/dashboard/songs");
+              },
+            },
+          });
+          onClose();
+        }
       } else {
-        toast.error(result.error || "Failed to save song");
+        toast.error(result.error ?? "Error saving the song");
       }
     });
   };
@@ -70,17 +85,18 @@ export function SongDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-150">
-        <form action={handleAction} key={song?.id || "new"}>
+        <form action={handleAction} key={song?.id ?? "new"}>
           <DialogHeader>
-            <DialogTitle>
-              {isEditing ? "Edit Song" : "Add New Song"}
-            </DialogTitle>
+            <DialogTitle>{isEditing ? "Edit Song" : "Add Song"}</DialogTitle>
             <DialogDescription>
-              Enter the song details and metadata.
+              {isEditing
+                ? "Update the song data and metadata."
+                : "Fill in the details. Lyrics can be added later."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
+            {/* Title + Artist */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
@@ -91,7 +107,7 @@ export function SongDialog({
                   required
                   disabled={isPending}
                   maxLength={255}
-                  placeholder="e.g., Neon"
+                  placeholder="e.g.: Neon"
                 />
               </div>
               <div className="space-y-2">
@@ -100,12 +116,12 @@ export function SongDialog({
                   id="artist_id"
                   name="artist_id"
                   className={inputClass}
-                  defaultValue={song?.artist_id || ""}
+                  defaultValue={song?.artist_id ?? ""}
                   required
                   disabled={isPending}
                 >
                   <option value="" disabled>
-                    Select an artist
+                    Select artist
                   </option>
                   {artists.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -116,6 +132,7 @@ export function SongDialog({
               </div>
             </div>
 
+            {/* Tonality + Genre + Tempo + Duration */}
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="tonality">Key</Label>
@@ -123,7 +140,7 @@ export function SongDialog({
                   id="tonality"
                   name="tonality"
                   className={inputClass}
-                  defaultValue={song?.tonality || ""}
+                  defaultValue={song?.tonality ?? ""}
                   disabled={isPending}
                 >
                   <option value="">None</option>
@@ -141,7 +158,7 @@ export function SongDialog({
                   id="genre"
                   name="genre"
                   className={inputClass}
-                  defaultValue={song?.genre || ""}
+                  defaultValue={song?.genre ?? ""}
                   disabled={isPending}
                 >
                   <option value="">None</option>
@@ -159,7 +176,7 @@ export function SongDialog({
                   id="tempo"
                   name="tempo"
                   type="number"
-                  defaultValue={song?.tempo || ""}
+                  defaultValue={song?.tempo ?? ""}
                   disabled={isPending}
                   placeholder="120"
                   min="1"
@@ -176,43 +193,37 @@ export function SongDialog({
                   disabled={isPending}
                   placeholder="03:30"
                   pattern="^(\d{1,3}:\d{2})?$"
-                  title="Format: mm:ss (e.g., 03:30)"
+                  title="Format: mm:ss (e.g.: 03:30)"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="lyrics">Lyrics</Label>
-                {isEditing && (
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    className="text-primary h-auto p-0"
-                    onClick={() =>
-                      router.push(`/dashboard/songs/${song.id}/lyrics`)
-                    }
-                  >
-                    <FileEdit className="mr-1 h-3 w-3" />
-                    Edit Lyrics
-                  </Button>
-                )}
+            {/* Lyrics info for editing */}
+            {isEditing && (
+              <div className="bg-muted/50 flex items-center justify-between rounded-lg border border-dashed px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Lyrics</p>
+                  <p className="text-muted-foreground text-xs">
+                    {song.lyrics
+                      ? `${song.lyrics.split("\n").length} lines registered`
+                      : "No lyrics registered"}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    onClose();
+                    router.push(`/dashboard/songs/${song.id}/lyrics`);
+                  }}
+                >
+                  <FileEdit className="h-3.5 w-3.5" />
+                  Edit lyrics
+                </Button>
               </div>
-              <textarea
-                id="lyrics"
-                name="lyrics"
-                value={song?.lyrics || ""}
-                readOnly
-                disabled={isPending}
-                placeholder={
-                  isEditing
-                    ? "Click edit to change lyrics..."
-                    : "Lyrics will be available after saving."
-                }
-                className="border-input bg-muted text-muted-foreground flex min-h-37.5 w-full cursor-default rounded-md border px-3 py-2 text-sm"
-              />
-            </div>
+            )}
           </div>
 
           <DialogFooter>

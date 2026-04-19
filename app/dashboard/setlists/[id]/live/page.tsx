@@ -4,10 +4,18 @@ import { LiveModeViewer } from "./_components/live-mode-viewer";
 
 export default async function SetlistLivePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+
+  const songId =
+    typeof resolvedSearchParams.songId === "string"
+      ? resolvedSearchParams.songId
+      : undefined;
 
   const [setlist, setlistSongsRes] = await Promise.all([
     fetchServerApi<Setlist>(`/setlists/${id}`),
@@ -18,5 +26,11 @@ export default async function SetlistLivePage({
 
   const setlistSongs = setlistSongsRes.data || [];
 
-  return <LiveModeViewer setlist={setlist} songs={setlistSongs} />;
+  return (
+    <LiveModeViewer
+      setlist={setlist}
+      songs={setlistSongs}
+      initialSongId={songId}
+    />
+  );
 }
