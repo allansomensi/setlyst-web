@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing Guide 📜
+    url: https://github.com/allansomensi/setlyst-web/blob/main/CONTRIBUTING.md
+    about: Please read our guide before submitting code or opening an issue to align with our development standards.
+  - name: Project Documentation
+    url: https://github.com/allansomensi/setlyst-web#readme
+    about: Check the README for setup instructions, environment variables, and project architecture.

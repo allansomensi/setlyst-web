@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-vscode.vscode-typescript-next",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "fill-labs.dependi",
+    "EditorConfig.EditorConfig",
+    "vivaxy.vscode-conventional-commits",
+    "PKief.material-icon-theme",
+    "bradlc.vscode-tailwindcss"
+  ]
+}
