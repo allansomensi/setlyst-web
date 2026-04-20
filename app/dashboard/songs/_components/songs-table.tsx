@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Plus, Pencil, Trash2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 const SEARCHABLE_KEYS = ["title", "artist_name", "genre"] as const;
 
@@ -48,8 +49,17 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
     artist_name: getArtistName(song.artist_id),
   }));
 
-  const { search, setSearch, sortConfig, handleSort, processedData } =
-    useTableControls(songsWithArtistName, SEARCHABLE_KEYS);
+  const {
+    search,
+    setSearch,
+    sortConfig,
+    handleSort,
+    processedData,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalItems,
+  } = useTableControls(songsWithArtistName, SEARCHABLE_KEYS);
 
   const songs = processedData;
 
@@ -219,12 +229,19 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
         </Table>
       </div>
 
-      {songs.length > 0 && search && (
+      <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
-          {songs.length} result{songs.length !== 1 ? "s " : " "} for &quot;
-          {search}&quot;
+          Showing {songs.length} of {totalItems} result
+          {totalItems !== 1 ? "s" : ""}
+          {search && ` for "${search}"`}
         </p>
-      )}
+
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+        />
+      </div>
 
       <SongDialog
         isOpen={isDialogOpen}

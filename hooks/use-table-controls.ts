@@ -12,12 +12,19 @@ export interface SortConfig {
 export function useTableControls<T>(
   data: T[],
   searchableKeys: readonly (keyof T)[],
+  itemsPerPage: number = 10,
 ) {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     direction: null,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSearch = useCallback((term: string) => {
+    setSearch(term);
+    setCurrentPage(1);
+  }, []);
 
   const handleSort = useCallback((key: string) => {
     setSortConfig((prev) => {
@@ -27,7 +34,7 @@ export function useTableControls<T>(
     });
   }, []);
 
-  const processedData = useMemo(() => {
+  const filteredAndSortedData = useMemo(() => {
     let result = [...data];
 
     if (search.trim()) {
@@ -58,11 +65,23 @@ export function useTableControls<T>(
     return result;
   }, [data, search, searchableKeys, sortConfig]);
 
+  const totalItems = filteredAndSortedData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const processedData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedData.slice(start, start + itemsPerPage);
+  }, [filteredAndSortedData, currentPage, itemsPerPage]);
+
   return {
     search,
-    setSearch,
+    setSearch: handleSearch,
     sortConfig,
     handleSort,
     processedData,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalItems,
   };
 }

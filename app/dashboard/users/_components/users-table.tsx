@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Pencil } from "lucide-react";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 const SEARCHABLE_KEYS = [
   "username",
@@ -40,8 +41,19 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  const { search, setSearch, sortConfig, handleSort, processedData } =
-    useTableControls(initialUsers, SEARCHABLE_KEYS);
+  const {
+    search,
+    setSearch,
+    sortConfig,
+    handleSort,
+    processedData,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalItems,
+  } = useTableControls(initialUsers, SEARCHABLE_KEYS);
+
+  const users = processedData;
 
   const handleOpenDialog = (user: User) => {
     setEditingUser(user);
@@ -167,6 +179,20 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground text-sm">
+          Showing {users.length} of {totalItems} result
+          {totalItems !== 1 ? "s" : ""}
+          {search && ` for "${search}"`}
+        </p>
+
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+        />
       </div>
 
       <UserDialog

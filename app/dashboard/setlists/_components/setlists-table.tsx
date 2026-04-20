@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 const SEARCHABLE_KEYS = ["title", "description"] as const;
 
@@ -48,8 +49,17 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSetlist, setEditingSetlist] = useState<Setlist | null>(null);
 
-  const { search, setSearch, sortConfig, handleSort, processedData } =
-    useTableControls(initialSetlists, SEARCHABLE_KEYS);
+  const {
+    search,
+    setSearch,
+    sortConfig,
+    handleSort,
+    processedData,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalItems,
+  } = useTableControls(initialSetlists, SEARCHABLE_KEYS);
 
   const setlists = processedData;
 
@@ -219,13 +229,19 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
         </Table>
       </div>
 
-      {setlists.length > 0 && search && (
+      <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
-          {setlists.length} result{setlists.length !== 1 ? "s " : " "} for
-          &quot;
-          {search}&quot;
+          Showing {setlists.length} of {totalItems} result
+          {totalItems !== 1 ? "s" : ""}
+          {search && ` for "${search}"`}
         </p>
-      )}
+
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+        />
+      </div>
 
       <SetlistDialog
         isOpen={isDialogOpen}
