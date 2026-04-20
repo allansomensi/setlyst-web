@@ -55,10 +55,17 @@ export function MobileNav({
           </div>
 
           <div className="flex items-center justify-between border-t p-4">
-            <div>
-              <p className="text-sm font-medium">{user?.name}</p>
-              <p className="text-muted-foreground text-xs">{user?.role}</p>
-            </div>
+            <Link
+              href="/dashboard/profile"
+              className="flex-1"
+              onClick={() => setIsOpen(false)}
+            >
+              <div>
+                <p className="text-sm font-medium">{user?.name}</p>
+                <p className="text-muted-foreground text-xs">{user?.role}</p>
+              </div>
+            </Link>
+
             <LogoutButton />
           </div>
         </div>
