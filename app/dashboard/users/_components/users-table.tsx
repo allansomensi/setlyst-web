@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { User } from "@/types/api";
+import { deleteUser } from "../actions";
 import { UserDialog } from "./user-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
@@ -22,7 +23,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
 
 const SEARCHABLE_KEYS = [
@@ -37,7 +39,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ initialUsers }: UsersTableProps) {
-  const [isPending] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
@@ -55,9 +57,21 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
 
   const users = processedData;
 
-  const handleOpenDialog = (user: User) => {
-    setEditingUser(user);
+  const handleOpenDialog = (user?: User) => {
+    setEditingUser(user ?? null);
     setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    startTransition(async () => {
+      const result = await deleteUser(id);
+      if (!result.success) {
+        toast.error(result.error ?? "Error deleting the user");
+      } else {
+        toast.success("User deleted successfully");
+      }
+    });
   };
 
   return (
@@ -67,6 +81,10 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
           <h1 className="text-3xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground">Manage platform members.</p>
         </div>
+        <Button onClick={() => handleOpenDialog()}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
       </div>
 
       <SearchInput
@@ -77,7 +95,7 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
       />
 
       <div
-        className={`bg-background rounded-md border ${isPending ? "opacity-60" : ""}`}
+        className={`bg-background rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
       >
         <Table>
           <TableHeader>
@@ -170,6 +188,13 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
                         >
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(user.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { User, UpdateUserPayload } from "@/types/api";
-import { updateUser } from "../actions";
+import { createUser, updateUser } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,18 +18,17 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserDialogProps {
-  user: User | null;
+  user?: User | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
   const [isPending, startTransition] = useTransition();
+  const isEditing = !!user;
 
   const handleAction = (formData: FormData) => {
-    if (!user) return;
-
-    const data: UpdateUserPayload = {
+    const data = {
       username: formData.get("username") as string,
       first_name: (formData.get("first_name") as string) || null,
       last_name: (formData.get("last_name") as string) || null,
@@ -38,13 +37,32 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
     };
 
     startTransition(async () => {
-      const result = await updateUser(user.id, data);
+      let result;
+
+      if (isEditing) {
+        result = await updateUser(user.id, data as UpdateUserPayload);
+      } else {
+        const emailValue = formData.get("email") as string;
+        const createData = {
+          ...data,
+          email: emailValue ? emailValue : null,
+          password: formData.get("password") as string,
+        };
+        result = await createUser(createData);
+      }
 
       if (result.success) {
-        toast.success("User updated successfully!");
+        toast.success(
+          isEditing
+            ? "User updated successfully!"
+            : "User created successfully!",
+        );
         onClose();
       } else {
-        toast.error(result.error ?? "Error updating user");
+        toast.error(
+          result.error ??
+            (isEditing ? "Error updating user" : "Error creating user"),
+        );
       }
     });
   };
@@ -57,9 +75,13 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
       <DialogContent className="sm:max-w-106.25">
         <form action={handleAction} key={user?.id ?? "new"}>
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Edit User" : "Add New User"}
+            </DialogTitle>
             <DialogDescription>
-              Update user permissions and profile details.
+              {isEditing
+                ? "Update user permissions and profile details."
+                : "Enter details and credentials for the new user."}
             </DialogDescription>
           </DialogHeader>
 
@@ -74,6 +96,30 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
                 disabled={isPending}
               />
             </div>
+
+            {!isEditing && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    disabled={isPending}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    disabled={isPending}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -103,7 +149,7 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
                   id="role"
                   name="role"
                   className={inputClass}
-                  defaultValue={user?.role}
+                  defaultValue={user?.role || "user"}
                   disabled={isPending}
                   required
                 >
@@ -118,7 +164,7 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
                   id="status"
                   name="status"
                   className={inputClass}
-                  defaultValue={user?.status}
+                  defaultValue={user?.status || "active"}
                   disabled={isPending}
                   required
                 >
@@ -140,7 +186,7 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              {isEditing ? "Save Changes" : "Create User"}
             </Button>
           </DialogFooter>
         </form>

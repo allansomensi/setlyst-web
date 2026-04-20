@@ -183,12 +183,22 @@ export interface User {
   updated_at: string;
 }
 
-export interface UpdateUserPayload {
+export interface CreateUserPayload {
   username: string;
+  password: string;
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  role?: "user" | "moderator" | "admin";
+  status?: "active" | "inactive";
+}
+
+export interface UpdateUserPayload {
+  username?: string;
   email?: string | null;
   password?: string;
   first_name?: string | null;
   last_name?: string | null;
-  role: UserRole;
-  status: UserStatus;
+  role?: "user" | "moderator" | "admin";
+  status?: "active" | "inactive";
 }
