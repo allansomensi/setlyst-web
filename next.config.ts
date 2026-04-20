@@ -2,30 +2,43 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-// Build a safe API URL for CSP
-const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+const getApiOrigin = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  try {
+    if (envUrl) {
+      return new URL(envUrl).origin;
+    }
+  } catch {
+    return envUrl.replace(/\/$/, "");
+  }
+  return "";
+};
 
-const connectSrcDev = [
+const apiOrigin = getApiOrigin();
+const vercelDomains = ["https://vercel.live", "https://vercel.com"];
+
+const connectSrc = [
   "'self'",
-  apiUrl,
-  "ws://localhost:*",
-  "http://localhost:*",
-  "http://127.0.0.1:*",
+  apiOrigin,
+  ...(isDev
+    ? ["ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"]
+    : []),
+  ...vercelDomains,
 ].filter(Boolean);
-
-const connectSrcProd = ["'self'", apiUrl].filter(Boolean);
-
-const connectSrc = isDev ? connectSrcDev : connectSrcProd;
 
 const cspDirectives: Record<string, string[]> = {
   "default-src": ["'self'"],
-  "script-src": isDev
-    ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
-    : ["'self'", "'unsafe-inline'"],
+  "script-src": [
+    "'self'",
+    "'unsafe-inline'",
+    ...(isDev ? ["'unsafe-eval'"] : []),
+    "https://vercel.live",
+  ],
   "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   "font-src": ["'self'", "https://fonts.gstatic.com"],
-  "img-src": ["'self'", "data:", "blob:"],
+  "img-src": ["'self'", "data:", "blob:", "https://vercel.com"],
   "connect-src": connectSrc,
+  "frame-src": ["'self'", "https://vercel.live"],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'self'"],
   "form-action": ["'self'"],
@@ -55,10 +68,7 @@ const securityHeaders = [
       "browsing-topics=()",
     ].join(", "),
   },
-  {
-    key: "Content-Security-Policy",
-    value: csp,
-  },
+  { key: "Content-Security-Policy", value: csp },
   ...(isDev
     ? []
     : [
@@ -70,16 +80,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Prevent exposing Next.js version
   poweredByHeader: false,
-
   headers: async () => [
     {
       source: "/(.*)",
       headers: securityHeaders,
     },
   ],
-
   images: {
     remotePatterns: [],
   },
