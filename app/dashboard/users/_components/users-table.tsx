@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { User } from "@/types/api";
 import { deleteUser } from "../actions";
 import { UserDialog } from "./user-dialog";
+import { PasswordDialog } from "./password-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
@@ -23,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Trash2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
 
@@ -43,6 +44,11 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordTargetUser, setPasswordTargetUser] = useState<User | null>(
+    null,
+  );
+
   const {
     search,
     setSearch,
@@ -60,6 +66,11 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
   const handleOpenDialog = (user?: User) => {
     setEditingUser(user ?? null);
     setIsDialogOpen(true);
+  };
+
+  const handleOpenPasswordDialog = (user: User) => {
+    setPasswordTargetUser(user);
+    setIsPasswordDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -190,6 +201,12 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          onClick={() => handleOpenPasswordDialog(user)}
+                        >
+                          <KeyRound className="mr-2 h-4 w-4" />
+                          Change Password
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() => handleDelete(user.id)}
                           className="text-red-600"
                         >
@@ -224,6 +241,11 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         user={editingUser}
+      />
+      <PasswordDialog
+        isOpen={isPasswordDialogOpen}
+        onClose={() => setIsPasswordDialogOpen(false)}
+        user={passwordTargetUser}
       />
     </div>
   );

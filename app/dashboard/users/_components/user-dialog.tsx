@@ -28,8 +28,11 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
   const isEditing = !!user;
 
   const handleAction = (formData: FormData) => {
+    const emailValue = formData.get("email") as string;
+
     const data = {
       username: formData.get("username") as string,
+      email: emailValue ? emailValue : null,
       first_name: (formData.get("first_name") as string) || null,
       last_name: (formData.get("last_name") as string) || null,
       role: formData.get("role") as User["role"],
@@ -42,10 +45,8 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
       if (isEditing) {
         result = await updateUser(user.id, data as UpdateUserPayload);
       } else {
-        const emailValue = formData.get("email") as string;
         const createData = {
           ...data,
-          email: emailValue ? emailValue : null,
           password: formData.get("password") as string,
         };
         result = await createUser(createData);
@@ -86,38 +87,40 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                defaultValue={user?.username}
-                required
-                disabled={isPending}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  defaultValue={user?.username}
+                  required
+                  disabled={isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  defaultValue={user?.email || ""}
+                  disabled={isPending}
+                />
+              </div>
             </div>
 
             {!isEditing && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    disabled={isPending}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    disabled={isPending}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  disabled={isPending}
+                />
               </div>
             )}
 

@@ -119,3 +119,34 @@ export async function deleteUser(id: string) {
     return { success: false, error: message };
   }
 }
+
+export async function changeUserPassword(id: string, password: string) {
+  if (!id) return { success: false, error: "Invalid user ID." };
+
+  const session = await requireSession().catch(() => null);
+  if (!session) return { success: false, error: "Unauthorized." };
+
+  const { role } = session.user;
+  if (role !== "admin" && role !== "moderator") {
+    return { success: false, error: "Forbidden. Insufficient permissions." };
+  }
+
+  if (!password || password.length < 8 || password.length > 100) {
+    return {
+      success: false,
+      error: "Password must be between 8 and 100 characters.",
+    };
+  }
+
+  try {
+    await fetchServerApi(`/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ password }),
+    });
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to change password.";
+    return { success: false, error: message };
+  }
+}
