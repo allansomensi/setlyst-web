@@ -59,15 +59,19 @@ export function SongDialog({
           toast.success("Song updated!");
           onClose();
         } else {
-          // After creation, offer to add lyrics
+          const newSongId =
+            "data" in result ? (result.data as Song)?.id : undefined;
+
           toast.success("Song created!", {
             description: "Would you like to add lyrics now?",
             action: {
               label: "Add lyrics",
               onClick: () => {
-                // We need the new song id — but actions only return success/error
-                // Re-fetch is handled by revalidatePath, so we navigate after close
-                router.push("/dashboard/songs");
+                if (newSongId) {
+                  router.push(`/dashboard/songs/${newSongId}/lyrics`);
+                } else {
+                  router.push("/dashboard/songs");
+                }
               },
             },
           });
