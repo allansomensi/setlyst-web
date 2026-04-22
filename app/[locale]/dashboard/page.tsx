@@ -2,13 +2,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListMusic, Music, Disc3 } from "lucide-react";
+import { ListMusic, Music, Disc3, Users } from "lucide-react";
 import { Link } from "@/i18n/routing";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
+
+  const userRole = session?.user?.role;
 
   const quickLinks = [
     {
@@ -30,6 +32,15 @@ export default async function DashboardPage() {
       description: t("setlists.description"),
     },
   ];
+
+  if (userRole === "admin" || userRole === "moderator") {
+    quickLinks.push({
+      href: "/dashboard/users",
+      icon: Users,
+      label: tNav("users"),
+      description: t("users.description"),
+    });
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">

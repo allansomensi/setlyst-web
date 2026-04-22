@@ -73,7 +73,8 @@
     "welcome": "Welcome back, {name}!",
     "artists": { "description": "Manage your band's artists" },
     "songs": { "description": "Add and organize your repertoire" },
-    "setlists": { "description": "Build and manage your setlists" }
+    "setlists": { "description": "Build and manage your setlists" },
+    "users": { "description": "Manage users and permissions" }
   },
   "artists": {
     "title": "Artists",

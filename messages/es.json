@@ -73,7 +73,8 @@
     "welcome": "¡Bienvenido de nuevo, {name}!",
     "artists": { "description": "Administra los artistas de tu banda" },
     "songs": { "description": "Agrega y organiza tu repertorio" },
-    "setlists": { "description": "Crea y administra tus setlists" }
+    "setlists": { "description": "Crea y administra tus setlists" },
+    "users": { "description": "Gestionar usuarios y permisos" }
   },
   "artists": {
     "title": "Artistas",
