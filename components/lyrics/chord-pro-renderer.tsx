@@ -102,7 +102,7 @@ function renderChordTokens(
           >
             {pair.chord ?? "\u00A0"}
           </span>
-          <span className="leading-relaxed">
+          <span className="leading-relaxed whitespace-pre-wrap">
             {renderFormattedText(pair.text) || "\u00A0"}
           </span>
         </span>
