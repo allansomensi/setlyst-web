@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const isDev = process.env.NODE_ENV !== "production";
 
 const getApiOrigin = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
   try {
-    if (envUrl) {
-      return new URL(envUrl).origin;
-    }
+    if (envUrl) return new URL(envUrl).origin;
   } catch {
     return envUrl.replace(/\/$/, "");
   }
@@ -87,9 +88,7 @@ const nextConfig: NextConfig = {
       headers: securityHeaders,
     },
   ],
-  images: {
-    remotePatterns: [],
-  },
+  images: { remotePatterns: [] },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

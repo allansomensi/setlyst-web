@@ -1,0 +1,385 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "tryAgain": "Try again",
+    "showing": "Showing {count} of {total} {entity}",
+    "showingFor": "for \"{search}\"",
+    "result": "result",
+    "results": "results"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {current} of {total}"
+  },
+  "nav": {
+    "home": "Home",
+    "artists": "Artists",
+    "songs": "Songs",
+    "setlists": "Setlists",
+    "users": "Users",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": {
+      "title": "Setlyst",
+      "subtitle": "Enter your credentials to access your account",
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "invalidCredentials": "Invalid username or password.",
+      "connectionError": "Unable to reach the server.",
+      "welcomeBack": "Welcome back!"
+    },
+    "register": {
+      "title": "Create an Account",
+      "subtitle": "Enter your details below to create your account",
+      "username": "Username",
+      "usernamePlaceholder": "Choose a username",
+      "email": "Email",
+      "emailPlaceholder": "john.doe@example.com",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "submit": "Sign up",
+      "submitting": "Creating account...",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "success": "Account created successfully!",
+      "errors": {
+        "usernameLength": "Username must be between 3 and 128 characters.",
+        "passwordLength": "Password must be between 8 and 256 characters.",
+        "conflict": "Username or email is already in use.",
+        "validation": "Invalid registration data. Please check all fields.",
+        "generic": "Registration failed. Please verify your data and try again.",
+        "serverError": "Unable to reach the server. Please try again later."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}!",
+    "artists": { "description": "Manage your band's artists" },
+    "songs": { "description": "Add and organize your repertoire" },
+    "setlists": { "description": "Build and manage your setlists" }
+  },
+  "artists": {
+    "title": "Artists",
+    "subtitle": "Manage your band's artists.",
+    "addArtist": "Add Artist",
+    "searchPlaceholder": "Search artist...",
+    "table": {
+      "name": "Name",
+      "registeredOn": "Registered on",
+      "actions": "Actions"
+    },
+    "empty": "No artists registered. Start by adding one.",
+    "emptySearch": "No artists found for \"{search}\".",
+    "dialog": {
+      "addTitle": "Add New Artist",
+      "editTitle": "Edit Artist",
+      "addDescription": "Enter details for the new artist.",
+      "editDescription": "Update artist details.",
+      "nameLabel": "Artist Name",
+      "namePlaceholder": "e.g., John Mayer",
+      "created": "Artist created!",
+      "updated": "Artist updated!",
+      "saveFailed": "Failed to save artist",
+      "deleteConfirm": "Are you sure you want to delete this artist?",
+      "deleted": "Artist deleted successfully",
+      "deleteFailed": "Error deleting the artist"
+    },
+    "errors": {
+      "nameLength": "Artist name must be between 1 and 255 characters.",
+      "invalidId": "Invalid artist ID."
+    }
+  },
+  "songs": {
+    "title": "Songs",
+    "subtitle": "Manage your band's repertoire.",
+    "addSong": "Add Song",
+    "searchPlaceholder": "Search by title, genre, artist...",
+    "lyricsTag": "lyrics",
+    "table": {
+      "title": "Title",
+      "artist": "Artist",
+      "key": "Key",
+      "genre": "Genre",
+      "bpm": "BPM",
+      "actions": "Actions"
+    },
+    "empty": "No songs registered. Start by adding one.",
+    "emptySearch": "No songs found for \"{search}\".",
+    "dialog": {
+      "addTitle": "Add Song",
+      "editTitle": "Edit Song",
+      "addDescription": "Fill in the details. Lyrics can be added later.",
+      "editDescription": "Update the song data and metadata.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g.: Neon",
+      "artistLabel": "Artist",
+      "selectArtist": "Select artist",
+      "keyLabel": "Key",
+      "genreLabel": "Genre",
+      "noneOption": "None",
+      "bpmLabel": "BPM",
+      "bpmPlaceholder": "120",
+      "durationLabel": "Duration",
+      "durationPlaceholder": "03:30",
+      "lyricsTitle": "Lyrics",
+      "lyricsLines": "{count} lines registered",
+      "noLyrics": "No lyrics registered",
+      "editLyrics": "Edit lyrics",
+      "created": "Song created!",
+      "addLyricsNow": "Would you like to add lyrics now?",
+      "addLyricsAction": "Add lyrics",
+      "updated": "Song updated!",
+      "saveFailed": "Error saving the song",
+      "deleteConfirm": "Are you sure you want to delete this song?",
+      "deleted": "Song deleted successfully",
+      "deleteFailed": "Error deleting the song"
+    },
+    "menu": {
+      "editDetails": "Edit details",
+      "editLyrics": "Edit lyrics",
+      "delete": "Delete"
+    },
+    "errors": {
+      "titleLength": "Song title must be between 1 and 255 characters.",
+      "artistRequired": "Artist is required.",
+      "invalidId": "Invalid song ID."
+    }
+  },
+  "lyrics": {
+    "editTitle": "Edit Lyrics",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "saved": "Lyrics saved successfully!",
+    "saveFailed": "Error saving lyrics",
+    "loadFailed": "Error loading lyrics",
+    "preview": "Preview",
+    "noLyrics": "No lyrics registered.",
+    "stats": "{lines} lines · {chars} characters",
+    "toolbar": {
+      "bold": "Bold (Ctrl+B)",
+      "italic": "Italic (Ctrl+I)",
+      "underline": "Underline (Ctrl+U)",
+      "chord": "Chord",
+      "section": "Section",
+      "preview": "Preview",
+      "chords": "Chords",
+      "insertChord": "Insert chord",
+      "customChord": "Custom chord",
+      "customChordPlaceholder": "E.g.: Am7, Gsus4",
+      "commonChords": "Common chords",
+      "chorus": "Chorus",
+      "verse": "Verse",
+      "bridge": "Bridge",
+      "comment": "Comment / Note"
+    },
+    "help": {
+      "title": "ChordPro Format"
+    }
+  },
+  "setlists": {
+    "title": "Setlists",
+    "subtitle": "Manage your setlists. Click one to edit the songs.",
+    "addSetlist": "Add Setlist",
+    "liveModeBtn": "Live Mode",
+    "searchPlaceholder": "Search setlist...",
+    "table": {
+      "title": "Title",
+      "description": "Description",
+      "createdAt": "Created at",
+      "actions": "Actions"
+    },
+    "empty": "No setlists registered.",
+    "emptySearch": "No setlists found for \"{search}\".",
+    "menu": {
+      "manageSongs": "Manage songs",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "dialog": {
+      "addTitle": "Add New Setlist",
+      "editTitle": "Edit Setlist",
+      "description": "Enter the setlist details below.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g., Summer Tour 2026",
+      "descriptionLabel": "Description (Optional)",
+      "descriptionPlaceholder": "e.g., Main stage performance",
+      "created": "Setlist created!",
+      "updated": "Setlist updated!",
+      "saveFailed": "Failed to save setlist",
+      "deleteConfirm": "Are you sure you want to delete this setlist?",
+      "deleted": "Setlist deleted"
+    },
+    "songs": {
+      "title": "Songs in this Setlist",
+      "addSong": "Add Song",
+      "reorder": "Reorder",
+      "saveOrder": "Save Order",
+      "cancelReorder": "Cancel",
+      "empty": "No songs added yet.",
+      "table": {
+        "pos": "Pos",
+        "title": "Title",
+        "artist": "Artist",
+        "bpm": "BPM",
+        "actions": "Actions"
+      },
+      "removeConfirm": "Remove this song from the setlist?",
+      "removed": "Song removed",
+      "orderSaved": "Order saved successfully",
+      "addDialog": {
+        "title": "Add Song to Setlist",
+        "description": "Select a song from your repertoire to add to this setlist.",
+        "songLabel": "Song",
+        "selectSong": "Select a song",
+        "noMoreSongs": "No more songs available",
+        "positionLabel": "Position",
+        "addButton": "Add Song",
+        "added": "Song added to setlist!",
+        "addFailed": "Failed to add song"
+      }
+    },
+    "errors": {
+      "titleLength": "Setlist title must be between 1 and 255 characters.",
+      "invalidId": "Invalid setlist ID.",
+      "invalidSetlistOrSongId": "Invalid setlist or song ID.",
+      "emptySongList": "Song list is empty.",
+      "invalidSongIds": "Invalid song IDs in reorder list."
+    }
+  },
+  "liveMode": {
+    "noSongs": "No songs in this setlist",
+    "back": "Back",
+    "nextSong": "Next song",
+    "endOfShow": "END OF SHOW",
+    "prev": "PREV",
+    "next": "NEXT",
+    "bpm": "BPM",
+    "key": "Key:",
+    "settings": {
+      "autoScrollTitle": "Start/stop auto-scroll",
+      "decreaseSize": "Decrease text size",
+      "increaseSize": "Increase text size",
+      "fontLabel": "Font",
+      "showChords": "Show/hide chords",
+      "chordsOn": "Chords",
+      "chordsOff": "No chords",
+      "scroll": "Scroll",
+      "decreaseSpeed": "Decrease speed (-)",
+      "increaseSpeed": "Increase speed (+)"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage platform members.",
+    "addUser": "Add User",
+    "searchPlaceholder": "Search by username, email...",
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "No users found.",
+    "roles": {
+      "user": "user",
+      "moderator": "moderator",
+      "admin": "admin"
+    },
+    "statuses": {
+      "active": "active",
+      "inactive": "inactive"
+    },
+    "dialog": {
+      "addTitle": "Add New User",
+      "editTitle": "Edit User",
+      "addDescription": "Enter details and credentials for the new user.",
+      "editDescription": "Update user permissions and profile details.",
+      "usernameLabel": "Username",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "firstNameLabel": "First Name",
+      "lastNameLabel": "Last Name",
+      "roleLabel": "Role",
+      "statusLabel": "Status",
+      "saveChanges": "Save Changes",
+      "createUser": "Create User",
+      "created": "User created successfully!",
+      "updated": "User updated successfully!",
+      "createFailed": "Error creating user",
+      "updateFailed": "Error updating user",
+      "deleteConfirm": "Are you sure you want to delete this user?",
+      "deleted": "User deleted successfully",
+      "deleteFailed": "Error deleting the user"
+    },
+    "passwordDialog": {
+      "title": "Change Password",
+      "description": "Set a new password for {username}.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "update": "Update Password",
+      "success": "Password changed successfully!",
+      "mismatch": "Passwords do not match.",
+      "failed": "Error changing password"
+    },
+    "menu": {
+      "edit": "Edit",
+      "changePassword": "Change Password",
+      "delete": "Delete"
+    },
+    "errors": {
+      "unauthorized": "Unauthorized.",
+      "forbidden": "Forbidden. Insufficient permissions.",
+      "forbiddenAdmin": "Forbidden. Cannot assign admin role.",
+      "invalidId": "Invalid user ID.",
+      "usernameLength": "Username must be between 3 and 20 characters.",
+      "passwordLength": "Password must be between 8 and 100 characters.",
+      "createFailed": "Failed to create user.",
+      "updateFailed": "Failed to update user.",
+      "deleteFailed": "Failed to delete user.",
+      "passwordFailed": "Failed to change password."
+    }
+  },
+  "profile": {
+    "title": "Account Settings",
+    "subtitle": "Manage your public profile and account security preferences.",
+    "personalInfo": "Personal Information",
+    "editProfile": "Edit Profile",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "firstNameLabel": "First Name",
+    "lastNameLabel": "Last Name",
+    "usernameLabel": "Username",
+    "emailLabel": "Email Address",
+    "joinedOn": "Joined on {date}",
+    "success": "Profile updated successfully",
+    "failed": "Failed to update profile",
+    "errors": {
+      "usernameLength": "Username must be between 1 and 128 characters."
+    }
+  },
+  "error": {
+    "title": "Oops! Something went wrong.",
+    "production": "We couldn't load the requested information. Please try again.",
+    "reference": "Reference:",
+    "tryAgain": "Try again"
+  }
+}

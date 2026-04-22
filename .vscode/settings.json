@@ -8,6 +8,7 @@
     "songs": "resource",
     "users": "resource",
     "lyrics": "content",
-    "profile": "meta"
+    "profile": "meta",
+    "[locale]": "i18n"
   }
 }

@@ -2,13 +2,12 @@
 
 import { cn } from "@/lib/utils";
 import React from "react";
+import { useTranslations } from "next-intl";
 
 // Token Types
-
 type Token = { type: "chord"; value: string } | { type: "text"; value: string };
 
 // Parsers
-
 function parseChordLine(line: string): Token[] {
   const tokens: Token[] = [];
   const regex = /\[([^\]]+)\]/g;
@@ -50,9 +49,7 @@ function parseDirective(
 }
 
 // Formatted Text Renderer
-
 function renderFormattedText(text: string): React.ReactNode[] {
-  // Support **bold**, *italic*, and __underline__
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__)/g);
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
@@ -69,7 +66,6 @@ function renderFormattedText(text: string): React.ReactNode[] {
 }
 
 // Chord Line Renderer
-
 function renderChordTokens(
   tokens: Token[],
   chordColor: string,
@@ -112,7 +108,6 @@ function renderChordTokens(
 }
 
 // Section Label Component
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-muted-foreground mt-6 mb-1 text-xs font-semibold tracking-widest uppercase">
@@ -122,7 +117,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 // Main Component
-
 export interface ChordProRendererProps {
   content: string;
   showChords?: boolean;
@@ -140,13 +134,16 @@ export function ChordProRenderer({
   chordColor = "text-primary",
   className,
 }: ChordProRendererProps) {
+  const t = useTranslations("lyrics");
+  const tToolbar = useTranslations("lyrics.toolbar");
+
   if (!content?.trim()) {
     return (
       <div
         className="text-muted-foreground flex h-full items-center justify-center italic"
         style={{ fontSize: `${fontSize}rem` }}
       >
-        No lyrics registered.
+        {t("noLyrics")}
       </div>
     );
   }
@@ -158,27 +155,26 @@ export function ChordProRenderer({
   }[fontFamily];
 
   const lines = content.split("\n");
-
   const elements: React.ReactNode[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
-    // Blank line = spacing
     if (!trimmed) {
       elements.push(<div key={i} className="h-3" />);
       continue;
     }
 
-    // Directives: {soc}, {eoc}, {sov:...}, {eov}, {comment:...}, {title:...}
     if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       const dir = parseDirective(trimmed);
       if (dir) {
         const { directive, value } = dir;
 
         if (directive === "soc" || directive === "start_of_chorus") {
-          elements.push(<SectionLabel key={i}>— Chorus —</SectionLabel>);
+          elements.push(
+            <SectionLabel key={i}>— {tToolbar("chorus")} —</SectionLabel>,
+          );
           continue;
         }
         if (directive === "eoc" || directive === "end_of_chorus") {
@@ -187,7 +183,9 @@ export function ChordProRenderer({
         }
         if (directive === "sov" || directive === "start_of_verse") {
           elements.push(
-            <SectionLabel key={i}>— {value ?? "Verse"} —</SectionLabel>,
+            <SectionLabel key={i}>
+              — {value ?? tToolbar("verse")} —
+            </SectionLabel>,
           );
           continue;
         }
@@ -196,7 +194,9 @@ export function ChordProRenderer({
           continue;
         }
         if (directive === "sob" || directive === "start_of_bridge") {
-          elements.push(<SectionLabel key={i}>— Bridge —</SectionLabel>);
+          elements.push(
+            <SectionLabel key={i}>— {tToolbar("bridge")} —</SectionLabel>,
+          );
           continue;
         }
         if (directive === "eob" || directive === "end_of_bridge") {
@@ -215,16 +215,11 @@ export function ChordProRenderer({
           );
           continue;
         }
-        if (directive === "title") {
-          // skip title directive
-          continue;
-        }
-        // Unknown directive: skip silently
+        if (directive === "title") continue;
         continue;
       }
     }
 
-    // Comment lines
     if (trimmed.startsWith("#")) {
       elements.push(
         <div
@@ -238,7 +233,6 @@ export function ChordProRenderer({
       continue;
     }
 
-    // Lines with chords
     if (showChords && hasChords(line)) {
       const tokens = parseChordLine(line);
       elements.push(
@@ -249,7 +243,6 @@ export function ChordProRenderer({
       continue;
     }
 
-    // Plain text line (strip chord markers when showChords is false)
     const textLine = showChords ? line : stripChords(line);
     elements.push(
       <div key={i} className="leading-relaxed">

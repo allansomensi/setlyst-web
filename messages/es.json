@@ -1,0 +1,385 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "tryAgain": "Intentar de nuevo",
+    "showing": "Mostrando {count} de {total} {entity}",
+    "showingFor": "para \"{search}\"",
+    "result": "resultado",
+    "results": "resultados"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {current} de {total}"
+  },
+  "nav": {
+    "home": "Inicio",
+    "artists": "Artistas",
+    "songs": "Canciones",
+    "setlists": "Setlists",
+    "users": "Usuarios",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "login": {
+      "title": "Setlyst",
+      "subtitle": "Ingresa tus credenciales para acceder a tu cuenta",
+      "username": "Usuario",
+      "usernamePlaceholder": "Ingresa tu usuario",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión...",
+      "noAccount": "¿No tienes una cuenta?",
+      "signUp": "Registrarse",
+      "invalidCredentials": "Usuario o contraseña inválidos.",
+      "connectionError": "No se pudo conectar al servidor.",
+      "welcomeBack": "¡Bienvenido de nuevo!"
+    },
+    "register": {
+      "title": "Crear una Cuenta",
+      "subtitle": "Ingresa tus datos para crear tu cuenta",
+      "username": "Usuario",
+      "usernamePlaceholder": "Elige un nombre de usuario",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "juan.perez@ejemplo.com",
+      "firstName": "Nombre",
+      "firstNamePlaceholder": "Juan",
+      "lastName": "Apellido",
+      "lastNamePlaceholder": "Pérez",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "submit": "Registrarse",
+      "submitting": "Creando cuenta...",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar sesión",
+      "success": "¡Cuenta creada con éxito!",
+      "errors": {
+        "usernameLength": "El usuario debe tener entre 3 y 128 caracteres.",
+        "passwordLength": "La contraseña debe tener entre 8 y 256 caracteres.",
+        "conflict": "El usuario o correo ya está en uso.",
+        "validation": "Datos de registro inválidos. Verifica todos los campos.",
+        "generic": "Error al registrarse. Verifica tus datos e inténtalo de nuevo.",
+        "serverError": "No se pudo conectar al servidor. Inténtalo más tarde."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "¡Bienvenido de nuevo, {name}!",
+    "artists": { "description": "Administra los artistas de tu banda" },
+    "songs": { "description": "Agrega y organiza tu repertorio" },
+    "setlists": { "description": "Crea y administra tus setlists" }
+  },
+  "artists": {
+    "title": "Artistas",
+    "subtitle": "Administra los artistas de tu banda.",
+    "addArtist": "Agregar Artista",
+    "searchPlaceholder": "Buscar artista...",
+    "table": {
+      "name": "Nombre",
+      "registeredOn": "Registrado el",
+      "actions": "Acciones"
+    },
+    "empty": "No hay artistas registrados. Empieza agregando uno.",
+    "emptySearch": "No se encontraron artistas para \"{search}\".",
+    "dialog": {
+      "addTitle": "Agregar Nuevo Artista",
+      "editTitle": "Editar Artista",
+      "addDescription": "Ingresa los datos del nuevo artista.",
+      "editDescription": "Actualiza los datos del artista.",
+      "nameLabel": "Nombre del Artista",
+      "namePlaceholder": "ej.: Carlos Santana",
+      "created": "¡Artista creado!",
+      "updated": "¡Artista actualizado!",
+      "saveFailed": "Error al guardar el artista",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar este artista?",
+      "deleted": "Artista eliminado con éxito",
+      "deleteFailed": "Error al eliminar el artista"
+    },
+    "errors": {
+      "nameLength": "El nombre del artista debe tener entre 1 y 255 caracteres.",
+      "invalidId": "ID del artista inválido."
+    }
+  },
+  "songs": {
+    "title": "Canciones",
+    "subtitle": "Administra el repertorio de tu banda.",
+    "addSong": "Agregar Canción",
+    "searchPlaceholder": "Buscar por título, género, artista...",
+    "lyricsTag": "letra",
+    "table": {
+      "title": "Título",
+      "artist": "Artista",
+      "key": "Tonalidad",
+      "genre": "Género",
+      "bpm": "BPM",
+      "actions": "Acciones"
+    },
+    "empty": "No hay canciones registradas. Empieza agregando una.",
+    "emptySearch": "No se encontraron canciones para \"{search}\".",
+    "dialog": {
+      "addTitle": "Agregar Canción",
+      "editTitle": "Editar Canción",
+      "addDescription": "Completa los datos. La letra puede agregarse después.",
+      "editDescription": "Actualiza los datos y metadatos de la canción.",
+      "titleLabel": "Título",
+      "titlePlaceholder": "ej.: La Bamba",
+      "artistLabel": "Artista",
+      "selectArtist": "Selecciona el artista",
+      "keyLabel": "Tonalidad",
+      "genreLabel": "Género",
+      "noneOption": "Ninguno",
+      "bpmLabel": "BPM",
+      "bpmPlaceholder": "120",
+      "durationLabel": "Duración",
+      "durationPlaceholder": "03:30",
+      "lyricsTitle": "Letra",
+      "lyricsLines": "{count} líneas registradas",
+      "noLyrics": "Sin letra registrada",
+      "editLyrics": "Editar letra",
+      "created": "¡Canción creada!",
+      "addLyricsNow": "¿Deseas agregar la letra ahora?",
+      "addLyricsAction": "Agregar letra",
+      "updated": "¡Canción actualizada!",
+      "saveFailed": "Error al guardar la canción",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar esta canción?",
+      "deleted": "Canción eliminada con éxito",
+      "deleteFailed": "Error al eliminar la canción"
+    },
+    "menu": {
+      "editDetails": "Editar datos",
+      "editLyrics": "Editar letra",
+      "delete": "Eliminar"
+    },
+    "errors": {
+      "titleLength": "El título de la canción debe tener entre 1 y 255 caracteres.",
+      "artistRequired": "El artista es obligatorio.",
+      "invalidId": "ID de la canción inválido."
+    }
+  },
+  "lyrics": {
+    "editTitle": "Editar Letra",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "saving": "Guardando...",
+    "saved": "¡Letra guardada con éxito!",
+    "saveFailed": "Error al guardar la letra",
+    "loadFailed": "Error al cargar la letra",
+    "preview": "Vista previa",
+    "noLyrics": "Sin letra registrada.",
+    "stats": "{lines} líneas · {chars} caracteres",
+    "toolbar": {
+      "bold": "Negrita (Ctrl+B)",
+      "italic": "Cursiva (Ctrl+I)",
+      "underline": "Subrayado (Ctrl+U)",
+      "chord": "Acorde",
+      "section": "Sección",
+      "preview": "Vista previa",
+      "chords": "Acordes",
+      "insertChord": "Insertar acorde",
+      "customChord": "Acorde personalizado",
+      "customChordPlaceholder": "Ej.: Am7, Gsus4",
+      "commonChords": "Acordes comunes",
+      "chorus": "Estribillo",
+      "verse": "Verso",
+      "bridge": "Puente",
+      "comment": "Comentario / Nota"
+    },
+    "help": {
+      "title": "Formato ChordPro"
+    }
+  },
+  "setlists": {
+    "title": "Setlists",
+    "subtitle": "Administra tus setlists. Haz clic en una para editar las canciones.",
+    "addSetlist": "Agregar Setlist",
+    "liveModeBtn": "Modo en Vivo",
+    "searchPlaceholder": "Buscar setlist...",
+    "table": {
+      "title": "Título",
+      "description": "Descripción",
+      "createdAt": "Creado el",
+      "actions": "Acciones"
+    },
+    "empty": "No hay setlists registradas.",
+    "emptySearch": "No se encontraron setlists para \"{search}\".",
+    "menu": {
+      "manageSongs": "Gestionar canciones",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "dialog": {
+      "addTitle": "Agregar Nueva Setlist",
+      "editTitle": "Editar Setlist",
+      "description": "Ingresa los datos de la setlist.",
+      "titleLabel": "Título",
+      "titlePlaceholder": "ej., Gira de Verano 2026",
+      "descriptionLabel": "Descripción (Opcional)",
+      "descriptionPlaceholder": "ej., Presentación en el escenario principal",
+      "created": "¡Setlist creada!",
+      "updated": "¡Setlist actualizada!",
+      "saveFailed": "Error al guardar la setlist",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar esta setlist?",
+      "deleted": "Setlist eliminada"
+    },
+    "songs": {
+      "title": "Canciones en esta Setlist",
+      "addSong": "Agregar Canción",
+      "reorder": "Reordenar",
+      "saveOrder": "Guardar Orden",
+      "cancelReorder": "Cancelar",
+      "empty": "Aún no hay canciones agregadas.",
+      "table": {
+        "pos": "Pos",
+        "title": "Título",
+        "artist": "Artista",
+        "bpm": "BPM",
+        "actions": "Acciones"
+      },
+      "removeConfirm": "¿Eliminar esta canción de la setlist?",
+      "removed": "Canción eliminada",
+      "orderSaved": "Orden guardado con éxito",
+      "addDialog": {
+        "title": "Agregar Canción a la Setlist",
+        "description": "Selecciona una canción de tu repertorio para agregar a esta setlist.",
+        "songLabel": "Canción",
+        "selectSong": "Selecciona una canción",
+        "noMoreSongs": "No hay más canciones disponibles",
+        "positionLabel": "Posición",
+        "addButton": "Agregar Canción",
+        "added": "¡Canción agregada a la setlist!",
+        "addFailed": "Error al agregar la canción"
+      }
+    },
+    "errors": {
+      "titleLength": "El título del setlist debe tener entre 1 y 255 caracteres.",
+      "invalidId": "ID del setlist inválido.",
+      "invalidSetlistOrSongId": "ID del setlist o de la canción inválido.",
+      "emptySongList": "La lista de canciones está vacía.",
+      "invalidSongIds": "IDs de canción inválidos en la lista de reordenamiento."
+    }
+  },
+  "liveMode": {
+    "noSongs": "No hay canciones en esta setlist",
+    "back": "Volver",
+    "nextSong": "Siguiente canción",
+    "endOfShow": "FIN DEL SHOW",
+    "prev": "ANTERIOR",
+    "next": "SIGUIENTE",
+    "bpm": "BPM",
+    "key": "Ton.:",
+    "settings": {
+      "autoScrollTitle": "Iniciar/detener desplazamiento automático",
+      "decreaseSize": "Reducir tamaño del texto",
+      "increaseSize": "Aumentar tamaño del texto",
+      "fontLabel": "Fuente",
+      "showChords": "Mostrar/ocultar acordes",
+      "chordsOn": "Acordes",
+      "chordsOff": "Sin acordes",
+      "scroll": "Desplazar",
+      "decreaseSpeed": "Reducir velocidad (-)",
+      "increaseSpeed": "Aumentar velocidad (+)"
+    }
+  },
+  "users": {
+    "title": "Usuarios",
+    "subtitle": "Administra los miembros de la plataforma.",
+    "addUser": "Agregar Usuario",
+    "searchPlaceholder": "Buscar por usuario, correo...",
+    "table": {
+      "user": "Usuario",
+      "email": "Correo",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "empty": "No se encontraron usuarios.",
+    "roles": {
+      "user": "usuario",
+      "moderator": "moderador",
+      "admin": "admin"
+    },
+    "statuses": {
+      "active": "activo",
+      "inactive": "inactivo"
+    },
+    "dialog": {
+      "addTitle": "Agregar Nuevo Usuario",
+      "editTitle": "Editar Usuario",
+      "addDescription": "Ingresa los datos y credenciales del nuevo usuario.",
+      "editDescription": "Actualiza los permisos y el perfil del usuario.",
+      "usernameLabel": "Usuario",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "firstNameLabel": "Nombre",
+      "lastNameLabel": "Apellido",
+      "roleLabel": "Rol",
+      "statusLabel": "Estado",
+      "saveChanges": "Guardar Cambios",
+      "createUser": "Crear Usuario",
+      "created": "¡Usuario creado con éxito!",
+      "updated": "¡Usuario actualizado con éxito!",
+      "createFailed": "Error al crear el usuario",
+      "updateFailed": "Error al actualizar el usuario",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar este usuario?",
+      "deleted": "Usuario eliminado con éxito",
+      "deleteFailed": "Error al eliminar el usuario"
+    },
+    "passwordDialog": {
+      "title": "Cambiar Contraseña",
+      "description": "Establece una nueva contraseña para {username}.",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña",
+      "update": "Actualizar Contraseña",
+      "success": "¡Contraseña cambiada con éxito!",
+      "mismatch": "Las contraseñas no coinciden.",
+      "failed": "Error al cambiar la contraseña"
+    },
+    "menu": {
+      "edit": "Editar",
+      "changePassword": "Cambiar Contraseña",
+      "delete": "Eliminar"
+    },
+    "errors": {
+      "unauthorized": "No autorizado.",
+      "forbidden": "Prohibido. Permisos insuficientes.",
+      "forbiddenAdmin": "Prohibido. No se puede asignar el rol de administrador.",
+      "invalidId": "ID de usuario inválido.",
+      "usernameLength": "El nombre de usuario debe tener entre 3 y 20 caracteres.",
+      "passwordLength": "La contraseña debe tener entre 8 e 100 caracteres.",
+      "createFailed": "Error al crear el usuario.",
+      "updateFailed": "Error al actualizar el usuario.",
+      "deleteFailed": "Error al eliminar el usuario.",
+      "passwordFailed": "Error al cambiar la contraseña."
+    }
+  },
+  "profile": {
+    "title": "Configuración de la Cuenta",
+    "subtitle": "Administra tu perfil público y preferencias de seguridad.",
+    "personalInfo": "Información Personal",
+    "editProfile": "Editar Perfil",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando...",
+    "firstNameLabel": "Nombre",
+    "lastNameLabel": "Apellido",
+    "usernameLabel": "Usuario",
+    "emailLabel": "Correo Electrónico",
+    "joinedOn": "Miembro desde {date}",
+    "success": "Perfil actualizado con éxito",
+    "failed": "Error al actualizar el perfil",
+    "errors": {
+      "usernameLength": "El nombre de usuario debe tener entre 1 y 128 caracteres."
+    }
+  },
+  "error": {
+    "title": "¡Ups! Algo salió mal.",
+    "production": "No pudimos cargar la información. Por favor, intenta de nuevo.",
+    "reference": "Referencia:",
+    "tryAgain": "Intentar de nuevo"
+  }
+}

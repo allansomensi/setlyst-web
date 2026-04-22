@@ -1,4 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 interface TablePaginationProps {
   currentPage: number;
@@ -11,6 +14,8 @@ export function TablePagination({
   totalPages,
   setCurrentPage,
 }: TablePaginationProps) {
+  const t = useTranslations("pagination");
+
   if (totalPages <= 1) return null;
 
   return (
@@ -21,10 +26,10 @@ export function TablePagination({
         onClick={() => setCurrentPage(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        Previous
+        {t("previous")}
       </Button>
       <div className="text-muted-foreground text-sm font-medium">
-        Page {currentPage} of {totalPages}
+        {t("page", { current: currentPage, total: totalPages })}
       </div>
       <Button
         variant="outline"
@@ -32,7 +37,7 @@ export function TablePagination({
         onClick={() => setCurrentPage(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        Next
+        {t("next")}
       </Button>
     </div>
   );
