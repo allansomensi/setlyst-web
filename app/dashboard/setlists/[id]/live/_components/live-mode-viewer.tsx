@@ -72,7 +72,7 @@ export function LiveModeViewer({
 
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(false);
 
   const [settings, setSettings] = useState<LiveSettings>({
     zoomLevel: 1,
@@ -220,13 +220,13 @@ export function LiveModeViewer({
     );
   }
 
-  // ── Compute base font size for ChordPro ──────────────────────────────────────
+  // Compute base font size for ChordPro
   // Base: 1.5rem (~text-2xl). Scaled by zoomLevel.
   const baseFontSize = 1.5 * settings.zoomLevel;
 
   return (
     <div className="bg-background text-foreground fixed inset-0 z-50 flex flex-col overflow-hidden">
-      {/* ── Header ───────────────────────────────────────────────────────── */}
+      {/* Header */}
       <header className="bg-card/50 flex shrink-0 items-center justify-between border-b p-2 px-4 backdrop-blur-md md:p-3 md:px-6">
         <div className="flex items-center gap-2 truncate md:gap-4">
           <Button variant="ghost" size="icon" asChild className="shrink-0">
@@ -278,7 +278,7 @@ export function LiveModeViewer({
         </div>
       </header>
 
-      {/* ── Lyrics ───────────────────────────────────────────────────────── */}
+      {/* Lyrics */}
       <main
         ref={scrollContainerRef}
         className="flex-1 overflow-auto scroll-smooth p-4 md:p-12"
@@ -294,7 +294,7 @@ export function LiveModeViewer({
         </div>
       </main>
 
-      {/* ── Floating Settings Panel ───────────────────────────────────────── */}
+      {/* Floating Settings Panel */}
       <div
         className={cn(
           "fixed right-4 bottom-24 z-50 flex flex-col gap-2 transition-all duration-300 md:right-6 md:bottom-28",
@@ -402,7 +402,7 @@ export function LiveModeViewer({
                   <span className="hidden text-xs md:inline">Scroll</span>
                 </Button>
 
-                {/* Speed control (always visible when panel is open) */}
+                {/* Speed control */}
                 <div className="bg-background/50 flex items-center rounded-lg border">
                   <Button
                     variant="ghost"
@@ -448,7 +448,7 @@ export function LiveModeViewer({
         </div>
       </div>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      {/* Footer */}
       <footer className="bg-card/80 shrink-0 border-t backdrop-blur-md">
         <Progress
           value={progress}
