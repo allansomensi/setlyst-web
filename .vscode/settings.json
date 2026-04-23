@@ -9,6 +9,7 @@
     "users": "resource",
     "lyrics": "content",
     "profile": "meta",
+    "status": "coverage",
     "[locale]": "i18n"
   }
 }

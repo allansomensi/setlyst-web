@@ -220,3 +220,18 @@ export interface UpdatePreferencesPayload {
   theme?: UserTheme;
   live_mode_font_size?: number;
 }
+
+export interface DatabaseStatus {
+  version: string;
+  max_connections: number;
+  opened_connections: number;
+}
+
+export interface DependenciesStatus {
+  database: DatabaseStatus;
+}
+
+export interface ApiStatus {
+  updated_at: string;
+  dependencies: DependenciesStatus;
+}
