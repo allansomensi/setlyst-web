@@ -1,5 +1,5 @@
 import { fetchServerApi } from "@/lib/api-server";
-import { PaginatedResponse, Setlist, Song } from "@/types/api";
+import { PaginatedResponse, Setlist, Song, UserPreferences } from "@/types/api";
 import { LiveModeViewer } from "./_components/live-mode-viewer";
 
 export default async function SetlistLivePage({
@@ -26,11 +26,17 @@ export default async function SetlistLivePage({
 
   const setlistSongs = setlistSongsRes.data || [];
 
+  const preferences = await fetchServerApi<UserPreferences>(
+    "/users/me/preferences",
+    { cache: "no-store" },
+  );
+
   return (
     <LiveModeViewer
       setlist={setlist}
       songs={setlistSongs}
       initialSongId={songId}
+      initialFontSize={preferences.live_mode_font_size}
     />
   );
 }

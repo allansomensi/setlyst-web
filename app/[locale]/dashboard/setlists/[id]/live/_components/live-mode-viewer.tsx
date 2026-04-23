@@ -42,8 +42,8 @@ interface LiveModeViewerProps {
   setlist: Setlist;
   songs: Song[];
   initialSongId?: string;
+  initialFontSize?: number;
 }
-
 // Constants
 
 const SCROLL_INTERVAL_MS = 50;
@@ -63,6 +63,7 @@ export function LiveModeViewer({
   setlist,
   songs,
   initialSongId,
+  initialFontSize = 100,
 }: LiveModeViewerProps) {
   const t = useTranslations("liveMode");
 
@@ -78,7 +79,7 @@ export function LiveModeViewer({
   const [showControls, setShowControls] = useState(false);
 
   const [settings, setSettings] = useState<LiveSettings>({
-    zoomLevel: 1,
+    zoomLevel: initialFontSize / 100,
     fontFamily: "sans",
     showChords: true,
     isAutoScroll: false,
