@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { ListMusic, ChevronLeft, ChevronRight } from "lucide-react";
+import { ListMusic, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { SidebarLinks } from "./sidebar-links";
 import { LogoutButton } from "./logout-button";
 import { cn } from "@/lib/utils";
@@ -59,13 +59,15 @@ export function Sidebar({ user }: SidebarProps) {
       <div
         className={cn(
           "flex items-center border-t p-4 transition-all duration-300",
-          isCollapsed ? "justify-center" : "justify-between",
+          isCollapsed
+            ? "flex-col justify-center gap-3"
+            : "justify-between gap-2",
         )}
       >
         {!isCollapsed && (
           <Link
             href="/dashboard/profile"
-            className="group cursor-pointer overflow-hidden pr-2 transition-opacity hover:opacity-80"
+            className="group flex-1 cursor-pointer overflow-hidden pr-2 transition-opacity hover:opacity-80"
           >
             <p className="group-hover:text-primary truncate text-sm font-medium transition-colors">
               {user?.name}
@@ -75,7 +77,21 @@ export function Sidebar({ user }: SidebarProps) {
             </p>
           </Link>
         )}
-        <LogoutButton />
+        <div
+          className={cn(
+            "flex items-center",
+            isCollapsed ? "flex-col gap-3" : "gap-1",
+          )}
+        >
+          <Link
+            href="/dashboard/settings"
+            title="Settings"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
     </aside>
   );

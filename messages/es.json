@@ -377,6 +377,19 @@
       "usernameLength": "El nombre de usuario debe tener entre 1 y 128 caracteres."
     }
   },
+  "settings": {
+    "title": "Preferencias",
+    "description": "Gestiona la configuración y preferencias de tu aplicación.",
+    "language": "Idioma",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema",
+    "liveModeFontSize": "Tamaño de Fuente (Modo en Vivo)",
+    "liveModeFontSizeHelp": "Tamaño de fuente base para el teleprompter del Modo en Vivo (50% a 300%).",
+    "save": "Guardar preferencias",
+    "saveSuccess": "¡Preferencias actualizadas con éxito!"
+  },
   "error": {
     "title": "¡Ups! Algo salió mal.",
     "production": "No pudimos cargar la información. Por favor, intenta de nuevo.",

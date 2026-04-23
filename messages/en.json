@@ -377,6 +377,19 @@
       "usernameLength": "Username must be between 1 and 128 characters."
     }
   },
+  "settings": {
+    "title": "Preferences",
+    "description": "Manage your application settings and preferences.",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "liveModeFontSize": "Live Mode Font Size",
+    "liveModeFontSizeHelp": "Base font size for the Live Mode teleprompter (50% to 300%).",
+    "save": "Save preferences",
+    "saveSuccess": "Preferences updated successfully!"
+  },
   "error": {
     "title": "Oops! Something went wrong.",
     "production": "We couldn't load the requested information. Please try again.",

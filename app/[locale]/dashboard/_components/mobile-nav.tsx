@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { ListMusic, Menu, X } from "lucide-react";
+import { ListMusic, Menu, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";
 import { LogoutButton } from "./logout-button";
@@ -54,19 +54,30 @@ export function MobileNav({
             />
           </div>
 
-          <div className="flex items-center justify-between border-t p-4">
+          <div className="flex items-center justify-between gap-2 border-t p-4">
             <Link
               href="/dashboard/profile"
-              className="flex-1"
+              className="flex-1 overflow-hidden pr-2"
               onClick={() => setIsOpen(false)}
             >
               <div>
-                <p className="text-sm font-medium">{user?.name}</p>
-                <p className="text-muted-foreground text-xs">{user?.role}</p>
+                <p className="truncate text-sm font-medium">{user?.name}</p>
+                <p className="text-muted-foreground truncate text-xs capitalize">
+                  {user?.role}
+                </p>
               </div>
             </Link>
 
-            <LogoutButton />
+            <div className="flex items-center gap-1">
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setIsOpen(false)}
+                className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+              >
+                <Settings className="h-5 w-5" />
+              </Link>
+              <LogoutButton />
+            </div>
           </div>
         </div>
       )}

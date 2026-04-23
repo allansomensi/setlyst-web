@@ -202,3 +202,21 @@ export interface UpdateUserPayload {
   role?: "user" | "moderator" | "admin";
   status?: "active" | "inactive";
 }
+
+export type UserTheme = "light" | "dark" | "system";
+
+export interface UserPreferences {
+  id: string;
+  user_id: string;
+  language: string;
+  theme: UserTheme;
+  live_mode_font_size: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdatePreferencesPayload {
+  language?: string;
+  theme?: UserTheme;
+  live_mode_font_size?: number;
+}

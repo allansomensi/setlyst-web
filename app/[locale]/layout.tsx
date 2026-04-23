@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { fetchServerApi } from "@/lib/api-server";
+import { UserPreferences } from "@/types/api";
 
 export default async function LocaleLayout({
   children,
@@ -22,12 +24,31 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
 
+  let userTheme: "light" | "dark" | "system" = "system";
+
+  try {
+    const preferences = await fetchServerApi<UserPreferences>(
+      "/users/me/preferences",
+    );
+
+    userTheme = (preferences?.theme as "light" | "dark" | "system") || "system";
+  } catch {
+    userTheme = "system";
+  }
+
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          key={userTheme}
+          attribute="class"
+          defaultTheme="system"
+          forcedTheme={userTheme !== "system" ? userTheme : undefined}
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
-          <Toaster position="top-center" theme="system" />
+          <Toaster position="top-center" theme={userTheme} />
         </ThemeProvider>
       </AuthProvider>
       <Analytics />
