@@ -7,6 +7,7 @@ import { SidebarLinks } from "./sidebar-links";
 import { LogoutButton } from "./logout-button";
 import { cn } from "@/lib/utils";
 import { User } from "@/types/api";
+import packageJson from "@/package.json";
 
 interface SidebarProps {
   user?: {
@@ -39,7 +40,7 @@ export function Sidebar({ user }: SidebarProps) {
       <div
         className={cn(
           "flex h-16 items-center border-b transition-all duration-300",
-          isCollapsed ? "justify-center px-0" : "px-6",
+          isCollapsed ? "justify-center px-0" : "justify-between px-6",
         )}
       >
         <Link
@@ -49,6 +50,12 @@ export function Sidebar({ user }: SidebarProps) {
           <ListMusic className="h-6 w-6 shrink-0" />
           {!isCollapsed && <span className="truncate">Setlyst</span>}
         </Link>
+
+        {!isCollapsed && (
+          <span className="bg-muted/40 text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] font-medium shadow-sm select-none">
+            v{packageJson.version}
+          </span>
+        )}
       </div>
 
       <SidebarLinks

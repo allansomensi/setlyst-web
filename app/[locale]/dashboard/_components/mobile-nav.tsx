@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";
 import { LogoutButton } from "./logout-button";
 import { User } from "@/types/api";
+import packageJson from "@/package.json";
 
 export function MobileNav({
   user,
@@ -17,13 +18,18 @@ export function MobileNav({
 
   return (
     <div className="bg-background flex h-16 items-center justify-between border-b px-4 md:hidden">
-      <Link
-        href="/dashboard"
-        className="flex items-center gap-2 text-xl font-bold"
-      >
-        <ListMusic className="text-primary h-6 w-6" />
-        <span>Setlyst</span>
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 text-xl font-bold"
+        >
+          <ListMusic className="text-primary h-6 w-6" />
+          <span>Setlyst</span>
+        </Link>
+        <span className="bg-muted/40 text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] font-medium shadow-sm select-none">
+          v{packageJson.version}
+        </span>
+      </div>
 
       <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)}>
         <Menu className="h-6 w-6" />
