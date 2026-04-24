@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
-export default function LocaleHomePage() {
-  redirect("dashboard");
+export default async function LocaleHomePage() {
+  const locale = await getLocale();
+  redirect(`/${locale}/dashboard`);
 }
