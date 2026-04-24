@@ -275,30 +275,48 @@ export function ChordProRenderer({
   const t = useTranslations("lyrics");
   const tToolbar = useTranslations("lyrics.toolbar");
 
-  const resolveLabel = (defaultKey: ToolbarKey, providedValue?: string) => {
-    if (!providedValue) return tToolbar(defaultKey);
-
-    const trimmed = providedValue.trim();
-
-    if (/^\d+$/.test(trimmed)) {
-      return `${tToolbar(defaultKey)} ${trimmed}`;
+  const parseSectionInfo = (text?: string, defaultKey?: ToolbarKey) => {
+    if (!text) {
+      return {
+        key: defaultKey || null,
+        label: defaultKey ? tToolbar(defaultKey) : "",
+      };
     }
 
-    let normalized = trimmed.toLowerCase();
-    let suffix = "";
-    const match = normalized.match(/^(.*?)\s*(\d+)$/);
+    const trimmed = text.trim();
 
-    if (match) {
-      normalized = match[1].trim();
-      suffix = ` ${match[2]}`;
+    if (defaultKey && /^\d+$/.test(trimmed)) {
+      return { key: defaultKey, label: `${tToolbar(defaultKey)} ${trimmed}` };
     }
 
-    const mappedKey = SECTION_MAP[normalized];
-    if (mappedKey) {
-      return `${tToolbar(mappedKey)}${suffix}`;
+    const sortedKeys = Object.keys(SECTION_MAP).sort(
+      (a, b) => b.length - a.length,
+    );
+
+    for (const key of sortedKeys) {
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      const regex = new RegExp(
+        `^(\\[?\\s*)(${escapedKey})(?=[^a-zA-Z]|$)`,
+        "i",
+      );
+
+      const match = trimmed.match(regex);
+      if (match) {
+        const prefix = match[1] || "";
+        const mappedKey = SECTION_MAP[key];
+        const translated = tToolbar(mappedKey);
+
+        let label = trimmed.replace(regex, `${prefix}${translated}`);
+
+        label = label.replace(/^\[(.*)\]$/, "$1");
+
+        return { key: mappedKey, label };
+      }
     }
 
-    return trimmed;
+    const finalLabel = trimmed.replace(/^\[(.*)\]$/, "$1");
+    return { key: defaultKey || null, label: finalLabel };
   };
 
   if (!content?.trim()) {
@@ -347,9 +365,10 @@ export function ChordProRenderer({
 
         if (directive === "soc" || directive === "start_of_chorus") {
           inChorus = true;
+          const info = parseSectionInfo(value, "chorus");
           elements.push(
             <SectionLabel key={i} icon={ICON_MAP["chorus"]}>
-              {resolveLabel("chorus", value)}
+              {info.label}
             </SectionLabel>,
           );
           continue;
@@ -361,9 +380,10 @@ export function ChordProRenderer({
         }
 
         if (directive === "sov" || directive === "start_of_verse") {
+          const info = parseSectionInfo(value, "verse");
           elements.push(
             <SectionLabel key={i} icon={ICON_MAP["verse"]}>
-              {resolveLabel("verse", value)}
+              {info.label}
             </SectionLabel>,
           );
           continue;
@@ -374,9 +394,10 @@ export function ChordProRenderer({
         }
 
         if (directive === "sob" || directive === "start_of_bridge") {
+          const info = parseSectionInfo(value, "bridge");
           elements.push(
             <SectionLabel key={i} icon={ICON_MAP["bridge"]}>
-              {resolveLabel("bridge", value)}
+              {info.label}
             </SectionLabel>,
           );
           continue;
@@ -387,30 +408,13 @@ export function ChordProRenderer({
         }
 
         if (directive === "c" || directive === "comment") {
-          let normalizedValue = value?.trim().toLowerCase() || "";
-          let suffix = "";
+          const info = parseSectionInfo(value);
 
-          const numberMatch = normalizedValue.match(/^(.*?)\s*(\d+)$/);
-          if (numberMatch) {
-            normalizedValue = numberMatch[1].trim();
-            suffix = ` ${numberMatch[2]}`;
-          }
-
-          const translationKey = SECTION_MAP[normalizedValue];
-
-          if (translationKey) {
-            const variant = PILL_SECTIONS.has(translationKey)
-              ? "pill"
-              : "block";
-
+          if (info.key) {
+            const variant = PILL_SECTIONS.has(info.key) ? "pill" : "block";
             elements.push(
-              <SectionLabel
-                key={i}
-                icon={ICON_MAP[translationKey]}
-                variant={variant}
-              >
-                {tToolbar(translationKey)}
-                {suffix}
+              <SectionLabel key={i} icon={ICON_MAP[info.key]} variant={variant}>
+                {info.label}
               </SectionLabel>,
             );
           } else {
@@ -434,6 +438,24 @@ export function ChordProRenderer({
     if (trimmed.startsWith("#")) {
       continue;
     }
+
+    let handledAsUgSection = false;
+    const ugMatch = trimmed.match(/^\[(.*?)\]$/);
+
+    if (ugMatch && !ugMatch[1].includes("[")) {
+      const info = parseSectionInfo(ugMatch[1]);
+      if (info.key) {
+        const variant = PILL_SECTIONS.has(info.key) ? "pill" : "block";
+        elements.push(
+          <SectionLabel key={i} icon={ICON_MAP[info.key]} variant={variant}>
+            {info.label}
+          </SectionLabel>,
+        );
+        handledAsUgSection = true;
+      }
+    }
+
+    if (handledAsUgSection) continue;
 
     const lineWrapperClass = cn(
       "mb-1.5",
