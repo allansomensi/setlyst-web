@@ -26,6 +26,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   MoreHorizontal,
   Plus,
   Pencil,
@@ -53,6 +61,8 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSetlist, setEditingSetlist] = useState<Setlist | null>(null);
 
+  const [setlistToDelete, setSetlistToDelete] = useState<string | null>(null);
+
   const {
     search,
     setSearch,
@@ -72,15 +82,20 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm(t("dialog.deleteConfirm"))) return;
+  const handleDeleteClick = (id: string) => {
+    setSetlistToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (!setlistToDelete) return;
     startTransition(async () => {
-      const result = await deleteSetlist(id);
+      const result = await deleteSetlist(setlistToDelete);
       if (result.success) {
         toast.success(t("dialog.deleted"));
       } else {
         toast.error(result.error);
       }
+      setSetlistToDelete(null);
     });
   };
 
@@ -213,7 +228,7 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(setlist.id);
+                            handleDeleteClick(setlist.id);
                           }}
                           className="text-red-600"
                         >
@@ -252,6 +267,34 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
         onClose={() => setIsDialogOpen(false)}
         setlist={editingSetlist}
       />
+
+      <Dialog
+        open={!!setlistToDelete}
+        onOpenChange={(open) => !open && setSetlistToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setSetlistToDelete(null)}
+              disabled={isPending}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isPending}
+            >
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

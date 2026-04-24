@@ -16,6 +16,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Plus,
   Trash2,
   GripVertical,
@@ -158,11 +166,12 @@ export function SetlistSongsManager({
 }: SetlistSongsManagerProps) {
   const router = useRouter();
   const t = useTranslations("setlists.songs");
+  const tCommon = useTranslations("common");
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
-
+  const [songToRemove, setSongToRemove] = useState<string | null>(null);
   const [items, setItems] = useState<Song[]>([]);
 
   const displayItems = isReordering ? items : setlistSongs || [];
@@ -209,12 +218,21 @@ export function SetlistSongsManager({
     setItems([]);
   };
 
-  const handleRemove = (songId: string) => {
-    if (!confirm(t("removeConfirm"))) return;
+  const handleRemoveClick = (songId: string) => {
+    setSongToRemove(songId);
+  };
+
+  const confirmRemove = () => {
+    if (!songToRemove) return;
+
     startTransition(async () => {
-      const result = await removeSongFromSetlist(setlistId, songId);
-      if (result.success) toast.success(t("removed"));
-      else toast.error(result.error);
+      const result = await removeSongFromSetlist(setlistId, songToRemove);
+      if (result.success) {
+        toast.success(t("removed"));
+      } else {
+        toast.error(result.error);
+      }
+      setSongToRemove(null);
     });
   };
 
@@ -303,7 +321,7 @@ export function SetlistSongsManager({
                       song={song}
                       index={index}
                       getArtistName={getArtistName}
-                      handleRemove={handleRemove}
+                      handleRemove={handleRemoveClick}
                       handlePlay={handlePlay}
                       isReordering={isReordering}
                     />
@@ -324,6 +342,33 @@ export function SetlistSongsManager({
         currentCount={displayItems.length}
         existingSongIds={displayItems.map((s) => s.id)}
       />
+      <Dialog
+        open={!!songToRemove}
+        onOpenChange={(open) => !open && setSongToRemove(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogDescription>{t("removeConfirm")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setSongToRemove(null)}
+              disabled={isPending}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmRemove}
+              disabled={isPending}
+            >
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

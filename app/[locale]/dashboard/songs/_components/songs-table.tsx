@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { Song, Artist } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
@@ -25,6 +25,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MoreHorizontal, Plus, Pencil, Trash2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
@@ -45,13 +53,17 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | null>(null);
 
-  const getArtistName = (artistId: string) =>
-    artists.find((a) => a.id === artistId)?.name ?? "—";
+  const [songToDelete, setSongToDelete] = useState<string | null>(null);
 
-  const songsWithArtistName = initialSongs.map((song) => ({
-    ...song,
-    artist_name: getArtistName(song.artist_id),
-  }));
+  const songsWithArtistName = useMemo(() => {
+    const getArtistName = (artistId: string) =>
+      artists.find((a) => a.id === artistId)?.name ?? "—";
+
+    return initialSongs.map((song) => ({
+      ...song,
+      artist_name: getArtistName(song.artist_id),
+    }));
+  }, [initialSongs, artists]);
 
   const {
     search,
@@ -72,15 +84,20 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm(t("dialog.deleteConfirm"))) return;
+  const handleDeleteClick = (id: string) => {
+    setSongToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (!songToDelete) return;
     startTransition(async () => {
-      const result = await deleteSong(id);
+      const result = await deleteSong(songToDelete);
       if (!result.success) {
         toast.error(result.error ?? t("dialog.deleteFailed"));
       } else {
         toast.success(t("dialog.deleted"));
       }
+      setSongToDelete(null);
     });
   };
 
@@ -213,7 +230,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => handleDelete(song.id)}
+                          onClick={() => handleDeleteClick(song.id)}
                           className="text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -252,6 +269,34 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
         song={editingSong}
         artists={artists}
       />
+
+      <Dialog
+        open={!!songToDelete}
+        onOpenChange={(open) => !open && setSongToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setSongToDelete(null)}
+              disabled={isPending}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isPending}
+            >
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

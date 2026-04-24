@@ -25,6 +25,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MoreHorizontal, Pencil, Plus, Trash2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
@@ -53,6 +61,8 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
     null,
   );
 
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
   const {
     search,
     setSearch,
@@ -77,15 +87,20 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
     setIsPasswordDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm(t("dialog.deleteConfirm"))) return;
+  const handleDeleteClick = (id: string) => {
+    setUserToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (!userToDelete) return;
     startTransition(async () => {
-      const result = await deleteUser(id);
+      const result = await deleteUser(userToDelete);
       if (!result.success) {
         toast.error(result.error ?? t("dialog.deleteFailed"));
       } else {
         toast.success(t("dialog.deleted"));
       }
+      setUserToDelete(null);
     });
   };
 
@@ -212,7 +227,7 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
                           {t("menu.changePassword")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDeleteClick(user.id)}
                           className="text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -255,6 +270,34 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
         onClose={() => setIsPasswordDialogOpen(false)}
         user={passwordTargetUser}
       />
+
+      <Dialog
+        open={!!userToDelete}
+        onOpenChange={(open) => !open && setUserToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setUserToDelete(null)}
+              disabled={isPending}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isPending}
+            >
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

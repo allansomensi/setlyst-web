@@ -23,6 +23,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
@@ -40,6 +48,8 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
+
+  const [artistToDelete, setArtistToDelete] = useState<string | null>(null);
 
   const {
     search,
@@ -60,15 +70,20 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm(t("dialog.deleteConfirm"))) return;
+  const handleDeleteClick = (id: string) => {
+    setArtistToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (!artistToDelete) return;
     startTransition(async () => {
-      const result = await deleteArtist(id);
+      const result = await deleteArtist(artistToDelete);
       if (!result.success) {
         toast.error(result.error ?? t("dialog.deleteFailed"));
       } else {
         toast.success(t("dialog.deleted"));
       }
+      setArtistToDelete(null);
     });
   };
 
@@ -148,7 +163,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                           {tCommon("edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDelete(artist.id)}
+                          onClick={() => handleDeleteClick(artist.id)}
                           className="text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -186,6 +201,34 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
         onClose={() => setIsDialogOpen(false)}
         artist={editingArtist}
       />
+
+      <Dialog
+        open={!!artistToDelete}
+        onOpenChange={(open) => !open && setArtistToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setArtistToDelete(null)}
+              disabled={isPending}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isPending}
+            >
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
