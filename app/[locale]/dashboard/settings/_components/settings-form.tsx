@@ -24,10 +24,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface SettingsFormProps {
-  initialData: UserPreferences;
+  initialPreferences: UserPreferences;
 }
 
-export function SettingsForm({ initialData }: SettingsFormProps) {
+export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   const t = useTranslations("settings");
   const router = useRouter();
   const pathname = usePathname();
@@ -35,14 +35,26 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleAction = (formData: FormData) => {
-    const rawFontSize = parseInt(formData.get("live_mode_font_size") as string);
+    const languageValue = formData.get("language");
+    const themeValue = formData.get("theme");
+    const fontSizeValue = formData.get("live_mode_font_size");
+
+    const language = typeof languageValue === "string" ? languageValue : "en";
+
+    const theme = (
+      ["light", "dark", "system"].includes(themeValue as string)
+        ? themeValue
+        : "system"
+    ) as UserTheme;
+
+    const rawFontSize = parseInt(fontSizeValue as string);
     const safeFontSize = isNaN(rawFontSize)
       ? 100
       : Math.min(Math.max(rawFontSize, 50), 300);
 
     const payload = {
-      language: formData.get("language") as string,
-      theme: formData.get("theme") as UserTheme,
+      language,
+      theme,
       live_mode_font_size: safeFontSize,
     };
 
@@ -51,11 +63,10 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
 
       if (result.success) {
         setTheme(payload.theme);
-
         toast.success(t("saveSuccess") || "Preferences updated");
 
         setTimeout(() => {
-          if (payload.language !== initialData.language) {
+          if (payload.language !== initialPreferences.language) {
             router.replace(pathname, { locale: payload.language });
           } else {
             router.refresh();
@@ -91,14 +102,14 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                 <Globe className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                 <Select
                   name="language"
-                  defaultValue={initialData.language || "en"}
+                  defaultValue={initialPreferences.language || "en"}
                   disabled={isPending}
                 >
                   <SelectTrigger
                     id="language"
                     className="bg-background hover:bg-accent/50 w-full pl-9 transition-colors"
                   >
-                    <SelectValue placeholder="Select a language" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
@@ -117,14 +128,14 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                 <Palette className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                 <Select
                   name="theme"
-                  defaultValue={initialData.theme || "system"}
+                  defaultValue={initialPreferences.theme || "system"}
                   disabled={isPending}
                 >
                   <SelectTrigger
                     id="theme"
                     className="bg-background hover:bg-accent/50 w-full pl-9 transition-colors"
                   >
-                    <SelectValue placeholder="Select a theme" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="light">{t("themeLight")}</SelectItem>
@@ -151,15 +162,8 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                 type="number"
                 min={50}
                 max={300}
-                defaultValue={initialData.live_mode_font_size || 100}
+                defaultValue={initialPreferences.live_mode_font_size || 100}
                 disabled={isPending}
-                onBlur={(e) => {
-                  let val = parseInt(e.target.value);
-                  if (isNaN(val)) val = 100;
-                  if (val < 50) val = 50;
-                  if (val > 300) val = 300;
-                  e.target.value = val.toString();
-                }}
                 className="hover:border-primary/50 w-full pr-9 pl-9 transition-colors"
               />
               <Percent className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />

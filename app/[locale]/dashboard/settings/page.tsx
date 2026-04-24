@@ -3,15 +3,16 @@ import { UserPreferences } from "@/types/api";
 import { SettingsForm } from "./_components/settings-form";
 import { Separator } from "@/components/ui/separator";
 import { getTranslations } from "next-intl/server";
+import { cache } from "react";
+
+const getPreferences = cache(() =>
+  fetchServerApi<UserPreferences>("/users/me/preferences", {
+    next: { revalidate: 0 },
+  }),
+);
 
 export default async function SettingsPage() {
-  const preferences = await fetchServerApi<UserPreferences>(
-    "/users/me/preferences",
-    {
-      cache: "no-store",
-    },
-  );
-
+  const preferences = await getPreferences();
   const t = await getTranslations("settings");
 
   return (
@@ -23,7 +24,7 @@ export default async function SettingsPage() {
 
       <Separator />
 
-      <SettingsForm initialData={preferences} />
+      <SettingsForm initialPreferences={preferences} />
     </div>
   );
 }
