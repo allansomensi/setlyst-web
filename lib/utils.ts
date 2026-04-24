@@ -14,6 +14,17 @@ export function formatDuration(seconds: number | null | undefined): string {
 
 export function parseDurationToSeconds(duration: string | null): number | null {
   if (!duration || !duration.includes(":")) return null;
-  const [minutes, seconds] = duration.split(":").map(Number);
-  return minutes * 60 + (seconds || 0);
+
+  const parts = duration.split(":");
+
+  if (parts.length !== 2) return null;
+
+  const minutes = Number(parts[0]);
+  const seconds = Number(parts[1]);
+
+  if (Number.isNaN(minutes) || Number.isNaN(seconds)) {
+    return null;
+  }
+
+  return minutes * 60 + seconds;
 }
