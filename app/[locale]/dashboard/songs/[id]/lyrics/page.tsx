@@ -289,24 +289,38 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const [lyrics, setLyrics] = useState("");
   const [showPreview, setShowPreview] = useState(true);
   const [showChords, setShowChords] = useState(true);
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
+    hasLoaded.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (hasLoaded.current) return;
+
     let mounted = true;
+
     async function load() {
       try {
         const song = await fetchApi<Song>(`/songs/${id}`);
+
         if (mounted) {
           setLyrics(song.lyrics ?? "");
           setSongTitle(song.title);
+          hasLoaded.current = true;
         }
       } catch {
-        toast.error(t("loadFailed"));
-        router.push("/dashboard/songs");
+        if (mounted) {
+          toast.error(t("loadFailed"));
+          router.push("/dashboard/songs");
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
     }
+
     load();
+
     return () => {
       mounted = false;
     };
