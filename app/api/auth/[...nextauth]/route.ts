@@ -2,6 +2,12 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
 
+if (!process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET.length < 32) {
+  throw new Error(
+    "ERROR: NEXTAUTH_SECRET is not set or is too weak. It must be at least 32 characters long.",
+  );
+}
+
 interface SetlystJwtPayload {
   sub: string;
   username: string;
@@ -19,6 +25,7 @@ function isValidRole(role: string): role is ValidRole {
 }
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",
