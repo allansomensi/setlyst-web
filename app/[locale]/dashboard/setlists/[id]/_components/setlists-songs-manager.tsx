@@ -163,13 +163,9 @@ export function SetlistSongsManager({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
 
-  const [prevSongs, setPrevSongs] = useState<Song[]>(setlistSongs || []);
-  const [items, setItems] = useState<Song[]>(setlistSongs || []);
+  const [items, setItems] = useState<Song[]>([]);
 
-  if (setlistSongs !== prevSongs) {
-    setPrevSongs(setlistSongs || []);
-    setItems(setlistSongs || []);
-  }
+  const displayItems = isReordering ? items : setlistSongs || [];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -209,8 +205,8 @@ export function SetlistSongsManager({
   };
 
   const handleCancel = () => {
-    setItems(setlistSongs || []);
     setIsReordering(false);
+    setItems([]);
   };
 
   const handleRemove = (songId: string) => {
@@ -248,8 +244,11 @@ export function SetlistSongsManager({
             <>
               <Button
                 variant="outline"
-                onClick={() => setIsReordering(true)}
-                disabled={items.length <= 1}
+                onClick={() => {
+                  setItems(setlistSongs || []);
+                  setIsReordering(true);
+                }}
+                disabled={(setlistSongs?.length || 0) <= 1}
               >
                 <ListOrdered className="mr-2 h-4 w-4" /> {t("reorder")}
               </Button>
@@ -284,7 +283,7 @@ export function SetlistSongsManager({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.length === 0 ? (
+              {displayItems.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={5}
@@ -295,10 +294,10 @@ export function SetlistSongsManager({
                 </TableRow>
               ) : (
                 <SortableContext
-                  items={items.map((s) => s.id)}
+                  items={displayItems.map((s) => s.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {items.map((song, index) => (
+                  {displayItems.map((song, index) => (
                     <SortableRow
                       key={song.id}
                       song={song}
@@ -322,8 +321,8 @@ export function SetlistSongsManager({
         setlistId={setlistId}
         allSongs={allSongs}
         artists={artists}
-        currentCount={items.length}
-        existingSongIds={items.map((s) => s.id)}
+        currentCount={displayItems.length}
+        existingSongIds={displayItems.map((s) => s.id)}
       />
     </div>
   );
