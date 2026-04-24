@@ -7,6 +7,74 @@ import { useTranslations } from "next-intl";
 // Token Types
 type Token = { type: "chord"; value: string } | { type: "text"; value: string };
 
+type ToolbarKey =
+  | "intro"
+  | "verse"
+  | "chorus"
+  | "preChorus"
+  | "postChorus"
+  | "bridge"
+  | "interlude"
+  | "instrumental"
+  | "solo"
+  | "guitarSolo"
+  | "keyboardSolo"
+  | "bassSolo"
+  | "drumSolo"
+  | "saxSolo"
+  | "synthSolo"
+  | "break"
+  | "breakdown"
+  | "drop"
+  | "vamp"
+  | "tag"
+  | "hook"
+  | "turnaround"
+  | "buildUp"
+  | "theme"
+  | "outro"
+  | "coda";
+
+const SECTION_MAP: Record<string, ToolbarKey> = {
+  intro: "intro",
+  introduction: "intro",
+  outro: "outro",
+  ending: "outro",
+  coda: "coda",
+  finale: "outro",
+  verse: "verse",
+  chorus: "chorus",
+  refrain: "chorus",
+  "pre-chorus": "preChorus",
+  "pre chorus": "preChorus",
+  prechorus: "preChorus",
+  "post-chorus": "postChorus",
+  "post chorus": "postChorus",
+  postchorus: "postChorus",
+  bridge: "bridge",
+  interlude: "interlude",
+  instrumental: "instrumental",
+  solo: "solo",
+  "guitar solo": "guitarSolo",
+  "keyboard solo": "keyboardSolo",
+  "piano solo": "keyboardSolo",
+  "bass solo": "bassSolo",
+  "drum solo": "drumSolo",
+  "sax solo": "saxSolo",
+  "synth solo": "synthSolo",
+  break: "break",
+  breakdown: "breakdown",
+  drop: "drop",
+  vamp: "vamp",
+  tag: "tag",
+  hook: "hook",
+  turnaround: "turnaround",
+  build: "buildUp",
+  "build up": "buildUp",
+  "build-up": "buildUp",
+  theme: "theme",
+};
+
 // Parsers
 function parseChordLine(line: string): Token[] {
   const tokens: Token[] = [];
@@ -203,18 +271,40 @@ export function ChordProRenderer({
           elements.push(<div key={i} className="mb-4" />);
           continue;
         }
+
         if (directive === "c" || directive === "comment") {
-          elements.push(
-            <div
-              key={i}
-              className="text-muted-foreground my-1 italic"
-              style={{ fontSize: "0.75em" }}
-            >
-              {value}
-            </div>,
-          );
+          let normalizedValue = value?.trim().toLowerCase() || "";
+          let suffix = "";
+
+          const numberMatch = normalizedValue.match(/^(.*?)\s*(\d+)$/);
+          if (numberMatch) {
+            normalizedValue = numberMatch[1].trim();
+            suffix = ` ${numberMatch[2]}`;
+          }
+
+          const translationKey = SECTION_MAP[normalizedValue];
+
+          if (translationKey) {
+            elements.push(
+              <SectionLabel key={i}>
+                — {tToolbar(translationKey)}
+                {suffix} —
+              </SectionLabel>,
+            );
+          } else {
+            elements.push(
+              <div
+                key={i}
+                className="text-muted-foreground my-1 italic"
+                style={{ fontSize: "0.75em" }}
+              >
+                {value}
+              </div>,
+            );
+          }
           continue;
         }
+
         if (directive === "title") continue;
         continue;
       }
