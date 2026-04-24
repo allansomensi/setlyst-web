@@ -3,6 +3,16 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useTranslations } from "next-intl";
+import {
+  Mic,
+  Music,
+  AlignLeft,
+  Play,
+  ListEnd,
+  MoveRight,
+  Timer,
+  SquareArrowRightEnter,
+} from "lucide-react";
 
 // Token Types
 type Token = { type: "chord"; value: string } | { type: "text"; value: string };
@@ -75,6 +85,42 @@ const SECTION_MAP: Record<string, ToolbarKey> = {
   theme: "theme",
 };
 
+const PILL_SECTIONS = new Set<ToolbarKey>([
+  "interlude",
+  "instrumental",
+  "solo",
+  "guitarSolo",
+  "keyboardSolo",
+  "bassSolo",
+  "drumSolo",
+  "saxSolo",
+  "synthSolo",
+  "break",
+  "breakdown",
+  "drop",
+  "turnaround",
+]);
+
+const ICON_MAP: Partial<Record<ToolbarKey, React.ElementType>> = {
+  intro: Play,
+  outro: ListEnd,
+  verse: AlignLeft,
+  chorus: Mic,
+  preChorus: SquareArrowRightEnter,
+  bridge: MoveRight,
+  solo: Music,
+  guitarSolo: Music,
+  keyboardSolo: Music,
+  bassSolo: Music,
+  drumSolo: Music,
+  saxSolo: Music,
+  synthSolo: Music,
+  instrumental: Music,
+  break: Timer,
+  breakdown: Timer,
+  coda: ListEnd,
+};
+
 // Parsers
 function parseChordLine(line: string): Token[] {
   const tokens: Token[] = [];
@@ -116,28 +162,38 @@ function parseDirective(
   };
 }
 
-// Formatted Text Renderer
 function renderFormattedText(text: string): React.ReactNode[] {
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__)/g);
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
+      return (
+        <strong key={i} className="font-bold">
+          {part.slice(2, -2)}
+        </strong>
+      );
     }
     if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={i}>{part.slice(1, -1)}</em>;
+      return (
+        <em key={i} className="italic opacity-90">
+          {part.slice(1, -1)}
+        </em>
+      );
     }
     if (part.startsWith("__") && part.endsWith("__")) {
-      return <u key={i}>{part.slice(2, -2)}</u>;
+      return (
+        <u
+          key={i}
+          className="decoration-muted-foreground underline underline-offset-4"
+        >
+          {part.slice(2, -2)}
+        </u>
+      );
     }
     return part || null;
   });
 }
 
-// Chord Line Renderer
-function renderChordTokens(
-  tokens: Token[],
-  chordColor: string,
-): React.ReactNode {
+function renderChordTokens(tokens: Token[]): React.ReactNode {
   const pairs: Array<{ chord?: string; text: string }> = [];
   let current: { chord?: string; text: string } = { text: "" };
 
@@ -156,17 +212,14 @@ function renderChordTokens(
   return (
     <span className="inline-flex flex-wrap">
       {pairs.map((pair, i) => (
-        <span key={i} className="inline-block">
+        <span key={i} className="relative inline-block">
           <span
-            className={cn(
-              "block font-mono leading-tight font-bold",
-              chordColor,
-            )}
-            style={{ fontSize: "0.7em" }}
+            className="text-muted-foreground/60 block font-mono font-semibold tracking-tighter"
+            style={{ fontSize: "0.65em", marginBottom: "-0.2em" }}
           >
             {pair.chord ?? "\u00A0"}
           </span>
-          <span className="leading-relaxed whitespace-pre-wrap">
+          <span className="text-foreground leading-relaxed font-medium whitespace-pre-wrap">
             {renderFormattedText(pair.text) || "\u00A0"}
           </span>
         </span>
@@ -175,11 +228,30 @@ function renderChordTokens(
   );
 }
 
-// Section Label Component
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({
+  children,
+  icon: Icon,
+  variant = "block",
+}: {
+  children: React.ReactNode;
+  icon?: React.ElementType;
+  variant?: "block" | "pill";
+}) {
+  if (variant === "pill") {
+    return (
+      <div className="my-5 flex items-center">
+        <div className="border-border bg-muted/10 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-widest uppercase shadow-sm">
+          {Icon && <Icon className="h-4 w-4 opacity-80" strokeWidth={2.5} />}
+          <span>{children}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="text-muted-foreground mt-6 mb-1 text-xs font-semibold tracking-widest uppercase">
-      {children}
+    <div className="border-border/50 text-muted-foreground mt-8 mb-3 flex items-center gap-2 border-b pb-1 text-xs font-bold tracking-widest uppercase">
+      {Icon && <Icon className="h-4 w-4" strokeWidth={2.5} />}
+      <span>{children}</span>
     </div>
   );
 }
@@ -190,20 +262,44 @@ export interface ChordProRendererProps {
   showChords?: boolean;
   fontSize?: number; // in rem
   fontFamily?: "sans" | "mono" | "serif";
-  chordColor?: string;
   className?: string;
 }
 
 export function ChordProRenderer({
   content,
   showChords = true,
-  fontSize = 1,
+  fontSize = 1.1,
   fontFamily = "sans",
-  chordColor = "text-primary",
   className,
 }: ChordProRendererProps) {
   const t = useTranslations("lyrics");
   const tToolbar = useTranslations("lyrics.toolbar");
+
+  const resolveLabel = (defaultKey: ToolbarKey, providedValue?: string) => {
+    if (!providedValue) return tToolbar(defaultKey);
+
+    const trimmed = providedValue.trim();
+
+    if (/^\d+$/.test(trimmed)) {
+      return `${tToolbar(defaultKey)} ${trimmed}`;
+    }
+
+    let normalized = trimmed.toLowerCase();
+    let suffix = "";
+    const match = normalized.match(/^(.*?)\s*(\d+)$/);
+
+    if (match) {
+      normalized = match[1].trim();
+      suffix = ` ${match[2]}`;
+    }
+
+    const mappedKey = SECTION_MAP[normalized];
+    if (mappedKey) {
+      return `${tToolbar(mappedKey)}${suffix}`;
+    }
+
+    return trimmed;
+  };
 
   if (!content?.trim()) {
     return (
@@ -225,12 +321,22 @@ export function ChordProRenderer({
   const lines = content.split("\n");
   const elements: React.ReactNode[] = [];
 
+  let inChorus = false;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
     if (!trimmed) {
-      elements.push(<div key={i} className="h-3" />);
+      elements.push(
+        <div
+          key={i}
+          className={cn(
+            "h-4",
+            inChorus && "border-foreground/20 bg-muted/10 border-l-2",
+          )}
+        />,
+      );
       continue;
     }
 
@@ -240,35 +346,43 @@ export function ChordProRenderer({
         const { directive, value } = dir;
 
         if (directive === "soc" || directive === "start_of_chorus") {
+          inChorus = true;
           elements.push(
-            <SectionLabel key={i}>— {tToolbar("chorus")} —</SectionLabel>,
-          );
-          continue;
-        }
-        if (directive === "eoc" || directive === "end_of_chorus") {
-          elements.push(<div key={i} className="mb-4" />);
-          continue;
-        }
-        if (directive === "sov" || directive === "start_of_verse") {
-          elements.push(
-            <SectionLabel key={i}>
-              — {value ?? tToolbar("verse")} —
+            <SectionLabel key={i} icon={ICON_MAP["chorus"]}>
+              {resolveLabel("chorus", value)}
             </SectionLabel>,
           );
           continue;
         }
-        if (directive === "eov" || directive === "end_of_verse") {
-          elements.push(<div key={i} className="mb-4" />);
+
+        if (directive === "eoc" || directive === "end_of_chorus") {
+          inChorus = false;
           continue;
         }
-        if (directive === "sob" || directive === "start_of_bridge") {
+
+        if (directive === "sov" || directive === "start_of_verse") {
           elements.push(
-            <SectionLabel key={i}>— {tToolbar("bridge")} —</SectionLabel>,
+            <SectionLabel key={i} icon={ICON_MAP["verse"]}>
+              {resolveLabel("verse", value)}
+            </SectionLabel>,
           );
           continue;
         }
+
+        if (directive === "eov" || directive === "end_of_verse") {
+          continue;
+        }
+
+        if (directive === "sob" || directive === "start_of_bridge") {
+          elements.push(
+            <SectionLabel key={i} icon={ICON_MAP["bridge"]}>
+              {resolveLabel("bridge", value)}
+            </SectionLabel>,
+          );
+          continue;
+        }
+
         if (directive === "eob" || directive === "end_of_bridge") {
-          elements.push(<div key={i} className="mb-4" />);
           continue;
         }
 
@@ -285,20 +399,27 @@ export function ChordProRenderer({
           const translationKey = SECTION_MAP[normalizedValue];
 
           if (translationKey) {
+            const variant = PILL_SECTIONS.has(translationKey)
+              ? "pill"
+              : "block";
+
             elements.push(
-              <SectionLabel key={i}>
-                — {tToolbar(translationKey)}
-                {suffix} —
+              <SectionLabel
+                key={i}
+                icon={ICON_MAP[translationKey]}
+                variant={variant}
+              >
+                {tToolbar(translationKey)}
+                {suffix}
               </SectionLabel>,
             );
           } else {
             elements.push(
               <div
                 key={i}
-                className="text-muted-foreground my-1 italic"
-                style={{ fontSize: "0.75em" }}
+                className="text-muted-foreground my-2 font-mono text-xs tracking-wider uppercase"
               >
-                {value}
+                [{value}]
               </div>,
             );
           }
@@ -311,23 +432,20 @@ export function ChordProRenderer({
     }
 
     if (trimmed.startsWith("#")) {
-      elements.push(
-        <div
-          key={i}
-          className="text-muted-foreground my-1 italic"
-          style={{ fontSize: "0.75em" }}
-        >
-          {trimmed.slice(1).trim()}
-        </div>,
-      );
       continue;
     }
+
+    const lineWrapperClass = cn(
+      "mb-1.5",
+      inChorus &&
+        "border-foreground/20 bg-muted/10 border-l-2 py-0.5 pl-4 transition-colors",
+    );
 
     if (showChords && hasChords(line)) {
       const tokens = parseChordLine(line);
       elements.push(
-        <div key={i} className="mb-1 leading-none">
-          {renderChordTokens(tokens, chordColor)}
+        <div key={i} className={lineWrapperClass}>
+          {renderChordTokens(tokens)}
         </div>,
       );
       continue;
@@ -335,7 +453,10 @@ export function ChordProRenderer({
 
     const textLine = showChords ? line : stripChords(line);
     elements.push(
-      <div key={i} className="leading-relaxed">
+      <div
+        key={i}
+        className={cn(lineWrapperClass, "text-foreground font-medium")}
+      >
         {renderFormattedText(textLine)}
       </div>,
     );
@@ -343,7 +464,7 @@ export function ChordProRenderer({
 
   return (
     <div
-      className={cn(fontClass, className)}
+      className={cn(fontClass, className, "max-w-3xl")}
       style={{ fontSize: `${fontSize}rem` }}
     >
       {elements}

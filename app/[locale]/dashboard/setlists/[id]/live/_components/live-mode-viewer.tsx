@@ -293,7 +293,6 @@ export function LiveModeViewer({
             showChords={settings.showChords}
             fontSize={baseFontSize}
             fontFamily={settings.fontFamily}
-            chordColor="text-primary"
           />
         </div>
       </main>
