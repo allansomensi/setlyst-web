@@ -1,55 +1,56 @@
 import createMiddleware from "next-intl/middleware";
-import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
-const authMiddleware = withAuth(
-  async function middleware(req: NextRequest) {
-    const token = await getToken({ req });
+const LOCALES = routing.locales as readonly string[];
+const DEFAULT_LOCALE = routing.defaultLocale;
 
-    if (token?.error === "TokenExpired") {
-      const locale = req.nextUrl.pathname.split("/")[1] ?? "en";
-      const loginUrl = new URL(`/${locale}/login`, req.url);
-      loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+function getLocaleFromPath(pathname: string): string {
+  const segment = pathname.split("/")[1] ?? "";
+  return (LOCALES as string[]).includes(segment) ? segment : DEFAULT_LOCALE;
+}
 
-    return intlMiddleware(req);
-  },
-  {
-    pages: {
-      signIn: "/login",
-    },
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-  },
-);
+function stripLocale(pathname: string): string {
+  const segment = pathname.split("/")[1] ?? "";
+  if ((LOCALES as string[]).includes(segment)) {
+    return pathname.slice(segment.length + 1) || "/";
+  }
+  return pathname;
+}
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const pathWithoutLocale = stripLocale(pathname);
+  const locale = getLocaleFromPath(pathname);
 
-  const pathnameWithoutLocale = pathname.replace(/^\/(en|pt-BR|es)/, "");
-
-  const isProtected = pathnameWithoutLocale.startsWith("/dashboard");
+  const isProtected = pathWithoutLocale.startsWith("/dashboard");
   const isAuthPage =
-    pathnameWithoutLocale.startsWith("/login") ||
-    pathnameWithoutLocale.startsWith("/register");
+    pathWithoutLocale === "/login" ||
+    pathWithoutLocale.startsWith("/login/") ||
+    pathWithoutLocale === "/register" ||
+    pathWithoutLocale.startsWith("/register/");
 
-  if (isProtected) {
-    return (
-      authMiddleware as unknown as (req: NextRequest) => Promise<NextResponse>
-    )(req);
-  }
+  if (isProtected || isAuthPage) {
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
-  if (isAuthPage) {
-    const token = await getToken({ req });
-    if (token) {
-      const locale = pathname.split("/")[1] ?? "en";
-      return NextResponse.redirect(new URL(`/${locale}/dashboard`, req.url));
+    if (isProtected) {
+      if (!token || token.error === "TokenExpired") {
+        const loginUrl = new URL(`/${locale}/login`, req.url);
+        loginUrl.searchParams.set("callbackUrl", pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
+
+    if (isAuthPage) {
+      if (token && !token.error) {
+        return NextResponse.redirect(new URL(`/${locale}/dashboard`, req.url));
+      }
     }
   }
 
@@ -57,8 +58,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    // Match all pathnames except static files, api, _next
-    "/((?!api|_next/static|status|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!api|_next/static|status|_next/image|favicon\\.ico).*)"],
 };

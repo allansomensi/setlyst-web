@@ -16,7 +16,12 @@ const getApiOrigin = () => {
 };
 
 const apiOrigin = getApiOrigin();
-const vercelDomains = ["https://vercel.live", "https://vercel.com"];
+
+const vercelOrigins = [
+  "https://vercel.live",
+  "https://vercel.com",
+  "https://va.vercel-scripts.com",
+];
 
 const connectSrc = [
   "'self'",
@@ -24,7 +29,7 @@ const connectSrc = [
   ...(isDev
     ? ["ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"]
     : []),
-  ...vercelDomains,
+  ...vercelOrigins,
 ].filter(Boolean);
 
 const cspDirectives: Record<string, string[]> = {
@@ -34,6 +39,7 @@ const cspDirectives: Record<string, string[]> = {
     "'unsafe-inline'",
     ...(isDev ? ["'unsafe-eval'"] : []),
     "https://vercel.live",
+    "https://va.vercel-scripts.com",
   ],
   "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   "font-src": ["'self'", "https://fonts.gstatic.com"],
@@ -65,6 +71,7 @@ const securityHeaders = [
       "camera=()",
       "microphone=()",
       "geolocation=()",
+      "wake-lock=(self)",
       "interest-cohort=()",
       "browsing-topics=()",
     ].join(", "),

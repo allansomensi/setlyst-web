@@ -32,6 +32,9 @@ export function useTableControls<T>(
       if (prev.direction === "asc") return { key, direction: "desc" };
       return { key: null, direction: null };
     });
+    // Always return to page 1 after a sort change so the user sees the
+    // newly ordered results from the beginning instead of a potentially empty page.
+    setCurrentPage(1);
   }, []);
 
   const filteredAndSortedData = useMemo(() => {

@@ -8,6 +8,8 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { fetchServerApi } from "@/lib/api-server";
 import { UserPreferences } from "@/types/api";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export default async function LocaleLayout({
   children,
@@ -26,14 +28,23 @@ export default async function LocaleLayout({
 
   let userTheme: "light" | "dark" | "system" = "system";
 
-  try {
-    const preferences = await fetchServerApi<UserPreferences>(
-      "/users/me/preferences",
-    );
+  // Only fetch preferences when the user is authenticated; skip the API round-trip
+  // on public pages (login, register) to avoid unnecessary latency and silent errors.
+  const session = await getServerSession(authOptions);
+  const isAuthenticated =
+    session && session.error !== "TokenExpired" && session.user?.apiToken;
 
-    userTheme = (preferences?.theme as "light" | "dark" | "system") || "system";
-  } catch {
-    userTheme = "system";
+  if (isAuthenticated) {
+    try {
+      const preferences = await fetchServerApi<UserPreferences>(
+        "/users/me/preferences",
+      );
+      userTheme =
+        (preferences?.theme as "light" | "dark" | "system") || "system";
+    } catch {
+      // Graceful degradation: fall back to system theme.
+      userTheme = "system";
+    }
   }
 
   return (

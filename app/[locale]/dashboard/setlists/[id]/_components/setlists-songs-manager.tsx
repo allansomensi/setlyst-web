@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { Song, Artist } from "@/types/api";
 import { removeSongFromSetlist, reorderSetlistSongs } from "../../actions";
 import { Button } from "@/components/ui/button";
@@ -237,7 +237,9 @@ export function SetlistSongsManager({
   };
 
   const handlePlay = (songId: string) => {
-    router.push(`/dashboard/setlists/${setlistId}/live?songId=${songId}`);
+    router.push(
+      `/dashboard/setlists/${setlistId}/live?songId=${songId}` as never,
+    );
   };
 
   return (

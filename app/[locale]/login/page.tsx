@@ -2,8 +2,8 @@
 
 import { signIn } from "next-auth/react";
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "@/i18n/routing";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ export default function LoginPage() {
         }
 
         toast.success(t("welcomeBack"));
-        router.push("dashboard");
+        router.push("/dashboard");
         router.refresh();
         return null;
       } catch {
@@ -123,7 +123,7 @@ export default function LoginPage() {
           <p className="text-muted-foreground text-sm">
             {t("noAccount")}{" "}
             <Link
-              href="register"
+              href="/register"
               className="text-primary font-medium hover:underline"
               tabIndex={5}
             >

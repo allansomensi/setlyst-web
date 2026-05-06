@@ -102,8 +102,10 @@
       "deleted": "Artista excluído com sucesso",
       "deleteFailed": "Erro ao excluir o artista"
     },
-    "nameLength": "O nome do artista deve ter entre 1 e 255 caracteres.",
-    "invalidId": "ID do artista inválido."
+    "errors": {
+      "nameLength": "O nome do artista deve ter entre 1 e 255 caracteres.",
+      "invalidId": "ID do artista inválido."
+    }
   },
   "songs": {
     "title": "Músicas",

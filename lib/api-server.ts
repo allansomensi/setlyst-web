@@ -11,6 +11,9 @@ export class ApiError extends Error {
   }
 }
 
+/** Default timeout for every server-side API call (milliseconds). */
+const DEFAULT_TIMEOUT_MS = 10_000;
+
 /**
  * Returns the internal API base URL.
  * Uses API_URL (server-only) first, falls back to NEXT_PUBLIC_API_URL.
@@ -38,7 +41,7 @@ function validateEndpoint(endpoint: string): void {
 
 export async function fetchServerApi<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit & { timeoutMs?: number } = {},
 ): Promise<T> {
   validateEndpoint(endpoint);
 
@@ -56,15 +59,25 @@ export async function fetchServerApi<T>(
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
 
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchOptions } = options;
+
   let res: Response;
   try {
     res = await fetch(url, {
-      ...options,
+      ...fetchOptions,
       headers,
-      // Prevent SSRF by not following redirects automatically
+      // Prevent SSRF by not following redirects automatically.
       redirect: "error",
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      console.error(
+        `[fetchServerApi] Request timed out after ${timeoutMs}ms:`,
+        url,
+      );
+      throw new ApiError(504, "The backend service did not respond in time.");
+    }
     console.error("[fetchServerApi] Network error:", err);
     throw new ApiError(503, "Unable to reach the backend service.");
   }
