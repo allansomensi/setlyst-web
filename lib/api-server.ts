@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { headers } from "next/headers"; // <-- Importado aqui
 
 export class ApiError extends Error {
   constructor(
@@ -48,13 +49,25 @@ export async function fetchServerApi<T>(
   const session = await getServerSession(authOptions);
   const token = session?.user?.apiToken;
 
-  const headers = new Headers(options.headers);
-  headers.set("Content-Type", "application/json");
-  headers.set("Accept", "application/json");
+  const requestHeaders = new Headers(options.headers);
+  requestHeaders.set("Content-Type", "application/json");
+  requestHeaders.set("Accept", "application/json");
 
   if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+    requestHeaders.set("Authorization", `Bearer ${token}`);
   }
+
+  try {
+    const nextHeaders = await headers();
+    const forwardedFor = nextHeaders.get("x-forwarded-for");
+    const realIp = nextHeaders.get("x-real-ip");
+
+    if (forwardedFor) {
+      requestHeaders.set("x-forwarded-for", forwardedFor);
+    } else if (realIp) {
+      requestHeaders.set("x-forwarded-for", realIp);
+    }
+  } catch {}
 
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
@@ -65,7 +78,7 @@ export async function fetchServerApi<T>(
   try {
     res = await fetch(url, {
       ...fetchOptions,
-      headers,
+      headers: requestHeaders,
       // Prevent SSRF by not following redirects automatically.
       redirect: "error",
       signal: AbortSignal.timeout(timeoutMs),
