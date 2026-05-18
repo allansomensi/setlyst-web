@@ -33,10 +33,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, Plus, Pencil, Trash2, FileEdit } from "lucide-react";
+import {
+  MoreHorizontal,
+  Plus,
+  Pencil,
+  Trash2,
+  FileEdit,
+  Loader2,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/i18n/routing";
+import { useSession } from "next-auth/react";
 
 const SEARCHABLE_KEYS = ["title", "artist_name", "genre"] as const;
 
@@ -48,12 +57,14 @@ interface SongsTableProps {
 export function SongsTable({ initialSongs, artists }: SongsTableProps) {
   const t = useTranslations("songs");
   const tCommon = useTranslations("common");
+  const { data: session } = useSession();
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | null>(null);
-
   const [songToDelete, setSongToDelete] = useState<string | null>(null);
+
+  const [isExporting, setIsExporting] = useState(false);
 
   const songsWithArtistName = useMemo(() => {
     const getArtistName = (artistId: string) =>
@@ -101,6 +112,49 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
     });
   };
 
+  const handleExportChordpro = async () => {
+    try {
+      setIsExporting(true);
+      const token = session?.user?.apiToken;
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+
+      const response = await fetch(`${baseUrl}/songs/export/chordpro`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export ChordPro");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+
+      const disposition = response.headers.get("content-disposition");
+      let filename = "setlyst-songs.cho";
+      if (disposition && disposition.includes("filename=")) {
+        filename = disposition.split("filename=")[1].replace(/"/g, "");
+      }
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success(t("exportSuccess"));
+    } catch (error) {
+      console.error(error);
+      toast.error(t("exportFailed"));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -109,10 +163,35 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("addSong")}
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {/* Export */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={isExporting}>
+                {isExporting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">{t("export")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem
+                onClick={handleExportChordpro}
+                className="cursor-pointer"
+              >
+                {t("exportChordpro")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t("addSong")}
+          </Button>
+        </div>
       </div>
 
       {/* Search */}

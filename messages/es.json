@@ -111,6 +111,10 @@
     "title": "Canciones",
     "subtitle": "Administra el repertorio de tu banda.",
     "addSong": "Agregar Canción",
+    "export": "Exportar",
+    "exportChordpro": "ChordPro (.cho)",
+    "exportSuccess": "¡Canciones exportadas con éxito!",
+    "exportFailed": "Error al exportar las canciones.",
     "searchPlaceholder": "Buscar por título, género, artista...",
     "lyricsTag": "letra",
     "table": {
