@@ -235,3 +235,47 @@ export interface ApiStatus {
   updated_at: string;
   dependencies: DependenciesStatus;
 }
+
+export interface GenreCount {
+  genre: string;
+  count: number;
+}
+
+export interface ArtistSongCount {
+  artist_name: string;
+  song_count: number;
+}
+
+export interface RoleCount {
+  role: string;
+  count: number;
+}
+
+export interface UserMetrics {
+  total_artists: number;
+  total_songs: number;
+  total_setlists: number;
+  songs_with_lyrics: number;
+  songs_without_lyrics: number;
+  songs_with_tonality: number;
+  songs_with_tempo: number;
+  top_genres: GenreCount[];
+  top_artists_by_songs: ArtistSongCount[];
+}
+
+export interface AdminMetrics {
+  total_users: number;
+  total_artists: number;
+  total_songs: number;
+  total_setlists: number;
+  songs_with_lyrics: number;
+  songs_without_lyrics: number;
+  active_users: number;
+  inactive_users: number;
+  top_genres: GenreCount[];
+  users_by_role: RoleCount[];
+}
+
+export type MetricsResponse =
+  | ({ scope: "user" } & UserMetrics)
+  | ({ scope: "admin" } & AdminMetrics);

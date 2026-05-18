@@ -5,12 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListMusic, Music, Disc3, Users } from "lucide-react";
 import { Link } from "@/i18n/routing";
 
+import { getDashboardMetrics } from "./actions";
+import { UserMetricsCharts } from "./_components/user-metrics";
+import { AdminMetricsCharts } from "./_components/admin-metrics";
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
 
   const userRole = session?.user?.role;
+
+  const metrics = await getDashboardMetrics();
 
   const quickLinks = [
     {
@@ -43,7 +49,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8 pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-1">
@@ -68,6 +74,14 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {metrics && metrics.scope === "admin" && (
+        <AdminMetricsCharts data={metrics} />
+      )}
+
+      {metrics && metrics.scope === "user" && (
+        <UserMetricsCharts data={metrics} />
+      )}
     </div>
   );
 }

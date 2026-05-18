@@ -404,6 +404,45 @@
       "usernameLength": "El nombre de usuario debe tener entre 1 y 128 caracteres."
     }
   },
+  "metrics": {
+    "quantity": "Cantidad",
+    "users": "Usuarios",
+    "active": "Activos",
+    "inactive": "Inactivos",
+    "topGenres": {
+      "title": "Top Géneros",
+      "description": "Tus géneros musicales más tocados",
+      "globalTitle": "Géneros Populares",
+      "globalDescription": "Top géneros en la plataforma"
+    },
+    "topArtists": {
+      "title": "Top Artistas",
+      "description": "Artistas con más canciones registradas"
+    },
+    "repertoireHealth": {
+      "title": "Salud del Repertorio",
+      "description": "Métricas sobre qué tan completas están tus canciones",
+      "withLyrics": "Con Letra",
+      "withoutLyrics": "Sin Letra",
+      "withTonality": "Con Tonalidad",
+      "withBpm": "Con BPM (Tempo)"
+    },
+    "platformOverview": {
+      "title": "Visión General de la Plataforma",
+      "totalUsers": "Total de Usuarios",
+      "totalArtists": "Total de Artistas",
+      "totalSongs": "Total de Canciones",
+      "totalSetlists": "Total de Setlists"
+    },
+    "userRoles": {
+      "title": "Roles de Usuario",
+      "description": "Distribución de permisos"
+    },
+    "accountStatus": {
+      "title": "Estado de Cuentas",
+      "description": "Usuarios activos vs inactivos"
+    }
+  },
   "settings": {
     "title": "Preferencias",
     "description": "Gestiona la configuración y preferencias de tu aplicación.",
