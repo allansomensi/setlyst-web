@@ -1,6 +1,7 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { User } from "@/types/api";
 import { ProfileForm } from "./_components/profile-form";
+import { ChangePasswordSection } from "./_components/change-password-section";
 import { Separator } from "@/components/ui/separator";
 import { getTranslations } from "next-intl/server";
 
@@ -18,6 +19,10 @@ export default async function ProfilePage() {
       <Separator />
 
       <ProfileForm user={user} />
+
+      <Separator />
+
+      <ChangePasswordSection />
     </div>
   );
 }

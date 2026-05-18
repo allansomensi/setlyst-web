@@ -400,8 +400,20 @@
     "joinedOn": "Joined on {date}",
     "success": "Profile updated successfully",
     "failed": "Failed to update profile",
+    "changePasswordTitle": "Change Password",
+    "changePasswordDescription": "Keep your account secure using a strong password.",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updatePassword": "Update Password",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "passwordChanged": "Your password has been changed successfully!",
+    "security": "Security",
+    "securityDescription": "Manage your account's security.",
     "errors": {
-      "usernameLength": "Username must be between 1 and 128 characters."
+      "usernameLength": "Username must be between 1 and 128 characters.",
+      "missingFields": "Please fill in all required fields.",
+      "passwordTooShort": "Password must be at least 8 characters."
     }
   },
   "metrics": {

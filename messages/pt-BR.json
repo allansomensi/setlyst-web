@@ -400,8 +400,20 @@
     "joinedOn": "Membro desde {date}",
     "success": "Perfil atualizado com sucesso",
     "failed": "Falha ao atualizar perfil",
+    "changePasswordTitle": "Alterar Senha",
+    "changePasswordDescription": "Mantenha sua conta segura usando uma senha forte.",
+    "currentPassword": "Senha Atual",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Nova Senha",
+    "updatePassword": "Atualizar Senha",
+    "passwordsDoNotMatch": "As senhas não coincidem.",
+    "passwordChanged": "Sua senha foi alterada com sucesso!",
+    "security": "Segurança",
+    "securityDescription": "Gerencie a segurança da sua conta.",
     "errors": {
-      "usernameLength": "O nome de usuário deve ter entre 1 e 128 caracteres."
+      "usernameLength": "O nome de usuário deve ter entre 1 e 128 caracteres.",
+      "missingFields": "Preencha todos os campos obrigatórios.",
+      "passwordTooShort": "A senha deve ter pelo menos 8 caracteres."
     }
   },
   "metrics": {
