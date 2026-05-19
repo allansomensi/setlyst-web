@@ -1,6 +1,7 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { UserPreferences } from "@/types/api";
 import { SettingsForm } from "./_components/settings-form";
+import { BackupSection } from "./_components/backup-section";
 import { Separator } from "@/components/ui/separator";
 import { getTranslations } from "next-intl/server";
 import { cache } from "react";
@@ -25,6 +26,10 @@ export default async function SettingsPage() {
       <Separator />
 
       <SettingsForm initialPreferences={preferences} />
+
+      <Separator />
+
+      <BackupSection />
     </div>
   );
 }

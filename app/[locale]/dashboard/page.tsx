@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListMusic, Music, Disc3, Users } from "lucide-react";
 import { Link } from "@/i18n/routing";
-
+import { Separator } from "@/components/ui/separator";
 import { getDashboardMetrics } from "./actions";
 import { UserMetricsCharts } from "./_components/user-metrics";
 import { AdminMetricsCharts } from "./_components/admin-metrics";
@@ -74,6 +74,8 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      <Separator />
 
       {metrics && metrics.scope === "admin" && (
         <AdminMetricsCharts data={metrics} />

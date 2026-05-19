@@ -279,3 +279,45 @@ export interface AdminMetrics {
 export type MetricsResponse =
   | ({ scope: "user" } & UserMetrics)
   | ({ scope: "admin" } & AdminMetrics);
+
+export interface ImportBackupResponse {
+  artists_imported: number;
+  songs_imported: number;
+  setlists_imported: number;
+}
+
+export interface BackupArtist {
+  id: string;
+  name: string;
+}
+
+export interface BackupSong {
+  id: string;
+  title: string;
+  artist_id: string;
+  tempo?: number | null;
+  lyrics?: string | null;
+  tonality?: Tonality | null;
+  genre?: Genre | null;
+  duration?: number | null;
+}
+
+export interface BackupSetlistSong {
+  position: number;
+  song_id: string;
+}
+
+export interface BackupSetlist {
+  id: string;
+  title: string;
+  description?: string | null;
+  songs: BackupSetlistSong[];
+}
+
+export interface ImportBackupPayload {
+  version: number;
+  exported_at: string;
+  artists: BackupArtist[];
+  songs: BackupSong[];
+  setlists: BackupSetlist[];
+}

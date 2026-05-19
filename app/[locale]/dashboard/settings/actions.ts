@@ -3,7 +3,11 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
-import { UpdatePreferencesPayload } from "@/types/api";
+import {
+  UpdatePreferencesPayload,
+  ImportBackupResponse,
+  ImportBackupPayload,
+} from "@/types/api";
 
 export async function updatePreferences(data: UpdatePreferencesPayload) {
   const safePayload: UpdatePreferencesPayload = {
@@ -19,6 +23,25 @@ export async function updatePreferences(data: UpdatePreferencesPayload) {
       fetchServerApi("/users/me/preferences", {
         method: "PATCH",
         body: JSON.stringify(safePayload),
+      }),
+    () => revalidatePath("/dashboard/settings"),
+  );
+}
+
+export async function exportBackup() {
+  return guardedAction(() =>
+    fetchServerApi<ImportBackupPayload>("/backup/export", {
+      method: "GET",
+    }),
+  );
+}
+
+export async function importBackup(backupData: ImportBackupPayload) {
+  return guardedAction(
+    () =>
+      fetchServerApi<ImportBackupResponse>("/backup/import", {
+        method: "POST",
+        body: JSON.stringify(backupData),
       }),
     () => revalidatePath("/dashboard/settings"),
   );
