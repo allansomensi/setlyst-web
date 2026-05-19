@@ -228,6 +228,7 @@
     "addSetlist": "Agregar Setlist",
     "liveModeBtn": "Modo en Vivo",
     "searchPlaceholder": "Buscar setlist...",
+    "totalDuration": "Duración Total",
     "table": {
       "title": "Título",
       "description": "Descripción",

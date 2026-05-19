@@ -2,9 +2,10 @@ import { fetchServerApi } from "@/lib/api-server";
 import { PaginatedResponse, Setlist, Song, Artist } from "@/types/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Play } from "lucide-react";
+import { ChevronLeft, Play, Clock } from "lucide-react";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
 import { getTranslations } from "next-intl/server";
+import { formatDuration } from "@/lib/utils";
 
 export default async function SetlistDetailsPage({
   params,
@@ -44,6 +45,13 @@ export default async function SetlistDetailsPage({
             {setlist.description && (
               <p className="text-muted-foreground">{setlist.description}</p>
             )}
+
+            <div className="text-muted-foreground bg-muted/50 mt-2 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
+              <Clock className="text-primary h-4 w-4" />
+              <span>
+                {t("totalDuration")}: {formatDuration(setlist.total_duration)}
+              </span>
+            </div>
           </div>
         </div>
 

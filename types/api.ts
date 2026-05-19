@@ -157,6 +157,7 @@ export interface Setlist {
   title: string;
   description: string | null;
   user_id: string;
+  total_duration: number;
   created_at: string;
   updated_at: string;
 }
