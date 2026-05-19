@@ -235,6 +235,20 @@
       "createdAt": "Creado el",
       "actions": "Acciones"
     },
+    "exportBtn": "Exportar",
+    "exportPdfOption": "PDF (.pdf)",
+    "exportPdf": {
+      "title": "Exportar como PDF",
+      "description": "Elige qué información incluir en el PDF exportado.",
+      "showTitle": "Mostrar título del setlist",
+      "showTotalDuration": "Mostrar duración total",
+      "showKey": "Mostrar tonalidad",
+      "showBpm": "Mostrar BPM (tempo)",
+      "export": "Exportar PDF",
+      "exporting": "Exportando...",
+      "exportSuccess": "¡PDF exportado con éxito!",
+      "exportFailed": "Error al exportar el PDF."
+    },
     "empty": "No hay setlists registradas.",
     "emptySearch": "No se encontraron setlists para \"{search}\".",
     "menu": {

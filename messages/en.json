@@ -235,6 +235,20 @@
       "createdAt": "Created at",
       "actions": "Actions"
     },
+    "exportBtn": "Export",
+    "exportPdfOption": "PDF (.pdf)",
+    "exportPdf": {
+      "title": "Export as PDF",
+      "description": "Choose what information to include in the exported PDF.",
+      "showTitle": "Show setlist title",
+      "showTotalDuration": "Show total duration",
+      "showKey": "Show song key (tonality)",
+      "showBpm": "Show BPM (tempo)",
+      "export": "Export PDF",
+      "exporting": "Exporting...",
+      "exportSuccess": "PDF exported successfully!",
+      "exportFailed": "Failed to export PDF."
+    },
     "empty": "No setlists registered.",
     "emptySearch": "No setlists found for \"{search}\".",
     "menu": {

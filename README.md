@@ -32,8 +32,8 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 - ✅ **Authentication** — Secure access via NextAuth.
 - ✅ **Responsive Design** — Optimized for desktops, tablets, and mobile phones.
 - ✅ **Multi-language** — Full support for English and Portuguese (i18n).
+- ✅ **PDF Export** — Generate printable versions of your setlists.
 - 🚧 **Offline Support** — Access your setlists even without an internet connection.
-- 🚧 **PDF Export** — Generate printable versions of your setlists.
 - 🚧 **Setlist Sharing** — Collaborative editing with band members.
 
 ---
