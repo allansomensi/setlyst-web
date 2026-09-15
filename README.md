@@ -26,15 +26,15 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 
 > ⚠️ Setlyst is in active development. Features marked 🚧 are planned but not yet implemented.
 
-- ✅ **Dashboard** — Centralized management of Artists, Songs, and Setlists.
+- ✅ **Dashboard** — Centralized management of Artists, Songs, Bands and Setlists.
 - ✅ **Live Mode** — High-contrast, distraction-free performance viewer.
 - ✅ **ChordPro Support** — Dynamic rendering of lyrics and chords.
 - ✅ **Authentication** — Secure access via NextAuth.
 - ✅ **Responsive Design** — Optimized for desktops, tablets, and mobile phones.
 - ✅ **Multi-language** — Full support for English and Portuguese (i18n).
 - ✅ **PDF Export** — Generate printable versions of your setlists.
+- ✅ **Setlist Sharing** — Collaborative editing with band members.
 - 🚧 **Offline Support** — Access your setlists even without an internet connection.
-- 🚧 **Setlist Sharing** — Collaborative editing with band members.
 
 ---
 
