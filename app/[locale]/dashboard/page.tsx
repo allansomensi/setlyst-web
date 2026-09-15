@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListMusic, Music, Disc3, Users } from "lucide-react";
+import { ListMusic, Music, Disc3, Users, Guitar } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Separator } from "@/components/ui/separator";
 import { getDashboardMetrics } from "./actions";
@@ -37,6 +37,12 @@ export default async function DashboardPage() {
       label: tNav("setlists"),
       description: t("setlists.description"),
     },
+    {
+      href: "/dashboard/bands",
+      icon: Guitar,
+      label: tNav("bands"),
+      description: t("bands.description"),
+    },
   ];
 
   if (userRole === "admin" || userRole === "moderator") {
@@ -57,7 +63,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {quickLinks.map(({ href, icon: Icon, label, description }) => (
           <Link key={href} href={href}>
             <Card className="hover:border-primary/50 h-full cursor-pointer transition-colors hover:shadow-sm">

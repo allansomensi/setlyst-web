@@ -1,5 +1,11 @@
 import { fetchServerApi } from "@/lib/api-server";
-import { PaginatedResponse, Setlist, Song, Artist } from "@/types/api";
+import {
+  PaginatedResponse,
+  Setlist,
+  Song,
+  SetlistSong,
+  Artist,
+} from "@/types/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Clock } from "lucide-react";
@@ -19,7 +25,7 @@ export default async function SetlistDetailsPage({
   const [setlist, setlistSongsRes, allSongsRes, allArtistsRes] =
     await Promise.all([
       fetchServerApi<Setlist>(`/setlists/${id}`),
-      fetchServerApi<PaginatedResponse<Song>>(
+      fetchServerApi<PaginatedResponse<SetlistSong>>(
         `/setlists/${id}/songs?page=1&per_page=100`,
       ),
       fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
@@ -55,7 +61,11 @@ export default async function SetlistDetailsPage({
           </div>
         </div>
 
-        <SetlistActions setlistId={setlist.id} setlistTitle={setlist.title} />
+        <SetlistActions
+          setlistId={setlist.id}
+          setlistTitle={setlist.title}
+          shareToken={setlist.share_token}
+        />
       </div>
 
       <SetlistSongsManager

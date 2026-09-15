@@ -8,7 +8,9 @@
     "showing": "Mostrando {count} de {total} {entity}",
     "showingFor": "para \"{search}\"",
     "result": "resultado",
-    "results": "resultados"
+    "results": "resultados",
+    "you": "tú",
+    "confirm": "Confirmar"
   },
   "pagination": {
     "previous": "Anterior",
@@ -21,7 +23,8 @@
     "songs": "Canciones",
     "setlists": "Setlists",
     "users": "Usuarios",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "bands": "Bandas"
   },
   "auth": {
     "login": {
@@ -71,10 +74,21 @@
   "dashboard": {
     "title": "Panel",
     "welcome": "¡Bienvenido de nuevo, {name}!",
-    "artists": { "description": "Administra los artistas de tu banda" },
-    "songs": { "description": "Agrega y organiza tu repertorio" },
-    "setlists": { "description": "Crea y administra tus setlists" },
-    "users": { "description": "Gestionar usuarios y permisos" }
+    "artists": {
+      "description": "Administra los artistas de tu banda"
+    },
+    "songs": {
+      "description": "Agrega y organiza tu repertorio"
+    },
+    "setlists": {
+      "description": "Crea y administra tus setlists"
+    },
+    "users": {
+      "description": "Gestionar usuarios y permisos"
+    },
+    "bands": {
+      "description": "Gestiona las bandas de las que formas parte"
+    }
   },
   "artists": {
     "title": "Artistas",
@@ -304,7 +318,27 @@
       "invalidId": "ID del setlist inválido.",
       "invalidSetlistOrSongId": "ID del setlist o de la canción inválido.",
       "emptySongList": "La lista de canciones está vacía.",
-      "invalidSongIds": "IDs de canción inválidos en la lista de reordenamiento."
+      "invalidSongIds": "IDs de canción inválidos en la lista de reordenamiento.",
+      "songAlreadyInSetlist": "Esta canción ya está en esta setlist."
+    },
+    "bandSetlist": "Banda",
+    "bandSetlistTooltip": "Setlist de la banda {name}",
+    "shareBtn": "Compartir",
+    "share": {
+      "title": "Compartir setlist",
+      "descriptionActive": "Cualquiera con el enlace de abajo puede ver esta setlist, sin necesidad de cuenta.",
+      "descriptionInactive": "Genera un enlace público para compartir esta setlist con cualquiera, sin necesidad de cuenta.",
+      "linkLabel": "Enlace público",
+      "copyLink": "Copiar enlace",
+      "linkCopied": "¡Enlace copiado!",
+      "enableAction": "Generar enlace público",
+      "enableHint": "El enlace se puede desactivar en cualquier momento.",
+      "enabled": "¡Enlace público generado!",
+      "regenerateAction": "Generar nuevo enlace",
+      "regenerateHint": "Generar un nuevo enlace invalida inmediatamente el anterior.",
+      "disableAction": "Desactivar enlace",
+      "disableConfirm": "¿Seguro? El enlace actual dejará de funcionar de inmediato para quien ya lo tenga.",
+      "disabled": "Enlace público desactivado"
     }
   },
   "liveMode": {
@@ -459,7 +493,8 @@
       "totalUsers": "Total de Usuarios",
       "totalArtists": "Total de Artistas",
       "totalSongs": "Total de Canciones",
-      "totalSetlists": "Total de Setlists"
+      "totalSetlists": "Total de Setlists",
+      "totalBands": "Total de Bandas"
     },
     "userRoles": {
       "title": "Roles de Usuario",
@@ -468,7 +503,8 @@
     "accountStatus": {
       "title": "Estado de Cuentas",
       "description": "Usuarios activos vs inactivos"
-    }
+    },
+    "myBands": "Mis Bandas"
   },
   "settings": {
     "title": "Preferencias",
@@ -504,5 +540,142 @@
     "production": "No pudimos cargar la información. Por favor, intenta de nuevo.",
     "reference": "Referencia:",
     "tryAgain": "Intentar de nuevo"
+  },
+  "bands": {
+    "title": "Bandas",
+    "subtitle": "Gestiona las bandas de las que formas parte.",
+    "addBand": "Nueva Banda",
+    "searchPlaceholder": "Buscar banda...",
+    "empty": "Todavía no formas parte de ninguna banda.",
+    "emptySearch": "No se encontraron bandas para \"{search}\".",
+    "memberCount": "{count} integrante(s)",
+    "viewSetlists": "Ver Setlists",
+    "bandSetlistsTitle": "Setlists de la Banda",
+    "menu": {
+      "manage": "Gestionar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "leave": "Salir de la banda"
+    },
+    "dialog": {
+      "addTitle": "Nueva Banda",
+      "editTitle": "Editar Banda",
+      "description": "Completa los datos de la banda a continuación.",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "ej., Los Errantes",
+      "descriptionLabel": "Descripción (Opcional)",
+      "descriptionPlaceholder": "ej., Banda de covers de rock clásico",
+      "created": "¡Banda creada!",
+      "updated": "¡Banda actualizada!",
+      "saveFailed": "Error al guardar la banda",
+      "deleteConfirm": "¿Seguro que deseas eliminar \"{name}\"? También se eliminarán todas las setlists de la banda.",
+      "deleted": "Banda eliminada",
+      "leaveTitle": "Salir de la banda",
+      "leaveConfirm": "¿Seguro que deseas salir de \"{name}\"?",
+      "left": "Saliste de la banda"
+    },
+    "roles": {
+      "owner": "Administrador",
+      "admin": "Admin",
+      "moderator": "Moderador",
+      "member": "Miembro"
+    },
+    "members": {
+      "title": "Integrantes",
+      "subtitle": "Gestiona quién forma parte de esta banda y sus roles.",
+      "table": {
+        "member": "Integrante",
+        "role": "Rol",
+        "actions": "Acciones"
+      },
+      "roleUpdated": "Rol actualizado",
+      "removed": "Integrante eliminado",
+      "left": "Saliste de la banda",
+      "leave": "Salir de la banda",
+      "remove": "Eliminar",
+      "leaveTitle": "Salir de la banda",
+      "removeTitle": "Eliminar integrante",
+      "leaveConfirm": "¿Seguro que deseas salir de \"{name}\"?",
+      "removeConfirm": "¿Seguro que deseas eliminar a {name} de la banda?",
+      "roles": {
+        "owner": "Administrador",
+        "admin": "Admin",
+        "moderator": "Moderador",
+        "member": "Miembro"
+      }
+    },
+    "invites": {
+      "title": "Invitaciones",
+      "subtitle": "Genera enlaces de invitación para que nuevos integrantes se unan a la banda.",
+      "createInvite": "Crear Invitación",
+      "createDescription": "Elige el rol y las condiciones de la invitación.",
+      "empty": "Aún no se han creado invitaciones.",
+      "table": {
+        "code": "Código",
+        "role": "Rol",
+        "uses": "Usos",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "roles": {
+        "member": "Miembro",
+        "moderator": "Moderador",
+        "admin": "Admin",
+        "owner": "Administrador"
+      },
+      "status": {
+        "active": "Activa",
+        "expired": "Expirada",
+        "revoked": "Revocada",
+        "exhausted": "Agotada"
+      },
+      "roleLabel": "Rol del invitado",
+      "expiresLabel": "Expira en",
+      "expiresOptions": {
+        "1d": "1 día",
+        "7d": "7 días",
+        "30d": "30 días",
+        "never": "Nunca"
+      },
+      "maxUsesLabel": "Límite de usos (opcional)",
+      "maxUsesPlaceholder": "Ilimitado",
+      "created": "¡Invitación creada!",
+      "revoked": "Invitación revocada",
+      "revoke": "Revocar",
+      "revokeConfirm": "¿Seguro que deseas revocar esta invitación? Los enlaces ya compartidos dejarán de funcionar.",
+      "copyLink": "Copiar enlace",
+      "linkCopied": "¡Enlace copiado!"
+    },
+    "danger": {
+      "title": "Zona de Peligro",
+      "subtitle": "Acciones irreversibles relacionadas con esta banda.",
+      "transferTitle": "Transferir administración",
+      "transferDescription": "Convierte a otro integrante en el administrador de esta banda.",
+      "transferAction": "Transferir",
+      "transferConfirm": "Elige el nuevo administrador de la banda. Tú pasarás a ser admin.",
+      "newOwnerLabel": "Nuevo administrador",
+      "transferred": "Administración transferida con éxito",
+      "leaveTitle": "Salir de la banda",
+      "leaveDescription": "Perderás el acceso a las setlists y configuraciones de esta banda.",
+      "leaveAction": "Salir",
+      "leaveConfirm": "¿Seguro que deseas salir de \"{name}\"?",
+      "left": "Saliste de la banda",
+      "deleteTitle": "Eliminar banda",
+      "deleteDescription": "Elimina permanentemente la banda, sus integrantes, invitaciones y setlists.",
+      "deleteAction": "Eliminar banda",
+      "deleteConfirm": "¿Seguro que deseas eliminar \"{name}\"? Esta acción no se puede deshacer.",
+      "deleted": "Banda eliminada"
+    },
+    "acceptInvite": {
+      "title": "Invitación a banda",
+      "description": "Fuiste invitado a unirte a una banda en Setlyst.",
+      "cancel": "Cancelar",
+      "accept": "Unirme a la banda"
+    },
+    "errors": {
+      "nameLength": "El nombre de la banda debe tener entre 2 y 60 caracteres.",
+      "invalidId": "ID inválido.",
+      "invalidInviteCode": "Código de invitación inválido."
+    }
   }
 }

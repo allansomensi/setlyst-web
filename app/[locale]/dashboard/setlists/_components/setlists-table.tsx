@@ -10,6 +10,7 @@ import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ import {
   Trash2,
   ListMusic,
   ChevronRight,
+  Guitar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -48,11 +50,28 @@ import { Link } from "@/i18n/routing";
 
 const SEARCHABLE_KEYS = ["title", "description"] as const;
 
-interface SetlistsTableProps {
-  initialSetlists: Setlist[];
+interface BandLookupEntry {
+  name: string;
+  canManage: boolean;
 }
 
-export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
+interface SetlistsTableProps {
+  initialSetlists: Setlist[];
+  /** Target band for setlists created from this table. Omit for personal setlists. */
+  bandId?: string;
+  /**
+   * Context for any band-owned setlist in `initialSetlists` (e.g. band name,
+   * whether the current user is allowed to edit/delete it). A setlist with a
+   * `band_id` missing from this map is treated as non-manageable.
+   */
+  bandsById?: Record<string, BandLookupEntry>;
+}
+
+export function SetlistsTable({
+  initialSetlists,
+  bandId,
+  bandsById,
+}: SetlistsTableProps) {
   const router = useRouter();
   const t = useTranslations("setlists");
   const tCommon = useTranslations("common");
@@ -61,7 +80,7 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSetlist, setEditingSetlist] = useState<Setlist | null>(null);
 
-  const [setlistToDelete, setSetlistToDelete] = useState<string | null>(null);
+  const [setlistToDelete, setSetlistToDelete] = useState<Setlist | null>(null);
 
   const {
     search,
@@ -82,14 +101,17 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteClick = (id: string) => {
-    setSetlistToDelete(id);
+  const handleDeleteClick = (setlist: Setlist) => {
+    setSetlistToDelete(setlist);
   };
 
   const confirmDelete = () => {
     if (!setlistToDelete) return;
     startTransition(async () => {
-      const result = await deleteSetlist(setlistToDelete);
+      const result = await deleteSetlist(
+        setlistToDelete.id,
+        setlistToDelete.band_id ?? undefined,
+      );
       if (result.success) {
         toast.success(t("dialog.deleted"));
       } else {
@@ -167,79 +189,104 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              setlists.map((setlist) => (
-                <TableRow
-                  key={setlist.id}
-                  className="group cursor-pointer"
-                  onClick={(e) => {
-                    if (
-                      (e.target as HTMLElement).closest("[data-no-row-click]")
-                    )
-                      return;
-                    router.push(`/dashboard/setlists/${setlist.id}`);
-                  }}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <ListMusic className="text-muted-foreground h-4 w-4 shrink-0" />
-                      <span className="font-medium group-hover:underline">
-                        {setlist.title}
-                      </span>
-                      <ChevronRight className="text-muted-foreground h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    className="text-muted-foreground hidden max-w-xs truncate text-sm md:table-cell"
-                    title={setlist.description ?? ""}
+              setlists.map((setlist) => {
+                const bandInfo = setlist.band_id
+                  ? bandsById?.[setlist.band_id]
+                  : undefined;
+                const isBandSetlist = !!setlist.band_id;
+                const canManage =
+                  !isBandSetlist || bandInfo?.canManage === true;
+
+                return (
+                  <TableRow
+                    key={setlist.id}
+                    className="group cursor-pointer"
+                    onClick={(e) => {
+                      if (
+                        (e.target as HTMLElement).closest("[data-no-row-click]")
+                      )
+                        return;
+                      router.push(`/dashboard/setlists/${setlist.id}`);
+                    }}
                   >
-                    {setlist.description ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
-                    {new Date(setlist.created_at).toLocaleDateString("en-US")}
-                  </TableCell>
-                  <TableCell className="text-right" data-no-row-click>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/setlists/${setlist.id}`}>
-                            <ListMusic className="mr-2 h-4 w-4" />
-                            {t("menu.manageSongs")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenDialog(setlist);
-                          }}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          {t("menu.edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick(setlist.id);
-                          }}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {t("menu.delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <ListMusic className="text-muted-foreground h-4 w-4 shrink-0" />
+                        <span className="font-medium group-hover:underline">
+                          {setlist.title}
+                        </span>
+                        {isBandSetlist && (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 text-xs font-normal"
+                            title={t("bandSetlistTooltip", {
+                              name: bandInfo?.name ?? "",
+                            })}
+                          >
+                            <Guitar className="h-3 w-3" />
+                            {bandInfo?.name ?? t("bandSetlist")}
+                          </Badge>
+                        )}
+                        <ChevronRight className="text-muted-foreground h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      className="text-muted-foreground hidden max-w-xs truncate text-sm md:table-cell"
+                      title={setlist.description ?? ""}
+                    >
+                      {setlist.description ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
+                      {new Date(setlist.created_at).toLocaleDateString("en-US")}
+                    </TableCell>
+                    <TableCell className="text-right" data-no-row-click>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/setlists/${setlist.id}`}>
+                              <ListMusic className="mr-2 h-4 w-4" />
+                              {t("menu.manageSongs")}
+                            </Link>
+                          </DropdownMenuItem>
+                          {canManage && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDialog(setlist);
+                                }}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                {t("menu.edit")}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(setlist);
+                                }}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t("menu.delete")}
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -266,6 +313,7 @@ export function SetlistsTable({ initialSetlists }: SetlistsTableProps) {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         setlist={editingSetlist}
+        bandId={editingSetlist ? (editingSetlist.band_id ?? undefined) : bandId}
       />
 
       <Dialog

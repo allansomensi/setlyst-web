@@ -78,7 +78,7 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
 
   return (
     <div className="mt-8 flex flex-col space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -117,6 +117,16 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.total_setlists}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("platformOverview.totalBands")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.total_bands}</div>
           </CardContent>
         </Card>
       </div>

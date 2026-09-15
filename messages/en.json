@@ -8,7 +8,9 @@
     "showing": "Showing {count} of {total} {entity}",
     "showingFor": "for \"{search}\"",
     "result": "result",
-    "results": "results"
+    "results": "results",
+    "you": "you",
+    "confirm": "Confirm"
   },
   "pagination": {
     "previous": "Previous",
@@ -21,7 +23,8 @@
     "songs": "Songs",
     "setlists": "Setlists",
     "users": "Users",
-    "logout": "Log out"
+    "logout": "Log out",
+    "bands": "Bands"
   },
   "auth": {
     "login": {
@@ -71,10 +74,21 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back, {name}!",
-    "artists": { "description": "Manage your band's artists" },
-    "songs": { "description": "Add and organize your repertoire" },
-    "setlists": { "description": "Build and manage your setlists" },
-    "users": { "description": "Manage users and permissions" }
+    "artists": {
+      "description": "Manage your band's artists"
+    },
+    "songs": {
+      "description": "Add and organize your repertoire"
+    },
+    "setlists": {
+      "description": "Build and manage your setlists"
+    },
+    "users": {
+      "description": "Manage users and permissions"
+    },
+    "bands": {
+      "description": "Manage the bands you're part of"
+    }
   },
   "artists": {
     "title": "Artists",
@@ -304,7 +318,27 @@
       "invalidId": "Invalid setlist ID.",
       "invalidSetlistOrSongId": "Invalid setlist or song ID.",
       "emptySongList": "Song list is empty.",
-      "invalidSongIds": "Invalid song IDs in reorder list."
+      "invalidSongIds": "Invalid song IDs in reorder list.",
+      "songAlreadyInSetlist": "This song is already in the setlist."
+    },
+    "bandSetlist": "Band",
+    "bandSetlistTooltip": "Setlist from the {name} band",
+    "shareBtn": "Share",
+    "share": {
+      "title": "Share setlist",
+      "descriptionActive": "Anyone with the link below can view this setlist, no account needed.",
+      "descriptionInactive": "Generate a public link to share this setlist with anyone, no account needed.",
+      "linkLabel": "Public link",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied!",
+      "enableAction": "Generate public link",
+      "enableHint": "The link can be disabled at any time.",
+      "enabled": "Public link generated!",
+      "regenerateAction": "Generate new link",
+      "regenerateHint": "Generating a new link immediately invalidates the previous one.",
+      "disableAction": "Disable link",
+      "disableConfirm": "Are you sure? The current link will stop working immediately for anyone who has it.",
+      "disabled": "Public link disabled"
     }
   },
   "liveMode": {
@@ -459,7 +493,8 @@
       "totalUsers": "Total Users",
       "totalArtists": "Total Artists",
       "totalSongs": "Total Songs",
-      "totalSetlists": "Total Setlists"
+      "totalSetlists": "Total Setlists",
+      "totalBands": "Total Bands"
     },
     "userRoles": {
       "title": "User Roles",
@@ -468,7 +503,8 @@
     "accountStatus": {
       "title": "Account Status",
       "description": "Active vs inactive users"
-    }
+    },
+    "myBands": "My Bands"
   },
   "settings": {
     "title": "Preferences",
@@ -504,5 +540,142 @@
     "production": "We couldn't load the requested information. Please try again.",
     "reference": "Reference:",
     "tryAgain": "Try again"
+  },
+  "bands": {
+    "title": "Bands",
+    "subtitle": "Manage the bands you're part of.",
+    "addBand": "New Band",
+    "searchPlaceholder": "Search band...",
+    "empty": "You're not part of any band yet.",
+    "emptySearch": "No bands found for \"{search}\".",
+    "memberCount": "{count} member(s)",
+    "viewSetlists": "View Setlists",
+    "bandSetlistsTitle": "Band Setlists",
+    "menu": {
+      "manage": "Manage",
+      "edit": "Edit",
+      "delete": "Delete",
+      "leave": "Leave band"
+    },
+    "dialog": {
+      "addTitle": "New Band",
+      "editTitle": "Edit Band",
+      "description": "Fill in the band's details below.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g., The Wanderers",
+      "descriptionLabel": "Description (Optional)",
+      "descriptionPlaceholder": "e.g., Classic rock cover band",
+      "created": "Band created!",
+      "updated": "Band updated!",
+      "saveFailed": "Failed to save the band",
+      "deleteConfirm": "Are you sure you want to delete \"{name}\"? All of the band's setlists will also be deleted.",
+      "deleted": "Band deleted",
+      "leaveTitle": "Leave band",
+      "leaveConfirm": "Are you sure you want to leave \"{name}\"?",
+      "left": "You left the band"
+    },
+    "roles": {
+      "owner": "Administrator",
+      "admin": "Admin",
+      "moderator": "Moderator",
+      "member": "Member"
+    },
+    "members": {
+      "title": "Members",
+      "subtitle": "Manage who's part of this band and their roles.",
+      "table": {
+        "member": "Member",
+        "role": "Role",
+        "actions": "Actions"
+      },
+      "roleUpdated": "Role updated",
+      "removed": "Member removed",
+      "left": "You left the band",
+      "leave": "Leave band",
+      "remove": "Remove",
+      "leaveTitle": "Leave band",
+      "removeTitle": "Remove member",
+      "leaveConfirm": "Are you sure you want to leave \"{name}\"?",
+      "removeConfirm": "Are you sure you want to remove {name} from the band?",
+      "roles": {
+        "owner": "Administrator",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "member": "Member"
+      }
+    },
+    "invites": {
+      "title": "Invites",
+      "subtitle": "Generate invite links for new members to join the band.",
+      "createInvite": "Create Invite",
+      "createDescription": "Choose the invite's role and conditions.",
+      "empty": "No invites created yet.",
+      "table": {
+        "code": "Code",
+        "role": "Role",
+        "uses": "Uses",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "roles": {
+        "member": "Member",
+        "moderator": "Moderator",
+        "admin": "Admin",
+        "owner": "Administrator"
+      },
+      "status": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked",
+        "exhausted": "Exhausted"
+      },
+      "roleLabel": "Invitee role",
+      "expiresLabel": "Expires in",
+      "expiresOptions": {
+        "1d": "1 day",
+        "7d": "7 days",
+        "30d": "30 days",
+        "never": "Never"
+      },
+      "maxUsesLabel": "Use limit (optional)",
+      "maxUsesPlaceholder": "Unlimited",
+      "created": "Invite created!",
+      "revoked": "Invite revoked",
+      "revoke": "Revoke",
+      "revokeConfirm": "Are you sure you want to revoke this invite? Already-shared links will stop working.",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied!"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "subtitle": "Irreversible actions related to this band.",
+      "transferTitle": "Transfer administration",
+      "transferDescription": "Make another member the administrator of this band.",
+      "transferAction": "Transfer",
+      "transferConfirm": "Choose the band's new administrator. You will become an admin.",
+      "newOwnerLabel": "New administrator",
+      "transferred": "Administration transferred successfully",
+      "leaveTitle": "Leave band",
+      "leaveDescription": "You'll lose access to this band's setlists and settings.",
+      "leaveAction": "Leave",
+      "leaveConfirm": "Are you sure you want to leave \"{name}\"?",
+      "left": "You left the band",
+      "deleteTitle": "Delete band",
+      "deleteDescription": "Permanently deletes the band, its members, invites, and setlists.",
+      "deleteAction": "Delete band",
+      "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "deleted": "Band deleted"
+    },
+    "acceptInvite": {
+      "title": "Band invite",
+      "description": "You've been invited to join a band on Setlyst.",
+      "cancel": "Cancel",
+      "accept": "Join band"
+    },
+    "errors": {
+      "nameLength": "Band name must be between 2 and 60 characters.",
+      "invalidId": "Invalid ID.",
+      "invalidInviteCode": "Invalid invite code."
+    }
   }
 }

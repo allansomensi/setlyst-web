@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "@/i18n/routing";
-import { Song, Artist } from "@/types/api";
+import { Song, SetlistSong, Artist } from "@/types/api";
 import { removeSongFromSetlist, reorderSetlistSongs } from "../../actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +53,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 interface SetlistSongsManagerProps {
   setlistId: string;
-  setlistSongs: Song[];
+  setlistSongs: SetlistSong[];
   allSongs: Song[];
   artists: Artist[];
 }
@@ -61,14 +61,12 @@ interface SetlistSongsManagerProps {
 function SortableRow({
   song,
   index,
-  getArtistName,
   handleRemove,
   handlePlay,
   isReordering,
 }: {
-  song: Song;
+  song: SetlistSong;
   index: number;
-  getArtistName: (id: string) => string;
   handleRemove: (id: string) => void;
   handlePlay: (id: string) => void;
   isReordering: boolean;
@@ -127,7 +125,7 @@ function SortableRow({
           )}
         </div>
       </TableCell>
-      <TableCell>{getArtistName(song.artist_id)}</TableCell>
+      <TableCell>{song.artist_name}</TableCell>
       <TableCell>
         {song.tempo ? (
           <span className="text-muted-foreground font-mono text-sm">
@@ -172,7 +170,7 @@ export function SetlistSongsManager({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
   const [songToRemove, setSongToRemove] = useState<string | null>(null);
-  const [items, setItems] = useState<Song[]>([]);
+  const [items, setItems] = useState<SetlistSong[]>([]);
 
   const displayItems = isReordering ? items : setlistSongs || [];
 
@@ -182,11 +180,6 @@ export function SetlistSongsManager({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  const getArtistName = (artistId: string) => {
-    const artist = artists.find((a) => a.id === artistId);
-    return artist ? artist.name : "Unknown Artist";
-  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -322,7 +315,6 @@ export function SetlistSongsManager({
                       key={song.id}
                       song={song}
                       index={index}
-                      getArtistName={getArtistName}
                       handleRemove={handleRemoveClick}
                       handlePlay={handlePlay}
                       isReordering={isReordering}
@@ -342,7 +334,9 @@ export function SetlistSongsManager({
         allSongs={allSongs}
         artists={artists}
         currentCount={displayItems.length}
-        existingSongIds={displayItems.map((s) => s.id)}
+        existingSongIds={displayItems.flatMap((s) =>
+          [s.id, s.forked_from].filter((id): id is string => !!id),
+        )}
       />
       <Dialog
         open={!!songToRemove}

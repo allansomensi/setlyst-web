@@ -1,13 +1,15 @@
 "use server";
 
-import { fetchServerApi } from "@/lib/api-server";
-import { guardedAction } from "@/lib/action-guard";
+import { fetchServerApi, ApiError } from "@/lib/api-server";
+import { guardedAction, ActionResult } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { Setlist } from "@/types/api";
 
 export async function createSetlist(data: {
   title: string;
   description?: string;
+  band_id?: string;
 }) {
   const t = await getTranslations("setlists.errors");
   const title = data.title?.trim();
@@ -25,15 +27,19 @@ export async function createSetlist(data: {
     () =>
       fetchServerApi("/setlists", {
         method: "POST",
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify({ title, description, band_id: data.band_id }),
       }),
-    () => revalidatePath("/dashboard/setlists"),
+    () =>
+      data.band_id
+        ? revalidatePath(`/dashboard/bands/${data.band_id}/setlists`)
+        : revalidatePath("/dashboard/setlists"),
   );
 }
 
 export async function updateSetlist(
   id: string,
   data: { title?: string; description?: string },
+  bandId?: string,
 ) {
   const t = await getTranslations("setlists.errors");
 
@@ -62,18 +68,24 @@ export async function updateSetlist(
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
-    () => revalidatePath("/dashboard/setlists"),
+    () => {
+      revalidatePath("/dashboard/setlists");
+      if (bandId) revalidatePath(`/dashboard/bands/${bandId}/setlists`);
+    },
   );
 }
 
-export async function deleteSetlist(id: string) {
+export async function deleteSetlist(id: string, bandId?: string) {
   const t = await getTranslations("setlists.errors");
 
   if (!id) return { success: false, error: t("invalidId") };
 
   return guardedAction(
     () => fetchServerApi(`/setlists/${id}`, { method: "DELETE" }),
-    () => revalidatePath("/dashboard/setlists"),
+    () => {
+      revalidatePath("/dashboard/setlists");
+      if (bandId) revalidatePath(`/dashboard/bands/${bandId}/setlists`);
+    },
   );
 }
 
@@ -90,11 +102,19 @@ export async function addSongToSetlist(
   const position = Math.max(1, Math.floor(Number(data.position)));
 
   return guardedAction(
-    () =>
-      fetchServerApi(`/setlists/${setlistId}/songs`, {
-        method: "POST",
-        body: JSON.stringify({ song_id: data.song_id, position }),
-      }),
+    async () => {
+      try {
+        return await fetchServerApi(`/setlists/${setlistId}/songs`, {
+          method: "POST",
+          body: JSON.stringify({ song_id: data.song_id, position }),
+        });
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          throw new Error(t("songAlreadyInSetlist"));
+        }
+        throw err;
+      }
+    },
     () => revalidatePath(`/dashboard/setlists/${setlistId}`),
   );
 }
@@ -138,5 +158,31 @@ export async function reorderSetlistSongs(
         body: JSON.stringify({ song_ids: songIds }),
       }),
     () => revalidatePath(`/dashboard/setlists/${setlistId}`),
+  );
+}
+
+export async function enableSetlistSharing(
+  id: string,
+): Promise<ActionResult<Setlist>> {
+  const t = await getTranslations("setlists.errors");
+
+  if (!id) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () => fetchServerApi<Setlist>(`/setlists/${id}/share`, { method: "POST" }),
+    () => revalidatePath(`/dashboard/setlists/${id}`),
+  );
+}
+
+export async function disableSetlistSharing(
+  id: string,
+): Promise<ActionResult<void>> {
+  const t = await getTranslations("setlists.errors");
+
+  if (!id) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () => fetchServerApi(`/setlists/${id}/share`, { method: "DELETE" }),
+    () => revalidatePath(`/dashboard/setlists/${id}`),
   );
 }

@@ -8,25 +8,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Play, Download, FileText } from "lucide-react";
+import { Play, Download, FileText, Share2 } from "lucide-react";
 import Link from "next/link";
 import { ExportPdfDialog } from "./export-pdf-dialog";
+import { ShareSetlistDialog } from "./share-setlist-dialog";
 import { useTranslations } from "next-intl";
 
 interface SetlistActionsProps {
   setlistId: string;
   setlistTitle: string;
+  shareToken: string | null;
 }
 
 export function SetlistActions({
   setlistId,
   setlistTitle,
+  shareToken,
 }: SetlistActionsProps) {
   const t = useTranslations("setlists");
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="lg"
+        className="gap-2"
+        onClick={() => setIsShareDialogOpen(true)}
+      >
+        <Share2 className="h-4 w-4" />
+        {t("shareBtn")}
+      </Button>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="lg" className="gap-2">
@@ -53,6 +67,13 @@ export function SetlistActions({
         setlistTitle={setlistTitle}
         isOpen={isPdfDialogOpen}
         onClose={() => setIsPdfDialogOpen(false)}
+      />
+
+      <ShareSetlistDialog
+        setlistId={setlistId}
+        shareToken={shareToken}
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
       />
     </div>
   );

@@ -1,8 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import { Setlist } from "@/types/api";
-import { createSetlist, updateSetlist } from "../actions";
+import { BandWithMembership } from "@/types/api";
+import { createBand, updateBand } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,35 +18,29 @@ import {
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface SetlistDialogProps {
-  setlist?: Setlist | null;
+interface BandDialogProps {
+  band?: BandWithMembership | null;
   isOpen: boolean;
   onClose: () => void;
-  bandId?: string;
 }
 
-export function SetlistDialog({
-  setlist,
-  isOpen,
-  onClose,
-  bandId,
-}: SetlistDialogProps) {
-  const t = useTranslations("setlists.dialog");
+export function BandDialog({ band, isOpen, onClose }: BandDialogProps) {
+  const t = useTranslations("bands.dialog");
   const tCommon = useTranslations("common");
 
   const [isPending, startTransition] = useTransition();
-  const isEditing = !!setlist;
+  const isEditing = !!band;
 
   const handleAction = (formData: FormData) => {
     const data = {
-      title: formData.get("title") as string,
+      name: formData.get("name") as string,
       description: formData.get("description") as string,
     };
 
     startTransition(async () => {
       const result = isEditing
-        ? await updateSetlist(setlist.id, data, bandId)
-        : await createSetlist({ ...data, band_id: bandId });
+        ? await updateBand(band.id, data)
+        : await createBand(data);
 
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
@@ -60,7 +54,7 @@ export function SetlistDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
-        <form action={handleAction} key={setlist?.id || "new"}>
+        <form action={handleAction} key={band?.id || "new"}>
           <DialogHeader>
             <DialogTitle>
               {isEditing ? t("editTitle") : t("addTitle")}
@@ -69,15 +63,15 @@ export function SetlistDialog({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">{t("titleLabel")}</Label>
+              <Label htmlFor="name">{t("nameLabel")}</Label>
               <Input
-                id="title"
-                name="title"
-                defaultValue={setlist?.title}
+                id="name"
+                name="name"
+                defaultValue={band?.name}
                 required
                 disabled={isPending}
-                maxLength={255}
-                placeholder={t("titlePlaceholder")}
+                maxLength={60}
+                placeholder={t("namePlaceholder")}
               />
             </div>
             <div className="space-y-2">
@@ -85,7 +79,7 @@ export function SetlistDialog({
               <Input
                 id="description"
                 name="description"
-                defaultValue={setlist?.description || ""}
+                defaultValue={band?.description || ""}
                 disabled={isPending}
                 placeholder={t("descriptionPlaceholder")}
               />
