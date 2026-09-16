@@ -2,7 +2,15 @@
 
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { Disc3, Home, Music, ListMusic, Users, Guitar } from "lucide-react";
+import {
+  Disc3,
+  Home,
+  Music,
+  ListMusic,
+  Users,
+  Guitar,
+  Calendar,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarLinksProps {
@@ -19,6 +27,7 @@ export function SidebarLinks({ isCollapsed, userRole }: SidebarLinksProps) {
     { name: t("artists"), href: "/dashboard/artists", icon: Disc3 },
     { name: t("songs"), href: "/dashboard/songs", icon: Music },
     { name: t("setlists"), href: "/dashboard/setlists", icon: ListMusic },
+    { name: t("gigs"), href: "/dashboard/gigs", icon: Calendar },
     { name: t("bands"), href: "/dashboard/bands", icon: Guitar },
   ];
 

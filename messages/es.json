@@ -22,6 +22,7 @@
     "artists": "Artistas",
     "songs": "Canciones",
     "setlists": "Setlists",
+    "gigs": "Shows",
     "users": "Usuarios",
     "logout": "Cerrar sesión",
     "bands": "Bandas"
@@ -341,6 +342,80 @@
       "disabled": "Enlace público desactivado"
     }
   },
+  "gigs": {
+    "title": "Shows",
+    "subtitle": "Gestiona tus próximos shows y los ya realizados.",
+    "addGig": "Agregar Show",
+    "searchPlaceholder": "Buscar shows...",
+    "upcoming": "Próximos",
+    "past": "Pasados",
+    "table": {
+      "venue": "Lugar",
+      "when": "Cuándo",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "empty": "No hay shows registrados.",
+    "emptySearch": "No se encontraron shows para \"{search}\".",
+    "menu": {
+      "viewDetails": "Ver detalles",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "dialog": {
+      "addTitle": "Agregar Nuevo Show",
+      "editTitle": "Editar Show",
+      "description": "Ingresa los detalles del show a continuación.",
+      "venueLabel": "Lugar",
+      "venuePlaceholder": "ej., The Blue Note",
+      "scheduledAtLabel": "Fecha y hora",
+      "statusLabel": "Estado",
+      "status": {
+        "confirmed": "Confirmado",
+        "cancelled": "Cancelado",
+        "completed": "Realizado"
+      },
+      "bandLabel": "Banda",
+      "personalOption": "Personal (sin banda)",
+      "setlistLabel": "Setlist",
+      "noSetlistOption": "Sin setlist todavía",
+      "notesLabel": "Notas (opcional)",
+      "notesPlaceholder": "ej., Carga a las 19h, contactar al promotor antes",
+      "created": "¡Show creado!",
+      "updated": "¡Show actualizado!",
+      "saveFailed": "Error al guardar el show",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar este show?",
+      "deleted": "Show eliminado"
+    },
+    "errors": {
+      "venueLength": "El lugar debe tener entre 1 y 255 caracteres.",
+      "scheduledAtRequired": "La fecha y hora son obligatorias.",
+      "invalidId": "ID de show inválido."
+    },
+    "bandGig": "Banda",
+    "bandGigTooltip": "Show de la banda {name}",
+    "shareBtn": "Compartir",
+    "share": {
+      "title": "Compartir show",
+      "descriptionActive": "Cualquiera con el siguiente enlace puede ver este show y su setlist, sin necesidad de cuenta.",
+      "descriptionInactive": "Genera un enlace público para compartir este show con cualquiera, sin necesidad de cuenta.",
+      "linkLabel": "Enlace público",
+      "copyLink": "Copiar enlace",
+      "linkCopied": "¡Enlace copiado!",
+      "enableAction": "Generar enlace público",
+      "enableHint": "El enlace se puede desactivar en cualquier momento.",
+      "enabled": "¡Enlace público generado!",
+      "regenerateAction": "Generar nuevo enlace",
+      "regenerateHint": "Generar un nuevo enlace invalida inmediatamente el anterior.",
+      "disableAction": "Desactivar enlace",
+      "disableConfirm": "¿Estás seguro? El enlace actual dejará de funcionar de inmediato para cualquiera que lo tenga.",
+      "disabled": "Enlace público desactivado"
+    },
+    "setlistFor": "Setlist: {title}",
+    "noSetlistLinked": "Todavía no hay un setlist vinculado a este show.",
+    "linkSetlistAction": "Vincular un setlist",
+    "noSetlistsAvailable": "Crea un setlist primero para vincularlo a este show."
+  },
   "liveMode": {
     "noSongs": "No hay canciones en esta setlist",
     "back": "Volver",
@@ -533,7 +608,8 @@
     "backupDropzoneDesc": "Solo archivos de respaldo JSON",
     "backupArtists": "Artistas",
     "backupSongs": "Canciones",
-    "backupSetlists": "Setlists"
+    "backupSetlists": "Setlists",
+    "backupGigs": "Shows"
   },
   "error": {
     "title": "¡Ups! Algo salió mal.",

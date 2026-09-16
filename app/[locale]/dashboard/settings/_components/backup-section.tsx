@@ -18,6 +18,7 @@ import {
   Users,
   ListMusic,
   UploadCloud,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportBackup, importBackup } from "../actions";
@@ -211,7 +212,7 @@ export function BackupSection() {
               {t("backupImportResultDescription")}
             </p>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="bg-background/60 dark:bg-background/40 flex items-center gap-3 rounded-md border border-emerald-500/20 p-3 shadow-sm dark:border-emerald-500/10">
                 <Users className="text-primary h-5 w-5" />
                 <div>
@@ -244,6 +245,18 @@ export function BackupSection() {
                   </div>
                   <div className="text-foreground text-lg font-bold">
                     {importResult.setlists_imported ?? 0}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-background/60 dark:bg-background/40 flex items-center gap-3 rounded-md border border-emerald-500/20 p-3 shadow-sm dark:border-emerald-500/10">
+                <Calendar className="text-primary h-5 w-5" />
+                <div>
+                  <div className="text-muted-foreground text-xs">
+                    {t("backupGigs")}
+                  </div>
+                  <div className="text-foreground text-lg font-bold">
+                    {importResult.gigs_imported ?? 0}
                   </div>
                 </div>
               </div>

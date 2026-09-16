@@ -22,6 +22,7 @@
     "artists": "Artists",
     "songs": "Songs",
     "setlists": "Setlists",
+    "gigs": "Shows",
     "users": "Users",
     "logout": "Log out",
     "bands": "Bands"
@@ -341,6 +342,80 @@
       "disabled": "Public link disabled"
     }
   },
+  "gigs": {
+    "title": "Shows",
+    "subtitle": "Manage your upcoming and past gigs.",
+    "addGig": "Add Gig",
+    "searchPlaceholder": "Search gigs...",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "table": {
+      "venue": "Venue",
+      "when": "When",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "No gigs registered.",
+    "emptySearch": "No gigs found for \"{search}\".",
+    "menu": {
+      "viewDetails": "View details",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "dialog": {
+      "addTitle": "Add New Gig",
+      "editTitle": "Edit Gig",
+      "description": "Enter the gig details below.",
+      "venueLabel": "Venue",
+      "venuePlaceholder": "e.g., The Blue Note",
+      "scheduledAtLabel": "Date & time",
+      "statusLabel": "Status",
+      "status": {
+        "confirmed": "Confirmed",
+        "cancelled": "Cancelled",
+        "completed": "Completed"
+      },
+      "bandLabel": "Band",
+      "personalOption": "Personal (no band)",
+      "setlistLabel": "Setlist",
+      "noSetlistOption": "No setlist yet",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "e.g., Load in at 7pm, contact promoter beforehand",
+      "created": "Gig created!",
+      "updated": "Gig updated!",
+      "saveFailed": "Failed to save gig",
+      "deleteConfirm": "Are you sure you want to delete this gig?",
+      "deleted": "Gig deleted"
+    },
+    "errors": {
+      "venueLength": "Venue must be between 1 and 255 characters.",
+      "scheduledAtRequired": "Date and time are required.",
+      "invalidId": "Invalid gig ID."
+    },
+    "bandGig": "Band",
+    "bandGigTooltip": "Gig for the {name} band",
+    "shareBtn": "Share",
+    "share": {
+      "title": "Share gig",
+      "descriptionActive": "Anyone with the link below can view this gig and its setlist, no account needed.",
+      "descriptionInactive": "Generate a public link to share this gig with anyone, no account needed.",
+      "linkLabel": "Public link",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied!",
+      "enableAction": "Generate public link",
+      "enableHint": "The link can be disabled at any time.",
+      "enabled": "Public link generated!",
+      "regenerateAction": "Generate new link",
+      "regenerateHint": "Generating a new link immediately invalidates the previous one.",
+      "disableAction": "Disable link",
+      "disableConfirm": "Are you sure? The current link will stop working immediately for anyone who has it.",
+      "disabled": "Public link disabled"
+    },
+    "setlistFor": "Setlist: {title}",
+    "noSetlistLinked": "No setlist linked to this gig yet.",
+    "linkSetlistAction": "Link a setlist",
+    "noSetlistsAvailable": "Create a setlist first to link it to this gig."
+  },
   "liveMode": {
     "noSongs": "No songs in this setlist",
     "back": "Back",
@@ -533,7 +608,8 @@
     "backupDropzoneDesc": "JSON backup files only",
     "backupArtists": "Artists",
     "backupSongs": "Songs",
-    "backupSetlists": "Setlists"
+    "backupSetlists": "Setlists",
+    "backupGigs": "Gigs"
   },
   "error": {
     "title": "Oops! Something went wrong.",

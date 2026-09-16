@@ -22,6 +22,7 @@
     "artists": "Artistas",
     "songs": "Músicas",
     "setlists": "Setlists",
+    "gigs": "Shows",
     "users": "Usuários",
     "logout": "Sair",
     "bands": "Bandas"
@@ -341,6 +342,80 @@
       "disabled": "Link público desativado"
     }
   },
+  "gigs": {
+    "title": "Shows",
+    "subtitle": "Gerencie seus próximos shows e os já realizados.",
+    "addGig": "Adicionar Show",
+    "searchPlaceholder": "Buscar shows...",
+    "upcoming": "Próximos",
+    "past": "Passados",
+    "table": {
+      "venue": "Local",
+      "when": "Quando",
+      "status": "Status",
+      "actions": "Ações"
+    },
+    "empty": "Nenhum show cadastrado.",
+    "emptySearch": "Nenhum show encontrado para \"{search}\".",
+    "menu": {
+      "viewDetails": "Ver detalhes",
+      "edit": "Editar",
+      "delete": "Excluir"
+    },
+    "dialog": {
+      "addTitle": "Adicionar Novo Show",
+      "editTitle": "Editar Show",
+      "description": "Preencha os detalhes do show abaixo.",
+      "venueLabel": "Local",
+      "venuePlaceholder": "ex.: Choperia do João",
+      "scheduledAtLabel": "Data e hora",
+      "statusLabel": "Status",
+      "status": {
+        "confirmed": "Confirmado",
+        "cancelled": "Cancelado",
+        "completed": "Concluído"
+      },
+      "bandLabel": "Banda",
+      "personalOption": "Pessoal (sem banda)",
+      "setlistLabel": "Setlist",
+      "noSetlistOption": "Sem setlist ainda",
+      "notesLabel": "Notas (opcional)",
+      "notesPlaceholder": "ex.: Passagem de som às 19h, falar com o produtor antes",
+      "created": "Show criado!",
+      "updated": "Show atualizado!",
+      "saveFailed": "Falha ao salvar o show",
+      "deleteConfirm": "Tem certeza que deseja excluir este show?",
+      "deleted": "Show excluído"
+    },
+    "errors": {
+      "venueLength": "O local deve ter entre 1 e 255 caracteres.",
+      "scheduledAtRequired": "Data e hora são obrigatórias.",
+      "invalidId": "ID de show inválido."
+    },
+    "bandGig": "Banda",
+    "bandGigTooltip": "Show da banda {name}",
+    "shareBtn": "Compartilhar",
+    "share": {
+      "title": "Compartilhar show",
+      "descriptionActive": "Qualquer pessoa com o link abaixo pode ver este show e sua setlist, sem precisar de conta.",
+      "descriptionInactive": "Gere um link público para compartilhar este show com qualquer pessoa, sem precisar de conta.",
+      "linkLabel": "Link público",
+      "copyLink": "Copiar link",
+      "linkCopied": "Link copiado!",
+      "enableAction": "Gerar link público",
+      "enableHint": "O link pode ser desativado a qualquer momento.",
+      "enabled": "Link público gerado!",
+      "regenerateAction": "Gerar novo link",
+      "regenerateHint": "Gerar um novo link invalida imediatamente o anterior.",
+      "disableAction": "Desativar link",
+      "disableConfirm": "Tem certeza? O link atual deixará de funcionar imediatamente para quem o tiver.",
+      "disabled": "Link público desativado"
+    },
+    "setlistFor": "Setlist: {title}",
+    "noSetlistLinked": "Nenhuma setlist vinculada a este show ainda.",
+    "linkSetlistAction": "Vincular uma setlist",
+    "noSetlistsAvailable": "Crie uma setlist primeiro para vincular a este show."
+  },
   "liveMode": {
     "noSongs": "Nenhuma música nesta setlist",
     "back": "Voltar",
@@ -533,7 +608,8 @@
     "backupDropzoneDesc": "Apenas arquivos de backup JSON",
     "backupArtists": "Artistas",
     "backupSongs": "Músicas",
-    "backupSetlists": "Setlists"
+    "backupSetlists": "Setlists",
+    "backupGigs": "Shows"
   },
   "error": {
     "title": "Ops! Algo deu errado.",

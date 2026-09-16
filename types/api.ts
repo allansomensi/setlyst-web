@@ -312,6 +312,7 @@ export interface ImportBackupResponse {
   artists_imported: number;
   songs_imported: number;
   setlists_imported: number;
+  gigs_imported?: number;
 }
 
 export interface BackupArtist {
@@ -342,12 +343,22 @@ export interface BackupSetlist {
   songs: BackupSetlistSong[];
 }
 
+export interface BackupGig {
+  id: string;
+  venue: string;
+  scheduled_at: string;
+  setlist_id?: string | null;
+  status: GigStatus;
+  notes?: string | null;
+}
+
 export interface ImportBackupPayload {
   version: number;
   exported_at: string;
   artists: BackupArtist[];
   songs: BackupSong[];
   setlists: BackupSetlist[];
+  gigs?: BackupGig[];
 }
 
 export type BandRole = "owner" | "admin" | "moderator" | "member";
@@ -416,4 +427,45 @@ export interface CreateBandInvitePayload {
   role?: BandRole;
   max_uses?: number;
   expires_in_hours?: number;
+}
+
+export type GigStatus = "confirmed" | "cancelled" | "completed";
+
+export interface Gig {
+  id: string;
+  user_id: string;
+  band_id: string | null;
+  setlist_id: string | null;
+  venue: string;
+  scheduled_at: string;
+  status: GigStatus;
+  notes: string | null;
+  share_token: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** The read-only shape returned by the public (unauthenticated) gig routes. */
+export interface PublicGig {
+  venue: string;
+  scheduled_at: string;
+  status: GigStatus;
+  setlist: PublicSetlist | null;
+}
+
+export interface CreateGigPayload {
+  venue: string;
+  scheduled_at: string;
+  band_id?: string | null;
+  setlist_id?: string | null;
+  status?: GigStatus;
+  notes?: string;
+}
+
+export interface UpdateGigPayload {
+  venue?: string;
+  scheduled_at?: string;
+  setlist_id?: string;
+  status?: GigStatus;
+  notes?: string;
 }
