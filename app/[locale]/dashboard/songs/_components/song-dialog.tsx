@@ -1,8 +1,16 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Song, Artist, TONALITIES, GENRES, Tonality, Genre } from "@/types/api";
+import {
+  Song,
+  Artist,
+  TONALITIES,
+  GENRES,
+  Tonality,
+  Genre,
+  formatGenre,
+} from "@/types/api";
 import { createSong, updateSong } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +26,12 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
-import { formatDuration, parseDurationToSeconds } from "@/lib/utils";
+import {
+  formatDuration,
+  parseDurationToSeconds,
+  sanitizeDurationInput,
+  isValidDurationInput,
+} from "@/lib/utils";
 
 interface SongDialogProps {
   song?: Song | null;
@@ -39,10 +52,18 @@ export function SongDialog({
 
   const [isPending, startTransition] = useTransition();
   const isEditing = !!song;
+  const [duration, setDuration] = useState(
+    song?.duration ? formatDuration(song.duration) : "",
+  );
+  const durationValid = isValidDurationInput(duration);
 
   const handleAction = (formData: FormData) => {
     const tempoStr = formData.get("tempo") as string;
-    const durationStr = formData.get("duration") as string;
+
+    if (!isValidDurationInput(duration)) {
+      toast.error(t("durationInvalid"));
+      return;
+    }
 
     const data = {
       title: formData.get("title") as string,
@@ -50,7 +71,7 @@ export function SongDialog({
       tempo: tempoStr ? parseInt(tempoStr, 10) : null,
       tonality: (formData.get("tonality") as Tonality) || null,
       genre: (formData.get("genre") as Genre) || null,
-      duration: durationStr ? parseDurationToSeconds(durationStr) : null,
+      duration: duration ? parseDurationToSeconds(duration) : null,
     };
 
     startTransition(async () => {
@@ -172,7 +193,7 @@ export function SongDialog({
                   <option value="">{t("noneOption")}</option>
                   {GENRES.map((g) => (
                     <option key={g} value={g}>
-                      {g}
+                      {formatGenre(g)}
                     </option>
                   ))}
                 </select>
@@ -197,12 +218,21 @@ export function SongDialog({
                 <Input
                   id="duration"
                   name="duration"
-                  defaultValue={formatDuration(song?.duration)}
+                  value={duration}
+                  onChange={(e) =>
+                    setDuration(sanitizeDurationInput(e.target.value))
+                  }
                   disabled={isPending}
                   placeholder={t("durationPlaceholder")}
-                  pattern="^(\d{1,3}:\d{2})?$"
-                  title="Format: mm:ss (e.g.: 03:30)"
+                  inputMode="numeric"
+                  aria-invalid={!durationValid}
+                  className={!durationValid ? "border-destructive" : undefined}
                 />
+                {!durationValid && (
+                  <p className="text-destructive text-xs">
+                    {t("durationInvalid")}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -245,7 +275,7 @@ export function SongDialog({
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !durationValid}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {tCommon("save")}
             </Button>

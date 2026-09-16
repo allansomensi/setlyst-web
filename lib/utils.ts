@@ -19,6 +19,42 @@ export function formatDuration(
   return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Strips anything that isn't a digit or a colon, and caps at one colon and
+ * two digits after it (mm:ss) — used as an input's onChange filter so
+ * invalid characters simply can't be typed, instead of only being caught
+ * on submit.
+ */
+export function sanitizeDurationInput(value: string): string {
+  const cleaned = value.replace(/[^\d:]/g, "");
+  const firstColon = cleaned.indexOf(":");
+
+  if (firstColon === -1) {
+    return cleaned.slice(0, 3);
+  }
+
+  const minutes = cleaned.slice(0, firstColon).slice(0, 3);
+  const seconds = cleaned
+    .slice(firstColon + 1)
+    .replace(/:/g, "")
+    .slice(0, 2);
+  return `${minutes}:${seconds}`;
+}
+
+/**
+ * Whether a (possibly partial, possibly empty) duration string is
+ * acceptable to submit. Empty is valid — duration is optional. A value is
+ * only valid once it's a complete mm:ss with seconds under 60; anything
+ * else (still being typed, or malformed) is not.
+ */
+export function isValidDurationInput(value: string): boolean {
+  if (!value) return true;
+  const match = value.match(/^(\d{1,3}):(\d{2})$/);
+  if (!match) return false;
+  const seconds = Number(match[2]);
+  return seconds < 60;
+}
+
 export function parseDurationToSeconds(duration: string | null): number | null {
   if (!duration || !duration.includes(":")) return null;
 
@@ -33,5 +69,6 @@ export function parseDurationToSeconds(duration: string | null): number | null {
     return null;
   }
 
-  return minutes * 60 + seconds;
+  const total = minutes * 60 + seconds;
+  return total > 0 ? total : null;
 }

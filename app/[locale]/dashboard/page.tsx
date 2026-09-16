@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListMusic, Music, Disc3, Users, Guitar } from "lucide-react";
+import { ListMusic, Music, Disc3, Users, Guitar, Calendar } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Separator } from "@/components/ui/separator";
 import { getDashboardMetrics } from "./actions";
@@ -36,6 +36,12 @@ export default async function DashboardPage() {
       icon: ListMusic,
       label: tNav("setlists"),
       description: t("setlists.description"),
+    },
+    {
+      href: "/dashboard/gigs",
+      icon: Calendar,
+      label: tNav("gigs"),
+      description: t("gigs.description"),
     },
     {
       href: "/dashboard/bands",

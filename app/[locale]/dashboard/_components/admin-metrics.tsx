@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { AdminMetrics } from "@/types/api";
+import { AdminMetrics, formatGenre } from "@/types/api";
 import {
   Card,
   CardContent,
@@ -75,6 +75,13 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
       color: "var(--chart-1)",
     },
   } satisfies ChartConfig;
+
+  // Genre values come from the backend as compact identifiers (e.g.
+  // "ProgressiveRock") — format them for display ("Progressive Rock").
+  const genresData = data.top_genres.map((g) => ({
+    ...g,
+    genre: formatGenre(g.genre),
+  }));
 
   return (
     <div className="mt-8 flex flex-col space-y-4">
@@ -197,9 +204,9 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
             <ChartContainer config={genresChartConfig} className="h-75 w-full">
               <BarChart
                 accessibilityLayer
-                data={data.top_genres}
+                data={genresData}
                 layout="vertical"
-                margin={{ left: 0, right: 0 }}
+                margin={{ left: 0, right: 12 }}
               >
                 <CartesianGrid
                   horizontal={false}
@@ -213,6 +220,7 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={10}
+                  width={130}
                 />
                 <ChartTooltip
                   cursor={false}

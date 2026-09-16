@@ -84,6 +84,9 @@
     "setlists": {
       "description": "Monte e gerencie suas setlists"
     },
+    "gigs": {
+      "description": "Agende shows e vincule a uma setlist"
+    },
     "users": {
       "description": "Gerencie os usuários e permissões"
     },
@@ -169,7 +172,8 @@
       "saveFailed": "Erro ao salvar a música",
       "deleteConfirm": "Tem certeza que deseja excluir esta música?",
       "deleted": "Música excluída com sucesso",
-      "deleteFailed": "Erro ao excluir a música"
+      "deleteFailed": "Erro ao excluir a música",
+      "durationInvalid": "Informe uma duração válida no formato mm:ss (ex.: 03:30)."
     },
     "menu": {
       "editDetails": "Editar dados",
@@ -269,7 +273,8 @@
     "menu": {
       "manageSongs": "Gerenciar músicas",
       "edit": "Editar",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "duplicate": "Duplicar"
     },
     "dialog": {
       "addTitle": "Adicionar Nova Setlist",
@@ -283,7 +288,9 @@
       "updated": "Setlist atualizada!",
       "saveFailed": "Falha ao salvar a setlist",
       "deleteConfirm": "Tem certeza que deseja excluir esta setlist?",
-      "deleted": "Setlist excluída"
+      "deleted": "Setlist excluída",
+      "duplicated": "Setlist duplicada!",
+      "copyTitle": "{title} (cópia)"
     },
     "songs": {
       "title": "Músicas nesta Setlist",
@@ -312,7 +319,29 @@
         "addButton": "Adicionar Música",
         "added": "Música adicionada à setlist!",
         "addFailed": "Falha ao adicionar música"
-      }
+      },
+      "addSection": "Adicionar seção",
+      "addBlock": "Adicionar bloco",
+      "addBreak": "Adicionar pausa",
+      "blockLabel": "Bloco",
+      "breakDefaultLabel": "Pausa",
+      "breakMinutes": "{count} min",
+      "blockAdded": "Bloco adicionado",
+      "blockUpdated": "Bloco atualizado",
+      "breakAdded": "Pausa adicionada",
+      "breakUpdated": "Pausa atualizada",
+      "markerDeleted": "Removido",
+      "markerDeleteConfirm": "Remover este item da setlist?",
+      "addBlockTitle": "Adicionar Bloco",
+      "editBlockTitle": "Editar Bloco",
+      "blockDialogDescription": "Agrupe músicas sob uma seção nomeada, ex.: \"Baladas\" ou \"Agitadas\".",
+      "blockNameLabel": "Nome do bloco",
+      "blockNamePlaceholder": "ex., Bloco Baladas",
+      "addBreakTitle": "Adicionar Pausa",
+      "editBreakTitle": "Editar Pausa",
+      "breakDialogDescription": "Uma pausa visual na setlist — não é uma música.",
+      "breakLabelLabel": "Texto (opcional)",
+      "breakDurationLabel": "Duração (minutos, opcional)"
     },
     "errors": {
       "titleLength": "O título do setlist deve ter entre 1 e 255 caracteres.",

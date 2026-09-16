@@ -4,6 +4,7 @@ import {
   Setlist,
   Song,
   SetlistSong,
+  SetlistItem,
   Artist,
 } from "@/types/api";
 import Link from "next/link";
@@ -22,12 +23,13 @@ export default async function SetlistDetailsPage({
   const { id } = await params;
   const t = await getTranslations("setlists");
 
-  const [setlist, setlistSongsRes, allSongsRes, allArtistsRes] =
+  const [setlist, setlistSongsRes, setlistItems, allSongsRes, allArtistsRes] =
     await Promise.all([
       fetchServerApi<Setlist>(`/setlists/${id}`),
       fetchServerApi<PaginatedResponse<SetlistSong>>(
         `/setlists/${id}/songs?page=1&per_page=100`,
       ),
+      fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
       fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
       fetchServerApi<PaginatedResponse<Artist>>("/artists?page=1&per_page=100"),
     ]);
@@ -71,6 +73,7 @@ export default async function SetlistDetailsPage({
       <SetlistSongsManager
         setlistId={setlist.id}
         setlistSongs={setlistSongs}
+        setlistItems={setlistItems}
         allSongs={allSongs}
         artists={allArtists}
       />

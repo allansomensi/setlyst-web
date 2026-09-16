@@ -6,7 +6,7 @@ import { Gig, GigStatus, Setlist } from "@/types/api";
 import { deleteGig } from "../actions";
 import { GigDialog, BandOption } from "./gigs-dialog";
 import { SearchInput } from "@/components/ui/search-input";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,6 +76,7 @@ export function GigsTable({
   const router = useRouter();
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
@@ -138,7 +139,7 @@ export function GigsTable({
   };
 
   const formatDateTime = (value: string) =>
-    new Date(value).toLocaleString(undefined, {
+    new Date(value).toLocaleString(locale, {
       dateStyle: "medium",
       timeStyle: "short",
     });

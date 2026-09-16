@@ -7,7 +7,7 @@ import { ArtistDialog } from "./artist-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -44,6 +44,7 @@ interface ArtistsTableProps {
 export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
   const t = useTranslations("artists");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -146,7 +147,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                 <TableRow key={artist.id}>
                   <TableCell className="font-medium">{artist.name}</TableCell>
                   <TableCell>
-                    {new Date(artist.created_at).toLocaleDateString("en-US")}
+                    {new Date(artist.created_at).toLocaleDateString(locale)}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

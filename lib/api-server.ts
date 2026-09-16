@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { headers } from "next/headers"; // <-- Importado aqui
+import { getLocale } from "next-intl/server";
 
 export class ApiError extends Error {
   constructor(
@@ -56,6 +57,14 @@ export async function fetchServerApi<T>(
   if (token) {
     requestHeaders.set("Authorization", `Bearer ${token}`);
   }
+
+  // Lets the backend fall back sensibly (e.g. a brand-new user's default
+  // preferences) to the locale actually being rendered, instead of always
+  // assuming English. Never overrides an already-saved preference.
+  try {
+    const locale = await getLocale();
+    requestHeaders.set("x-app-locale", locale);
+  } catch {}
 
   try {
     const nextHeaders = await headers();

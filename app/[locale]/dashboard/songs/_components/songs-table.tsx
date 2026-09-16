@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
-import { Song, Artist } from "@/types/api";
+import { Song, Artist, formatGenre } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
 import { SearchInput } from "@/components/ui/search-input";
@@ -282,7 +282,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden text-xs lg:table-cell">
-                    {song.genre ?? "—"}
+                    {song.genre ? formatGenre(song.genre) : "—"}
                   </TableCell>
                   <TableCell className="hidden font-mono text-xs sm:table-cell">
                     {song.tempo ?? "—"}
@@ -343,6 +343,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
       </div>
 
       <SongDialog
+        key={editingSong?.id ?? "new"}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         song={editingSong}

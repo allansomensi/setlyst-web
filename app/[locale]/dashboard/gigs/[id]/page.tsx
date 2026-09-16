@@ -5,6 +5,7 @@ import {
   Setlist,
   Song,
   SetlistSong,
+  SetlistItem,
   Artist,
   BandWithMembership,
   BAND_ROLE_LEVEL,
@@ -17,7 +18,7 @@ import { SetlistSongsManager } from "../../setlists/[id]/_components/setlists-so
 import { GigActions } from "./_components/gig-actions";
 import { LinkSetlistPrompt } from "./_components/link-setlist-prompt";
 import { BandOption } from "../_components/gigs-dialog";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ApiError } from "@/lib/api-server";
 
@@ -37,6 +38,7 @@ export default async function GigDetailsPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("gigs");
+  const locale = await getLocale();
 
   let gig: Gig;
   try {
@@ -80,23 +82,29 @@ export default async function GigDetailsPage({
 
   let setlist: Setlist | null = null;
   let setlistSongs: SetlistSong[] = [];
+  let setlistItems: SetlistItem[] = [];
   let allSongs: Song[] = [];
   let allArtists: Artist[] = [];
 
   if (gig.setlist_id) {
-    const [setlistRes, setlistSongsRes, allSongsRes, allArtistsRes] =
-      await Promise.all([
-        fetchServerApi<Setlist>(`/setlists/${gig.setlist_id}`),
-        fetchServerApi<PaginatedResponse<SetlistSong>>(
-          `/setlists/${gig.setlist_id}/songs?page=1&per_page=100`,
-        ),
-        fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
-        fetchServerApi<PaginatedResponse<Artist>>(
-          "/artists?page=1&per_page=100",
-        ),
-      ]);
+    const [
+      setlistRes,
+      setlistSongsRes,
+      setlistItemsRes,
+      allSongsRes,
+      allArtistsRes,
+    ] = await Promise.all([
+      fetchServerApi<Setlist>(`/setlists/${gig.setlist_id}`),
+      fetchServerApi<PaginatedResponse<SetlistSong>>(
+        `/setlists/${gig.setlist_id}/songs?page=1&per_page=100`,
+      ),
+      fetchServerApi<SetlistItem[]>(`/setlists/${gig.setlist_id}/items`),
+      fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
+      fetchServerApi<PaginatedResponse<Artist>>("/artists?page=1&per_page=100"),
+    ]);
     setlist = setlistRes;
     setlistSongs = setlistSongsRes.data || [];
+    setlistItems = setlistItemsRes || [];
     allSongs = allSongsRes.data || [];
     allArtists = allArtistsRes.data || [];
   }
@@ -127,7 +135,7 @@ export default async function GigDetailsPage({
               <div className="bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium">
                 <Calendar className="text-primary h-4 w-4" />
                 <span>
-                  {new Date(gig.scheduled_at).toLocaleString(undefined, {
+                  {new Date(gig.scheduled_at).toLocaleString(locale, {
                     dateStyle: "full",
                     timeStyle: "short",
                   })}
@@ -159,6 +167,7 @@ export default async function GigDetailsPage({
           <SetlistSongsManager
             setlistId={setlist.id}
             setlistSongs={setlistSongs}
+            setlistItems={setlistItems}
             allSongs={allSongs}
             artists={allArtists}
           />

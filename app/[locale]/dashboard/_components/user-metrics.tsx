@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { UserMetrics } from "@/types/api";
+import { UserMetrics, formatGenre } from "@/types/api";
 import {
   Card,
   CardContent,
@@ -26,6 +26,13 @@ export function UserMetricsCharts({ data }: { data: UserMetrics }) {
       color: "var(--chart-1)",
     },
   } satisfies ChartConfig;
+
+  // Genre values come from the backend as compact identifiers (e.g.
+  // "ProgressiveRock") — format them for display ("Progressive Rock").
+  const genresData = data.top_genres.map((g) => ({
+    ...g,
+    genre: formatGenre(g.genre),
+  }));
 
   const artistsChartConfig = {
     song_count: {
@@ -89,21 +96,24 @@ export function UserMetricsCharts({ data }: { data: UserMetrics }) {
             <ChartContainer config={genresChartConfig} className="h-75 w-full">
               <BarChart
                 accessibilityLayer
-                data={data.top_genres}
-                margin={{ left: -20, right: 12 }}
+                data={genresData}
+                layout="vertical"
+                margin={{ left: 0, right: 12 }}
               >
                 <CartesianGrid
-                  vertical={false}
+                  horizontal={false}
                   strokeDasharray="3 3"
                   className="stroke-muted"
                 />
-                <XAxis
+                <XAxis type="number" hide />
+                <YAxis
                   dataKey="genre"
+                  type="category"
                   tickLine={false}
                   axisLine={false}
                   tickMargin={10}
+                  width={130}
                 />
-                <YAxis tickLine={false} axisLine={false} tickMargin={10} />
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent hideLabel />}
@@ -111,7 +121,7 @@ export function UserMetricsCharts({ data }: { data: UserMetrics }) {
                 <Bar
                   dataKey="count"
                   fill="var(--color-count)"
-                  radius={[4, 4, 0, 0]}
+                  radius={[0, 4, 4, 0]}
                 />
               </BarChart>
             </ChartContainer>

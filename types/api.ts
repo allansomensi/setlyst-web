@@ -86,8 +86,82 @@ export const GENRES = [
   "SymphonicMetal",
   "Techno",
   "ThrashMetal",
+  "SoftRock",
+  "ClassicRock",
+  "PopRock",
+  "PowerBallad",
+  "FolkRock",
+  "ArenaRock",
+  "GarageRock",
+  "IndieRock",
+  "PostRock",
+  "SurfRock",
+  "GlamRock",
+  "StonerRock",
+  "SouthernRock",
+  "BluesRock",
+  "RockAndRoll",
+  "AlternativeRock",
+  "IndustrialRock",
+  "NuMetal",
+  "BlackMetal",
+  "DoomMetal",
+  "GrooveMetal",
+  "Metalcore",
+  "Deathcore",
+  "Grindcore",
+  "IndustrialMetal",
+  "GothicMetal",
+  "FolkMetal",
+  "PostPunk",
+  "PopPunk",
+  "SkaPunk",
+  "HardcorePunk",
+  "NewWave",
+  "Dance",
+  "EDM",
+  "DrumAndBass",
+  "Dubstep",
+  "Trance",
+  "Ambient",
+  "Chillout",
+  "Synthpop",
+  "Industrial",
+  "Trap",
+  "Drill",
+  "Afrobeat",
+  "Grime",
+  "FunkCarioca",
+  "Piseiro",
+  "Brega",
+  "Frevo",
+  "Arrocha",
+  "WorldMusic",
+  "Flamenco",
+  "Tango",
+  "Fado",
   "Other",
 ] as const;
+
+/**
+ * Genre values are stored as compact PascalCase identifiers (e.g.
+ * "HardRock") so they match the database enum 1:1. This only affects
+ * *display* — it inserts spaces before capitals ("Hard Rock") and fixes a
+ * few acronyms that shouldn't be split (KPop -> K-Pop, EDM stays EDM).
+ */
+const GENRE_DISPLAY_OVERRIDES: Partial<Record<Genre, string>> = {
+  KPop: "K-Pop",
+  EDM: "EDM",
+  RnB: "R&B",
+  MPB: "MPB",
+};
+
+export function formatGenre(genre: string | null | undefined): string {
+  if (!genre) return "";
+  const override = GENRE_DISPLAY_OVERRIDES[genre as Genre];
+  if (override) return override;
+  return genre.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+}
 
 export type Tonality = (typeof TONALITIES)[number];
 export type Genre = (typeof GENRES)[number];
@@ -178,12 +252,76 @@ export interface Setlist {
   updated_at: string;
 }
 
+export type SetlistMarkerType = "block" | "break";
+
+/** A named block header or a break/pause slot in a setlist's running order. */
+export interface SetlistMarker {
+  id: string;
+  setlist_id: string;
+  marker_type: SetlistMarkerType;
+  /** Block name (for `block` markers) or an optional break label. */
+  label: string | null;
+  /** Only meaningful for `break` markers. */
+  duration_minutes: number | null;
+  position: number;
+  created_at: string;
+}
+
+export interface CreateSetlistBlockPayload {
+  name: string;
+}
+
+export interface UpdateSetlistBlockPayload {
+  name: string;
+}
+
+export interface CreateSetlistBreakPayload {
+  label?: string | null;
+  duration_minutes?: number | null;
+}
+
+export interface UpdateSetlistBreakPayload {
+  label?: string | null;
+  duration_minutes?: number | null;
+}
+
+export interface DuplicateSetlistPayload {
+  title?: string;
+}
+
+/**
+ * One entry in a setlist's combined, position-ordered running order —
+ * either a song, a block header, or a break. Returned by
+ * `GET /setlists/{id}/items` already merged and sorted.
+ */
+export type SetlistItem =
+  | { item_type: "song"; position: number; song: SetlistSong }
+  | { item_type: "block"; position: number; id: string; name: string }
+  | {
+      item_type: "break";
+      position: number;
+      id: string;
+      label: string | null;
+      duration_minutes: number | null;
+    };
+
+/** A reference to one item in a setlist's timeline, used for reordering. */
+export interface SetlistItemRef {
+  item_type: "song" | "block" | "break";
+  id: string;
+}
+
+export interface ReorderSetlistItemsPayload {
+  items: SetlistItemRef[];
+}
+
 /** The read-only shape returned by the public (unauthenticated) setlist routes. */
 export interface PublicSetlist {
   title: string;
   description: string | null;
   total_duration: number;
   songs: SetlistSong[];
+  markers: SetlistMarker[];
 }
 
 export interface CreateSetlistPayload {

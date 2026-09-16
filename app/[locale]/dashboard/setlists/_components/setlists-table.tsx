@@ -3,12 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Setlist } from "@/types/api";
-import { deleteSetlist } from "../actions";
+import { deleteSetlist, duplicateSetlist } from "../actions";
 import { SetlistDialog } from "./setlists-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,6 +42,7 @@ import {
   ListMusic,
   ChevronRight,
   Guitar,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -75,12 +76,14 @@ export function SetlistsTable({
   const router = useRouter();
   const t = useTranslations("setlists");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSetlist, setEditingSetlist] = useState<Setlist | null>(null);
 
   const [setlistToDelete, setSetlistToDelete] = useState<Setlist | null>(null);
+  const [isDuplicating, startDuplicateTransition] = useTransition();
 
   const {
     search,
@@ -118,6 +121,20 @@ export function SetlistsTable({
         toast.error(result.error);
       }
       setSetlistToDelete(null);
+    });
+  };
+
+  const handleDuplicate = (setlist: Setlist) => {
+    startDuplicateTransition(async () => {
+      const result = await duplicateSetlist(
+        setlist.id,
+        t("dialog.copyTitle", { title: setlist.title }),
+      );
+      if (result.success) {
+        toast.success(t("dialog.duplicated"));
+      } else {
+        toast.error(result.error);
+      }
     });
   };
 
@@ -237,7 +254,7 @@ export function SetlistsTable({
                       {setlist.description ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
-                      {new Date(setlist.created_at).toLocaleDateString("en-US")}
+                      {new Date(setlist.created_at).toLocaleDateString(locale)}
                     </TableCell>
                     <TableCell className="text-right" data-no-row-click>
                       <DropdownMenu>
@@ -256,6 +273,16 @@ export function SetlistsTable({
                               <ListMusic className="mr-2 h-4 w-4" />
                               {t("menu.manageSongs")}
                             </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isDuplicating}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicate(setlist);
+                            }}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            {t("menu.duplicate")}
                           </DropdownMenuItem>
                           {canManage && (
                             <>
