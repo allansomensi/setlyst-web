@@ -56,6 +56,9 @@ interface GigsTableProps {
   bandsById: Record<string, BandLookupEntry>;
   personalSetlists: Setlist[];
   bands: BandOption[];
+  /** Locks the "new/edit gig" dialog to a single band's scope (e.g. when
+   * rendered from that band's own gigs page). */
+  fixedBandId?: string;
 }
 
 const STATUS_VARIANT: Record<
@@ -72,6 +75,7 @@ export function GigsTable({
   bandsById,
   personalSetlists,
   bands,
+  fixedBandId,
 }: GigsTableProps) {
   const router = useRouter();
   const t = useTranslations("gigs");
@@ -329,7 +333,10 @@ export function GigsTable({
         gig={editingGig}
         personalSetlists={personalSetlists}
         bands={bands}
-        fixedBandId={editingGig ? (editingGig.band_id ?? undefined) : undefined}
+        fixedBandId={
+          fixedBandId ??
+          (editingGig ? (editingGig.band_id ?? undefined) : undefined)
+        }
       />
 
       <Dialog

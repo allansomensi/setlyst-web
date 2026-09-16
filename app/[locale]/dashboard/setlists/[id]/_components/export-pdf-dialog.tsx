@@ -40,6 +40,8 @@ export function ExportPdfDialog({
     show_total_duration: true,
     show_key: true,
     show_bpm: true,
+    show_blocks: true,
+    show_breaks: true,
   });
 
   const toggleOption = (key: keyof typeof options) => {
@@ -65,6 +67,8 @@ export function ExportPdfDialog({
           show_total_duration: String(options.show_total_duration),
           show_key: String(options.show_key),
           show_bpm: String(options.show_bpm),
+          show_blocks: String(options.show_blocks),
+          show_breaks: String(options.show_breaks),
           lang,
         });
 
@@ -123,6 +127,8 @@ export function ExportPdfDialog({
               ["show_total_duration", t("showTotalDuration")],
               ["show_key", t("showKey")],
               ["show_bpm", t("showBpm")],
+              ["show_blocks", t("showBlocks")],
+              ["show_breaks", t("showBreaks")],
             ] as const
           ).map(([key, label]) => (
             <label

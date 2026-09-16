@@ -4,7 +4,12 @@ import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction, ActionResult } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { Band, BandRole } from "@/types/api";
+import {
+  Band,
+  BandRole,
+  BandRolePermission,
+  BandRolePermissionEntry,
+} from "@/types/api";
 
 export async function createBand(data: {
   name: string;
@@ -125,6 +130,25 @@ export async function updateBandMemberRole(
   );
 }
 
+export async function updateBandMemberTitle(
+  bandId: string,
+  userId: string,
+  title: string | null,
+): Promise<ActionResult<void>> {
+  const t = await getTranslations("bands.errors");
+
+  if (!bandId || !userId) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () =>
+      fetchServerApi(`/bands/${bandId}/members/${userId}/title`, {
+        method: "PATCH",
+        body: JSON.stringify({ title }),
+      }),
+    () => revalidatePath(`/dashboard/bands/${bandId}`),
+  );
+}
+
 export async function removeBandMember(
   bandId: string,
   userId: string,
@@ -197,5 +221,35 @@ export async function acceptBandInvite(
   return guardedAction(
     () => fetchServerApi<Band>(`/invites/${code}/accept`, { method: "POST" }),
     () => revalidatePath("/dashboard/bands"),
+  );
+}
+
+export async function getBandRolePermissions(
+  bandId: string,
+): Promise<ActionResult<BandRolePermission[]>> {
+  const t = await getTranslations("bands.errors");
+
+  if (!bandId) return { success: false, error: t("invalidId") };
+
+  return guardedAction(() =>
+    fetchServerApi<BandRolePermission[]>(`/bands/${bandId}/permissions`),
+  );
+}
+
+export async function updateBandRolePermissions(
+  bandId: string,
+  permissions: BandRolePermissionEntry[],
+): Promise<ActionResult<void>> {
+  const t = await getTranslations("bands.errors");
+
+  if (!bandId) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () =>
+      fetchServerApi(`/bands/${bandId}/permissions`, {
+        method: "PUT",
+        body: JSON.stringify({ permissions }),
+      }),
+    () => revalidatePath(`/dashboard/bands/${bandId}`),
   );
 }

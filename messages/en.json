@@ -35,6 +35,8 @@
       "usernamePlaceholder": "Enter your username",
       "password": "Password",
       "passwordPlaceholder": "Enter your password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
       "forgotPassword": "Forgot password?",
       "submit": "Sign in",
       "submitting": "Signing in...",
@@ -263,6 +265,8 @@
       "showTotalDuration": "Show total duration",
       "showKey": "Show song key (tonality)",
       "showBpm": "Show BPM (tempo)",
+      "showBlocks": "Show blocks",
+      "showBreaks": "Show breaks",
       "export": "Export PDF",
       "exporting": "Exporting...",
       "exportSuccess": "PDF exported successfully!",
@@ -315,7 +319,6 @@
         "songLabel": "Song",
         "selectSong": "Select a song",
         "noMoreSongs": "No more songs available",
-        "positionLabel": "Position",
         "addButton": "Add Song",
         "added": "Song added to setlist!",
         "addFailed": "Failed to add song"
@@ -397,6 +400,8 @@
       "description": "Enter the gig details below.",
       "venueLabel": "Venue",
       "venuePlaceholder": "e.g., The Blue Note",
+      "locationLabel": "Location",
+      "locationPlaceholder": "Address or map link (optional)",
       "scheduledAtLabel": "Date & time",
       "statusLabel": "Status",
       "status": {
@@ -422,6 +427,7 @@
       "invalidId": "Invalid gig ID."
     },
     "bandGig": "Band",
+    "liveModeBtn": "Live Mode",
     "bandGigTooltip": "Gig for the {name} band",
     "shareBtn": "Share",
     "share": {
@@ -656,6 +662,8 @@
     "memberCount": "{count} member(s)",
     "viewSetlists": "View Setlists",
     "bandSetlistsTitle": "Band Setlists",
+    "viewGigs": "View Gigs",
+    "bandGigsTitle": "Band Gigs",
     "menu": {
       "manage": "Manage",
       "edit": "Edit",
@@ -702,6 +710,11 @@
       "removeTitle": "Remove member",
       "leaveConfirm": "Are you sure you want to leave \"{name}\"?",
       "removeConfirm": "Are you sure you want to remove {name} from the band?",
+      "editTitle": "Edit title",
+      "editTitleDescription": "A free-text label just for identification (e.g. Guitarist, Bassist, Vocalist). Doesn't change any permission.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g., Guitarist",
+      "titleUpdated": "Title updated",
       "roles": {
         "owner": "Administrator",
         "admin": "Admin",
@@ -750,6 +763,28 @@
       "revokeConfirm": "Are you sure you want to revoke this invite? Already-shared links will stop working.",
       "copyLink": "Copy link",
       "linkCopied": "Link copied!"
+    },
+    "permissions": {
+      "title": "Permissions",
+      "subtitle": "Choose what each role can do within this band.",
+      "permissionColumn": "Permission",
+      "roles": {
+        "member": "Member",
+        "moderator": "Moderator"
+      },
+      "permissionLabels": {
+        "manage_setlists": "Manage setlists",
+        "manage_songs": "Manage songs",
+        "export_pdf": "Export PDF"
+      },
+      "permissionDescriptions": {
+        "manage_setlists": "Create, edit, reorder and delete the band's setlists.",
+        "manage_songs": "Edit lyrics, BPM, key and other details of the band's songs.",
+        "export_pdf": "Export the band's setlists to PDF."
+      },
+      "save": "Save permissions",
+      "saved": "Permissions updated!",
+      "saveFailed": "Failed to update permissions"
     },
     "danger": {
       "title": "Danger Zone",

@@ -35,6 +35,8 @@
       "usernamePlaceholder": "Ingresa tu usuario",
       "password": "Contraseña",
       "passwordPlaceholder": "Ingresa tu contraseña",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "submit": "Iniciar sesión",
       "submitting": "Iniciando sesión...",
@@ -263,6 +265,8 @@
       "showTotalDuration": "Mostrar duración total",
       "showKey": "Mostrar tonalidad",
       "showBpm": "Mostrar BPM (tempo)",
+      "showBlocks": "Mostrar bloques",
+      "showBreaks": "Mostrar pausas",
       "export": "Exportar PDF",
       "exporting": "Exportando...",
       "exportSuccess": "¡PDF exportado con éxito!",
@@ -315,7 +319,6 @@
         "songLabel": "Canción",
         "selectSong": "Selecciona una canción",
         "noMoreSongs": "No hay más canciones disponibles",
-        "positionLabel": "Posición",
         "addButton": "Agregar Canción",
         "added": "¡Canción agregada a la setlist!",
         "addFailed": "Error al agregar la canción"
@@ -397,6 +400,8 @@
       "description": "Ingresa los detalles del show a continuación.",
       "venueLabel": "Lugar",
       "venuePlaceholder": "ej., The Blue Note",
+      "locationLabel": "Ubicación",
+      "locationPlaceholder": "Dirección o enlace del mapa (opcional)",
       "scheduledAtLabel": "Fecha y hora",
       "statusLabel": "Estado",
       "status": {
@@ -422,6 +427,7 @@
       "invalidId": "ID de show inválido."
     },
     "bandGig": "Banda",
+    "liveModeBtn": "Modo En Vivo",
     "bandGigTooltip": "Show de la banda {name}",
     "shareBtn": "Compartir",
     "share": {
@@ -656,6 +662,8 @@
     "memberCount": "{count} integrante(s)",
     "viewSetlists": "Ver Setlists",
     "bandSetlistsTitle": "Setlists de la Banda",
+    "viewGigs": "Ver Shows",
+    "bandGigsTitle": "Shows de la Banda",
     "menu": {
       "manage": "Gestionar",
       "edit": "Editar",
@@ -702,6 +710,11 @@
       "removeTitle": "Eliminar integrante",
       "leaveConfirm": "¿Seguro que deseas salir de \"{name}\"?",
       "removeConfirm": "¿Seguro que deseas eliminar a {name} de la banda?",
+      "editTitle": "Editar función",
+      "editTitleDescription": "Una etiqueta libre solo para identificación (ej.: Guitarrista, Bajista, Vocalista). No cambia ningún permiso.",
+      "titleLabel": "Función",
+      "titlePlaceholder": "ej.: Guitarrista",
+      "titleUpdated": "Función actualizada",
       "roles": {
         "owner": "Administrador",
         "admin": "Admin",
@@ -750,6 +763,28 @@
       "revokeConfirm": "¿Seguro que deseas revocar esta invitación? Los enlaces ya compartidos dejarán de funcionar.",
       "copyLink": "Copiar enlace",
       "linkCopied": "¡Enlace copiado!"
+    },
+    "permissions": {
+      "title": "Permisos",
+      "subtitle": "Define lo que cada rol puede hacer dentro de esta banda.",
+      "permissionColumn": "Permiso",
+      "roles": {
+        "member": "Miembro",
+        "moderator": "Moderador"
+      },
+      "permissionLabels": {
+        "manage_setlists": "Gestionar setlists",
+        "manage_songs": "Gestionar canciones",
+        "export_pdf": "Exportar PDF"
+      },
+      "permissionDescriptions": {
+        "manage_setlists": "Crear, editar, reordenar y eliminar los setlists de la banda.",
+        "manage_songs": "Editar letra, BPM, tono y otros datos de las canciones de la banda.",
+        "export_pdf": "Exportar los setlists de la banda a PDF."
+      },
+      "save": "Guardar permisos",
+      "saved": "¡Permisos actualizados!",
+      "saveFailed": "Error al actualizar los permisos"
     },
     "danger": {
       "title": "Zona de Peligro",

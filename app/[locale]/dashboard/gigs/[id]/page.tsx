@@ -13,7 +13,14 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, Calendar, StickyNote, Guitar } from "lucide-react";
+import {
+  ChevronLeft,
+  Calendar,
+  StickyNote,
+  Guitar,
+  Play,
+  MapPin,
+} from "lucide-react";
 import { SetlistSongsManager } from "../../setlists/[id]/_components/setlists-songs-manager";
 import { GigActions } from "./_components/gig-actions";
 import { LinkSetlistPrompt } from "./_components/link-setlist-prompt";
@@ -141,6 +148,12 @@ export default async function GigDetailsPage({
                   })}
                 </span>
               </div>
+              {gig.location && (
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  <span>{gig.location}</span>
+                </div>
+              )}
             </div>
             {gig.notes && (
               <div className="text-muted-foreground mt-2 flex items-start gap-1.5 text-sm">
@@ -151,12 +164,21 @@ export default async function GigDetailsPage({
           </div>
         </div>
 
-        <GigActions
-          gig={gig}
-          canManage={canManage}
-          personalSetlists={personalSetlists}
-          bands={manageableBands}
-        />
+        <div className="flex items-center gap-2">
+          {gig.setlist_id && setlist && (
+            <Button asChild size="lg" variant="outline" className="gap-2">
+              <Link href={`/dashboard/setlists/${setlist.id}/live`}>
+                <Play className="h-5 w-5" /> {t("liveModeBtn")}
+              </Link>
+            </Button>
+          )}
+          <GigActions
+            gig={gig}
+            canManage={canManage}
+            personalSetlists={personalSetlists}
+            bands={manageableBands}
+          />
+        </div>
       </div>
 
       {gig.setlist_id && setlist ? (

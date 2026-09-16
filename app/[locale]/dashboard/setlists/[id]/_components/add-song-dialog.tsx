@@ -4,7 +4,6 @@ import { useTransition } from "react";
 import { Song, Artist } from "@/types/api";
 import { addSongToSetlist } from "../../actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslations } from "next-intl";
 import {
@@ -22,7 +21,6 @@ interface AddSongDialogProps {
   setlistId: string;
   allSongs: Song[];
   artists: Artist[];
-  currentCount: number;
   existingSongIds: string[];
   isOpen: boolean;
   onClose: () => void;
@@ -32,7 +30,6 @@ export function AddSongDialog({
   setlistId,
   allSongs,
   artists,
-  currentCount,
   existingSongIds,
   isOpen,
   onClose,
@@ -54,7 +51,6 @@ export function AddSongDialog({
   const handleAction = (formData: FormData) => {
     const data = {
       song_id: formData.get("song_id") as string,
-      position: parseInt(formData.get("position") as string, 10),
     };
 
     startTransition(async () => {
@@ -99,18 +95,6 @@ export function AddSongDialog({
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position">{t("positionLabel")}</Label>
-              <Input
-                id="position"
-                name="position"
-                type="number"
-                min="1"
-                defaultValue={currentCount + 1}
-                required
-                disabled={isPending}
-              />
             </div>
           </div>
           <DialogFooter>

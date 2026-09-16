@@ -1,7 +1,7 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useActionState } from "react";
+import { signIn, getSession } from "next-auth/react";
+import { useActionState, useState } from "react";
 import { useRouter } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -17,11 +17,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [error, loginAction, isPending] = useActionState(
     async (_previousState: string | null, formData: FormData) => {
@@ -40,7 +41,10 @@ export default function LoginPage() {
           return t("invalidCredentials");
         }
 
-        toast.success(t("welcomeBack"));
+        const session = await getSession();
+        if (session?.user?.isFirstLogin === false) {
+          toast.success(t("welcomeBack"));
+        }
         router.push("/dashboard");
         router.refresh();
         return null;
@@ -85,15 +89,33 @@ export default function LoginPage() {
                   {t("forgotPassword")}
                 </Link>
               </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder={t("passwordPlaceholder")}
-                required
-                disabled={isPending}
-                tabIndex={2}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("passwordPlaceholder")}
+                  required
+                  disabled={isPending}
+                  tabIndex={2}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                  tabIndex={-1}
+                  aria-label={
+                    showPassword ? t("hidePassword") : t("showPassword")
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {error && (

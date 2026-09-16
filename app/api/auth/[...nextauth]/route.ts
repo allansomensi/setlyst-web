@@ -69,12 +69,23 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const token: unknown = await res.json();
+          const body: unknown = await res.json();
 
-          if (typeof token !== "string") {
-            console.error("[auth] Unexpected token format from API");
+          if (
+            typeof body !== "object" ||
+            body === null ||
+            typeof (body as { token?: unknown }).token !== "string" ||
+            typeof (body as { is_first_login?: unknown }).is_first_login !==
+              "boolean"
+          ) {
+            console.error("[auth] Unexpected login response format from API");
             return null;
           }
+
+          const { token, is_first_login: isFirstLogin } = body as {
+            token: string;
+            is_first_login: boolean;
+          };
 
           let decoded: SetlystJwtPayload;
           try {
@@ -104,6 +115,7 @@ export const authOptions: NextAuthOptions = {
             name: decoded.username,
             role: decoded.role,
             apiToken: token,
+            isFirstLogin,
           };
         } catch (err) {
           console.error(
@@ -121,6 +133,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.apiToken = user.apiToken;
+        token.isFirstLogin = user.isFirstLogin;
 
         try {
           const decoded = jwtDecode<SetlystJwtPayload>(user.apiToken as string);
@@ -148,6 +161,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as ValidRole;
         session.user.apiToken = token.apiToken as string;
+        session.user.isFirstLogin = token.isFirstLogin;
       }
       return session;
     },

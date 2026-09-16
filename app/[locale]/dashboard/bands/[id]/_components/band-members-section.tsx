@@ -9,6 +9,7 @@ import {
 } from "@/types/api";
 import {
   updateBandMemberRole,
+  updateBandMemberTitle,
   removeBandMember,
   leaveBand,
 } from "../../actions";
@@ -30,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +41,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { LogOut, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { LogOut, X, Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const ASSIGNABLE_ROLES: BandRole[] = ["member", "moderator", "admin"];
@@ -58,6 +62,10 @@ export function BandMembersSection({
   const tCommon = useTranslations("common");
   const [isPending, startTransition] = useTransition();
   const [memberToRemove, setMemberToRemove] = useState<BandMember | null>(null);
+  const [memberToEditTitle, setMemberToEditTitle] = useState<BandMember | null>(
+    null,
+  );
+  const [titleInput, setTitleInput] = useState("");
 
   const myLevel = BAND_ROLE_LEVEL[band.my_role];
   const canManage = band.my_role === "owner" || band.my_role === "admin";
@@ -88,6 +96,30 @@ export function BandMembersSection({
         toast.error(result.error);
       }
       setMemberToRemove(null);
+    });
+  };
+
+  const openTitleEditor = (member: BandMember) => {
+    setTitleInput(member.title ?? "");
+    setMemberToEditTitle(member);
+  };
+
+  const confirmTitleEdit = () => {
+    if (!memberToEditTitle) return;
+    const title = titleInput.trim() || null;
+
+    startTransition(async () => {
+      const result = await updateBandMemberTitle(
+        band.id,
+        memberToEditTitle.user_id,
+        title,
+      );
+      if (result.success) {
+        toast.success(t("titleUpdated"));
+        setMemberToEditTitle(null);
+      } else {
+        toast.error(result.error);
+      }
     });
   };
 
@@ -126,13 +158,27 @@ export function BandMembersSection({
                 <TableRow key={member.id}>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">
+                      <span className="flex flex-wrap items-center gap-2 font-medium">
                         {displayName}
                         {isSelf && (
                           <span className="text-muted-foreground">
-                            {" "}
                             ({tCommon("you")})
                           </span>
+                        )}
+                        {member.title && (
+                          <Badge variant="secondary" className="font-normal">
+                            {member.title}
+                          </Badge>
+                        )}
+                        {(isSelf || canManage) && (
+                          <button
+                            type="button"
+                            onClick={() => openTitleEditor(member)}
+                            className="text-muted-foreground hover:text-foreground"
+                            title={t("editTitle")}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
                         )}
                       </span>
                       <span className="text-muted-foreground text-xs">
@@ -228,6 +274,42 @@ export function BandMembersSection({
               disabled={isPending}
             >
               {tCommon("confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!memberToEditTitle}
+        onOpenChange={(open) => !open && setMemberToEditTitle(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("editTitle")}</DialogTitle>
+            <DialogDescription>{t("editTitleDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="member-title">{t("titleLabel")}</Label>
+            <Input
+              id="member-title"
+              value={titleInput}
+              onChange={(e) => setTitleInput(e.target.value)}
+              placeholder={t("titlePlaceholder")}
+              maxLength={50}
+              disabled={isPending}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setMemberToEditTitle(null)}
+              disabled={isPending}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button onClick={confirmTitleEdit} disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {tCommon("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

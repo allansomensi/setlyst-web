@@ -17,6 +17,7 @@ function normalizeScheduledAt(value: string): string {
 
 export async function createGig(data: {
   venue: string;
+  location?: string;
   scheduled_at: string;
   band_id?: string;
   setlist_id?: string;
@@ -35,6 +36,7 @@ export async function createGig(data: {
   }
 
   const notes = data.notes?.trim() || undefined;
+  const location = data.location?.trim() || undefined;
 
   return guardedAction(
     () =>
@@ -42,6 +44,7 @@ export async function createGig(data: {
         method: "POST",
         body: JSON.stringify({
           venue,
+          location,
           scheduled_at: normalizeScheduledAt(data.scheduled_at),
           band_id: data.band_id || undefined,
           setlist_id: data.setlist_id || undefined,
@@ -60,6 +63,7 @@ export async function updateGig(
   id: string,
   data: {
     venue?: string;
+    location?: string;
     scheduled_at?: string;
     setlist_id?: string;
     status?: GigStatus;
@@ -73,6 +77,7 @@ export async function updateGig(
 
   const payload: {
     venue?: string;
+    location?: string;
     scheduled_at?: string;
     setlist_id?: string;
     status?: GigStatus;
@@ -85,6 +90,10 @@ export async function updateGig(
       return { success: false, error: t("venueLength") };
     }
     payload.venue = venue;
+  }
+
+  if (data.location !== undefined) {
+    payload.location = data.location.trim() || undefined;
   }
 
   if (data.scheduled_at !== undefined && data.scheduled_at) {

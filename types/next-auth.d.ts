@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       role: "user" | "moderator" | "admin";
       apiToken: string;
+      isFirstLogin?: boolean;
     } & DefaultSession["user"];
   }
 
@@ -14,6 +15,7 @@ declare module "next-auth" {
     id: string;
     role: "user" | "moderator" | "admin";
     apiToken: string;
+    isFirstLogin?: boolean;
   }
 }
 
@@ -24,5 +26,6 @@ declare module "next-auth/jwt" {
     apiToken: string;
     apiTokenExpires?: number;
     error?: "TokenExpired";
+    isFirstLogin?: boolean;
   }
 }

@@ -692,7 +692,6 @@ export function SetlistSongsManager({
         setlistId={setlistId}
         allSongs={allSongs}
         artists={artists}
-        currentCount={songRowsOnly.length}
         existingSongIds={(
           setlistSongs || songRowsOnly.map((r) => r.song)
         ).flatMap((s) =>

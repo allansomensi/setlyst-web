@@ -542,6 +542,7 @@ export interface BandMember {
   band_id: string;
   user_id: string;
   role: BandRole;
+  title: string | null;
   joined_at: string;
   username: string;
   first_name: string | null;
@@ -567,6 +568,31 @@ export interface CreateBandInvitePayload {
   expires_in_hours?: number;
 }
 
+export type BandPermission = "manage_setlists" | "manage_songs" | "export_pdf";
+
+export const BAND_PERMISSIONS: BandPermission[] = [
+  "manage_setlists",
+  "manage_songs",
+  "export_pdf",
+];
+
+export const CONFIGURABLE_BAND_ROLES: Extract<
+  BandRole,
+  "member" | "moderator"
+>[] = ["member", "moderator"];
+
+export interface BandRolePermission {
+  role: BandRole;
+  permission: BandPermission;
+  allowed: boolean;
+}
+
+export interface BandRolePermissionEntry {
+  role: BandRole;
+  permission: BandPermission;
+  allowed: boolean;
+}
+
 export type GigStatus = "confirmed" | "cancelled" | "completed";
 
 export interface Gig {
@@ -575,6 +601,7 @@ export interface Gig {
   band_id: string | null;
   setlist_id: string | null;
   venue: string;
+  location: string | null;
   scheduled_at: string;
   status: GigStatus;
   notes: string | null;
@@ -586,6 +613,7 @@ export interface Gig {
 /** The read-only shape returned by the public (unauthenticated) gig routes. */
 export interface PublicGig {
   venue: string;
+  location: string | null;
   scheduled_at: string;
   status: GigStatus;
   setlist: PublicSetlist | null;
@@ -593,6 +621,7 @@ export interface PublicGig {
 
 export interface CreateGigPayload {
   venue: string;
+  location?: string;
   scheduled_at: string;
   band_id?: string | null;
   setlist_id?: string | null;
@@ -602,6 +631,7 @@ export interface CreateGigPayload {
 
 export interface UpdateGigPayload {
   venue?: string;
+  location?: string;
   scheduled_at?: string;
   setlist_id?: string;
   status?: GigStatus;

@@ -113,7 +113,7 @@ export async function deleteSetlist(id: string, bandId?: string) {
 
 export async function addSongToSetlist(
   setlistId: string,
-  data: { song_id: string; position: number },
+  data: { song_id: string },
 ) {
   const t = await getTranslations("setlists.errors");
 
@@ -121,14 +121,12 @@ export async function addSongToSetlist(
     return { success: false, error: t("invalidSetlistOrSongId") };
   }
 
-  const position = Math.max(1, Math.floor(Number(data.position)));
-
   return guardedAction(
     async () => {
       try {
         return await fetchServerApi(`/setlists/${setlistId}/songs`, {
           method: "POST",
-          body: JSON.stringify({ song_id: data.song_id, position }),
+          body: JSON.stringify({ song_id: data.song_id }),
         });
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {

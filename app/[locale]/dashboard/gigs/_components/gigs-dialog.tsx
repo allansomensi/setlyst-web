@@ -75,6 +75,7 @@ export function GigDialog({
 
     const data = {
       venue: formData.get("venue") as string,
+      location: (formData.get("location") as string) || undefined,
       scheduled_at: formData.get("scheduled_at") as string,
       band_id: bandId || undefined,
       setlist_id: setlistId,
@@ -88,6 +89,7 @@ export function GigDialog({
             gig.id,
             {
               venue: data.venue,
+              location: data.location,
               scheduled_at: data.scheduled_at,
               setlist_id: setlistId,
               status,
@@ -128,6 +130,18 @@ export function GigDialog({
                 disabled={isPending}
                 maxLength={255}
                 placeholder={t("venuePlaceholder")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">{t("locationLabel")}</Label>
+              <Input
+                id="location"
+                name="location"
+                defaultValue={gig?.location ?? ""}
+                disabled={isPending}
+                maxLength={500}
+                placeholder={t("locationPlaceholder")}
               />
             </div>
 

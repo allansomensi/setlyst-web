@@ -25,6 +25,8 @@ const OPTIONS_CONFIG = [
   ["show_total_duration", "Show total duration"],
   ["show_key", "Show key"],
   ["show_bpm", "Show BPM"],
+  ["show_blocks", "Show blocks"],
+  ["show_breaks", "Show breaks"],
 ] as const;
 
 /**
@@ -46,6 +48,8 @@ export function PublicExportPdfDialog({
     show_total_duration: true,
     show_key: true,
     show_bpm: true,
+    show_blocks: true,
+    show_breaks: true,
   });
 
   const toggleOption = (key: keyof typeof options) => {
@@ -64,6 +68,8 @@ export function PublicExportPdfDialog({
           show_total_duration: String(options.show_total_duration),
           show_key: String(options.show_key),
           show_bpm: String(options.show_bpm),
+          show_blocks: String(options.show_blocks),
+          show_breaks: String(options.show_breaks),
           lang: "en",
         });
 

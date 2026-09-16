@@ -6,7 +6,7 @@ import { BandAvatar } from "@/components/bands/band-avatar";
 import { BandRoleBadge } from "@/components/bands/band-role-badge";
 import { BandDialog } from "../../_components/band-dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Pencil, ListMusic } from "lucide-react";
+import { ChevronLeft, Pencil, ListMusic, CalendarDays } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
@@ -50,6 +50,12 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
           <Link href={`/dashboard/bands/${band.id}/setlists`}>
             <ListMusic className="mr-2 h-4 w-4" />
             {t("viewSetlists")}
+          </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href={`/dashboard/bands/${band.id}/gigs`}>
+            <CalendarDays className="mr-2 h-4 w-4" />
+            {t("viewGigs")}
           </Link>
         </Button>
         {canManage && (
