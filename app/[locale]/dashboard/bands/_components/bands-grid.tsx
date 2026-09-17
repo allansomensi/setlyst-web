@@ -205,7 +205,7 @@ export function BandsGrid({ initialBands }: BandsGridProps) {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" data-no-row-click>
                       <DropdownMenuItem asChild>
                         <Link href={`/dashboard/bands/${band.id}`}>
                           <Users className="mr-2 h-4 w-4" />

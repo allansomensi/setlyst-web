@@ -306,7 +306,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" data-no-row-click>
                         <DropdownMenuItem
                           onClick={() => handleOpenDialog(song)}
                         >

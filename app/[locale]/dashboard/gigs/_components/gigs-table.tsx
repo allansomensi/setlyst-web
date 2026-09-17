@@ -200,7 +200,7 @@ export function GigsTable({
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" data-no-row-click>
               <DropdownMenuItem asChild>
                 <Link href={`/dashboard/gigs/${gig.id}`}>
                   <Calendar className="mr-2 h-4 w-4" />
