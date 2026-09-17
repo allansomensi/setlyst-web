@@ -692,3 +692,45 @@ export interface UpdateGigPayload {
   status?: GigStatus;
   notes?: string;
 }
+
+// ---------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------
+
+export type NotificationType =
+  | "band_role_changed"
+  | "band_member_removed"
+  | "platform_role_changed";
+
+export interface BandRoleChangedData {
+  band_id: string;
+  band_name: string;
+  old_role: BandRole;
+  new_role: BandRole;
+  actor_id: string;
+}
+
+export interface BandMemberRemovedData {
+  band_id: string;
+  band_name: string;
+  actor_id: string;
+}
+
+export interface PlatformRoleChangedData {
+  old_role: UserRole;
+  new_role: UserRole;
+  actor_id: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  data: BandRoleChangedData | BandMemberRemovedData | PlatformRoleChangedData;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface UnreadCountResponse {
+  unread_count: number;
+}

@@ -5,6 +5,8 @@ import { Link } from "@/i18n/routing";
 import { ListMusic, Menu, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";
+import { NotificationBell } from "./notification-bell";
+import { NotificationBellErrorBoundary } from "./notification-bell-error-boundary";
 import { LogoutButton } from "./logout-button";
 import { User } from "@/types/api";
 import packageJson from "@/package.json";
@@ -31,9 +33,14 @@ export function MobileNav({
         </span>
       </div>
 
-      <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)}>
-        <Menu className="h-6 w-6" />
-      </Button>
+      <div className="flex items-center gap-1">
+        <NotificationBellErrorBoundary>
+          <NotificationBell />
+        </NotificationBellErrorBoundary>
+        <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)}>
+          <Menu className="h-6 w-6" />
+        </Button>
+      </div>
 
       {isOpen && (
         <div className="bg-background animate-in slide-in-from-right fixed inset-0 z-50 flex flex-col duration-300">

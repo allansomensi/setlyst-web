@@ -79,6 +79,9 @@
   "dashboard": {
     "title": "Panel",
     "welcome": "¡Bienvenido de nuevo, {name}!",
+    "analytics": {
+      "description": "Consulta el analytics general y las estadísticas"
+    },
     "artists": {
       "description": "Administra los artistas de tu banda"
     },
@@ -885,5 +888,15 @@
       "invalidId": "ID inválido.",
       "invalidInviteCode": "Código de invitación inválido."
     }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "unreadCount": "{count, plural, one {# notificación sin leer} other {# notificaciones sin leer}}",
+    "markAllRead": "Marcar todas como leídas",
+    "empty": "No tienes notificaciones nuevas.",
+    "loading": "Cargando notificaciones...",
+    "bandRoleChanged": "Tu rol en {band} cambió a {role}.",
+    "bandMemberRemoved": "Fuiste eliminado de {band}.",
+    "platformRoleChanged": "Tu rol en la plataforma cambió a {role}."
   }
 }

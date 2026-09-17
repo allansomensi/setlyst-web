@@ -79,6 +79,9 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Bem-vindo de volta, {name}!",
+    "analytics": {
+      "description": "Veja o analytics geral e visão de estatísticas"
+    },
     "artists": {
       "description": "Gerencie os artistas da sua banda"
     },
@@ -885,5 +888,15 @@
       "invalidId": "ID inválido.",
       "invalidInviteCode": "Código de convite inválido."
     }
+  },
+  "notifications": {
+    "title": "Notificações",
+    "unreadCount": "{count, plural, one {# notificação não lida} other {# notificações não lidas}}",
+    "markAllRead": "Marcar todas como lidas",
+    "empty": "Nenhuma notificação por aqui.",
+    "loading": "Carregando notificações...",
+    "bandRoleChanged": "Seu cargo em {band} mudou para {role}.",
+    "bandMemberRemoved": "Você foi removido de {band}.",
+    "platformRoleChanged": "Seu cargo na plataforma mudou para {role}."
   }
 }

@@ -1,4 +1,4 @@
-import { fetchServerApi } from "@/lib/api-server";
+import { fetchServerApi, ApiError } from "@/lib/api-server";
 import {
   BandWithMembership,
   BandMember,
@@ -7,6 +7,7 @@ import {
 } from "@/types/api";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { notFound } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { BandHeader } from "./_components/band-header";
 import { BandMembersSection } from "./_components/band-members-section";
@@ -21,7 +22,19 @@ export default async function BandDetailPage({
 }) {
   const { id } = await params;
 
-  const band = await fetchServerApi<BandWithMembership>(`/bands/${id}`);
+  let band: BandWithMembership;
+  try {
+    band = await fetchServerApi<BandWithMembership>(`/bands/${id}`);
+  } catch (err) {
+    // A stale or inaccessible band id (e.g. from an old notification for a
+    // band the user is no longer part of, or a malformed id) shouldn't
+    // crash the page — degrade to the standard 404 instead.
+    if (err instanceof ApiError && (err.status === 404 || err.status === 400)) {
+      notFound();
+    }
+    throw err;
+  }
+
   const canManage = band.my_role === "owner" || band.my_role === "admin";
 
   const [members, invites, permissions, session] = await Promise.all([

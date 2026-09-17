@@ -79,6 +79,9 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back, {name}!",
+    "analytics": {
+      "description": "Access general analytics and overview stats"
+    },
     "artists": {
       "description": "Manage your band's artists"
     },
@@ -885,5 +888,15 @@
       "invalidId": "Invalid ID.",
       "invalidInviteCode": "Invalid invite code."
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{count, plural, one {# unread notification} other {# unread notifications}}",
+    "markAllRead": "Mark all read",
+    "empty": "You're all caught up.",
+    "loading": "Loading notifications...",
+    "bandRoleChanged": "Your role in {band} changed to {role}.",
+    "bandMemberRemoved": "You were removed from {band}.",
+    "platformRoleChanged": "Your account role changed to {role}."
   }
 }

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Link } from "@/i18n/routing";
 import { ListMusic, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { SidebarLinks } from "./sidebar-links";
+import { NotificationBell } from "./notification-bell";
+import { NotificationBellErrorBoundary } from "./notification-bell-error-boundary";
 import { LogoutButton } from "./logout-button";
 import { cn } from "@/lib/utils";
 import { User } from "@/types/api";
@@ -97,6 +99,9 @@ export function Sidebar({ user }: SidebarProps) {
           >
             <Settings className="h-4 w-4" />
           </Link>
+          <NotificationBellErrorBoundary>
+            <NotificationBell isCollapsed={isCollapsed} />
+          </NotificationBellErrorBoundary>
           <LogoutButton />
         </div>
       </div>
