@@ -13,9 +13,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Copy, Globe, Loader2, RefreshCw, Link2Off } from "lucide-react";
+import {
+  Copy,
+  Globe,
+  Loader2,
+  RefreshCw,
+  Link2Off,
+  QrCode,
+} from "lucide-react";
 import { toast } from "sonner";
 import { enableSetlistSharing, disableSetlistSharing } from "../../actions";
+import { QrCodeDisplay } from "@/components/qr-code-display";
 
 interface ShareSetlistDialogProps {
   setlistId: string;
@@ -36,6 +44,7 @@ export function ShareSetlistDialog({
   const [isPending, startTransition] = useTransition();
   const [shareToken, setShareToken] = useState(initialShareToken);
   const [isConfirmingDisable, setIsConfirmingDisable] = useState(false);
+  const [showQrCode, setShowQrCode] = useState(false);
 
   const publicUrl =
     shareToken && typeof window !== "undefined"
@@ -107,8 +116,24 @@ export function ShareSetlistDialog({
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowQrCode((prev) => !prev)}
+                    title={t("qrCode")}
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
+
+              {showQrCode && (
+                <QrCodeDisplay
+                  value={publicUrl}
+                  filename={`setlist-${setlistId}`}
+                />
+              )}
 
               {isConfirmingDisable ? (
                 <div className="border-destructive/30 bg-destructive/5 space-y-3 rounded-lg border p-3">

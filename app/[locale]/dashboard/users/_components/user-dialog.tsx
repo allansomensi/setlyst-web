@@ -1,12 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
-import { User, UpdateUserPayload } from "@/types/api";
-import { createUser, updateUser } from "../actions";
+import { useTransition, useState, useEffect } from "react";
+import { User, UpdateUserPayload, UsernameHistoryEntry } from "@/types/api";
+import { createUser, updateUser, getUsernameHistory } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -15,16 +15,83 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, History } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserDialogProps {
   user?: User | null;
   isOpen: boolean;
   onClose: () => void;
+  canViewHistory?: boolean;
 }
 
-export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
+// Fetches and owns its own history/loading state. Lives inside the
+// <form key={user?.id ?? "new"}> below, so it naturally remounts (and
+// re-fetches from scratch) whenever the dialog switches to a different
+// user — no effect branch needs to reset state back to empty by hand.
+function UsernameHistorySection({ userId }: { userId: string }) {
+  const t = useTranslations("users.dialog");
+  const locale = useLocale();
+  const [history, setHistory] = useState<UsernameHistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUsernameHistory(userId).then((result) => {
+      if (!cancelled) {
+        setHistory(result);
+        setIsLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  return (
+    <div className="space-y-1.5 rounded-md border border-dashed p-3">
+      <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+        <History className="h-3.5 w-3.5" />
+        {t("usernameHistoryTitle")}
+      </div>
+      {isLoading ? (
+        <p className="text-muted-foreground text-xs">
+          {t("usernameHistoryLoading")}
+        </p>
+      ) : history.length === 0 ? (
+        <p className="text-muted-foreground text-xs">
+          {t("usernameHistoryEmpty")}
+        </p>
+      ) : (
+        <ul className="space-y-1 text-xs">
+          {history
+            .slice()
+            .reverse()
+            .map((entry, i) => (
+              <li
+                key={i}
+                className="text-muted-foreground flex items-center justify-between gap-2"
+              >
+                <span className="font-mono">{entry.old_username}</span>
+                <span>
+                  {new Intl.DateTimeFormat(locale, {
+                    dateStyle: "medium",
+                  }).format(new Date(entry.changed_at))}
+                </span>
+              </li>
+            ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function UserDialog({
+  user,
+  isOpen,
+  onClose,
+  canViewHistory,
+}: UserDialogProps) {
   const t = useTranslations("users.dialog");
   const tRoles = useTranslations("users.roles");
   const tStatuses = useTranslations("users.statuses");
@@ -109,6 +176,10 @@ export function UserDialog({ user, isOpen, onClose }: UserDialogProps) {
                 />
               </div>
             </div>
+
+            {isEditing && canViewHistory && user && (
+              <UsernameHistorySection userId={user.id} />
+            )}
 
             {!isEditing && (
               <div className="space-y-2">

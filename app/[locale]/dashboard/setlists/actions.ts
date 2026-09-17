@@ -331,3 +331,33 @@ export async function disableSetlistSharing(
     () => revalidatePath(`/dashboard/setlists/${id}`),
   );
 }
+
+export async function favoriteSetlist(id: string): Promise<ActionResult<void>> {
+  const t = await getTranslations("setlists.errors");
+
+  if (!id) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () => fetchServerApi(`/setlists/${id}/favorite`, { method: "POST" }),
+    () => {
+      revalidatePath("/dashboard/setlists");
+      revalidatePath("/dashboard");
+    },
+  );
+}
+
+export async function unfavoriteSetlist(
+  id: string,
+): Promise<ActionResult<void>> {
+  const t = await getTranslations("setlists.errors");
+
+  if (!id) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () => fetchServerApi(`/setlists/${id}/favorite`, { method: "DELETE" }),
+    () => {
+      revalidatePath("/dashboard/setlists");
+      revalidatePath("/dashboard");
+    },
+  );
+}

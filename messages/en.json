@@ -10,7 +10,8 @@
     "result": "result",
     "results": "results",
     "you": "you",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "downloadQrCode": "Download QR Code"
   },
   "pagination": {
     "previous": "Previous",
@@ -19,6 +20,7 @@
   },
   "nav": {
     "home": "Home",
+    "analytics": "Analytics",
     "artists": "Artists",
     "songs": "Songs",
     "setlists": "Setlists",
@@ -248,8 +250,33 @@
     "subtitle": "Manage your setlists. Click one to edit the songs.",
     "addSetlist": "Add Setlist",
     "liveModeBtn": "Live Mode",
+    "analyticsBtn": "Analytics",
+    "favorite": "Favorite",
+    "unfavorite": "Remove from favorites",
     "searchPlaceholder": "Search setlist...",
     "totalDuration": "Total Duration",
+    "analytics": {
+      "title": "Setlist Analytics",
+      "chartTitle": "Tempo progression",
+      "chartDescription": "BPM of each song in setlist order — see where the show dips and where it takes off.",
+      "bpmAxisLabel": "BPM",
+      "empty": "Add songs with a BPM set to see the chart.",
+      "breakDefaultLabel": "Break",
+      "stats": {
+        "average": "Average BPM",
+        "peak": "Energy Peak",
+        "calmest": "Calmest Moment",
+        "missing": "No BPM set"
+      },
+      "legend": {
+        "calm": "Calm (< 90 BPM)",
+        "mid": "Mid (90–130 BPM)",
+        "high": "High (> 130 BPM)",
+        "block": "Block",
+        "break": "Break",
+        "hint": "Hover a point for details"
+      }
+    },
     "table": {
       "title": "Title",
       "description": "Description",
@@ -363,6 +390,7 @@
       "descriptionInactive": "Generate a public link to share this setlist with anyone, no account needed.",
       "linkLabel": "Public link",
       "copyLink": "Copy link",
+      "qrCode": "Generate QR Code",
       "linkCopied": "Link copied!",
       "enableAction": "Generate public link",
       "enableHint": "The link can be disabled at any time.",
@@ -436,6 +464,7 @@
       "descriptionInactive": "Generate a public link to share this gig with anyone, no account needed.",
       "linkLabel": "Public link",
       "copyLink": "Copy link",
+      "qrCode": "Generate QR Code",
       "linkCopied": "Link copied!",
       "enableAction": "Generate public link",
       "enableHint": "The link can be disabled at any time.",
@@ -453,6 +482,7 @@
   },
   "liveMode": {
     "noSongs": "No songs in this setlist",
+    "singleSongMode": "Live Mode — Single Song",
     "back": "Back",
     "nextSong": "Next song",
     "endOfShow": "END OF SHOW",
@@ -501,6 +531,9 @@
       "addDescription": "Enter details and credentials for the new user.",
       "editDescription": "Update user permissions and profile details.",
       "usernameLabel": "Username",
+      "usernameHistoryTitle": "Username history",
+      "usernameHistoryEmpty": "This user has never changed their username.",
+      "usernameHistoryLoading": "Loading history...",
       "emailLabel": "Email",
       "passwordLabel": "Password",
       "firstNameLabel": "First Name",
@@ -545,6 +578,16 @@
       "passwordFailed": "Failed to change password."
     }
   },
+  "userProfile": {
+    "joinedOn": "Joined on {date}",
+    "adminSectionTitle": "Admin details",
+    "emailLabel": "Email",
+    "noEmail": "Not set",
+    "roleLabel": "Role",
+    "statusLabel": "Status",
+    "usernameChangedLabel": "Username last changed on",
+    "manageInUsers": "Manage in the Users page"
+  },
   "profile": {
     "title": "Account Settings",
     "subtitle": "Manage your public profile and account security preferences.",
@@ -555,6 +598,9 @@
     "firstNameLabel": "First Name",
     "lastNameLabel": "Last Name",
     "usernameLabel": "Username",
+    "usernameTaken": "This username is already taken.",
+    "usernameAvailable": "Username available!",
+    "usernameCooldown": "You'll be able to change your username again on {date}.",
     "emailLabel": "Email Address",
     "joinedOn": "Joined on {date}",
     "success": "Profile updated successfully",
@@ -573,6 +619,26 @@
       "usernameLength": "Username must be between 1 and 128 characters.",
       "missingFields": "Please fill in all required fields.",
       "passwordTooShort": "Password must be at least 8 characters."
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "An overview of everything relevant to your activity.",
+    "activity": {
+      "title": "Recent activity",
+      "subtitle": "Daily counts over the selected period.",
+      "rangeDays": "{count} days",
+      "newUsers": "New users",
+      "newSongs": "Songs added",
+      "newSetlists": "Setlists created",
+      "newBands": "Bands created",
+      "mySongs": "My songs",
+      "mySetlists": "My setlists",
+      "myGigs": "My gigs"
+    },
+    "overview": {
+      "title": "Overview",
+      "subtitle": "Totals and breakdowns of your repertoire."
     }
   },
   "metrics": {
@@ -656,6 +722,8 @@
     "title": "Bands",
     "subtitle": "Manage the bands you're part of.",
     "addBand": "New Band",
+    "favorite": "Favorite",
+    "unfavorite": "Remove from favorites",
     "searchPlaceholder": "Search band...",
     "empty": "You're not part of any band yet.",
     "emptySearch": "No bands found for \"{search}\".",

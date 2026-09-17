@@ -3,11 +3,24 @@ import { User } from "@/types/api";
 import { ProfileForm } from "./_components/profile-form";
 import { ChangePasswordSection } from "./_components/change-password-section";
 import { Separator } from "@/components/ui/separator";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
+import { getUsernameCooldownInfo } from "@/lib/utils";
 
 export default async function ProfilePage() {
   const user = await fetchServerApi<User>("/users/me");
   const t = await getTranslations("profile");
+  const locale = await getLocale();
+
+  const registrationDate = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(user.created_at));
+
+  const { inCooldown, cooldownDate } = getUsernameCooldownInfo(
+    user.username_changed_at,
+    locale,
+  );
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-4">
@@ -18,7 +31,12 @@ export default async function ProfilePage() {
 
       <Separator />
 
-      <ProfileForm user={user} />
+      <ProfileForm
+        user={user}
+        registrationDate={registrationDate}
+        inCooldown={inCooldown}
+        cooldownDate={cooldownDate}
+      />
 
       <Separator />
 

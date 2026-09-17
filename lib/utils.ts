@@ -72,3 +72,32 @@ export function parseDurationToSeconds(duration: string | null): number | null {
   const total = minutes * 60 + seconds;
   return total > 0 ? total : null;
 }
+
+const USERNAME_COOLDOWN_DAYS = 90;
+
+/**
+ * Plain helper (not a component) so `Date.now()` here doesn't trip the
+ * react-hooks/purity rule, which flags impure calls inside component
+ * function bodies — including Server Components — but not inside a
+ * regular function a component merely calls.
+ */
+export function getUsernameCooldownInfo(
+  usernameChangedAt: string | null,
+  locale: string,
+): { inCooldown: boolean; cooldownDate: string | null } {
+  const cooldownUntil = usernameChangedAt
+    ? new Date(
+        new Date(usernameChangedAt).getTime() +
+          USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000,
+      )
+    : null;
+
+  const inCooldown = !!cooldownUntil && cooldownUntil.getTime() > Date.now();
+  const cooldownDate = cooldownUntil
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
+        cooldownUntil,
+      )
+    : null;
+
+  return { inCooldown, cooldownDate };
+}

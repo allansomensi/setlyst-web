@@ -10,7 +10,8 @@
     "result": "resultado",
     "results": "resultados",
     "you": "você",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "downloadQrCode": "Baixar QR Code"
   },
   "pagination": {
     "previous": "Anterior",
@@ -19,6 +20,7 @@
   },
   "nav": {
     "home": "Início",
+    "analytics": "Analytics",
     "artists": "Artistas",
     "songs": "Músicas",
     "setlists": "Setlists",
@@ -248,8 +250,33 @@
     "subtitle": "Gerencie suas setlists. Clique em uma para editar as músicas.",
     "addSetlist": "Adicionar Setlist",
     "liveModeBtn": "Modo Ao Vivo",
+    "analyticsBtn": "Analytics",
+    "favorite": "Favoritar",
+    "unfavorite": "Remover dos favoritos",
     "searchPlaceholder": "Buscar setlist...",
     "totalDuration": "Duração Total",
+    "analytics": {
+      "title": "Analytics da Setlist",
+      "chartTitle": "Progressão de andamento",
+      "chartDescription": "BPM de cada música na ordem da setlist — veja onde o show cai e onde vai com tudo.",
+      "bpmAxisLabel": "BPM",
+      "empty": "Adicione músicas com BPM definido para ver o gráfico.",
+      "breakDefaultLabel": "Pausa",
+      "stats": {
+        "average": "BPM Médio",
+        "peak": "Pico de Energia",
+        "calmest": "Momento Mais Calmo",
+        "missing": "Sem BPM definido"
+      },
+      "legend": {
+        "calm": "Calma (< 90 BPM)",
+        "mid": "Média (90–130 BPM)",
+        "high": "Alta (> 130 BPM)",
+        "block": "Bloco",
+        "break": "Pausa",
+        "hint": "Passe o mouse sobre um ponto para ver detalhes"
+      }
+    },
     "table": {
       "title": "Título",
       "description": "Descrição",
@@ -363,6 +390,7 @@
       "descriptionInactive": "Gere um link público para compartilhar esta setlist com qualquer pessoa, sem precisar de conta.",
       "linkLabel": "Link público",
       "copyLink": "Copiar link",
+      "qrCode": "Gerar QR Code",
       "linkCopied": "Link copiado!",
       "enableAction": "Gerar link público",
       "enableHint": "O link poderá ser desativado a qualquer momento.",
@@ -436,6 +464,7 @@
       "descriptionInactive": "Gere um link público para compartilhar este show com qualquer pessoa, sem precisar de conta.",
       "linkLabel": "Link público",
       "copyLink": "Copiar link",
+      "qrCode": "Gerar QR Code",
       "linkCopied": "Link copiado!",
       "enableAction": "Gerar link público",
       "enableHint": "O link pode ser desativado a qualquer momento.",
@@ -453,6 +482,7 @@
   },
   "liveMode": {
     "noSongs": "Nenhuma música nesta setlist",
+    "singleSongMode": "Modo Ao Vivo — Música Única",
     "back": "Voltar",
     "nextSong": "Próxima música",
     "endOfShow": "FIM DO SHOW",
@@ -501,6 +531,9 @@
       "addDescription": "Insira os dados e credenciais do novo usuário.",
       "editDescription": "Atualize as permissões e o perfil do usuário.",
       "usernameLabel": "Usuário",
+      "usernameHistoryTitle": "Histórico de nomes de usuário",
+      "usernameHistoryEmpty": "Este usuário nunca trocou de nome de usuário.",
+      "usernameHistoryLoading": "Carregando histórico...",
       "emailLabel": "E-mail",
       "passwordLabel": "Senha",
       "firstNameLabel": "Nome",
@@ -545,6 +578,16 @@
       "passwordFailed": "Falha ao alterar a senha."
     }
   },
+  "userProfile": {
+    "joinedOn": "Membro desde {date}",
+    "adminSectionTitle": "Informações administrativas",
+    "emailLabel": "E-mail",
+    "noEmail": "Não informado",
+    "roleLabel": "Papel",
+    "statusLabel": "Status",
+    "usernameChangedLabel": "Último nome de usuário trocado em",
+    "manageInUsers": "Gerenciar na tela de usuários"
+  },
   "profile": {
     "title": "Configurações da Conta",
     "subtitle": "Gerencie seu perfil público e preferências de segurança.",
@@ -555,6 +598,9 @@
     "firstNameLabel": "Nome",
     "lastNameLabel": "Sobrenome",
     "usernameLabel": "Usuário",
+    "usernameTaken": "Este nome de usuário já está em uso.",
+    "usernameAvailable": "Nome de usuário disponível!",
+    "usernameCooldown": "Você poderá trocar seu nome de usuário novamente em {date}.",
     "emailLabel": "Endereço de E-mail",
     "joinedOn": "Membro desde {date}",
     "success": "Perfil atualizado com sucesso",
@@ -573,6 +619,26 @@
       "usernameLength": "O nome de usuário deve ter entre 1 e 128 caracteres.",
       "missingFields": "Preencha todos os campos obrigatórios.",
       "passwordTooShort": "A senha deve ter pelo menos 8 caracteres."
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Visão geral de toda a atividade relevante para você.",
+    "activity": {
+      "title": "Atividade recente",
+      "subtitle": "Contagens diárias ao longo do período selecionado.",
+      "rangeDays": "{count} dias",
+      "newUsers": "Novos usuários",
+      "newSongs": "Músicas adicionadas",
+      "newSetlists": "Setlists criadas",
+      "newBands": "Bandas criadas",
+      "mySongs": "Minhas músicas",
+      "mySetlists": "Minhas setlists",
+      "myGigs": "Meus shows"
+    },
+    "overview": {
+      "title": "Resumo geral",
+      "subtitle": "Totais e distribuições do seu repertório."
     }
   },
   "metrics": {
@@ -656,6 +722,8 @@
     "title": "Bandas",
     "subtitle": "Gerencie as bandas das quais você participa.",
     "addBand": "Nova Banda",
+    "favorite": "Favoritar",
+    "unfavorite": "Remover dos favoritos",
     "searchPlaceholder": "Buscar banda...",
     "empty": "Você ainda não participa de nenhuma banda.",
     "emptySearch": "Nenhuma banda encontrada para \"{search}\".",

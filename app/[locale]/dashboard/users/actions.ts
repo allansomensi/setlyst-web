@@ -3,7 +3,11 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { requireSession } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
-import { CreateUserPayload, UpdateUserPayload } from "@/types/api";
+import {
+  CreateUserPayload,
+  UpdateUserPayload,
+  UsernameHistoryEntry,
+} from "@/types/api";
 import { getTranslations } from "next-intl/server";
 
 export async function createUser(data: CreateUserPayload) {
@@ -138,5 +142,18 @@ export async function changeUserPassword(id: string, password: string) {
     const message =
       error instanceof Error ? error.message : t("passwordFailed");
     return { success: false, error: message };
+  }
+}
+
+export async function getUsernameHistory(
+  userId: string,
+): Promise<UsernameHistoryEntry[]> {
+  try {
+    return await fetchServerApi<UsernameHistoryEntry[]>(
+      `/users/${userId}/username-history`,
+    );
+  } catch (error) {
+    console.error("Failed to fetch username history", error);
+    return [];
   }
 }

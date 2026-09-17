@@ -2,7 +2,12 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { BandWithMembership } from "@/types/api";
-import { deleteBand, leaveBand } from "../actions";
+import {
+  deleteBand,
+  leaveBand,
+  favoriteBand,
+  unfavoriteBand,
+} from "../actions";
 import { BandDialog } from "./band-dialog";
 import { BandAvatar } from "@/components/bands/band-avatar";
 import { BandRoleBadge } from "@/components/bands/band-role-badge";
@@ -32,8 +37,10 @@ import {
   Trash2,
   LogOut,
   Users,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/routing";
 import { useSession } from "next-auth/react";
 
@@ -56,6 +63,9 @@ export function BandsGrid({ initialBands }: BandsGridProps) {
     null,
   );
   const [bandToLeave, setBandToLeave] = useState<BandWithMembership | null>(
+    null,
+  );
+  const [favoritePendingId, setFavoritePendingId] = useState<string | null>(
     null,
   );
 
@@ -100,6 +110,17 @@ export function BandsGrid({ initialBands }: BandsGridProps) {
     });
   };
 
+  const handleToggleFavorite = async (band: BandWithMembership) => {
+    setFavoritePendingId(band.id);
+    const result = band.is_favorite
+      ? await unfavoriteBand(band.id)
+      : await favoriteBand(band.id);
+    if (!result.success) {
+      toast.error(result.error);
+    }
+    setFavoritePendingId(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -136,6 +157,22 @@ export function BandsGrid({ initialBands }: BandsGridProps) {
                 key={band.id}
                 className="hover:border-primary/40 relative px-4 transition-colors"
               >
+                <button
+                  type="button"
+                  data-no-row-click
+                  onClick={() => handleToggleFavorite(band)}
+                  disabled={favoritePendingId === band.id}
+                  className="text-muted-foreground absolute top-3 right-3 hover:text-yellow-500 disabled:opacity-50"
+                  title={band.is_favorite ? t("unfavorite") : t("favorite")}
+                >
+                  <Star
+                    className={cn(
+                      "h-4 w-4",
+                      band.is_favorite && "fill-yellow-400 text-yellow-500",
+                    )}
+                  />
+                </button>
+
                 <Link
                   href={`/dashboard/bands/${band.id}`}
                   className="flex items-start gap-3"

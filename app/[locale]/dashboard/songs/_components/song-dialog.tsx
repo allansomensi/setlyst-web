@@ -40,6 +40,44 @@ interface SongDialogProps {
   onClose: () => void;
 }
 
+// Owns the duration field's value and validity itself, rather than lifting
+// them into SongDialog's state. It lives inside the <form key={...}> below,
+// so React already gives it a fresh `useState(initialValue)` whenever that
+// key changes (switching songs, or from editing to "new") — the same
+// built-in reset the other, uncontrolled fields get from `defaultValue`.
+// No effect needed to keep a stale value from leaking across songs.
+function DurationField({
+  initialValue,
+  disabled,
+}: {
+  initialValue: string;
+  disabled: boolean;
+}) {
+  const t = useTranslations("songs.dialog");
+  const [duration, setDuration] = useState(initialValue);
+  const durationValid = isValidDurationInput(duration);
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="duration">{t("durationLabel")}</Label>
+      <Input
+        id="duration"
+        name="duration"
+        value={duration}
+        onChange={(e) => setDuration(sanitizeDurationInput(e.target.value))}
+        disabled={disabled}
+        placeholder={t("durationPlaceholder")}
+        inputMode="numeric"
+        aria-invalid={!durationValid}
+        className={!durationValid ? "border-destructive" : undefined}
+      />
+      {!durationValid && (
+        <p className="text-destructive text-xs">{t("durationInvalid")}</p>
+      )}
+    </div>
+  );
+}
+
 export function SongDialog({
   song,
   artists,
@@ -52,15 +90,12 @@ export function SongDialog({
 
   const [isPending, startTransition] = useTransition();
   const isEditing = !!song;
-  const [duration, setDuration] = useState(
-    song?.duration ? formatDuration(song.duration) : "",
-  );
-  const durationValid = isValidDurationInput(duration);
 
   const handleAction = (formData: FormData) => {
     const tempoStr = formData.get("tempo") as string;
+    const durationStr = (formData.get("duration") as string) || "";
 
-    if (!isValidDurationInput(duration)) {
+    if (!isValidDurationInput(durationStr)) {
       toast.error(t("durationInvalid"));
       return;
     }
@@ -71,7 +106,7 @@ export function SongDialog({
       tempo: tempoStr ? parseInt(tempoStr, 10) : null,
       tonality: (formData.get("tonality") as Tonality) || null,
       genre: (formData.get("genre") as Genre) || null,
-      duration: duration ? parseDurationToSeconds(duration) : null,
+      duration: durationStr ? parseDurationToSeconds(durationStr) : null,
     };
 
     startTransition(async () => {
@@ -213,27 +248,12 @@ export function SongDialog({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="duration">{t("durationLabel")}</Label>
-                <Input
-                  id="duration"
-                  name="duration"
-                  value={duration}
-                  onChange={(e) =>
-                    setDuration(sanitizeDurationInput(e.target.value))
-                  }
-                  disabled={isPending}
-                  placeholder={t("durationPlaceholder")}
-                  inputMode="numeric"
-                  aria-invalid={!durationValid}
-                  className={!durationValid ? "border-destructive" : undefined}
-                />
-                {!durationValid && (
-                  <p className="text-destructive text-xs">
-                    {t("durationInvalid")}
-                  </p>
-                )}
-              </div>
+              <DurationField
+                initialValue={
+                  song?.duration ? formatDuration(song.duration) : ""
+                }
+                disabled={isPending}
+              />
             </div>
 
             {/* Lyrics info for editing */}
@@ -275,7 +295,7 @@ export function SongDialog({
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" disabled={isPending || !durationValid}>
+            <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {tCommon("save")}
             </Button>

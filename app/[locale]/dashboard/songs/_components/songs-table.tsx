@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Song, Artist, formatGenre } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
@@ -58,6 +59,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
   const t = useTranslations("songs");
   const tCommon = useTranslations("common");
   const { data: session } = useSession();
+  const router = useRouter();
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -257,7 +259,17 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
               </TableRow>
             ) : (
               songs.map((song) => (
-                <TableRow key={song.id}>
+                <TableRow
+                  key={song.id}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    if (
+                      (e.target as HTMLElement).closest("[data-no-row-click]")
+                    )
+                      return;
+                    router.push(`/dashboard/songs/${song.id}/live`);
+                  }}
+                >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {song.title}
@@ -287,7 +299,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
                   <TableCell className="hidden font-mono text-xs sm:table-cell">
                     {song.tempo ?? "—"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" data-no-row-click>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">

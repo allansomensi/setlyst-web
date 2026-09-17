@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Play, Download, FileText, Share2 } from "lucide-react";
+import { Play, Download, FileText, Share2, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { ExportPdfDialog } from "./export-pdf-dialog";
 import { ShareSetlistDialog } from "./share-setlist-dialog";
@@ -59,6 +59,12 @@ export function SetlistActions({
       <Button asChild size="lg" variant="outline" className="gap-2">
         <Link href={`/dashboard/setlists/${setlistId}/live`}>
           <Play className="h-5 w-5" /> {t("liveModeBtn")}
+        </Link>
+      </Button>
+
+      <Button asChild size="lg" variant="outline" className="gap-2">
+        <Link href={`/dashboard/setlists/${setlistId}/analytics`}>
+          <BarChart3 className="h-5 w-5" /> {t("analyticsBtn")}
         </Link>
       </Button>
 

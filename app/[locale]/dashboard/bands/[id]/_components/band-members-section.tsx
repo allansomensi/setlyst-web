@@ -42,6 +42,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "@/i18n/routing";
 import { LogOut, X, Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -159,7 +160,12 @@ export function BandMembersSection({
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="flex flex-wrap items-center gap-2 font-medium">
-                        {displayName}
+                        <Link
+                          href={`/dashboard/profile/${member.user_id}`}
+                          className="hover:underline"
+                        >
+                          {displayName}
+                        </Link>
                         {isSelf && (
                           <span className="text-muted-foreground">
                             ({tCommon("you")})

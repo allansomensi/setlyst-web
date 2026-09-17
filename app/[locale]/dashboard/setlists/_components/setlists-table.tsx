@@ -3,7 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Setlist } from "@/types/api";
-import { deleteSetlist, duplicateSetlist } from "../actions";
+import {
+  deleteSetlist,
+  duplicateSetlist,
+  favoriteSetlist,
+  unfavoriteSetlist,
+} from "../actions";
 import { SetlistDialog } from "./setlists-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
@@ -43,6 +48,7 @@ import {
   ChevronRight,
   Guitar,
   Copy,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -84,6 +90,9 @@ export function SetlistsTable({
 
   const [setlistToDelete, setSetlistToDelete] = useState<Setlist | null>(null);
   const [isDuplicating, startDuplicateTransition] = useTransition();
+  const [favoritePendingId, setFavoritePendingId] = useState<string | null>(
+    null,
+  );
 
   const {
     search,
@@ -136,6 +145,17 @@ export function SetlistsTable({
         toast.error(result.error);
       }
     });
+  };
+
+  const handleToggleFavorite = async (setlist: Setlist) => {
+    setFavoritePendingId(setlist.id);
+    const result = setlist.is_favorite
+      ? await unfavoriteSetlist(setlist.id)
+      : await favoriteSetlist(setlist.id);
+    if (!result.success) {
+      toast.error(result.error);
+    }
+    setFavoritePendingId(null);
   };
 
   return (
@@ -228,6 +248,26 @@ export function SetlistsTable({
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          data-no-row-click
+                          onClick={() => handleToggleFavorite(setlist)}
+                          disabled={favoritePendingId === setlist.id}
+                          className="text-muted-foreground shrink-0 hover:text-yellow-500 disabled:opacity-50"
+                          title={
+                            setlist.is_favorite
+                              ? t("unfavorite")
+                              : t("favorite")
+                          }
+                        >
+                          <Star
+                            className={cn(
+                              "h-4 w-4",
+                              setlist.is_favorite &&
+                                "fill-yellow-400 text-yellow-500",
+                            )}
+                          />
+                        </button>
                         <ListMusic className="text-muted-foreground h-4 w-4 shrink-0" />
                         <span className="font-medium group-hover:underline">
                           {setlist.title}

@@ -253,3 +253,31 @@ export async function updateBandRolePermissions(
     () => revalidatePath(`/dashboard/bands/${bandId}`),
   );
 }
+
+export async function favoriteBand(id: string): Promise<ActionResult<void>> {
+  const t = await getTranslations("bands.errors");
+
+  if (!id) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () => fetchServerApi(`/bands/${id}/favorite`, { method: "POST" }),
+    () => {
+      revalidatePath("/dashboard/bands");
+      revalidatePath("/dashboard");
+    },
+  );
+}
+
+export async function unfavoriteBand(id: string): Promise<ActionResult<void>> {
+  const t = await getTranslations("bands.errors");
+
+  if (!id) return { success: false, error: t("invalidId") };
+
+  return guardedAction(
+    () => fetchServerApi(`/bands/${id}/favorite`, { method: "DELETE" }),
+    () => {
+      revalidatePath("/dashboard/bands");
+      revalidatePath("/dashboard");
+    },
+  );
+}

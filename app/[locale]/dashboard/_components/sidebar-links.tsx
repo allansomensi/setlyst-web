@@ -10,6 +10,7 @@ import {
   Users,
   Guitar,
   Calendar,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function SidebarLinks({ isCollapsed, userRole }: SidebarLinksProps) {
 
   const navLinks = [
     { name: t("home"), href: "/dashboard", icon: Home },
+    { name: t("analytics"), href: "/dashboard/analytics", icon: BarChart3 },
     { name: t("artists"), href: "/dashboard/artists", icon: Disc3 },
     { name: t("songs"), href: "/dashboard/songs", icon: Music },
     { name: t("setlists"), href: "/dashboard/setlists", icon: ListMusic },

@@ -20,7 +20,7 @@ export default async function UsersPage() {
 
   return (
     <div className="w-full space-y-4">
-      <UsersTable initialUsers={users} />
+      <UsersTable initialUsers={users} currentUserRole={session?.user?.role} />
     </div>
   );
 }

@@ -46,9 +46,10 @@ const SEARCHABLE_KEYS = [
 
 interface UsersTableProps {
   initialUsers: User[];
+  currentUserRole?: User["role"];
 }
 
-export function UsersTable({ initialUsers }: UsersTableProps) {
+export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
   const t = useTranslations("users");
   const tCommon = useTranslations("common");
 
@@ -264,6 +265,7 @@ export function UsersTable({ initialUsers }: UsersTableProps) {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         user={editingUser}
+        canViewHistory={currentUserRole === "admin"}
       />
       <PasswordDialog
         isOpen={isPasswordDialogOpen}

@@ -4,6 +4,7 @@ import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { UsernameAvailability } from "@/types/api";
 
 interface UpdateProfilePayload {
   username: string;
@@ -38,6 +39,22 @@ export async function updateProfile(data: UpdateProfilePayload) {
       }),
     () => revalidatePath("/dashboard"),
   );
+}
+
+export async function checkUsernameAvailability(
+  username: string,
+): Promise<{ available: boolean } | null> {
+  if (!username || username.length < 3) return null;
+
+  try {
+    const result = await fetchServerApi<UsernameAvailability>(
+      `/users/me/username-availability?username=${encodeURIComponent(username)}`,
+    );
+    return { available: result.available };
+  } catch (error) {
+    console.error("Failed to check username availability", error);
+    return null;
+  }
 }
 
 export async function changePassword(formData: FormData) {

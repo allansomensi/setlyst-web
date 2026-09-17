@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { User } from "@/types/api";
-import { updateProfile } from "../actions";
+import { updateProfile, checkUsernameAvailability } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,23 +24,75 @@ import {
   Save,
   CalendarDays,
   Loader2,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function ProfileForm({ user }: { user: User }) {
+type AvailabilityStatus = "idle" | "checking" | "available" | "unavailable";
+
+interface ProfileFormProps {
+  user: User;
+  /** Pre-formatted on the server — see the comment in page.tsx. */
+  registrationDate: string;
+  inCooldown: boolean;
+  cooldownDate: string | null;
+}
+
+export function ProfileForm({
+  user,
+  registrationDate,
+  inCooldown,
+  cooldownDate,
+}: ProfileFormProps) {
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
 
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [username, setUsername] = useState(user.username);
+  const [availability, setAvailability] = useState<AvailabilityStatus>("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const registrationDate = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(user.created_at));
+  // Debouncing here, driven directly from the input's onChange, rather
+  // than from an effect watching `username` — an effect would need to
+  // call setState synchronously to kick off "checking" or to reset back
+  // to "idle", which is exactly the pattern React's effect rules steer
+  // away from. An event handler has no such restriction.
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const trimmed = value.trim();
+
+    // No point checking: unchanged, too short, or already blocked by
+    // cooldown (the field is disabled in that case anyway).
+    if (trimmed === user.username || trimmed.length < 3 || inCooldown) {
+      setAvailability("idle");
+      return;
+    }
+
+    setAvailability("checking");
+    debounceRef.current = setTimeout(() => {
+      checkUsernameAvailability(trimmed).then((result) => {
+        setAvailability(
+          result === null
+            ? "idle"
+            : result.available
+              ? "available"
+              : "unavailable",
+        );
+      });
+    }, 400);
+  };
 
   const handleAction = (formData: FormData) => {
+    if (availability === "unavailable") {
+      toast.error(t("usernameTaken"));
+      return;
+    }
+
     const payload = {
       username: formData.get("username") as string,
       email: (formData.get("email") as string) || null,
@@ -54,6 +106,7 @@ export function ProfileForm({ user }: { user: User }) {
       if (result.success) {
         toast.success(t("success"));
         setIsEditing(false);
+        setAvailability("idle");
       } else {
         toast.error(result.error || t("failed"));
       }
@@ -97,7 +150,11 @@ export function ProfileForm({ user }: { user: User }) {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setUsername(user.username);
+                    setAvailability("idle");
+                  }}
                   disabled={isPending}
                 >
                   <X className="mr-2 h-4 w-4" />
@@ -143,16 +200,44 @@ export function ProfileForm({ user }: { user: User }) {
                   <Input
                     id="username"
                     name="username"
-                    defaultValue={user.username}
-                    disabled={!isEditing || isPending}
+                    value={isEditing ? username : user.username}
+                    onChange={(e) => handleUsernameChange(e.target.value)}
+                    disabled={!isEditing || isPending || inCooldown}
                     className={cn(
                       "pl-9",
+                      availability === "available" && "border-green-500 pr-9",
+                      availability === "unavailable" &&
+                        "border-destructive pr-9",
                       !isEditing &&
                         "bg-muted/50 cursor-default border-transparent",
                     )}
                     required
                   />
+                  {isEditing && availability === "checking" && (
+                    <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin" />
+                  )}
+                  {isEditing && availability === "available" && (
+                    <Check className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-green-500" />
+                  )}
+                  {isEditing && availability === "unavailable" && (
+                    <AlertCircle className="text-destructive absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
+                  )}
                 </div>
+                {isEditing && availability === "unavailable" && (
+                  <p className="text-destructive text-xs">
+                    {t("usernameTaken")}
+                  </p>
+                )}
+                {isEditing && availability === "available" && (
+                  <p className="text-xs text-green-600 dark:text-green-500">
+                    {t("usernameAvailable")}
+                  </p>
+                )}
+                {isEditing && inCooldown && cooldownDate && (
+                  <p className="text-muted-foreground text-xs">
+                    {t("usernameCooldown", { date: cooldownDate })}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -177,7 +262,10 @@ export function ProfileForm({ user }: { user: User }) {
 
             {isEditing && (
               <CardFooter className="bg-muted/30 flex justify-end rounded-b-lg border-t pt-6">
-                <Button type="submit" disabled={isPending}>
+                <Button
+                  type="submit"
+                  disabled={isPending || availability === "unavailable"}
+                >
                   {isPending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (

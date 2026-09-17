@@ -248,6 +248,8 @@ export interface Setlist {
   band_id: string | null;
   share_token: string | null;
   total_duration: number;
+  /** Whether the current user has favorited this setlist. */
+  is_favorite: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -343,8 +345,37 @@ export interface User {
   last_name: string | null;
   role: UserRole;
   status: UserStatus;
+  /** When the username was last changed — `null` if never changed. */
+  username_changed_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UsernameAvailability {
+  available: boolean;
+}
+
+export interface UsernameHistoryEntry {
+  old_username: string;
+  changed_at: string;
+}
+
+export interface UserProfileAdminDetails {
+  email: string | null;
+  role: UserRole;
+  status: UserStatus;
+  username_changed_at: string | null;
+}
+
+/** Another user's profile, as returned by GET /users/{id}/profile. */
+export interface UserProfileView {
+  id: string;
+  username: string;
+  first_name: string | null;
+  last_name: string | null;
+  created_at: string;
+  /** Present only when the viewer is an admin. */
+  admin_details: UserProfileAdminDetails | null;
 }
 
 export interface CreateUserPayload {
@@ -446,6 +477,28 @@ export type MetricsResponse =
   | ({ scope: "user" } & UserMetrics)
   | ({ scope: "admin" } & AdminMetrics);
 
+export interface TimeseriesPoint {
+  date: string;
+  count: number;
+}
+
+export interface UserTimeseries {
+  songs_created: TimeseriesPoint[];
+  setlists_created: TimeseriesPoint[];
+  gigs_created: TimeseriesPoint[];
+}
+
+export interface AdminTimeseries {
+  users_registered: TimeseriesPoint[];
+  songs_created: TimeseriesPoint[];
+  setlists_created: TimeseriesPoint[];
+  bands_created: TimeseriesPoint[];
+}
+
+export type TimeseriesResponse =
+  | ({ scope: "user" } & UserTimeseries)
+  | ({ scope: "admin" } & AdminTimeseries);
+
 export interface ImportBackupResponse {
   artists_imported: number;
   songs_imported: number;
@@ -523,6 +576,8 @@ export interface Band {
 export interface BandWithMembership extends Band {
   member_count: number;
   my_role: BandRole;
+  /** Whether the current user has favorited this band. */
+  is_favorite: boolean;
 }
 
 export interface CreateBandPayload {
