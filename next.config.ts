@@ -47,6 +47,8 @@ const cspDirectives: Record<string, string[]> = {
   "connect-src": connectSrc,
   "frame-src": ["'self'", "https://vercel.live"],
   "frame-ancestors": ["'none'"],
+  "worker-src": ["'self'"],
+  "manifest-src": ["'self'"],
   "base-uri": ["'self'"],
   "form-action": ["'self'"],
   "object-src": ["'none'"],
@@ -93,6 +95,16 @@ const nextConfig: NextConfig = {
     {
       source: "/(.*)",
       headers: securityHeaders,
+    },
+    {
+      // The service worker file itself must never be served stale from the
+      // browser's HTTP cache, or updates to the caching logic below would
+      // never reach a client that's already installed an older version.
+      source: "/sw.js",
+      headers: [
+        { key: "Cache-Control", value: "no-cache" },
+        { key: "Service-Worker-Allowed", value: "/" },
+      ],
     },
   ],
   images: { remotePatterns: [] },

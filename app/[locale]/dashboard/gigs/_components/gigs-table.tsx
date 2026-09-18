@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { Gig, GigStatus, Setlist } from "@/types/api";
 import { deleteGig } from "../actions";
 import { GigDialog, BandOption } from "./gigs-dialog";
 import { SearchInput } from "@/components/ui/search-input";
+import { LoadErrorNotice } from "@/components/load-error-notice";
+import { useOfflineGigs } from "@/hooks/use-offline-library";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +46,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
+import { useOfflineDisabled } from "@/components/offline-disabled";
 
 interface BandLookupEntry {
   name: string;
@@ -59,6 +62,13 @@ interface GigsTableProps {
   /** Locks the "new/edit gig" dialog to a single band's scope (e.g. when
    * rendered from that band's own gigs page). */
   fixedBandId?: string;
+  /**
+   * True when the page's server-side fetch failed rather than genuinely
+   * returning zero shows. Shows a retrying state instead of the "no shows
+   * yet" empty state so a transient failure never looks like an empty
+   * account. See components/load-error-notice.tsx.
+   */
+  loadError?: boolean;
 }
 
 const STATUS_VARIANT: Record<
@@ -76,8 +86,10 @@ export function GigsTable({
   personalSetlists,
   bands,
   fixedBandId,
+  loadError,
 }: GigsTableProps) {
-  const router = useRouter();
+  const router = useAppRouter();
+  const offlineDisabled = useOfflineDisabled();
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -88,10 +100,17 @@ export function GigsTable({
   const [editingGig, setEditingGig] = useState<Gig | null>(null);
   const [gigToDelete, setGigToDelete] = useState<Gig | null>(null);
 
+  // See hooks/use-offline-records.ts: with no connection, or when this
+  // page's fetch failed, the shows come from the on-device mirror.
+  const { records: availableGigs, isFromCache } = useOfflineGigs({
+    fallback: initialGigs,
+    loadError,
+  });
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return initialGigs;
-    return initialGigs.filter((gig) => {
+    if (!q) return availableGigs;
+    return availableGigs.filter((gig) => {
       const bandName = gig.band_id ? bandsById[gig.band_id]?.name : "";
       return (
         gig.venue.toLowerCase().includes(q) ||
@@ -99,7 +118,7 @@ export function GigsTable({
         (bandName ?? "").toLowerCase().includes(q)
       );
     });
-  }, [initialGigs, search, bandsById]);
+  }, [availableGigs, search, bandsById]);
 
   const [now] = useState(() => Date.now());
 
@@ -246,7 +265,7 @@ export function GigsTable({
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
+        <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
           <Plus className="mr-2 h-4 w-4" />
           {t("addGig")}
         </Button>
@@ -279,11 +298,14 @@ export function GigsTable({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {search ? t("emptySearch", { search }) : t("empty")}
+                <TableCell colSpan={4} className="h-24 text-center">
+                  {loadError && !isFromCache ? (
+                    <LoadErrorNotice />
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {search ? t("emptySearch", { search }) : t("empty")}
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
@@ -320,9 +342,9 @@ export function GigsTable({
       <p className="text-muted-foreground text-sm">
         {tCommon("showing", {
           count: filtered.length,
-          total: initialGigs.length,
+          total: availableGigs.length,
           entity:
-            initialGigs.length !== 1 ? tCommon("results") : tCommon("result"),
+            availableGigs.length !== 1 ? tCommon("results") : tCommon("result"),
         })}
         {search && ` ${tCommon("showingFor", { search })}`}
       </p>

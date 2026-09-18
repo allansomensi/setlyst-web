@@ -19,6 +19,8 @@
     "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dexie": "^4.2.0",
+    "dexie-react-hooks": "^1.1.7",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.14",
     "next": "16.2.4",

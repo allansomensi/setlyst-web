@@ -7,7 +7,7 @@ import { BandRoleBadge } from "@/components/bands/band-role-badge";
 import { BandDialog } from "../../_components/band-dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Pencil, ListMusic, CalendarDays } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { useTranslations } from "next-intl";
 
 export function BandHeader({ band }: { band: BandWithMembership }) {
@@ -33,7 +33,7 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight wrap-break-word sm:text-3xl">
               {band.name}
             </h1>
             <BandRoleBadge role={band.my_role} />

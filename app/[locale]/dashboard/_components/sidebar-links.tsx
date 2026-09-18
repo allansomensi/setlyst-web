@@ -1,6 +1,7 @@
 "use client";
 
-import { Link, usePathname } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
+import { usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
   Disc3,

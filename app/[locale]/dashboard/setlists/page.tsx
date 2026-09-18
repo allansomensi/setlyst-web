@@ -6,14 +6,30 @@ import {
   BAND_ROLE_LEVEL,
 } from "@/types/api";
 import { SetlistsTable } from "./_components/setlists-table";
+import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
 export default async function SetlistsPage() {
-  const [personalRes, bands] = await Promise.all([
-    fetchServerApi<PaginatedResponse<Setlist>>("/setlists?page=1&per_page=100"),
-    fetchServerApi<BandWithMembership[]>("/bands"),
+  // Personal setlists and the band list are independent sources — each
+  // goes through fetchOrFailed so one failing (a transient rate limit,
+  // timeout) shouldn't take the whole page down when the other still has
+  // something real to show. An empty `setlists` array caused by a failed
+  // fetch must NOT be rendered as the normal "no setlists yet" empty
+  // state — the person does have setlists, this fetch just didn't get
+  // them this time (see <LoadErrorNotice />, which SetlistsTable shows
+  // instead when `loadError` is true and the list ends up empty).
+  const [personalRes, bandsRaw] = await Promise.all([
+    fetchOrFailed(
+      fetchServerApi<PaginatedResponse<Setlist>>(
+        "/setlists?page=1&per_page=100",
+      ),
+    ),
+    fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
   ]);
 
-  const personalSetlists = personalRes.data || [];
+  const personalFailed = personalRes === FETCH_FAILED;
+  const bandsFailed = bandsRaw === FETCH_FAILED;
+  const personalSetlists = personalFailed ? [] : (personalRes?.data ?? []);
+  const bands = bandsFailed ? [] : bandsRaw;
 
   const bandsById: Record<string, { name: string; canManage: boolean }> = {};
   for (const band of bands) {
@@ -23,20 +39,34 @@ export default async function SetlistsPage() {
     bandsById[band.id] = { name: band.name, canManage };
   }
 
+  // Same reasoning per band: one band's setlists failing to load
+  // shouldn't hide every other band's (or the personal ones).
   const bandSetlistsResults = await Promise.all(
     bands.map((band) =>
-      fetchServerApi<PaginatedResponse<Setlist>>(
-        `/bands/${band.id}/setlists?page=1&per_page=100`,
+      fetchOrFailed(
+        fetchServerApi<PaginatedResponse<Setlist>>(
+          `/bands/${band.id}/setlists?page=1&per_page=100`,
+        ),
       ),
     ),
   );
-  const bandSetlists = bandSetlistsResults.flatMap((res) => res.data || []);
+  const bandSetlistsFailed = bandSetlistsResults.some(
+    (res) => res === FETCH_FAILED,
+  );
+  const bandSetlists = bandSetlistsResults.flatMap((res) =>
+    res === FETCH_FAILED ? [] : (res?.data ?? []),
+  );
 
   const setlists = [...personalSetlists, ...bandSetlists];
+  const hadError = personalFailed || bandsFailed || bandSetlistsFailed;
 
   return (
     <div className="w-full space-y-4">
-      <SetlistsTable initialSetlists={setlists} bandsById={bandsById} />
+      <SetlistsTable
+        initialSetlists={setlists}
+        bandsById={bandsById}
+        loadError={hadError}
+      />
     </div>
   );
 }

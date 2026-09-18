@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { Sidebar } from "./_components/sidebar";
 import { MobileNav } from "./_components/mobile-nav";
+import { OfflineStatusBanner } from "@/components/offline-status-banner";
 
 export default async function DashboardLayout({
   children,
@@ -24,6 +25,7 @@ export default async function DashboardLayout({
         user={{ name: session.user?.name, role: session.user?.role }}
       />
       <main className="flex h-screen flex-1 flex-col overflow-hidden">
+        <OfflineStatusBanner />
         <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>
     </div>

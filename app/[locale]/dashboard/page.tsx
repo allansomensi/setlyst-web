@@ -11,7 +11,7 @@ import {
   Calendar,
   BarChart3,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { Separator } from "@/components/ui/separator";
 import { getDashboardMetrics } from "./actions";
 import { UserMetricsCharts } from "./_components/user-metrics";

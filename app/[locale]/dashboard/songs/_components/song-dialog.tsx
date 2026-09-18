@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import {
   Song,
   Artist,
@@ -84,7 +84,7 @@ export function SongDialog({
   isOpen,
   onClose,
 }: SongDialogProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const t = useTranslations("songs.dialog");
   const tCommon = useTranslations("common");
 

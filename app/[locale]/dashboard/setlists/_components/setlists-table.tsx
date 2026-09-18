@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { Setlist } from "@/types/api";
 import {
   deleteSetlist,
@@ -11,8 +11,10 @@ import {
 } from "../actions";
 import { SetlistDialog } from "./setlists-dialog";
 import { SearchInput } from "@/components/ui/search-input";
+import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
+import { useOfflineSetlists } from "@/hooks/use-offline-library";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +55,9 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TablePagination } from "@/components/ui/table-pagination";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
+import { useOfflineDisabled } from "@/components/offline-disabled";
+import { OfflineIndicator } from "@/components/offline-indicator";
 
 const SEARCHABLE_KEYS = ["title", "description"] as const;
 
@@ -72,14 +76,23 @@ interface SetlistsTableProps {
    * `band_id` missing from this map is treated as non-manageable.
    */
   bandsById?: Record<string, BandLookupEntry>;
+  /**
+   * True when the page's server-side fetch failed rather than genuinely
+   * returning zero setlists. Shows a retrying state instead of the "no
+   * setlists yet" empty state so a transient failure never looks like an
+   * empty account. See components/load-error-notice.tsx.
+   */
+  loadError?: boolean;
 }
 
 export function SetlistsTable({
   initialSetlists,
   bandId,
   bandsById,
+  loadError,
 }: SetlistsTableProps) {
-  const router = useRouter();
+  const router = useAppRouter();
+  const offlineDisabled = useOfflineDisabled();
   const t = useTranslations("setlists");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -94,6 +107,15 @@ export function SetlistsTable({
     null,
   );
 
+  // Falls back to the on-device copy when there's no connection, or when
+  // the page's own fetch failed — so this list is never blank at a venue,
+  // and a transient API failure shows the library instead of an error.
+  // See hooks/use-offline-records.ts.
+  const { records: availableSetlists, isFromCache } = useOfflineSetlists({
+    fallback: initialSetlists,
+    loadError,
+  });
+
   const {
     search,
     setSearch,
@@ -104,7 +126,7 @@ export function SetlistsTable({
     totalPages,
     setCurrentPage,
     totalItems,
-  } = useTableControls(initialSetlists, SEARCHABLE_KEYS);
+  } = useTableControls(availableSetlists, SEARCHABLE_KEYS);
 
   const setlists = processedData;
 
@@ -166,7 +188,7 @@ export function SetlistsTable({
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
+        <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
           <Plus className="mr-2 h-4 w-4" />
           {t("addSetlist")}
         </Button>
@@ -218,11 +240,16 @@ export function SetlistsTable({
           <TableBody>
             {setlists.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {search ? t("emptySearch", { search }) : t("empty")}
+                <TableCell colSpan={4} className="h-24 text-center">
+                  {/* Only a failure we couldn't paper over with the local
+                      copy is worth showing as one — see isFromCache. */}
+                  {loadError && !isFromCache ? (
+                    <LoadErrorNotice />
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {search ? t("emptySearch", { search }) : t("empty")}
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
@@ -272,6 +299,7 @@ export function SetlistsTable({
                         <span className="font-medium group-hover:underline">
                           {setlist.title}
                         </span>
+                        <OfflineIndicator kind="setlist" id={setlist.id} />
                         {isBandSetlist && (
                           <Badge
                             variant="outline"

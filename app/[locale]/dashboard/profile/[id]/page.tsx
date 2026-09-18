@@ -3,7 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { fetchServerApi } from "@/lib/api-server";
 import { UserProfileView } from "@/types/api";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -8,10 +8,12 @@ import {
   useRef,
   useCallback,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { Button } from "@/components/ui/button";
 import { updateSong } from "../../actions";
 import { useApi } from "@/lib/api-client";
+import { readCachedSong } from "@/lib/offline/read";
+import { isKnownOffline } from "@/lib/offline/navigation";
 import { Song } from "@/types/api";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ import {
   Underline,
   ChevronDown,
   HelpCircle,
+  WifiOff,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -277,7 +280,7 @@ interface EditLyricsPageProps {
 
 export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const { id } = use(params);
-  const router = useRouter();
+  const router = useAppRouter();
   const { fetchApi } = useApi();
   const t = useTranslations("lyrics");
   const tCommon = useTranslations("common");
@@ -289,6 +292,11 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const [lyrics, setLyrics] = useState("");
   const [showPreview, setShowPreview] = useState(true);
   const [showChords, setShowChords] = useState(true);
+  // True when what's on screen came from the on-device copy rather than the
+  // API. The lyrics are fully readable either way; saving is what needs a
+  // connection, so the editor turns read-only instead of offering a Save
+  // button that can only fail.
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const hasLoaded = useRef(false);
 
   useEffect(() => {
@@ -301,18 +309,44 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     let mounted = true;
 
     async function load() {
+      const apply = (song: Song, fromCache: boolean) => {
+        setLyrics(song.lyrics ?? "");
+        setSongTitle(song.title);
+        setIsReadOnly(fromCache);
+        hasLoaded.current = !fromCache;
+      };
+
+      // With no connection, don't spend a doomed request (and its retries)
+      // before falling back — go straight to the on-device copy.
+      if (isKnownOffline()) {
+        const cached = await readCachedSong(id);
+        if (mounted) {
+          if (cached) {
+            apply(cached, true);
+          } else {
+            toast.error(t("loadFailedOffline"));
+          }
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
         const song = await fetchApi<Song>(`/songs/${id}`);
-
-        if (mounted) {
-          setLyrics(song.lyrics ?? "");
-          setSongTitle(song.title);
-          hasLoaded.current = true;
-        }
+        if (mounted) apply(song, false);
       } catch {
+        // The request failed — but the lyrics may well be saved on this
+        // device. Showing them read-only is far better than bouncing
+        // someone back to the song list, which is what used to happen the
+        // moment the API hiccuped or the signal dropped mid-load.
+        const cached = await readCachedSong(id);
         if (mounted) {
-          toast.error(t("loadFailed"));
-          router.push("/dashboard/songs");
+          if (cached) {
+            apply(cached, true);
+          } else {
+            toast.error(t("loadFailed"));
+            router.push("/dashboard/songs");
+          }
         }
       } finally {
         if (mounted) setIsLoading(false);
@@ -428,19 +462,28 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           >
             {tCommon("cancel")}
           </Button>
-          <Button
-            size="sm"
-            onClick={handleSave}
-            disabled={isPending}
-            className="gap-1.5"
-          >
-            {isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Save className="h-3.5 w-3.5" />
-            )}
-            {isPending ? t("saving") : t("save")}
-          </Button>
+          {isReadOnly ? (
+            // Read-only because this came from the offline copy. Saying so
+            // plainly beats a Save button that could only ever fail.
+            <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+              <WifiOff className="h-3.5 w-3.5 shrink-0" />
+              {t("readOnlyOffline")}
+            </span>
+          ) : (
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={isPending}
+              className="gap-1.5"
+            >
+              {isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              {isPending ? t("saving") : t("save")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -561,6 +604,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
             onChange={(e) => setLyrics(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isPending}
+            readOnly={isReadOnly}
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"

@@ -12,7 +12,9 @@
     "you": "tú",
     "confirm": "Confirmar",
     "downloadQrCode": "Descargar código QR",
-    "moreActions": "Más acciones"
+    "moreActions": "Más acciones",
+    "loadErrorRetrying": "No se pudo cargar — reintentando automáticamente.",
+    "loadErrorOffline": "No se pudo cargar estando sin conexión. Se reintentará automáticamente en cuanto vuelva la conexión."
   },
   "pagination": {
     "previous": "Anterior",
@@ -247,7 +249,9 @@
     },
     "help": {
       "title": "Formato ChordPro"
-    }
+    },
+    "readOnlyOffline": "Sin conexión — solo lectura",
+    "loadFailedOffline": "Esta letra todavía no está guardada en este dispositivo."
   },
   "setlists": {
     "title": "Setlists",
@@ -494,6 +498,8 @@
     "next": "SIGUIENTE",
     "bpm": "BPM",
     "key": "Ton.:",
+    "offline": "Sin conexión",
+    "offlineReady": "Guardado para uso sin conexión",
     "settings": {
       "autoScrollTitle": "Iniciar/detener desplazamiento automático",
       "decreaseSize": "Reducir tamaño del texto",
@@ -506,6 +512,32 @@
       "decreaseSpeed": "Reducir velocidad (-)",
       "increaseSpeed": "Aumentar velocidad (+)"
     }
+  },
+  "offlineSync": {
+    "syncNow": "Guardar para uso sin conexión",
+    "syncing": "Guardando…",
+    "synced": "Disponible sin conexión",
+    "syncedAt": "Guardado {time}",
+    "syncFailed": "No se pudo guardar para uso sin conexión",
+    "notSynced": "Todavía no guardado para uso sin conexión",
+    "offlineBannerTitle": "Estás sin conexión.",
+    "offlineBannerAvailable": "{count, plural, one {# elemento guardado y disponible sin conexión} other {# elementos guardados y disponibles sin conexión}}",
+    "offlineBannerEmpty": "Todavía no hay nada guardado para uso sin conexión — conéctate una vez para sincronizar tus setlists y canciones.",
+    "downloadTitle": "Acceso sin conexión",
+    "downloadDescription": "Descarga todas tus setlists y canciones a este dispositivo, para que ellas — y el Modo en Vivo — sigan funcionando sin señal.",
+    "downloadSetlistsCount": "{count, plural, one {# setlist sin conexión} other {# setlists sin conexión}}",
+    "downloadSongsCount": "{count, plural, one {# canción sin conexión} other {# canciones sin conexión}}",
+    "downloadBtn": "Descargar para uso sin conexión",
+    "downloadOfflineHint": "Estás sin conexión — conéctate a internet para descargar la versión más reciente.",
+    "downloadSummary": "{total, plural, one {# elemento} other {# elementos}} disponibles sin conexión · actualizado {time}",
+    "downloadNeverSynced": "Todavía no se ha descargado nada.",
+    "downloadGigsCount": "{count, plural, one {# show sin conexión} other {# shows sin conexión}}",
+    "downloadBandsCount": "{count, plural, one {# banda sin conexión} other {# bandas sin conexión}}",
+    "progressLibrary": "Descargando tu biblioteca…",
+    "progressSetlists": "Guardando setlists ({completed} de {total})…",
+    "progressPages": "Guardando páginas para uso sin conexión…",
+    "readOnlyNotice": "Estás sin conexión — puedes leer todo, pero crear y editar necesitan conexión.",
+    "actionNeedsConnection": "Necesita conexión"
   },
   "users": {
     "title": "Usuarios",

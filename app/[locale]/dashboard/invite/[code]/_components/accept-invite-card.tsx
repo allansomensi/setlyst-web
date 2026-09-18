@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { acceptBandInvite } from "@/app/[locale]/dashboard/bands/actions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users2, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 
 export function AcceptInviteCard({ code }: { code: string }) {
   const t = useTranslations("bands.acceptInvite");
-  const router = useRouter();
+  const router = useAppRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 

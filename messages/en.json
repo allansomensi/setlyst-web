@@ -12,7 +12,9 @@
     "you": "you",
     "confirm": "Confirm",
     "downloadQrCode": "Download QR Code",
-    "moreActions": "More actions"
+    "moreActions": "More actions",
+    "loadErrorRetrying": "Couldn't load this — retrying automatically.",
+    "loadErrorOffline": "Couldn't load this while offline. It'll retry automatically once you're back online."
   },
   "pagination": {
     "previous": "Previous",
@@ -247,7 +249,9 @@
     },
     "help": {
       "title": "ChordPro Format"
-    }
+    },
+    "readOnlyOffline": "Offline — read only",
+    "loadFailedOffline": "These lyrics aren't saved on this device yet."
   },
   "setlists": {
     "title": "Setlists",
@@ -494,6 +498,8 @@
     "next": "NEXT",
     "bpm": "BPM",
     "key": "Key:",
+    "offline": "Offline",
+    "offlineReady": "Saved for offline use",
     "settings": {
       "autoScrollTitle": "Start/stop auto-scroll",
       "decreaseSize": "Decrease text size",
@@ -506,6 +512,32 @@
       "decreaseSpeed": "Decrease speed (-)",
       "increaseSpeed": "Increase speed (+)"
     }
+  },
+  "offlineSync": {
+    "syncNow": "Save for offline use",
+    "syncing": "Saving…",
+    "synced": "Available offline",
+    "syncedAt": "Saved {time}",
+    "syncFailed": "Couldn't save for offline use",
+    "notSynced": "Not saved for offline use yet",
+    "offlineBannerTitle": "You're offline.",
+    "offlineBannerAvailable": "{count, plural, one {# item saved and available offline} other {# items saved and available offline}}",
+    "offlineBannerEmpty": "Nothing saved for offline use yet — connect once to sync your setlists and songs.",
+    "downloadTitle": "Offline access",
+    "downloadDescription": "Download every setlist and song to this device, so they — and Live Mode — keep working with no signal.",
+    "downloadSetlistsCount": "{count, plural, one {# setlist offline} other {# setlists offline}}",
+    "downloadSongsCount": "{count, plural, one {# song offline} other {# songs offline}}",
+    "downloadBtn": "Download for offline use",
+    "downloadOfflineHint": "You're offline — connect to the internet to download the latest version.",
+    "downloadSummary": "{total, plural, one {# item} other {# items}} available offline · updated {time}",
+    "downloadNeverSynced": "Nothing downloaded yet.",
+    "downloadGigsCount": "{count, plural, one {# show offline} other {# shows offline}}",
+    "downloadBandsCount": "{count, plural, one {# band offline} other {# bands offline}}",
+    "progressLibrary": "Downloading your library…",
+    "progressSetlists": "Saving setlists ({completed} of {total})…",
+    "progressPages": "Saving pages for offline use…",
+    "readOnlyNotice": "You're offline — everything here is readable, but creating and editing need a connection.",
+    "actionNeedsConnection": "Needs a connection"
   },
   "users": {
     "title": "Users",

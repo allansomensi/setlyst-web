@@ -18,10 +18,14 @@ import {
   Settings2,
   Music,
   Type,
+  WifiOff,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useOfflineSongBundle } from "@/hooks/use-offline-song-bundle";
+import { toast } from "sonner";
 
 type FontFamily = "sans" | "mono" | "serif";
 
@@ -53,10 +57,16 @@ const FONT_LABELS: Record<FontFamily, string> = {
 // look and controls, minus everything that only makes sense with a running
 // order (next/prev navigation, progress bar, "next song" preview).
 export function SongLiveModeViewer({
-  song,
+  song: initialSong,
   initialFontSize = 100,
 }: SongLiveModeViewerProps) {
   const t = useTranslations("liveMode");
+  const isOnline = useOnlineStatus();
+
+  // See the analogous comment in setlists' LiveModeViewer: prefer the
+  // on-device copy kept warm by OfflineSyncProvider over the
+  // server-rendered prop.
+  const { song, syncedAt } = useOfflineSongBundle(initialSong.id, initialSong);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -99,6 +109,17 @@ export function SongLiveModeViewer({
       wakeLock?.release();
     };
   }, []);
+
+  // Let the performer know, once per tab session, that this song is now
+  // saved for offline use. Gated on `syncedAt` so it reflects an actual
+  // on-device copy in IndexedDB, not just "we're online right now."
+  useEffect(() => {
+    if (!isOnline || syncedAt === null) return;
+    const key = `setlyst:offline-ready:song:${song.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    toast.success(t("offlineReady"));
+  }, [isOnline, syncedAt, song.id, t]);
 
   // Keyboard shortcuts (space to toggle auto-scroll, +/- for its speed —
   // no left/right since there's nothing to navigate between)
@@ -173,6 +194,16 @@ export function SongLiveModeViewer({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 md:gap-3">
+          {!isOnline && (
+            <Badge
+              variant="outline"
+              className="gap-1 border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-bold text-amber-500 md:px-3 md:py-2 md:text-base"
+              title={t("offline")}
+            >
+              <WifiOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">{t("offline")}</span>
+            </Badge>
+          )}
           {song.tempo && (
             <Badge
               variant="secondary"

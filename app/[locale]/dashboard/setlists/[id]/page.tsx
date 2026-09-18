@@ -72,6 +72,7 @@ export default async function SetlistDetailsPage({
 
       <SetlistSongsManager
         setlistId={setlist.id}
+        setlist={setlist}
         setlistSongs={setlistSongs}
         setlistItems={setlistItems}
         allSongs={allSongs}

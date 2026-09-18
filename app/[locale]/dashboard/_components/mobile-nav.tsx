@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { ListMusic, Menu, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";

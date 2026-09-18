@@ -1,5 +1,10 @@
 import { fetchServerApi } from "@/lib/api-server";
-import { PaginatedResponse, Setlist, Song, UserPreferences } from "@/types/api";
+import {
+  PaginatedResponse,
+  Setlist,
+  SetlistSong,
+  UserPreferences,
+} from "@/types/api";
 import { LiveModeViewer } from "./_components/live-mode-viewer";
 
 export default async function SetlistLivePage({
@@ -19,7 +24,7 @@ export default async function SetlistLivePage({
 
   const [setlist, setlistSongsRes] = await Promise.all([
     fetchServerApi<Setlist>(`/setlists/${id}`),
-    fetchServerApi<PaginatedResponse<Song>>(
+    fetchServerApi<PaginatedResponse<SetlistSong>>(
       `/setlists/${id}/songs?page=1&per_page=100`,
     ),
   ]);

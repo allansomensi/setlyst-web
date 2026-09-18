@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/providers/theme_provider";
 import { AuthProvider } from "@/components/providers/session_provider";
+import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
@@ -50,17 +51,19 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <ThemeProvider
-          key={userTheme}
-          attribute="class"
-          defaultTheme="system"
-          forcedTheme={userTheme !== "system" ? userTheme : undefined}
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster position="top-center" theme={userTheme} />
-        </ThemeProvider>
+        <OfflineSyncProvider>
+          <ThemeProvider
+            key={userTheme}
+            attribute="class"
+            defaultTheme="system"
+            forcedTheme={userTheme !== "system" ? userTheme : undefined}
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster position="top-center" theme={userTheme} />
+          </ThemeProvider>
+        </OfflineSyncProvider>
       </AuthProvider>
       <Analytics />
     </NextIntlClientProvider>

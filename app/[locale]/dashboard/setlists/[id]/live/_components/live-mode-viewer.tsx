@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Setlist, Song } from "@/types/api";
+import { Setlist, SetlistSong } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
@@ -21,10 +21,14 @@ import {
   Settings2,
   Music,
   Type,
+  WifiOff,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useOfflineSetlistBundle } from "@/hooks/use-offline-setlist-bundle";
+import { toast } from "sonner";
 
 // Types
 
@@ -40,7 +44,7 @@ interface LiveSettings {
 
 interface LiveModeViewerProps {
   setlist: Setlist;
-  songs: Song[];
+  songs: SetlistSong[];
   initialSongId?: string;
   initialFontSize?: number;
 }
@@ -60,12 +64,23 @@ const FONT_LABELS: Record<FontFamily, string> = {
 // Component
 
 export function LiveModeViewer({
-  setlist,
-  songs,
+  setlist: initialSetlist,
+  songs: initialSongs,
   initialSongId,
   initialFontSize = 100,
 }: LiveModeViewerProps) {
   const t = useTranslations("liveMode");
+  const isOnline = useOnlineStatus();
+
+  // Prefer the on-device copy synced in the background (see
+  // OfflineSyncProvider) over the props this page was server-rendered
+  // with — it stays fresh on a schedule instead of being frozen at
+  // whatever moment this exact URL last got cached, which matters once
+  // you're relying on it with no signal at a venue.
+  const { setlist, songs, syncedAt } = useOfflineSetlistBundle(
+    initialSetlist.id,
+    { setlist: initialSetlist, songs: initialSongs },
+  );
 
   const startIndex = initialSongId
     ? Math.max(
@@ -147,6 +162,19 @@ export function LiveModeViewer({
       wakeLock?.release();
     };
   }, []);
+
+  // Let the performer know, once per tab session, that this show is now
+  // saved for offline use — reassurance worth having before walking into a
+  // venue with bad signal. Gated on `syncedAt` rather than just "we're
+  // online and mounted": that reflects an actual on-device copy in
+  // IndexedDB, not merely a hope that the page happened to get cached.
+  useEffect(() => {
+    if (!isOnline || syncedAt === null) return;
+    const key = `setlyst:offline-ready:setlist:${setlist.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    toast.success(t("offlineReady"));
+  }, [isOnline, syncedAt, setlist.id, t]);
 
   // Keyboard shortcuts
 
@@ -247,6 +275,16 @@ export function LiveModeViewer({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 md:gap-3">
+          {!isOnline && (
+            <Badge
+              variant="outline"
+              className="gap-1 border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-bold text-amber-500 md:px-3 md:py-2 md:text-base"
+              title={t("offline")}
+            >
+              <WifiOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">{t("offline")}</span>
+            </Badge>
+          )}
           {currentSong.tempo && (
             <Badge
               variant="secondary"

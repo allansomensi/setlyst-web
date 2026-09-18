@@ -7,7 +7,7 @@ import {
 } from "@/types/api";
 import { SetlistsTable } from "@/app/[locale]/dashboard/setlists/_components/setlists-table";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 

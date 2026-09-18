@@ -3,7 +3,7 @@
 import { signIn, getSession } from "next-auth/react";
 import { useActionState, useState } from "react";
 import { useRouter } from "@/i18n/routing";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

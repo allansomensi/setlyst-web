@@ -1,14 +1,20 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { Song, Artist, formatGenre } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
 import { SearchInput } from "@/components/ui/search-input";
+import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
+import {
+  useOfflineArtists,
+  useOfflineSongs,
+} from "@/hooks/use-offline-library";
 import { useTranslations } from "next-intl";
+import { OfflineIndicator } from "@/components/offline-indicator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,7 +51,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TablePagination } from "@/components/ui/table-pagination";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
+import { useOfflineDisabled } from "@/components/offline-disabled";
 import { useSession } from "next-auth/react";
 
 const SEARCHABLE_KEYS = ["title", "artist_name", "genre"] as const;
@@ -53,13 +60,25 @@ const SEARCHABLE_KEYS = ["title", "artist_name", "genre"] as const;
 interface SongsTableProps {
   initialSongs: Song[];
   artists: Artist[];
+  /**
+   * True when the page's server-side fetch failed rather than genuinely
+   * returning zero songs. Shows a retrying state instead of the "no songs
+   * yet" empty state so a transient failure never looks like an empty
+   * account. See components/load-error-notice.tsx.
+   */
+  loadError?: boolean;
 }
 
-export function SongsTable({ initialSongs, artists }: SongsTableProps) {
+export function SongsTable({
+  initialSongs,
+  artists,
+  loadError,
+}: SongsTableProps) {
   const t = useTranslations("songs");
   const tCommon = useTranslations("common");
   const { data: session } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
+  const offlineDisabled = useOfflineDisabled();
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -68,15 +87,27 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
 
   const [isExporting, setIsExporting] = useState(false);
 
+  // See hooks/use-offline-records.ts: with no connection, or when this
+  // page's own fetch failed, both lists come from the on-device mirror
+  // instead of the (empty or stale) server-rendered props.
+  const { records: availableSongs, isFromCache } = useOfflineSongs({
+    fallback: initialSongs,
+    loadError,
+  });
+  const { records: availableArtists } = useOfflineArtists({
+    fallback: artists,
+    loadError,
+  });
+
   const songsWithArtistName = useMemo(() => {
     const getArtistName = (artistId: string) =>
-      artists.find((a) => a.id === artistId)?.name ?? "—";
+      availableArtists.find((a) => a.id === artistId)?.name ?? "—";
 
-    return initialSongs.map((song) => ({
+    return availableSongs.map((song) => ({
       ...song,
       artist_name: getArtistName(song.artist_id),
     }));
-  }, [initialSongs, artists]);
+  }, [availableSongs, availableArtists]);
 
   const {
     search,
@@ -189,7 +220,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button onClick={() => handleOpenDialog()}>
+          <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
             <Plus className="mr-2 h-4 w-4" />
             {t("addSong")}
           </Button>
@@ -250,11 +281,15 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
           <TableBody>
             {songs.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {search ? t("emptySearch", { search }) : t("empty")}
+                <TableCell colSpan={6} className="h-24 text-center">
+                  {/* Only a failure the local copy couldn't cover. */}
+                  {loadError && !isFromCache ? (
+                    <LoadErrorNotice />
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {search ? t("emptySearch", { search }) : t("empty")}
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
@@ -273,6 +308,7 @@ export function SongsTable({ initialSongs, artists }: SongsTableProps) {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {song.title}
+                      <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span
                           className="bg-primary/10 text-primary rounded px-1 py-0.5 text-[10px] font-medium"

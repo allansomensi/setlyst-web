@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bell, Check, ShieldAlert, UserMinus, Users } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 import { useSession } from "next-auth/react";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import {
   Popover,

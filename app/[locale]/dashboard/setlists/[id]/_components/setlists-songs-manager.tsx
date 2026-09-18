@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "@/i18n/routing";
-import { Song, SetlistSong, SetlistItem, Artist } from "@/types/api";
+import { useAppRouter } from "@/hooks/use-app-router";
+import { Song, SetlistSong, SetlistItem, Setlist, Artist } from "@/types/api";
+import { useOfflineSetlistDetail } from "@/hooks/use-offline-setlist-detail";
+import { useOfflineDisabled } from "@/components/offline-disabled";
 import {
   removeSongFromSetlist,
   reorderSetlistItems,
@@ -73,6 +75,8 @@ import { CSS } from "@dnd-kit/utilities";
 
 interface SetlistSongsManagerProps {
   setlistId: string;
+  /** The setlist itself, needed to keep the offline mirror current. */
+  setlist: Setlist;
   setlistSongs: SetlistSong[];
   setlistItems: SetlistItem[];
   allSongs: Song[];
@@ -367,14 +371,25 @@ function SortableBreakRow({
 
 export function SetlistSongsManager({
   setlistId,
+  setlist,
   setlistSongs,
   setlistItems,
   allSongs,
   artists,
 }: SetlistSongsManagerProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const t = useTranslations("setlists.songs");
   const tCommon = useTranslations("common");
+  const offlineDisabled = useOfflineDisabled();
+
+  // Offline, the running order comes from the on-device mirror rather than
+  // whatever was embedded in the cached HTML — see
+  // hooks/use-offline-setlist-detail.ts.
+  const { songs: availableSongs, items: availableItems } =
+    useOfflineSetlistDetail(setlist, {
+      songs: setlistSongs,
+      items: setlistItems,
+    });
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -393,7 +408,7 @@ export function SetlistSongsManager({
   } | null>(null);
   const [markerToDelete, setMarkerToDelete] = useState<string | null>(null);
 
-  const baseRows = useMemo(() => itemsToRows(setlistItems), [setlistItems]);
+  const baseRows = useMemo(() => itemsToRows(availableItems), [availableItems]);
   const displayRows = isReordering ? items : baseRows;
 
   const sensors = useSensors(
@@ -456,9 +471,7 @@ export function SetlistSongsManager({
   };
 
   const handlePlay = (songId: string) => {
-    router.push(
-      `/dashboard/setlists/${setlistId}/live?songId=${songId}` as never,
-    );
+    router.push(`/dashboard/setlists/${setlistId}/live?songId=${songId}`);
   };
 
   const saveBlock = () => {
@@ -569,8 +582,8 @@ export function SetlistSongsManager({
                   setItems(baseRows);
                   setIsReordering(true);
                 }}
-                disabled={baseRows.length <= 1}
-                title={t("reorder")}
+                disabled={baseRows.length <= 1 || offlineDisabled.disabled}
+                title={offlineDisabled.title ?? t("reorder")}
               >
                 <ListOrdered className="h-4 w-4" />
                 <span className="hidden sm:inline">{t("reorder")}</span>
@@ -580,7 +593,8 @@ export function SetlistSongsManager({
                   <Button
                     variant="outline"
                     className="gap-2"
-                    title={t("addSection")}
+                    title={offlineDisabled.title ?? t("addSection")}
+                    disabled={offlineDisabled.disabled}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="hidden sm:inline">{t("addSection")}</span>
@@ -606,7 +620,8 @@ export function SetlistSongsManager({
               <Button
                 className="gap-2"
                 onClick={() => setIsDialogOpen(true)}
-                title={t("addSong")}
+                title={offlineDisabled.title ?? t("addSong")}
+                disabled={offlineDisabled.disabled}
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">{t("addSong")}</span>
@@ -711,8 +726,9 @@ export function SetlistSongsManager({
         setlistId={setlistId}
         allSongs={allSongs}
         artists={artists}
-        existingSongIds={(
-          setlistSongs || songRowsOnly.map((r) => r.song)
+        existingSongIds={(availableSongs.length > 0
+          ? availableSongs
+          : songRowsOnly.map((r) => r.song)
         ).flatMap((s) =>
           [s.id, s.forked_from].filter((id): id is string => !!id),
         )}

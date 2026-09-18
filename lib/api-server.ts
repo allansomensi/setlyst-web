@@ -2,6 +2,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { headers } from "next/headers"; // <-- Importado aqui
 import { getLocale } from "next-intl/server";
+import {
+  MAX_RETRIES,
+  RETRYABLE_STATUSES,
+  isIdempotentMethod,
+  parseRetryAfterMs,
+  retryDelayMs,
+  sleep,
+} from "@/lib/api-retry";
 
 export class ApiError extends Error {
   constructor(
@@ -83,51 +91,76 @@ export async function fetchServerApi<T>(
 
   const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchOptions } = options;
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      ...fetchOptions,
-      headers: requestHeaders,
-      // Prevent SSRF by not following redirects automatically.
-      redirect: "error",
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "TimeoutError") {
-      console.error(
-        `[fetchServerApi] Request timed out after ${timeoutMs}ms:`,
-        url,
-      );
-      throw new ApiError(504, "The backend service did not respond in time.");
-    }
-    console.error("[fetchServerApi] Network error:", err);
-    throw new ApiError(503, "Unable to reach the backend service.");
-  }
+  const canRetryMethod = isIdempotentMethod(fetchOptions.method);
 
-  if (!res.ok) {
-    let message: string;
+  let attempt = 0;
+  for (;;) {
+    let res: Response;
     try {
-      const body = await res.json();
-      message =
-        typeof body?.message === "string"
-          ? body.message
-          : `API error: ${res.status}`;
-    } catch {
-      message = `API error: ${res.status}`;
+      res = await fetch(url, {
+        ...fetchOptions,
+        headers: requestHeaders,
+        // Prevent SSRF by not following redirects automatically.
+        redirect: "error",
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+    } catch (err) {
+      const isTimeout =
+        err instanceof DOMException && err.name === "TimeoutError";
+
+      if (canRetryMethod && attempt < MAX_RETRIES) {
+        attempt++;
+        await sleep(retryDelayMs(attempt));
+        continue;
+      }
+
+      if (isTimeout) {
+        console.error(
+          `[fetchServerApi] Request timed out after ${timeoutMs}ms:`,
+          url,
+        );
+        throw new ApiError(504, "The backend service did not respond in time.");
+      }
+      console.error("[fetchServerApi] Network error:", err);
+      throw new ApiError(503, "Unable to reach the backend service.");
     }
 
-    if (res.status === 429) {
-      message = "Too many requests. Please wait a moment and try again.";
+    if (!res.ok) {
+      const canRetryStatus =
+        res.status === 429 ||
+        (canRetryMethod && RETRYABLE_STATUSES.has(res.status));
+
+      if (canRetryStatus && attempt < MAX_RETRIES) {
+        attempt++;
+        const retryAfterMs = parseRetryAfterMs(res.headers.get("retry-after"));
+        await sleep(retryDelayMs(attempt, retryAfterMs));
+        continue;
+      }
+
+      let message: string;
+      try {
+        const body = await res.json();
+        message =
+          typeof body?.message === "string"
+            ? body.message
+            : `API error: ${res.status}`;
+      } catch {
+        message = `API error: ${res.status}`;
+      }
+
+      if (res.status === 429) {
+        message = "Too many requests. Please wait a moment and try again.";
+      }
+
+      if (res.status === 401) {
+        message = "Unauthorized. Please sign in again.";
+      }
+
+      throw new ApiError(res.status, message);
     }
 
-    if (res.status === 401) {
-      message = "Unauthorized. Please sign in again.";
-    }
+    if (res.status === 204) return {} as T;
 
-    throw new ApiError(res.status, message);
+    return res.json();
   }
-
-  if (res.status === 204) return {} as T;
-
-  return res.json();
 }

@@ -42,7 +42,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { LogOut, X, Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 

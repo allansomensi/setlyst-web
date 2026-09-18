@@ -8,16 +8,34 @@ import {
 } from "@/types/api";
 import { GigsTable } from "./_components/gigs-table";
 import { BandOption } from "./_components/gigs-dialog";
+import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
 export default async function GigsPage() {
-  const [personalGigsRes, personalSetlistsRes, bands] = await Promise.all([
-    fetchServerApi<PaginatedResponse<Gig>>("/gigs?page=1&per_page=100"),
-    fetchServerApi<PaginatedResponse<Setlist>>("/setlists?page=1&per_page=100"),
-    fetchServerApi<BandWithMembership[]>("/bands"),
+  // Three independent sources — one failing (a transient rate limit,
+  // timeout) shouldn't take the whole page down when the others loaded
+  // fine. `hadError` is what tells GigsTable an empty `gigs` array means
+  // "this fetch failed," not "you have no shows" — see LoadErrorNotice.
+  const [personalGigsRes, personalSetlistsRes, bandsRaw] = await Promise.all([
+    fetchOrFailed(
+      fetchServerApi<PaginatedResponse<Gig>>("/gigs?page=1&per_page=100"),
+    ),
+    fetchOrFailed(
+      fetchServerApi<PaginatedResponse<Setlist>>(
+        "/setlists?page=1&per_page=100",
+      ),
+    ),
+    fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
   ]);
 
-  const personalGigs = personalGigsRes.data || [];
-  const personalSetlists = personalSetlistsRes.data || [];
+  const personalGigsFailed = personalGigsRes === FETCH_FAILED;
+  const personalSetlistsFailed = personalSetlistsRes === FETCH_FAILED;
+  const bandsFailed = bandsRaw === FETCH_FAILED;
+
+  const personalGigs = personalGigsFailed ? [] : (personalGigsRes?.data ?? []);
+  const personalSetlists = personalSetlistsFailed
+    ? []
+    : (personalSetlistsRes?.data ?? []);
+  const bands = bandsFailed ? [] : bandsRaw;
 
   const bandsById: Record<string, { name: string; canManage: boolean }> = {};
   for (const band of bands) {
@@ -27,29 +45,46 @@ export default async function GigsPage() {
     bandsById[band.id] = { name: band.name, canManage };
   }
 
+  // Same reasoning per band, for both its gigs and its setlists: one
+  // band's data failing to load shouldn't hide every other band's. Each
+  // call falls back to a FETCH_FAILED marker (rather than being dropped,
+  // like a filtering helper would) so the results stay index-aligned
+  // with `bands` below.
   const [bandGigsResults, bandSetlistsResults] = await Promise.all([
     Promise.all(
       bands.map((band) =>
-        fetchServerApi<PaginatedResponse<Gig>>(
-          `/bands/${band.id}/gigs?page=1&per_page=100`,
+        fetchOrFailed(
+          fetchServerApi<PaginatedResponse<Gig>>(
+            `/bands/${band.id}/gigs?page=1&per_page=100`,
+          ),
         ),
       ),
     ),
     Promise.all(
       bands.map((band) =>
-        fetchServerApi<PaginatedResponse<Setlist>>(
-          `/bands/${band.id}/setlists?page=1&per_page=100`,
+        fetchOrFailed(
+          fetchServerApi<PaginatedResponse<Setlist>>(
+            `/bands/${band.id}/setlists?page=1&per_page=100`,
+          ),
         ),
       ),
     ),
   ]);
 
-  const bandGigs = bandGigsResults.flatMap((res) => res.data || []);
+  const bandGigsFailed = bandGigsResults.some((res) => res === FETCH_FAILED);
+  const bandSetlistsFailed = bandSetlistsResults.some(
+    (res) => res === FETCH_FAILED,
+  );
+
+  const bandGigs = bandGigsResults.flatMap((res) =>
+    res === FETCH_FAILED ? [] : (res?.data ?? []),
+  );
   const gigs = [...personalGigs, ...bandGigs];
 
   const setlistsByBandId: Record<string, Setlist[]> = {};
   bands.forEach((band, index) => {
-    setlistsByBandId[band.id] = bandSetlistsResults[index]?.data || [];
+    const res = bandSetlistsResults[index];
+    setlistsByBandId[band.id] = res === FETCH_FAILED ? [] : (res?.data ?? []);
   });
 
   // Only bands the caller can actually create/manage gigs for are offered
@@ -62,6 +97,13 @@ export default async function GigsPage() {
       setlists: setlistsByBandId[band.id] || [],
     }));
 
+  const hadError =
+    personalGigsFailed ||
+    personalSetlistsFailed ||
+    bandsFailed ||
+    bandGigsFailed ||
+    bandSetlistsFailed;
+
   return (
     <div className="w-full space-y-4">
       <GigsTable
@@ -69,6 +111,7 @@ export default async function GigsPage() {
         bandsById={bandsById}
         personalSetlists={personalSetlists}
         bands={manageableBands}
+        loadError={hadError}
       />
     </div>
   );

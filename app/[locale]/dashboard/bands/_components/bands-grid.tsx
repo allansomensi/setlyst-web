@@ -12,6 +12,7 @@ import { BandDialog } from "./band-dialog";
 import { BandAvatar } from "@/components/bands/band-avatar";
 import { BandRoleBadge } from "@/components/bands/band-role-badge";
 import { SearchInput } from "@/components/ui/search-input";
+import { LoadErrorNotice } from "@/components/load-error-notice";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -41,14 +42,21 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { useSession } from "next-auth/react";
 
 interface BandsGridProps {
   initialBands: BandWithMembership[];
+  /**
+   * True when the page's server-side fetch failed rather than genuinely
+   * returning zero bands. Shows a retrying state instead of the "no bands
+   * yet" empty state so a transient failure never looks like an empty
+   * account. See components/load-error-notice.tsx.
+   */
+  loadError?: boolean;
 }
 
-export function BandsGrid({ initialBands }: BandsGridProps) {
+export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
   const t = useTranslations("bands");
   const tCommon = useTranslations("common");
   const { data: session } = useSession();
@@ -142,9 +150,15 @@ export function BandsGrid({ initialBands }: BandsGridProps) {
       />
 
       {bands.length === 0 ? (
-        <Card className="text-muted-foreground flex flex-col items-center justify-center gap-2 px-4 py-16 text-center">
-          <Users className="h-8 w-8" />
-          <p>{search ? t("emptySearch", { search }) : t("empty")}</p>
+        <Card className="flex flex-col items-center justify-center gap-2 px-4 py-16 text-center">
+          {loadError ? (
+            <LoadErrorNotice />
+          ) : (
+            <div className="text-muted-foreground flex flex-col items-center gap-2">
+              <Users className="h-8 w-8" />
+              <p>{search ? t("emptySearch", { search }) : t("empty")}</p>
+            </div>
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

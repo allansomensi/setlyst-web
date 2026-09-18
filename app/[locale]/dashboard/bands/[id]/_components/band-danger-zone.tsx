@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { BandWithMembership, BandMember } from "@/types/api";
 import { deleteBand, leaveBand, transferBandOwnership } from "../../actions";
 import { useTranslations } from "next-intl";
@@ -31,7 +31,7 @@ export function BandDangerZone({
 }: BandDangerZoneProps) {
   const t = useTranslations("bands.danger");
   const tCommon = useTranslations("common");
-  const router = useRouter();
+  const router = useAppRouter();
 
   const [isPending, startTransition] = useTransition();
   const [isTransferOpen, setIsTransferOpen] = useState(false);

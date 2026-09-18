@@ -9,7 +9,7 @@ import {
 import { GigsTable } from "@/app/[locale]/dashboard/gigs/_components/gigs-table";
 import { BandOption } from "@/app/[locale]/dashboard/gigs/_components/gigs-dialog";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 

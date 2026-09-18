@@ -191,6 +191,7 @@ export default async function GigDetailsPage({
           </h2>
           <SetlistSongsManager
             setlistId={setlist.id}
+            setlist={setlist}
             setlistSongs={setlistSongs}
             setlistItems={setlistItems}
             allSongs={allSongs}

@@ -29,7 +29,17 @@ export default function DashboardError({
     process.env.NODE_ENV === "production" ? error.digest : undefined;
 
   return (
-    <div className="animate-in fade-in-50 flex h-[50vh] w-full flex-col items-center justify-center space-y-4 rounded-md border border-dashed p-8 text-center">
+    // data-error-boundary is a stable, locale-independent marker the
+    // service worker scans for (see isUsableForCache() in public/sw.js)
+    // before caching a page for offline use. React Server Components can
+    // still stream an HTTP 200 for a document whose nested data fetch
+    // threw after the outer shell already flushed — status alone can't
+    // tell a real page from this fallback, so don't remove this attribute
+    // without updating the service worker to match.
+    <div
+      data-error-boundary="dashboard"
+      className="animate-in fade-in-50 flex h-[50vh] w-full flex-col items-center justify-center space-y-4 rounded-md border border-dashed p-8 text-center"
+    >
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
         <AlertTriangle className="h-6 w-6 text-red-600" />
       </div>

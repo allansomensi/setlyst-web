@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "@/i18n/routing";
+import { Link } from "@/components/nav-link";
 import { ListMusic, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { SidebarLinks } from "./sidebar-links";
 import { NotificationBell } from "./notification-bell";

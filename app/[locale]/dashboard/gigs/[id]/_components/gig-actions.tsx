@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "@/i18n/routing";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { useTranslations } from "next-intl";
 import { Gig, Setlist } from "@/types/api";
 import { deleteGig } from "../../actions";
@@ -39,7 +39,7 @@ export function GigActions({
   personalSetlists,
   bands,
 }: GigActionsProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
 
