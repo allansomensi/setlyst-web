@@ -21,10 +21,13 @@ import {
   Settings2,
   Music,
   Type,
+  WifiOff,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { toast } from "sonner";
 
 // Types
 
@@ -66,6 +69,7 @@ export function LiveModeViewer({
   initialFontSize = 100,
 }: LiveModeViewerProps) {
   const t = useTranslations("liveMode");
+  const isOnline = useOnlineStatus();
 
   const startIndex = initialSongId
     ? Math.max(
@@ -147,6 +151,18 @@ export function LiveModeViewer({
       wakeLock?.release();
     };
   }, []);
+
+  // Let the performer know, once per tab session, that this show is now
+  // saved for offline use — reassurance worth having before walking into a
+  // venue with bad signal.
+
+  useEffect(() => {
+    if (!isOnline) return;
+    const key = `setlyst:offline-ready:setlist:${setlist.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    toast.success(t("offlineReady"));
+  }, [isOnline, setlist.id, t]);
 
   // Keyboard shortcuts
 
@@ -247,6 +263,16 @@ export function LiveModeViewer({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 md:gap-3">
+          {!isOnline && (
+            <Badge
+              variant="outline"
+              className="gap-1 border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-bold text-amber-500 md:px-3 md:py-2 md:text-base"
+              title={t("offline")}
+            >
+              <WifiOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">{t("offline")}</span>
+            </Badge>
+          )}
           {currentSong.tempo && (
             <Badge
               variant="secondary"

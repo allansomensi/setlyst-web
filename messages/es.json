@@ -494,6 +494,8 @@
     "next": "SIGUIENTE",
     "bpm": "BPM",
     "key": "Ton.:",
+    "offline": "Sin conexión",
+    "offlineReady": "Guardado para uso sin conexión",
     "settings": {
       "autoScrollTitle": "Iniciar/detener desplazamiento automático",
       "decreaseSize": "Reducir tamaño del texto",

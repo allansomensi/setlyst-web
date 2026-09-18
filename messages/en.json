@@ -494,6 +494,8 @@
     "next": "NEXT",
     "bpm": "BPM",
     "key": "Key:",
+    "offline": "Offline",
+    "offlineReady": "Saved for offline use",
     "settings": {
       "autoScrollTitle": "Start/stop auto-scroll",
       "decreaseSize": "Decrease text size",
