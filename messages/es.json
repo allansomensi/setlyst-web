@@ -689,6 +689,8 @@
   "settings": {
     "title": "Preferencias",
     "description": "Gestiona la configuración y preferencias de tu aplicación.",
+    "generalTitle": "General",
+    "generalDescription": "Idioma y apariencia de la aplicación.",
     "language": "Idioma",
     "theme": "Tema",
     "themeLight": "Claro",
@@ -709,6 +711,7 @@
     "backupInvalidFile": "Archivo de respaldo inválido o corrupto.",
     "backupExportActionTitle": "Exportar Datos",
     "backupExportActionDesc": "Descarga una copia segura de todo tu repertorio.",
+    "backupImportActionDesc": "Restaura canciones, artistas, setlists y shows desde un respaldo.",
     "backupDropzoneTitle": "Haz clic para subir o arrastra el archivo aquí",
     "backupDropzoneDesc": "Solo archivos de respaldo JSON",
     "backupArtists": "Artistas",

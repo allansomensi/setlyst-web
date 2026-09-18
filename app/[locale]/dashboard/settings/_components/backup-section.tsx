@@ -19,6 +19,7 @@ import {
   ListMusic,
   UploadCloud,
   Calendar,
+  Archive,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportBackup, importBackup } from "../actions";
@@ -121,84 +122,100 @@ export function BackupSection() {
   };
 
   return (
-    <Card className="md:bg-card border-none bg-transparent shadow-none md:border md:shadow-sm">
-      <CardHeader className="px-2 pt-0 sm:px-6 md:px-8 md:pt-6">
-        <CardTitle className="text-xl font-semibold">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Archive className="text-primary h-4 w-4" />
           {t("backupTitle")}
         </CardTitle>
         <CardDescription>{t("backupDescription")}</CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-6 p-2 sm:p-6 md:p-8">
-        <div className="border-border bg-muted/30 flex items-center justify-between rounded-lg border p-4">
-          <div className="space-y-0.5">
-            <h4 className="text-foreground text-sm font-medium">
-              {t("backupExportActionTitle")}
-            </h4>
-            <p className="text-muted-foreground hidden text-[13px] sm:block">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="border-border bg-muted/30 flex flex-col gap-3 rounded-lg border p-4">
+            <div className="flex items-center gap-2">
+              <Download className="text-primary h-4 w-4" />
+              <h4 className="text-foreground text-sm font-medium">
+                {t("backupExportActionTitle")}
+              </h4>
+            </div>
+            <p className="text-muted-foreground text-[13px]">
               {t("backupExportActionDesc")}
             </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleExport}
+              disabled={isPending}
+              className="mt-auto"
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {t("backupExportBtn")}
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleExport}
-            disabled={isPending}
-            className="shrink-0"
-          >
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            {t("backupExportBtn")}
-          </Button>
-        </div>
 
-        <div
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onClick={() => !isPending && fileInputRef.current?.click()}
-          className={cn(
-            "group relative flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-8 transition-all duration-200",
-            isDragging
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:bg-accent/50 hover:border-muted-foreground/50",
-            isPending && "pointer-events-none opacity-60",
-          )}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".json"
-            className="hidden"
-            disabled={isPending}
-          />
+          <div className="border-border bg-muted/30 flex flex-col gap-3 rounded-lg border p-4">
+            <div className="flex items-center gap-2">
+              <UploadCloud className="text-primary h-4 w-4" />
+              <h4 className="text-foreground text-sm font-medium">
+                {t("backupImportBtn")}
+              </h4>
+            </div>
+            <p className="text-muted-foreground text-[13px]">
+              {t("backupImportActionDesc")}
+            </p>
 
-          <div className="bg-background ring-border group-hover:ring-muted-foreground/30 rounded-full p-3 shadow-sm ring-1 transition-all duration-200">
-            {isPending ? (
-              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-            ) : (
-              <UploadCloud
-                className={cn(
-                  "h-6 w-6 transition-colors duration-200",
-                  isDragging
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground",
-                )}
+            <div
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDrop={onDrop}
+              onClick={() => !isPending && fileInputRef.current?.click()}
+              className={cn(
+                "group relative mt-auto flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed p-3 transition-all duration-200",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25 hover:bg-accent/50 hover:border-muted-foreground/50",
+                isPending && "pointer-events-none opacity-60",
+              )}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".json"
+                className="hidden"
+                disabled={isPending}
               />
-            )}
-          </div>
 
-          <div className="text-center">
-            <p className="text-foreground text-sm font-medium">
-              {t("backupDropzoneTitle")}
-            </p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {t("backupDropzoneDesc")}
-            </p>
+              <div className="bg-background ring-border group-hover:ring-muted-foreground/30 shrink-0 rounded-full p-2 shadow-sm ring-1 transition-all duration-200">
+                {isPending ? (
+                  <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud
+                    className={cn(
+                      "h-4 w-4 transition-colors duration-200",
+                      isDragging
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-foreground truncate text-sm font-medium">
+                  {t("backupDropzoneTitle")}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {t("backupDropzoneDesc")}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

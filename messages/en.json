@@ -689,6 +689,8 @@
   "settings": {
     "title": "Preferences",
     "description": "Manage your application settings and preferences.",
+    "generalTitle": "General",
+    "generalDescription": "Language and appearance of the application.",
     "language": "Language",
     "theme": "Theme",
     "themeLight": "Light",
@@ -709,6 +711,7 @@
     "backupInvalidFile": "Invalid or corrupted backup file.",
     "backupExportActionTitle": "Export Data",
     "backupExportActionDesc": "Download a secure copy of your entire repertoire.",
+    "backupImportActionDesc": "Restore songs, artists, setlists and gigs from a backup.",
     "backupDropzoneTitle": "Click to upload or drag and drop",
     "backupDropzoneDesc": "JSON backup files only",
     "backupArtists": "Artists",

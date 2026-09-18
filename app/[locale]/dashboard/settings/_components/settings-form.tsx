@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
@@ -10,7 +10,14 @@ import { UserPreferences, UserTheme } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -19,7 +26,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Save, Loader2, Globe, Palette, Type, Percent } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  Globe,
+  Palette,
+  Type,
+  Percent,
+  SlidersHorizontal,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -27,17 +42,26 @@ interface SettingsFormProps {
   initialPreferences: UserPreferences;
 }
 
+const FONT_SIZE_PRESETS = [75, 100, 125, 150, 200];
+const FONT_SIZE_MIN = 50;
+const FONT_SIZE_MAX = 300;
+
 export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   const t = useTranslations("settings");
   const router = useRouter();
   const pathname = usePathname();
   const { setTheme } = useTheme();
   const [isPending, startTransition] = useTransition();
+  const [fontSize, setFontSize] = useState(
+    initialPreferences.live_mode_font_size || 100,
+  );
+
+  const clampFontSize = (value: number) =>
+    Math.min(Math.max(value, FONT_SIZE_MIN), FONT_SIZE_MAX);
 
   const handleAction = (formData: FormData) => {
     const languageValue = formData.get("language");
     const themeValue = formData.get("theme");
-    const fontSizeValue = formData.get("live_mode_font_size");
 
     const language = typeof languageValue === "string" ? languageValue : "en";
 
@@ -47,15 +71,10 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
         : "system"
     ) as UserTheme;
 
-    const rawFontSize = parseInt(fontSizeValue as string);
-    const safeFontSize = isNaN(rawFontSize)
-      ? 100
-      : Math.min(Math.max(rawFontSize, 50), 300);
-
     const payload = {
       language,
       theme,
-      live_mode_font_size: safeFontSize,
+      live_mode_font_size: clampFontSize(fontSize),
     };
 
     startTransition(async () => {
@@ -81,15 +100,20 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   return (
     <form
       action={handleAction}
-      className="mx-auto w-full max-w-3xl px-4 sm:px-0"
+      className={cn(
+        "mx-auto w-full max-w-3xl space-y-6 transition-opacity duration-200",
+        isPending && "pointer-events-none opacity-60",
+      )}
     >
-      <Card
-        className={cn(
-          "md:bg-card border-none bg-transparent shadow-none transition-opacity duration-200 md:border md:shadow-sm",
-          isPending && "pointer-events-none opacity-60",
-        )}
-      >
-        <CardContent className="space-y-6 p-2 sm:space-y-8 sm:p-6 md:p-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <SlidersHorizontal className="text-primary h-4 w-4" />
+            {t("generalTitle")}
+          </CardTitle>
+          <CardDescription>{t("generalDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-2.5">
               <Label
@@ -146,35 +170,59 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2.5">
-            <Label
-              htmlFor="live_mode_font_size"
-              className="text-foreground/90 font-medium"
-            >
-              {t("liveModeFontSize")}
-            </Label>
-            <div className="relative w-full sm:max-w-[16rem]">
-              <Type className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-              <Input
-                id="live_mode_font_size"
-                name="live_mode_font_size"
-                type="number"
-                min={50}
-                max={300}
-                defaultValue={initialPreferences.live_mode_font_size || 100}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Type className="text-primary h-4 w-4" />
+            {t("liveModeFontSize")}
+          </CardTitle>
+          <CardDescription>{t("liveModeFontSizeHelp")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {FONT_SIZE_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
                 disabled={isPending}
-                className="hover:border-primary/50 w-full pr-9 pl-9 transition-colors"
-              />
-              <Percent className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {t("liveModeFontSizeHelp")}
-            </p>
+                onClick={() => setFontSize(preset)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  fontSize === preset
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-accent/50 border-input",
+                )}
+              >
+                {preset}%
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full sm:max-w-[12rem]">
+            <Type className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input
+              id="live_mode_font_size"
+              name="live_mode_font_size"
+              type="number"
+              min={FONT_SIZE_MIN}
+              max={FONT_SIZE_MAX}
+              value={fontSize}
+              onChange={(e) => {
+                const parsed = parseInt(e.target.value, 10);
+                setFontSize(Number.isNaN(parsed) ? FONT_SIZE_MIN : parsed);
+              }}
+              onBlur={() => setFontSize((prev) => clampFontSize(prev))}
+              disabled={isPending}
+              className="hover:border-primary/50 w-full pr-9 pl-9 transition-colors"
+            />
+            <Percent className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
           </div>
         </CardContent>
 
-        <CardFooter className="bg-muted/30 flex justify-end rounded-b-lg p-4 pt-6 md:border-t md:px-8 md:py-6">
+        <CardFooter className="justify-end">
           <Button
             type="submit"
             disabled={isPending}

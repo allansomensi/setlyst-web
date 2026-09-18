@@ -689,6 +689,8 @@
   "settings": {
     "title": "Preferências",
     "description": "Gerencie as configurações e preferências do seu aplicativo.",
+    "generalTitle": "Geral",
+    "generalDescription": "Idioma e aparência do aplicativo.",
     "language": "Idioma",
     "theme": "Tema",
     "themeLight": "Claro",
@@ -709,6 +711,7 @@
     "backupInvalidFile": "Arquivo de backup inválido ou corrompido.",
     "backupExportActionTitle": "Exportar Dados",
     "backupExportActionDesc": "Baixe uma cópia segura de todo o seu repertório.",
+    "backupImportActionDesc": "Restaure músicas, artistas, setlists e shows a partir de um backup.",
     "backupDropzoneTitle": "Clique para enviar ou arraste o arquivo aqui",
     "backupDropzoneDesc": "Apenas arquivos de backup JSON",
     "backupArtists": "Artistas",
