@@ -9,6 +9,13 @@ import { GigDialog, BandOption } from "../../_components/gigs-dialog";
 import { ShareGigDialog } from "./share-gig-dialog";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -16,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Pencil, Share2, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Share2, Trash2, Loader2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 
 interface GigActionsProps {
@@ -69,33 +76,33 @@ export function GigActions({
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="lg"
-        className="gap-2"
-        onClick={() => setIsShareOpen(true)}
-      >
-        <Share2 className="h-4 w-4" />
-        {t("shareBtn")}
-      </Button>
-      <Button
-        variant="outline"
-        size="lg"
-        className="gap-2"
-        onClick={() => setIsEditOpen(true)}
-      >
-        <Pencil className="h-4 w-4" />
-        {tCommon("edit")}
-      </Button>
-      <Button
-        variant="outline"
-        size="lg"
-        className="text-red-600 hover:text-red-600"
-        onClick={() => setIsDeleteOpen(true)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+    <div className="flex shrink-0 items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="lg" className="px-3">
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">{tCommon("moreActions")}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setIsShareOpen(true)}>
+            <Share2 className="mr-2 h-4 w-4" />
+            {t("shareBtn")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            {tCommon("edit")}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => setIsDeleteOpen(true)}
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {tCommon("delete")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <GigDialog
         isOpen={isEditOpen}

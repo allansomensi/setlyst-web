@@ -93,7 +93,7 @@ export function BandDangerZone({
 
       <div className="divide-y rounded-md border border-red-200 dark:border-red-950">
         {band.my_role === "owner" && otherMembers.length > 0 && (
-          <div className="flex items-center justify-between p-4">
+          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">{t("transferTitle")}</p>
               <p className="text-muted-foreground text-sm">
@@ -107,7 +107,7 @@ export function BandDangerZone({
         )}
 
         {band.my_role !== "owner" && (
-          <div className="flex items-center justify-between p-4">
+          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">{t("leaveTitle")}</p>
               <p className="text-muted-foreground text-sm">
@@ -121,7 +121,7 @@ export function BandDangerZone({
         )}
 
         {band.my_role === "owner" && (
-          <div className="flex items-center justify-between p-4">
+          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">{t("deleteTitle")}</p>
               <p className="text-muted-foreground text-sm">

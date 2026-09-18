@@ -539,37 +539,51 @@ export function SetlistSongsManager({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">{t("title")}</h2>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {isReordering ? (
             <>
               <Button
                 variant="ghost"
+                className="gap-2"
                 onClick={handleCancel}
                 disabled={isPending}
               >
-                <X className="mr-2 h-4 w-4" /> {t("cancelReorder")}
+                <X className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("cancelReorder")}</span>
               </Button>
-              <Button onClick={handleSaveOrder} disabled={isPending}>
-                <Check className="mr-2 h-4 w-4" /> {t("saveOrder")}
+              <Button
+                className="gap-2"
+                onClick={handleSaveOrder}
+                disabled={isPending}
+              >
+                <Check className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("saveOrder")}</span>
               </Button>
             </>
           ) : (
             <>
               <Button
                 variant="outline"
+                className="gap-2"
                 onClick={() => {
                   setItems(baseRows);
                   setIsReordering(true);
                 }}
                 disabled={baseRows.length <= 1}
+                title={t("reorder")}
               >
-                <ListOrdered className="mr-2 h-4 w-4" /> {t("reorder")}
+                <ListOrdered className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("reorder")}</span>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <MoreHorizontal className="mr-2 h-4 w-4" />
-                    {t("addSection")}
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    title={t("addSection")}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t("addSection")}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -589,8 +603,13 @@ export function SetlistSongsManager({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> {t("addSong")}
+              <Button
+                className="gap-2"
+                onClick={() => setIsDialogOpen(true)}
+                title={t("addSong")}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("addSong")}</span>
               </Button>
             </>
           )}

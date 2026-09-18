@@ -11,7 +11,8 @@
     "results": "results",
     "you": "you",
     "confirm": "Confirm",
-    "downloadQrCode": "Download QR Code"
+    "downloadQrCode": "Download QR Code",
+    "moreActions": "More actions"
   },
   "pagination": {
     "previous": "Previous",

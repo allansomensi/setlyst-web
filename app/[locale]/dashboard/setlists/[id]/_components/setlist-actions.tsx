@@ -6,9 +6,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Play, Download, FileText, Share2, BarChart3 } from "lucide-react";
+import { Play, Download, Share2, BarChart3, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { ExportPdfDialog } from "./export-pdf-dialog";
 import { ShareSetlistDialog } from "./share-setlist-dialog";
@@ -26,47 +27,44 @@ export function SetlistActions({
   shareToken,
 }: SetlistActionsProps) {
   const t = useTranslations("setlists");
+  const tCommon = useTranslations("common");
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="lg"
-        className="gap-2"
-        onClick={() => setIsShareDialogOpen(true)}
-      >
-        <Share2 className="h-4 w-4" />
-        {t("shareBtn")}
+    <div className="flex shrink-0 items-center gap-2">
+      <Button asChild size="lg" className="gap-2">
+        <Link href={`/dashboard/setlists/${setlistId}/live`}>
+          <Play className="h-4 w-4" />
+          {t("liveModeBtn")}
+        </Link>
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="lg" className="gap-2">
-            <Download className="h-4 w-4" />
-            {t("exportBtn")}
+          <Button variant="outline" size="lg" className="px-3">
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">{tCommon("moreActions")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
+            <Share2 className="mr-2 h-4 w-4" />
+            {t("shareBtn")}
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsPdfDialogOpen(true)}>
-            <FileText className="mr-2 h-4 w-4" />
-            {t("exportPdfOption")}
+            <Download className="mr-2 h-4 w-4" />
+            {t("exportBtn")}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/setlists/${setlistId}/analytics`}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              {t("analyticsBtn")}
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <Button asChild size="lg" variant="outline" className="gap-2">
-        <Link href={`/dashboard/setlists/${setlistId}/live`}>
-          <Play className="h-5 w-5" /> {t("liveModeBtn")}
-        </Link>
-      </Button>
-
-      <Button asChild size="lg" variant="outline" className="gap-2">
-        <Link href={`/dashboard/setlists/${setlistId}/analytics`}>
-          <BarChart3 className="h-5 w-5" /> {t("analyticsBtn")}
-        </Link>
-      </Button>
 
       <ExportPdfDialog
         setlistId={setlistId}

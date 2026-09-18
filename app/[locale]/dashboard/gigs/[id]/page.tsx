@@ -118,16 +118,18 @@ export default async function GigDetailsPage({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+          <Button variant="outline" size="icon" asChild className="shrink-0">
             <Link href="/dashboard/gigs">
               <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">{gig.venue}</h1>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+                {gig.venue}
+              </h1>
               <Badge variant={STATUS_VARIANT[gig.status]}>
                 {t(`dialog.status.${gig.status}`)}
               </Badge>
@@ -164,11 +166,12 @@ export default async function GigDetailsPage({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {gig.setlist_id && setlist && (
-            <Button asChild size="lg" variant="outline" className="gap-2">
+            <Button asChild size="lg" className="gap-2">
               <Link href={`/dashboard/setlists/${setlist.id}/live`}>
-                <Play className="h-5 w-5" /> {t("liveModeBtn")}
+                <Play className="h-4 w-4" />
+                {t("liveModeBtn")}
               </Link>
             </Button>
           )}

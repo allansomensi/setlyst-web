@@ -40,15 +40,15 @@ export default async function SetlistDetailsPage({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+          <Button variant="outline" size="icon" asChild className="shrink-0">
             <Link href="/dashboard/setlists">
               <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
               {setlist.title}
             </h1>
             {setlist.description && (

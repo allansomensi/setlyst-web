@@ -39,14 +39,14 @@ export function AnalyticsDashboard({
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold">{t("activity.title")}</h2>
           <p className="text-muted-foreground text-sm">
             {t("activity.subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border p-1">
+        <div className="flex items-center gap-1 self-start rounded-md border p-1">
           {RANGE_OPTIONS.map((option) => (
             <Button
               key={option}
