@@ -58,20 +58,7 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Static assets under public/ that the offline service worker depends on
-  // must bypass this middleware entirely. next-intl's middleware treats any
-  // matched path as a page and 307-redirects it to add a locale prefix
-  // (e.g. "/sw.js" -> "/en/sw.js"). Two things break as a result:
-  //  - `navigator.serviceWorker.register("/sw.js")` receives a redirected
-  //    response, which the Service Worker spec disallows — registration
-  //    fails outright, so the browser never controls the page and offline
-  //    support silently stops working, even after a previously-successful
-  //    install (a routine SW script re-check on navigation fails the same
-  //    way).
-  //  - the service worker's own `caches.addAll(["/offline.html"])` precache
-  //    call gets redirected to a locale-prefixed path that doesn't exist
-  //    (404), so the offline fallback page never actually gets cached.
   matcher: [
-    "/((?!api|_next/static|_next/image|status|s/|g/|favicon\\.ico|sw\\.js|offline\\.html|manifest\\.json|icon\\.svg).*)",
+    "/((?!api|_next/static|_next/image|status|s/|g/|.*\\.[a-zA-Z0-9]+$).*)",
   ],
 };
