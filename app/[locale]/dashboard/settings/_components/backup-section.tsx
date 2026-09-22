@@ -22,6 +22,7 @@ import {
   Archive,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { exportBackup, importBackup } from "../actions";
 import { ImportBackupResponse, ImportBackupPayload } from "@/types/api";
 import { cn } from "@/lib/utils";
@@ -57,7 +58,7 @@ export function BackupSection() {
 
         toast.success(t("backupExportSuccess"));
       } else {
-        toast.error(result.error || "Failed to export backup");
+        toastActionError(result, result.error || "Failed to export backup");
       }
     });
   };
@@ -81,7 +82,7 @@ export function BackupSection() {
           }
           toast.success(t("backupImportSuccess"));
         } else {
-          toast.error(result.error || "Failed to import backup");
+          toastActionError(result, result.error || "Failed to import backup");
         }
       } catch {
         toast.error(t("backupInvalidFile"));

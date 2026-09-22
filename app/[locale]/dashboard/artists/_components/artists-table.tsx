@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
 
 const SEARCHABLE_KEYS = ["name"] as const;
@@ -80,7 +81,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
     startTransition(async () => {
       const result = await deleteArtist(artistToDelete);
       if (!result.success) {
-        toast.error(result.error ?? t("dialog.deleteFailed"));
+        toastActionError(result, result.error ?? t("dialog.deleteFailed"));
       } else {
         toast.success(t("dialog.deleted"));
       }

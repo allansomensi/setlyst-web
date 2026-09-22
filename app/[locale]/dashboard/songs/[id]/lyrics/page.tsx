@@ -17,7 +17,10 @@ import { isKnownOffline } from "@/lib/offline/navigation";
 import { Song } from "@/types/api";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { useTranslations } from "next-intl";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+import { LyricsEditorSkeleton } from "@/components/page-skeletons";
 import {
   Loader2,
   ArrowLeft,
@@ -284,6 +287,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const { fetchApi } = useApi();
   const t = useTranslations("lyrics");
   const tCommon = useTranslations("common");
+  const tNav = useTranslations("nav");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -367,7 +371,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         toast.success(t("saved"));
         router.back();
       } else {
-        toast.error(result.error ?? t("saveFailed"));
+        toastActionError(result, result.error ?? t("saveFailed"));
       }
     });
   }, [id, lyrics, router, t]);
@@ -426,11 +430,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex h-[calc(100vh-120px)] items-center justify-center">
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <LyricsEditorSkeleton />;
   }
 
   return (
@@ -450,7 +450,13 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
             <h1 className="truncate text-base leading-tight font-semibold md:text-lg">
               {songTitle}
             </h1>
-            <p className="text-muted-foreground text-xs">{t("editTitle")}</p>
+            <PageBreadcrumbs
+              compact
+              items={[
+                { label: tNav("songs"), href: "/dashboard/songs" },
+                { label: t("editTitle") },
+              ]}
+            />
           </div>
         </div>
         <div className="flex items-center gap-2">

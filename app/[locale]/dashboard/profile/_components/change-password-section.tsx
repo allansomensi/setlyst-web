@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { KeyRound, Loader2, Save, ShieldCheck } from "lucide-react";
 
 export function ChangePasswordSection() {
@@ -47,7 +48,7 @@ export function ChangePasswordSection() {
         toast.success(t("passwordChanged"));
         setIsOpen(false);
       } else {
-        toast.error(result.error || t("failed"));
+        toastActionError(result, result.error || t("failed"));
       }
     });
   };

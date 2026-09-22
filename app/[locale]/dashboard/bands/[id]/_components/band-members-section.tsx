@@ -45,6 +45,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "@/components/nav-link";
 import { LogOut, X, Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 const ASSIGNABLE_ROLES: BandRole[] = ["member", "moderator", "admin"];
 
@@ -77,7 +78,7 @@ export function BandMembersSection({
       if (result.success) {
         toast.success(t("roleUpdated"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -94,7 +95,7 @@ export function BandMembersSection({
       if (result.success) {
         toast.success(isSelf ? t("left") : t("removed"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setMemberToRemove(null);
     });
@@ -119,7 +120,7 @@ export function BandMembersSection({
         toast.success(t("titleUpdated"));
         setMemberToEditTitle(null);
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };

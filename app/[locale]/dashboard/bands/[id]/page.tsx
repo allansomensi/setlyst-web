@@ -8,6 +8,8 @@ import {
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { Separator } from "@/components/ui/separator";
 import { BandHeader } from "./_components/band-header";
 import { BandMembersSection } from "./_components/band-members-section";
@@ -49,10 +51,19 @@ export default async function BandDetailPage({
   ]);
 
   const currentUserId = session?.user?.id ?? "";
+  const tNav = await getTranslations("nav");
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      <BandHeader band={band} />
+      <div className="space-y-6">
+        <PageBreadcrumbs
+          items={[
+            { label: tNav("bands"), href: "/dashboard/bands" },
+            { label: band.name },
+          ]}
+        />
+        <BandHeader band={band} />
+      </div>
 
       <Separator />
 

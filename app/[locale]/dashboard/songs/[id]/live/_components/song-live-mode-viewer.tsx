@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Song } from "@/types/api";
 import { Button } from "@/components/ui/button";
-import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
+import { LiveLyricsArea } from "@/components/live/live-lyrics-area";
+import { DisplayControls } from "@/components/live/display-controls";
+import { useLiveDisplayPrefs } from "@/hooks/use-live-display-prefs";
 import { useTranslations } from "next-intl";
 import {
   Maximize,
@@ -106,16 +108,22 @@ export function SongLiveModeViewer({
 
   const scrollContainerRef = useRef<HTMLElement>(null);
 
+  // High contrast / whole-song-on-one-screen. Per device, not per
+  // account — see use-live-display-prefs.ts.
+  const display = useLiveDisplayPrefs();
+  const { fitToScreen } = display;
+
   // Auto-scroll
   useEffect(() => {
-    if (!settings.isAutoScroll) return;
+    // Nothing to scroll through when the whole song is already on screen.
+    if (!settings.isAutoScroll || fitToScreen) return;
     const interval = setInterval(() => {
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTop += settings.scrollSpeed;
       }
     }, SCROLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [settings.isAutoScroll, settings.scrollSpeed]);
+  }, [settings.isAutoScroll, settings.scrollSpeed, fitToScreen]);
 
   // Keyboard shortcuts (space to toggle auto-scroll, +/- for its speed —
   // no left/right since there's nothing to navigate between)
@@ -130,7 +138,9 @@ export function SongLiveModeViewer({
       switch (e.key) {
         case " ":
           e.preventDefault();
-          setSettings((s) => ({ ...s, isAutoScroll: !s.isAutoScroll }));
+          if (!fitToScreen) {
+            setSettings((s) => ({ ...s, isAutoScroll: !s.isAutoScroll }));
+          }
           break;
         case "m":
         case "M":
@@ -161,7 +171,7 @@ export function SongLiveModeViewer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleMetronome, shiftTranspose]);
+  }, [toggleMetronome, shiftTranspose, fitToScreen]);
 
   const update = <K extends keyof LiveSettings>(
     key: K,
@@ -172,7 +182,10 @@ export function SongLiveModeViewer({
   const baseFontSize = 1.5 * settings.zoomLevel;
 
   return (
-    <div className="bg-background text-foreground fixed inset-0 z-50 flex flex-col overflow-hidden">
+    <div
+      data-live-contrast={display.highContrast ? "high" : undefined}
+      className="bg-background text-foreground fixed inset-0 z-50 flex flex-col overflow-hidden"
+    >
       {/* Header */}
       <header className="bg-card/50 flex shrink-0 items-center justify-between border-b p-2 px-4 backdrop-blur-md md:p-3 md:px-6">
         <div className="flex items-center gap-2 truncate md:gap-4">
@@ -246,19 +259,14 @@ export function SongLiveModeViewer({
       </header>
 
       {/* Lyrics */}
-      <main
-        ref={scrollContainerRef}
-        className="flex-1 overflow-auto scroll-smooth p-4 md:p-12"
-      >
-        <div className="mx-auto max-w-5xl">
-          <ChordProRenderer
-            content={transpose.content}
-            showChords={settings.showChords}
-            fontSize={baseFontSize}
-            fontFamily={settings.fontFamily}
-          />
-        </div>
-      </main>
+      <LiveLyricsArea
+        containerRef={scrollContainerRef}
+        content={transpose.content}
+        showChords={settings.showChords}
+        fontFamily={settings.fontFamily}
+        fontSize={baseFontSize}
+        fitToScreen={fitToScreen}
+      />
 
       {/* The beat itself — see the setlist viewer for the reasoning. */}
       <MetronomeFlash
@@ -275,6 +283,17 @@ export function SongLiveModeViewer({
             : "translate-x-[calc(100%-40px)] md:translate-x-[calc(100%-48px)]",
         )}
       >
+        {showControls && (
+          <div className="animate-in fade-in slide-in-from-right-2">
+            <DisplayControls
+              highContrast={display.highContrast}
+              onToggleHighContrast={() => display.toggle("highContrast")}
+              fitToScreen={fitToScreen}
+              onToggleFitToScreen={() => display.toggle("fitToScreen")}
+            />
+          </div>
+        )}
+
         {showControls && (
           <div className="animate-in fade-in slide-in-from-right-2">
             <TransposeControls
@@ -387,65 +406,70 @@ export function SongLiveModeViewer({
                 </span>
               </Button>
 
-              {/* Auto-scroll */}
-              <div className="flex items-center gap-1 md:gap-2">
-                <Button
-                  variant={settings.isAutoScroll ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => update("isAutoScroll", !settings.isAutoScroll)}
-                  className="h-8 gap-1 px-2 md:h-9 md:gap-2 md:px-3"
-                  title={t("settings.autoScrollTitle")}
-                >
-                  {settings.isAutoScroll ? (
-                    <Pause className="h-3 w-3 md:h-4 md:w-4" />
-                  ) : (
-                    <Play className="h-3 w-3 md:h-4 md:w-4" />
-                  )}
-                  <span className="hidden text-xs md:inline">
-                    {t("settings.scroll")}
-                  </span>
-                </Button>
+              {/* Auto-scroll — hidden in fit mode, where there's
+                  nothing left to scroll. */}
+              {!fitToScreen && (
+                <div className="flex items-center gap-1 md:gap-2">
+                  <Button
+                    variant={settings.isAutoScroll ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      update("isAutoScroll", !settings.isAutoScroll)
+                    }
+                    className="h-8 gap-1 px-2 md:h-9 md:gap-2 md:px-3"
+                    title={t("settings.autoScrollTitle")}
+                  >
+                    {settings.isAutoScroll ? (
+                      <Pause className="h-3 w-3 md:h-4 md:w-4" />
+                    ) : (
+                      <Play className="h-3 w-3 md:h-4 md:w-4" />
+                    )}
+                    <span className="hidden text-xs md:inline">
+                      {t("settings.scroll")}
+                    </span>
+                  </Button>
 
-                <div className="bg-background/50 flex items-center rounded-lg border">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 md:h-9 md:w-9"
-                    onClick={() =>
-                      update(
-                        "scrollSpeed",
-                        Math.max(
-                          SCROLL_MIN,
-                          settings.scrollSpeed - SCROLL_STEP,
-                        ),
-                      )
-                    }
-                    title={t("settings.decreaseSpeed")}
-                  >
-                    <Minus className="h-3 w-3 md:h-4 md:w-4" />
-                  </Button>
-                  <span className="w-6 text-center font-mono text-[9px] tabular-nums md:w-7 md:text-[10px]">
-                    {settings.scrollSpeed.toFixed(1)}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 md:h-9 md:w-9"
-                    onClick={() =>
-                      update(
-                        "scrollSpeed",
-                        Math.min(
-                          SCROLL_MAX,
-                          settings.scrollSpeed + SCROLL_STEP,
-                        ),
-                      )
-                    }
-                    title={t("settings.increaseSpeed")}
-                  >
-                    <Plus className="h-3 w-3 md:h-4 md:w-4" />
-                  </Button>
+                  <div className="bg-background/50 flex items-center rounded-lg border">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 md:h-9 md:w-9"
+                      onClick={() =>
+                        update(
+                          "scrollSpeed",
+                          Math.max(
+                            SCROLL_MIN,
+                            settings.scrollSpeed - SCROLL_STEP,
+                          ),
+                        )
+                      }
+                      title={t("settings.decreaseSpeed")}
+                    >
+                      <Minus className="h-3 w-3 md:h-4 md:w-4" />
+                    </Button>
+                    <span className="w-6 text-center font-mono text-[9px] tabular-nums md:w-7 md:text-[10px]">
+                      {settings.scrollSpeed.toFixed(1)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 md:h-9 md:w-9"
+                      onClick={() =>
+                        update(
+                          "scrollSpeed",
+                          Math.min(
+                            SCROLL_MAX,
+                            settings.scrollSpeed + SCROLL_STEP,
+                          ),
+                        )
+                      }
+                      title={t("settings.increaseSpeed")}
+                    >
+                      <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

@@ -534,6 +534,13 @@
       "original": "written",
       "capo": "Capo {fret}",
       "capoHelp": "Clamp a capo here to play these shapes and still sound in the song's original key"
+    },
+    "display": {
+      "highContrast": "High contrast",
+      "highContrastHelp": "Black background, white lyrics and bright chords — easier to read under stage lights",
+      "fitToScreen": "Whole song",
+      "fitToScreenHelp": "Fit the whole song on one screen, so there's nothing to scroll",
+      "fitOverflow": "Too long to fit on one screen at a readable size — scroll for the rest."
     }
   },
   "offlineSync": {
@@ -957,5 +964,9 @@
     "bandRoleChanged": "Your role in {band} changed to {role}.",
     "bandMemberRemoved": "You were removed from {band}.",
     "platformRoleChanged": "Your account role changed to {role}."
+  },
+  "rateLimit": {
+    "message": "Too many requests right now. Wait a moment and try again.",
+    "messageWithWait": "Too many requests right now. Try again in {seconds, plural, one {# second} other {# seconds}}."
   }
 }

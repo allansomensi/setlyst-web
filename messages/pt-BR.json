@@ -534,6 +534,13 @@
       "original": "original",
       "capo": "Capo {fret}",
       "capoHelp": "Coloque o capotraste nesta casa para tocar estas formas e soar no tom original da música"
+    },
+    "display": {
+      "highContrast": "Alto contraste",
+      "highContrastHelp": "Fundo preto, letra branca e acordes em destaque — mais legível sob as luzes do palco",
+      "fitToScreen": "Tela única",
+      "fitToScreenHelp": "Mostra a música inteira em uma tela só, sem precisar rolar",
+      "fitOverflow": "Longa demais para caber em uma tela num tamanho legível — role para ver o resto."
     }
   },
   "offlineSync": {
@@ -957,5 +964,9 @@
     "bandRoleChanged": "Seu cargo em {band} mudou para {role}.",
     "bandMemberRemoved": "Você foi removido de {band}.",
     "platformRoleChanged": "Seu cargo na plataforma mudou para {role}."
+  },
+  "rateLimit": {
+    "message": "Muitas requisições no momento. Aguarde um instante e tente de novo.",
+    "messageWithWait": "Muitas requisições no momento. Tente de novo em {seconds, plural, one {# segundo} other {# segundos}}."
   }
 }

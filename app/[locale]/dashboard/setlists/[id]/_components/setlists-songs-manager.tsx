@@ -54,6 +54,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { AddSongDialog } from "./add-song-dialog";
 import {
   DndContext,
@@ -442,7 +443,7 @@ export function SetlistSongsManager({
         setIsReordering(false);
         router.refresh();
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -464,7 +465,7 @@ export function SetlistSongsManager({
       if (result.success) {
         toast.success(t("removed"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setSongToRemove(null);
     });
@@ -487,7 +488,7 @@ export function SetlistSongsManager({
         setBlockDialog(null);
         router.refresh();
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -515,7 +516,7 @@ export function SetlistSongsManager({
         setBreakDialog(null);
         router.refresh();
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -529,7 +530,7 @@ export function SetlistSongsManager({
         toast.success(t("markerDeleted"));
         router.refresh();
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setMarkerToDelete(null);
     });

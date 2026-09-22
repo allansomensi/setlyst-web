@@ -1,7 +1,7 @@
 "use server";
 
 import { fetchServerApi } from "@/lib/api-server";
-import { requireSession } from "@/lib/action-guard";
+import { requireSession, toActionFailure } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
 import {
   CreateUserPayload,
@@ -46,8 +46,7 @@ export async function createUser(data: CreateUserPayload) {
     revalidatePath("/dashboard/users");
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : t("createFailed");
-    return { success: false, error: message };
+    return toActionFailure(error, t("createFailed"));
   }
 }
 
@@ -89,8 +88,7 @@ export async function updateUser(id: string, data: UpdateUserPayload) {
     revalidatePath("/dashboard/users");
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : t("updateFailed");
-    return { success: false, error: message };
+    return toActionFailure(error, t("updateFailed"));
   }
 }
 
@@ -111,8 +109,7 @@ export async function deleteUser(id: string) {
     revalidatePath("/dashboard/users");
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : t("deleteFailed");
-    return { success: false, error: message };
+    return toActionFailure(error, t("deleteFailed"));
   }
 }
 
@@ -139,9 +136,7 @@ export async function changeUserPassword(id: string, password: string) {
     });
     return { success: true };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : t("passwordFailed");
-    return { success: false, error: message };
+    return toActionFailure(error, t("passwordFailed"));
   }
 }
 

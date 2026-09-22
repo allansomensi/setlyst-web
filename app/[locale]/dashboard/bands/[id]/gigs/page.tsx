@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/components/nav-link";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 
 export default async function BandGigsPage({
   params,
@@ -20,6 +21,7 @@ export default async function BandGigsPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("bands");
+  const tNav = await getTranslations("nav");
 
   const [band, gigsRes, setlistsRes] = await Promise.all([
     fetchServerApi<BandWithMembership>(`/bands/${id}`),
@@ -44,6 +46,14 @@ export default async function BandGigsPage({
 
   return (
     <div className="w-full space-y-6">
+      <PageBreadcrumbs
+        items={[
+          { label: tNav("bands"), href: "/dashboard/bands" },
+          { label: band.name, href: `/dashboard/bands/${id}` },
+          { label: t("bandGigsTitle") },
+        ]}
+      />
+
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href={`/dashboard/bands/${id}`}>
@@ -51,7 +61,6 @@ export default async function BandGigsPage({
           </Link>
         </Button>
         <div>
-          <p className="text-muted-foreground text-sm">{band.name}</p>
           <h1 className="text-2xl font-bold tracking-tight">
             {t("bandGigsTitle")}
           </h1>

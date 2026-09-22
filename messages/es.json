@@ -534,6 +534,13 @@
       "original": "original",
       "capo": "Cejilla {fret}",
       "capoHelp": "Coloca la cejilla en este traste para tocar estas formas y sonar en el tono original"
+    },
+    "display": {
+      "highContrast": "Alto contraste",
+      "highContrastHelp": "Fondo negro, letra blanca y acordes destacados — más legible bajo las luces del escenario",
+      "fitToScreen": "Pantalla única",
+      "fitToScreenHelp": "Muestra la canción entera en una sola pantalla, sin desplazarse",
+      "fitOverflow": "Demasiado larga para caber en una pantalla a un tamaño legible — desplázate para ver el resto."
     }
   },
   "offlineSync": {
@@ -957,5 +964,9 @@
     "bandRoleChanged": "Tu rol en {band} cambió a {role}.",
     "bandMemberRemoved": "Fuiste eliminado de {band}.",
     "platformRoleChanged": "Tu rol en la plataforma cambió a {role}."
+  },
+  "rateLimit": {
+    "message": "Demasiadas solicitudes en este momento. Espera un momento e inténtalo de nuevo.",
+    "messageWithWait": "Demasiadas solicitudes en este momento. Inténtalo de nuevo en {seconds, plural, one {# segundo} other {# segundos}}."
   }
 }

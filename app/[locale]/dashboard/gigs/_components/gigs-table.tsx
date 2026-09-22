@@ -45,6 +45,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
@@ -155,7 +156,7 @@ export function GigsTable({
       if (result.success) {
         toast.success(t("dialog.deleted"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setGigToDelete(null);
     });

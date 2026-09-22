@@ -22,6 +22,7 @@ import {
   QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { enableSetlistSharing, disableSetlistSharing } from "../../actions";
 import { QrCodeDisplay } from "@/components/qr-code-display";
 
@@ -58,7 +59,7 @@ export function ShareSetlistDialog({
         setShareToken(result.data.share_token);
         toast.success(t("enabled"));
       } else if (!result.success) {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -70,7 +71,7 @@ export function ShareSetlistDialog({
         setShareToken(null);
         toast.success(t("disabled"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setIsConfirmingDisable(false);
     });

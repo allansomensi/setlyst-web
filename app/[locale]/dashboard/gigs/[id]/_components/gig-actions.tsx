@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Pencil, Share2, Trash2, Loader2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 interface GigActionsProps {
   gig: Gig;
@@ -55,7 +56,7 @@ export function GigActions({
         toast.success(t("dialog.deleted"));
         router.push("/dashboard/gigs");
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
         setIsDeleteOpen(false);
       }
     });

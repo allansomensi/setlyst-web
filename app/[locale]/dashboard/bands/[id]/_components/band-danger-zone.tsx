@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 interface BandDangerZoneProps {
   band: BandWithMembership;
@@ -53,7 +54,7 @@ export function BandDangerZone({
         toast.success(t("transferred"));
         setIsTransferOpen(false);
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -65,7 +66,7 @@ export function BandDangerZone({
         toast.success(t("deleted"));
         router.push("/dashboard/bands");
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
         setIsDeleteOpen(false);
       }
     });
@@ -78,7 +79,7 @@ export function BandDangerZone({
         toast.success(t("left"));
         router.push("/dashboard/bands");
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
         setIsLeaveOpen(false);
       }
     });

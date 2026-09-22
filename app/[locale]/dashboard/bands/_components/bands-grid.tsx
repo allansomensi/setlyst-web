@@ -41,6 +41,7 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/nav-link";
 import { useSession } from "next-auth/react";
@@ -99,7 +100,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
       if (result.success) {
         toast.success(t("dialog.deleted"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setBandToDelete(null);
     });
@@ -112,7 +113,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
       if (result.success) {
         toast.success(t("dialog.left"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setBandToLeave(null);
     });
@@ -124,7 +125,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
       ? await unfavoriteBand(band.id)
       : await favoriteBand(band.id);
     if (!result.success) {
-      toast.error(result.error);
+      toastActionError(result, result.error);
     }
     setFavoritePendingId(null);
   };

@@ -53,6 +53,7 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
@@ -149,7 +150,7 @@ export function SetlistsTable({
       if (result.success) {
         toast.success(t("dialog.deleted"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setSetlistToDelete(null);
     });
@@ -164,7 +165,7 @@ export function SetlistsTable({
       if (result.success) {
         toast.success(t("dialog.duplicated"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -175,7 +176,7 @@ export function SetlistsTable({
       ? await unfavoriteSetlist(setlist.id)
       : await favoriteSetlist(setlist.id);
     if (!result.success) {
-      toast.error(result.error);
+      toastActionError(result, result.error);
     }
     setFavoritePendingId(null);
   };

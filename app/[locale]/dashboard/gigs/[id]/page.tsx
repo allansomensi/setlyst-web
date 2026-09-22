@@ -26,6 +26,7 @@ import { GigActions } from "./_components/gig-actions";
 import { LinkSetlistPrompt } from "./_components/link-setlist-prompt";
 import { BandOption } from "../_components/gigs-dialog";
 import { getTranslations, getLocale } from "next-intl/server";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { notFound } from "next/navigation";
 import { ApiError } from "@/lib/api-server";
 
@@ -45,6 +46,7 @@ export default async function GigDetailsPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("gigs");
+  const tNav = await getTranslations("nav");
   const locale = await getLocale();
 
   let gig: Gig;
@@ -118,6 +120,13 @@ export default async function GigDetailsPage({
 
   return (
     <div className="w-full space-y-6">
+      <PageBreadcrumbs
+        items={[
+          { label: tNav("gigs"), href: "/dashboard/gigs" },
+          { label: gig.venue },
+        ]}
+      />
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3 sm:items-center sm:gap-4">
           <Button variant="outline" size="icon" asChild className="shrink-0">

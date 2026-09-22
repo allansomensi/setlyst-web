@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 interface BandPermissionsSectionProps {
   bandId: string;
@@ -78,7 +79,7 @@ export function BandPermissionsSection({
         toast.success(t("saved"));
         setIsDirty(false);
       } else {
-        toast.error(result.error || t("saveFailed"));
+        toastActionError(result, result.error || t("saveFailed"));
       }
     });
   };

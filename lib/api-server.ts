@@ -16,6 +16,12 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /**
+     * How long the backend asked us to wait before trying again, when it
+     * said so (a 429's `Retry-After`). Lets the UI tell someone *when* to
+     * retry instead of just "later".
+     */
+    public retryAfterMs: number | null = null,
   ) {
     super(message);
     this.name = "ApiError";
@@ -157,15 +163,17 @@ export async function fetchServerApi<T>(
         message = `API error: ${res.status}`;
       }
 
+      let retryAfterMs: number | null = null;
       if (res.status === 429) {
         message = "Too many requests. Please wait a moment and try again.";
+        retryAfterMs = parseRetryAfterMs(res.headers.get("retry-after"));
       }
 
       if (res.status === 401) {
         message = "Unauthorized. Please sign in again.";
       }
 
-      throw new ApiError(res.status, message);
+      throw new ApiError(res.status, message, retryAfterMs);
     }
 
     if (res.status === 204) return {} as T;

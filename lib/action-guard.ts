@@ -1,12 +1,52 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ApiError } from "@/lib/api-server";
+import { getTranslations } from "next-intl/server";
+
+export type ActionErrorCode = "rate_limited";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T }
-  | { success: false; error: string };
+  | {
+      success: false;
+      error: string;
+      /**
+       * Set when the failure needs different handling from an ordinary
+       * error — right now only rate limiting, where the right move is to
+       * wait rather than fix anything. See lib/action-toast.tsx.
+       */
+      code?: ActionErrorCode;
+      /** Seconds until retrying makes sense, when the backend said so. */
+      retryAfterSeconds?: number;
+    };
 
 const GENERIC_ERROR = "An unexpected error occurred. Please try again.";
+
+/**
+ * A rate-limited request gets its own, translated message: the English
+ * string the API layer puts on the error is fine for logs, but this one
+ * is read by the person, in their language, and has to tell them to wait
+ * — and for how long, when the backend said.
+ */
+async function toRateLimitedResult(
+  error: ApiError,
+): Promise<Extract<ActionResult, { success: false }>> {
+  const t = await getTranslations("rateLimit");
+  const retryAfterSeconds =
+    error.retryAfterMs != null
+      ? Math.max(1, Math.ceil(error.retryAfterMs / 1000))
+      : undefined;
+
+  return {
+    success: false,
+    code: "rate_limited",
+    retryAfterSeconds,
+    error:
+      retryAfterSeconds != null
+        ? t("messageWithWait", { seconds: retryAfterSeconds })
+        : t("message"),
+  };
+}
 
 /**
  * Turns a thrown error into something safe to show a user.
@@ -37,6 +77,26 @@ function toClientMessage(error: unknown): string {
 }
 
 /**
+ * The failure half of guardedAction, for the few actions that do their own
+ * session/permission checks and so can't use it directly: gives them the
+ * same rate-limit handling and the same "don't leak 5xx bodies" rule.
+ * `fallback` replaces the generic message for non-4xx failures.
+ */
+export async function toActionFailure(
+  error: unknown,
+  fallback?: string,
+): Promise<Extract<ActionResult, { success: false }>> {
+  if (error instanceof ApiError && error.status === 429) {
+    return toRateLimitedResult(error);
+  }
+  const message = toClientMessage(error);
+  return {
+    success: false,
+    error: message === GENERIC_ERROR && fallback ? fallback : message,
+  };
+}
+
+/**
  * Wraps a Server Action with authentication and error handling.
  * Throws if the user is not authenticated or the session is expired.
  * Returns a typed ActionResult to avoid leaking stack traces to clients.
@@ -56,6 +116,9 @@ export async function guardedAction<T>(
     revalidateFn?.();
     return { success: true, data: result };
   } catch (error) {
+    if (error instanceof ApiError && error.status === 429) {
+      return toRateLimitedResult(error);
+    }
     return { success: false, error: toClientMessage(error) };
   }
 }

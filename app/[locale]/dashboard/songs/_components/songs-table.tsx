@@ -50,6 +50,7 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
@@ -137,7 +138,7 @@ export function SongsTable({
     startTransition(async () => {
       const result = await deleteSong(songToDelete);
       if (!result.success) {
-        toast.error(result.error ?? t("dialog.deleteFailed"));
+        toastActionError(result, result.error ?? t("dialog.deleteFailed"));
       } else {
         toast.success(t("dialog.deleted"));
       }

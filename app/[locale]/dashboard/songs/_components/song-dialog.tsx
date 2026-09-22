@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import {
   formatDuration,
   parseDurationToSeconds,
@@ -138,7 +139,7 @@ export function SongDialog({
           onClose();
         }
       } else {
-        toast.error(result.error ?? t("saveFailed"));
+        toastActionError(result, result.error ?? t("saveFailed"));
       }
     });
   };

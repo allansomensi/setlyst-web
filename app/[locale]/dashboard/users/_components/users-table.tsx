@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { MoreHorizontal, Pencil, Plus, Trash2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
 
 const SEARCHABLE_KEYS = [
@@ -97,7 +98,7 @@ export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
     startTransition(async () => {
       const result = await deleteUser(userToDelete);
       if (!result.success) {
-        toast.error(result.error ?? t("dialog.deleteFailed"));
+        toastActionError(result, result.error ?? t("dialog.deleteFailed"));
       } else {
         toast.success(t("dialog.deleted"));
       }

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 export interface BandOption {
   id: string;
@@ -103,7 +104,7 @@ export function GigDialog({
         toast.success(isEditing ? t("updated") : t("created"));
         onClose();
       } else {
-        toast.error(result.error || t("saveFailed"));
+        toastActionError(result, result.error || t("saveFailed"));
       }
     });
   };

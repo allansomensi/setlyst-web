@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import {
   User as UserIcon,
   Mail,
@@ -108,7 +109,7 @@ export function ProfileForm({
         setIsEditing(false);
         setAvailability("idle");
       } else {
-        toast.error(result.error || t("failed"));
+        toastActionError(result, result.error || t("failed"));
       }
     });
   };

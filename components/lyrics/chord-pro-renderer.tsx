@@ -214,12 +214,16 @@ function renderChordTokens(tokens: Token[]): React.ReactNode {
       {pairs.map((pair, i) => (
         <span key={i} className="relative inline-block">
           <span
+            data-chord=""
             className="text-muted-foreground/60 block font-mono font-semibold tracking-tighter"
             style={{ fontSize: "0.65em", marginBottom: "-0.2em" }}
           >
             {pair.chord ?? "\u00A0"}
           </span>
-          <span className="text-foreground leading-relaxed font-medium whitespace-pre-wrap">
+          <span
+            data-lyric=""
+            className="text-foreground leading-relaxed font-medium whitespace-pre-wrap"
+          >
             {renderFormattedText(pair.text) || "\u00A0"}
           </span>
         </span>
@@ -239,7 +243,7 @@ function SectionLabel({
 }) {
   if (variant === "pill") {
     return (
-      <div className="my-5 flex items-center">
+      <div data-section-label="" className="my-5 flex items-center">
         <div className="border-border bg-muted/10 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-widest uppercase shadow-sm">
           {Icon && <Icon className="h-4 w-4 opacity-80" strokeWidth={2.5} />}
           <span>{children}</span>
@@ -249,7 +253,10 @@ function SectionLabel({
   }
 
   return (
-    <div className="border-border/50 text-muted-foreground mt-8 mb-3 flex items-center gap-2 border-b pb-1 text-xs font-bold tracking-widest uppercase">
+    <div
+      data-section-label=""
+      className="border-border/50 text-muted-foreground mt-8 mb-3 flex items-center gap-2 border-b pb-1 text-xs font-bold tracking-widest uppercase"
+    >
       {Icon && <Icon className="h-4 w-4" strokeWidth={2.5} />}
       <span>{children}</span>
     </div>
@@ -260,7 +267,11 @@ function SectionLabel({
 export interface ChordProRendererProps {
   content: string;
   showChords?: boolean;
-  fontSize?: number; // in rem
+  /**
+   * In rem — or "inherit" to take the size from the surrounding element,
+   * which Live Mode's fit-to-screen layout uses to size the text itself.
+   */
+  fontSize?: number | "inherit";
   fontFamily?: "sans" | "mono" | "serif";
   className?: string;
 }
@@ -319,11 +330,13 @@ export function ChordProRenderer({
     return { key: defaultKey || null, label: finalLabel };
   };
 
+  const cssFontSize = fontSize === "inherit" ? "1em" : `${fontSize}rem`;
+
   if (!content?.trim()) {
     return (
       <div
         className="text-muted-foreground flex h-full items-center justify-center italic"
-        style={{ fontSize: `${fontSize}rem` }}
+        style={{ fontSize: cssFontSize }}
       >
         {t("noLyrics")}
       </div>
@@ -349,6 +362,7 @@ export function ChordProRenderer({
       elements.push(
         <div
           key={i}
+          data-blank=""
           className={cn(
             "h-4",
             inChorus && "border-foreground/20 bg-muted/10 border-l-2",
@@ -466,7 +480,12 @@ export function ChordProRenderer({
     if (showChords && hasChords(line)) {
       const tokens = parseChordLine(line);
       elements.push(
-        <div key={i} className={lineWrapperClass}>
+        <div
+          key={i}
+          data-line=""
+          data-chorus={inChorus ? "" : undefined}
+          className={lineWrapperClass}
+        >
           {renderChordTokens(tokens)}
         </div>,
       );
@@ -477,6 +496,9 @@ export function ChordProRenderer({
     elements.push(
       <div
         key={i}
+        data-line=""
+        data-lyric=""
+        data-chorus={inChorus ? "" : undefined}
         className={cn(lineWrapperClass, "text-foreground font-medium")}
       >
         {renderFormattedText(textLine)}
@@ -486,8 +508,8 @@ export function ChordProRenderer({
 
   return (
     <div
-      className={cn(fontClass, className, "max-w-3xl")}
-      style={{ fontSize: `${fontSize}rem` }}
+      className={cn(fontClass, "max-w-3xl", className)}
+      style={{ fontSize: cssFontSize }}
     >
       {elements}
     </div>

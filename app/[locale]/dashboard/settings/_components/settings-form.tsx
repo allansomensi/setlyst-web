@@ -36,6 +36,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 
 interface SettingsFormProps {
@@ -75,7 +76,10 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
       const result = await updatePreferences(payload);
 
       if (!result.success) {
-        toast.error(result.error || "Failed to update preferences");
+        toastActionError(
+          result,
+          result.error || "Failed to update preferences",
+        );
         return;
       }
 

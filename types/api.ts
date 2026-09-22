@@ -474,8 +474,7 @@ export interface AdminMetrics {
 }
 
 export type MetricsResponse =
-  | ({ scope: "user" } & UserMetrics)
-  | ({ scope: "admin" } & AdminMetrics);
+  ({ scope: "user" } & UserMetrics) | ({ scope: "admin" } & AdminMetrics);
 
 export interface TimeseriesPoint {
   date: string;
@@ -496,8 +495,7 @@ export interface AdminTimeseries {
 }
 
 export type TimeseriesResponse =
-  | ({ scope: "user" } & UserTimeseries)
-  | ({ scope: "admin" } & AdminTimeseries);
+  ({ scope: "user" } & UserTimeseries) | ({ scope: "admin" } & AdminTimeseries);
 
 export interface ImportBackupResponse {
   artists_imported: number;
@@ -698,9 +696,7 @@ export interface UpdateGigPayload {
 // ---------------------------------------------------------------------
 
 export type NotificationType =
-  | "band_role_changed"
-  | "band_member_removed"
-  | "platform_role_changed";
+  "band_role_changed" | "band_member_removed" | "platform_role_changed";
 
 export interface BandRoleChangedData {
   band_id: string;

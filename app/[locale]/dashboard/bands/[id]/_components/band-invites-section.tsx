@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Copy, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 const INVITE_ROLES: BandRole[] = ["member", "moderator", "admin"];
 const EXPIRY_OPTIONS = [
@@ -84,7 +85,7 @@ export function BandInvitesSection({
         toast.success(t("created"));
         setIsDialogOpen(false);
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
     });
   };
@@ -96,7 +97,7 @@ export function BandInvitesSection({
       if (result.success) {
         toast.success(t("revoked"));
       } else {
-        toast.error(result.error);
+        toastActionError(result, result.error);
       }
       setInviteToRevoke(null);
     });

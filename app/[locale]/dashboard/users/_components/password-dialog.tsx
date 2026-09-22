@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { toastActionError } from "@/lib/action-toast";
 
 interface PasswordDialogProps {
   user: User | null;
@@ -50,7 +51,7 @@ export function PasswordDialog({ user, isOpen, onClose }: PasswordDialogProps) {
         formRef.current?.reset();
         onClose();
       } else {
-        toast.error(result.error ?? t("failed"));
+        toastActionError(result, result.error ?? t("failed"));
       }
     });
   };
