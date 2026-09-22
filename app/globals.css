@@ -128,3 +128,48 @@
     @apply font-sans;
   }
 }
+
+/*
+ * Live Mode metronome pulse.
+ *
+ * A ring hugging the edge of the viewport rather than a full-screen flash:
+ * on stage the screen is being *read*, and anything that washes over the
+ * lyrics three times a second makes them harder to follow, not easier. The
+ * edge sits in peripheral vision, which is where a pulse is actually
+ * useful — it registers without being looked at.
+ *
+ * Colour comes from the theme's own `--primary` so it reads correctly in
+ * both light and dark. The downbeat is distinguished by weight rather than
+ * hue, since this palette is deliberately monochrome.
+ *
+ * Only `opacity` is animated (by the Web Animations API, in
+ * components/live/metronome-flash.tsx), which the compositor can handle
+ * without touching layout or paint — the beat stays on time even while the
+ * main thread is busy rendering a song change.
+ */
+.metronome-pulse {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: inset 0 0 1.5rem 0.2rem var(--primary);
+}
+
+.metronome-pulse[data-accent="true"] {
+  box-shadow: inset 0 0 3rem 0.55rem var(--primary);
+}
+
+/*
+ * Respect a reduced-motion preference by softening the pulse rather than
+ * removing it: this element *is* the feature, and silently disabling it
+ * would leave the metronome running with no visible beat at all.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .metronome-pulse {
+    box-shadow: inset 0 0 1rem 0.1rem var(--primary);
+  }
+  .metronome-pulse[data-accent="true"] {
+    box-shadow: inset 0 0 1.75rem 0.25rem var(--primary);
+  }
+}

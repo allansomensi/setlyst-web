@@ -30,6 +30,10 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSetlistBundle } from "@/hooks/use-offline-setlist-bundle";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useFullscreen } from "@/hooks/use-fullscreen";
+import { useMetronome } from "@/hooks/use-metronome";
+import { useMetronomeSettings } from "@/hooks/use-metronome-settings";
+import { MetronomeFlash } from "@/components/live/metronome-flash";
+import { MetronomeControls } from "@/components/live/metronome-controls";
 
 // Types
 
@@ -118,6 +122,24 @@ export function LiveModeViewer({
   const progress =
     songs.length > 0 ? ((safeIndex + 1) / songs.length) * 100 : 0;
 
+  // The metronome takes its tempo from whichever song is on screen, so
+  // moving through the running order retunes it without anyone touching a
+  // control mid-set. See use-metronome-settings.ts.
+  const metronomeSettings = useMetronomeSettings(
+    currentSong?.id,
+    currentSong?.tempo,
+  );
+  const metronome = useMetronome({
+    bpm: metronomeSettings.bpm,
+    beatsPerBar: metronomeSettings.beatsPerBar,
+    isRunning: metronomeSettings.isRunning,
+    audioEnabled: metronomeSettings.audioEnabled,
+  });
+  // Pulled out because the keyboard effect depends on it: the settings
+  // object itself is rebuilt every render, so depending on that would
+  // re-arm the key listener continuously.
+  const { toggleRunning: toggleMetronome } = metronomeSettings;
+
   // Navigation
   //
   // Both step from `safeIndex` rather than the raw previous value: if the
@@ -184,6 +206,10 @@ export function LiveModeViewer({
           e.preventDefault();
           setSettings((s) => ({ ...s, isAutoScroll: !s.isAutoScroll }));
           break;
+        case "m":
+        case "M":
+          toggleMetronome();
+          break;
         case "+":
         case "=":
           setSettings((s) => ({
@@ -201,7 +227,7 @@ export function LiveModeViewer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev]);
+  }, [handleNext, handlePrev, toggleMetronome]);
 
   // Setting helpers
 
@@ -312,15 +338,43 @@ export function LiveModeViewer({
         </div>
       </main>
 
+      {/* The beat itself — a pulse at the edge of the screen, outside the
+          scrolling area so it never moves with the lyrics. */}
+      <MetronomeFlash
+        metronome={metronome}
+        isRunning={metronomeSettings.isRunning}
+      />
+
       {/* Floating Settings Panel */}
       <div
         className={cn(
-          "fixed right-4 bottom-24 z-50 flex flex-col gap-2 transition-all duration-300 md:right-6 md:bottom-28",
+          "fixed right-4 bottom-24 z-50 flex flex-col items-end gap-2 transition-all duration-300 md:right-6 md:bottom-28",
           showControls
             ? "translate-x-0"
             : "translate-x-[calc(100%-40px)] md:translate-x-[calc(100%-48px)]",
         )}
       >
+        {/* The metronome gets its own row rather than being squeezed into
+            the settings pill: it is a while-you-play control, not a
+            set-and-forget one, and the pill is already full at phone
+            width. */}
+        {showControls && (
+          <div className="animate-in fade-in slide-in-from-right-2">
+            <MetronomeControls
+              metronome={metronome}
+              isRunning={metronomeSettings.isRunning}
+              onToggleRunning={toggleMetronome}
+              bpm={metronomeSettings.bpm}
+              onBpmChange={metronomeSettings.setBpm}
+              isSongTempo={metronomeSettings.isSongTempo}
+              beatsPerBar={metronomeSettings.beatsPerBar}
+              onBeatsPerBarChange={metronomeSettings.setBeatsPerBar}
+              audioEnabled={metronomeSettings.audioEnabled}
+              onAudioEnabledChange={metronomeSettings.setAudioEnabled}
+            />
+          </div>
+        )}
+
         <div className="bg-card/90 flex items-center gap-1 rounded-xl border p-1 shadow-2xl backdrop-blur-lg md:gap-2 md:p-2">
           {/* Toggle panel visibility */}
           <Button

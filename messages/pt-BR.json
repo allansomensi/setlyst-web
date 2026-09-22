@@ -511,6 +511,21 @@
       "scroll": "Rolar",
       "decreaseSpeed": "Diminuir velocidade (-)",
       "increaseSpeed": "Aumentar velocidade (+)"
+    },
+    "metronome": {
+      "start": "Iniciar metrônomo (M)",
+      "stop": "Parar metrônomo (M)",
+      "bpm": "BPM",
+      "bpmFromSong": "música",
+      "songTempo": "Andamento salvo nesta música",
+      "manualTempo": "Andamento ajustado à mão para esta música",
+      "decreaseTempo": "Mais lento (botão direito: -5)",
+      "increaseTempo": "Mais rápido (botão direito: +5)",
+      "tap": "Tap",
+      "tapTempoTitle": "Toque algumas vezes para definir o andamento",
+      "beatsPerBarTitle": "Tempos por compasso",
+      "muteClick": "Silenciar o clique",
+      "unmuteClick": "Tocar clique audível"
     }
   },
   "offlineSync": {

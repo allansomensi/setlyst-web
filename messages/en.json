@@ -511,6 +511,21 @@
       "scroll": "Scroll",
       "decreaseSpeed": "Decrease speed (-)",
       "increaseSpeed": "Increase speed (+)"
+    },
+    "metronome": {
+      "start": "Start metronome (M)",
+      "stop": "Stop metronome (M)",
+      "bpm": "BPM",
+      "bpmFromSong": "song",
+      "songTempo": "Tempo saved on this song",
+      "manualTempo": "Tempo set by hand for this song",
+      "decreaseTempo": "Slower (right-click: -5)",
+      "increaseTempo": "Faster (right-click: +5)",
+      "tap": "Tap",
+      "tapTempoTitle": "Tap a few times to set the tempo",
+      "beatsPerBarTitle": "Beats per bar",
+      "muteClick": "Mute the click",
+      "unmuteClick": "Play an audible click"
     }
   },
   "offlineSync": {

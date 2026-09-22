@@ -27,6 +27,10 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSongBundle } from "@/hooks/use-offline-song-bundle";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useFullscreen } from "@/hooks/use-fullscreen";
+import { useMetronome } from "@/hooks/use-metronome";
+import { useMetronomeSettings } from "@/hooks/use-metronome-settings";
+import { MetronomeFlash } from "@/components/live/metronome-flash";
+import { MetronomeControls } from "@/components/live/metronome-controls";
 
 type FontFamily = "sans" | "mono" | "serif";
 
@@ -74,6 +78,18 @@ export function SongLiveModeViewer({
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   useWakeLock();
 
+  // Tempo comes from the song itself; with only one song on screen there
+  // is nothing to follow, but the rest of the behaviour is identical to
+  // the setlist viewer's.
+  const metronomeSettings = useMetronomeSettings(song.id, song.tempo);
+  const metronome = useMetronome({
+    bpm: metronomeSettings.bpm,
+    beatsPerBar: metronomeSettings.beatsPerBar,
+    isRunning: metronomeSettings.isRunning,
+    audioEnabled: metronomeSettings.audioEnabled,
+  });
+  const { toggleRunning: toggleMetronome } = metronomeSettings;
+
   const [settings, setSettings] = useState<LiveSettings>({
     zoomLevel: initialFontSize / 100,
     fontFamily: "sans",
@@ -110,6 +126,10 @@ export function SongLiveModeViewer({
           e.preventDefault();
           setSettings((s) => ({ ...s, isAutoScroll: !s.isAutoScroll }));
           break;
+        case "m":
+        case "M":
+          toggleMetronome();
+          break;
         case "+":
         case "=":
           setSettings((s) => ({
@@ -127,7 +147,7 @@ export function SongLiveModeViewer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [toggleMetronome]);
 
   const update = <K extends keyof LiveSettings>(
     key: K,
@@ -218,15 +238,38 @@ export function SongLiveModeViewer({
         </div>
       </main>
 
+      {/* The beat itself — see the setlist viewer for the reasoning. */}
+      <MetronomeFlash
+        metronome={metronome}
+        isRunning={metronomeSettings.isRunning}
+      />
+
       {/* Floating Settings Panel */}
       <div
         className={cn(
-          "fixed right-4 bottom-6 z-50 flex flex-col gap-2 transition-all duration-300 md:right-6 md:bottom-8",
+          "fixed right-4 bottom-6 z-50 flex flex-col items-end gap-2 transition-all duration-300 md:right-6 md:bottom-8",
           showControls
             ? "translate-x-0"
             : "translate-x-[calc(100%-40px)] md:translate-x-[calc(100%-48px)]",
         )}
       >
+        {showControls && (
+          <div className="animate-in fade-in slide-in-from-right-2">
+            <MetronomeControls
+              metronome={metronome}
+              isRunning={metronomeSettings.isRunning}
+              onToggleRunning={toggleMetronome}
+              bpm={metronomeSettings.bpm}
+              onBpmChange={metronomeSettings.setBpm}
+              isSongTempo={metronomeSettings.isSongTempo}
+              beatsPerBar={metronomeSettings.beatsPerBar}
+              onBeatsPerBarChange={metronomeSettings.setBeatsPerBar}
+              audioEnabled={metronomeSettings.audioEnabled}
+              onAudioEnabledChange={metronomeSettings.setAudioEnabled}
+            />
+          </div>
+        )}
+
         <div className="bg-card/90 flex items-center gap-1 rounded-xl border p-1 shadow-2xl backdrop-blur-lg md:gap-2 md:p-2">
           <Button
             variant="ghost"
