@@ -7,9 +7,9 @@ import {
   SetlistItem,
   Artist,
 } from "@/types/api";
-import Link from "next/link";
+import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Clock } from "lucide-react";
+import { ChevronLeft, Clock, Music } from "lucide-react";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
 import { SetlistActions } from "./_components/setlist-actions";
 import { SetlistOfflineStatus } from "./_components/setlist-offline-status";
@@ -62,14 +62,23 @@ export default async function SetlistDetailsPage({
               {setlist.title}
             </h1>
             {setlist.description && (
-              <p className="text-muted-foreground">{setlist.description}</p>
+              <p className="text-muted-foreground mt-0.5">
+                {setlist.description}
+              </p>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
                 <Clock className="text-primary h-4 w-4" />
                 <span>
-                  {t("totalDuration")}: {formatDuration(setlist.total_duration)}
+                  {t("totalDuration")}:{" "}
+                  <span className="text-foreground font-mono tabular-nums">
+                    {formatDuration(setlist.total_duration)}
+                  </span>
                 </span>
+              </div>
+              <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
+                <Music className="text-primary h-4 w-4" />
+                <span>{t("songCount", { count: setlistSongs.length })}</span>
               </div>
               <SetlistOfflineStatus setlistId={setlist.id} />
             </div>

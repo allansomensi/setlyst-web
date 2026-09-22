@@ -13,6 +13,7 @@ interface TransposeControlsProps {
   /** The key now being played, or null when the song has none stored. */
   transposedKey: string | null;
   capoFret: number | null;
+  className?: string;
 }
 
 export function TransposeControls({
@@ -21,37 +22,38 @@ export function TransposeControls({
   onReset,
   transposedKey,
   capoFret,
+  className,
 }: TransposeControlsProps) {
   const t = useTranslations("liveMode.transpose");
   const isTransposed = semitones !== 0;
 
   return (
-    <div className="bg-card/90 flex flex-wrap items-center gap-1.5 rounded-xl border p-1 shadow-2xl backdrop-blur-lg md:gap-2 md:p-2">
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <div className="bg-background/50 flex items-center rounded-lg border">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 md:h-9 md:w-9"
+          className="h-10 w-10"
           onClick={() => onShift(-1)}
           disabled={semitones <= -MAX_TRANSPOSE}
           title={t("down")}
         >
-          <Minus className="h-3 w-3 md:h-4 md:w-4" />
+          <Minus className="h-4 w-4" />
         </Button>
 
-        <span className="flex w-16 flex-col items-center leading-none md:w-20">
+        <span className="flex w-20 flex-col items-center leading-none">
           {/* The key is what a musician actually needs to see — the
               semitone count is only how they got there, so it is the
               smaller of the two. */}
           <span
             className={cn(
-              "font-mono text-xs font-bold tabular-nums md:text-sm",
+              "font-mono text-sm font-bold tabular-nums",
               isTransposed ? "text-primary" : "text-foreground",
             )}
           >
             {transposedKey ?? (isTransposed ? formatOffset(semitones) : "—")}
           </span>
-          <span className="text-muted-foreground text-[8px] tracking-wider uppercase md:text-[9px]">
+          <span className="text-muted-foreground text-[9px] tracking-wider uppercase">
             {isTransposed ? formatOffset(semitones) : t("original")}
           </span>
         </span>
@@ -59,12 +61,12 @@ export function TransposeControls({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 md:h-9 md:w-9"
+          className="h-10 w-10"
           onClick={() => onShift(1)}
           disabled={semitones >= MAX_TRANSPOSE}
           title={t("up")}
         >
-          <Plus className="h-3 w-3 md:h-4 md:w-4" />
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
 
@@ -72,7 +74,7 @@ export function TransposeControls({
           direction a capo can compensate for. */}
       {capoFret !== null && (
         <span
-          className="bg-background/50 rounded-lg border px-2 py-1 text-[10px] font-bold tracking-wider uppercase md:text-xs"
+          className="bg-background/50 flex h-10 items-center rounded-lg border px-3 text-xs font-bold tracking-wider uppercase"
           title={t("capoHelp")}
         >
           {t("capo", { fret: capoFret })}
@@ -82,12 +84,12 @@ export function TransposeControls({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 md:h-9 md:w-9"
+        className="h-10 w-10"
         onClick={onReset}
         disabled={!isTransposed}
         title={t("reset")}
       >
-        <RotateCcw className="h-3 w-3 md:h-4 md:w-4" />
+        <RotateCcw className="h-4 w-4" />
       </Button>
     </div>
   );

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PublicSetlist } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,9 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, Download, ListMusic, Music } from "lucide-react";
+import { Clock, Download, Eye, ListMusic, Music } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
-import { PublicExportPdfDialog } from "./public-export-pdf-dialog";
+import { apiPath } from "@/lib/api-endpoint";
+import { ExportPdfDialog } from "@/components/setlists/export-pdf-dialog";
+import { PublicPreferences } from "@/components/public/public-preferences";
 
 interface PublicSetlistViewProps {
   setlist: PublicSetlist;
@@ -23,21 +26,33 @@ interface PublicSetlistViewProps {
 }
 
 export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
+  const t = useTranslations("publicPage");
+  const tTable = useTranslations("setlists.songs.table");
+  const tSetlists = useTranslations("setlists");
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
 
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+  // Built with apiPath so a crafted token can't walk to another endpoint.
+  const pdfEndpoint = `${baseUrl}${apiPath`/public/setlists/${token}/export/pdf`}`;
+
   return (
-    <div className="bg-background flex min-h-screen flex-col items-center px-4 py-10">
+    <div className="bg-background flex min-h-screen flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
       <div className="w-full max-w-3xl space-y-6">
-        <div className="flex items-center gap-2">
-          <Music className="text-primary h-5 w-5" />
-          <span className="text-muted-foreground text-sm font-medium">
-            Setlyst
-          </span>
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href="/"
+            aria-label="Setlyst"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-semibold transition-colors"
+          >
+            <ListMusic className="text-primary h-5 w-5" />
+            <span className="hidden sm:inline">Setlyst</span>
+          </Link>
+          <PublicPreferences />
         </div>
 
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-bold tracking-tight break-words">
               {setlist.title}
             </h1>
             {setlist.description && (
@@ -45,70 +60,104 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
                 {setlist.description}
               </p>
             )}
-            <div className="text-muted-foreground bg-muted/50 mt-3 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
-              <Clock className="text-primary h-4 w-4" />
-              <span>Total: {formatDuration(setlist.total_duration)}</span>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
+                <Clock className="text-primary h-4 w-4" />
+                <span>
+                  {tSetlists("totalDuration")}:{" "}
+                  <span className="text-foreground font-mono tabular-nums">
+                    {formatDuration(setlist.total_duration)}
+                  </span>
+                </span>
+              </div>
+              <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
+                <Music className="text-primary h-4 w-4" />
+                <span>
+                  {tSetlists("songCount", { count: setlist.songs.length })}
+                </span>
+              </div>
             </div>
           </div>
 
           <Button
             size="lg"
-            className="gap-2"
+            className="h-10 w-full gap-2 px-4 sm:w-auto"
             onClick={() => setIsPdfDialogOpen(true)}
           >
             <Download className="h-4 w-4" />
-            Download PDF
+            {t("downloadPdf")}
           </Button>
         </div>
 
-        <div className="bg-background rounded-md border">
+        <div className="bg-card overflow-hidden rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Artist</TableHead>
-                <TableHead>BPM</TableHead>
+                <TableHead>{tTable("title")}</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  {tTable("artist")}
+                </TableHead>
+                <TableHead className="text-right sm:text-left">
+                  {tTable("duration")}
+                </TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {tTable("bpm")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {setlist.songs.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="text-muted-foreground h-24 text-center"
                   >
-                    This setlist has no songs yet.
+                    {t("noSongs")}
                   </TableCell>
                 </TableRow>
               ) : (
                 setlist.songs.map((song, index) => (
                   <TableRow key={song.id}>
-                    <TableCell className="text-muted-foreground font-medium">
-                      {index + 1}
+                    <TableCell className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
+                      {String(index + 1).padStart(2, "0")}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-full max-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{song.title}</span>
+                        <span className="truncate font-medium">
+                          {song.title}
+                        </span>
                         {song.tonality && (
                           <Badge
                             variant="outline"
-                            className="h-5 px-1.5 font-mono text-[10px]"
+                            className="h-5 shrink-0 px-1.5 font-mono text-[10px]"
                           >
                             {song.tonality}
                           </Badge>
                         )}
                       </div>
+                      <p className="text-muted-foreground truncate text-xs md:hidden">
+                        {song.artist_name}
+                        {song.tempo ? (
+                          <span className="sm:hidden">
+                            {" · "}
+                            {song.tempo} BPM
+                          </span>
+                        ) : null}
+                      </p>
                     </TableCell>
-                    <TableCell>{song.artist_name}</TableCell>
-                    <TableCell>
-                      {song.tempo ? (
-                        <span className="text-muted-foreground font-mono text-sm">
-                          {song.tempo}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                    <TableCell className="text-muted-foreground hidden md:table-cell">
+                      {song.artist_name}
+                    </TableCell>
+                    <TableCell className="text-right sm:text-left">
+                      <span className="text-muted-foreground font-mono text-sm tabular-nums">
+                        {song.duration ? formatDuration(song.duration) : "–"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <span className="text-muted-foreground font-mono text-sm tabular-nums">
+                        {song.tempo ?? "–"}
+                      </span>
                     </TableCell>
                   </TableRow>
                 ))
@@ -117,17 +166,23 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
           </Table>
         </div>
 
-        <Card className="text-muted-foreground flex flex-row items-center gap-2 px-4 py-3 text-sm">
-          <ListMusic className="h-4 w-4 shrink-0" />
-          <span>
-            This is a read-only, public view of a setlist shared via Setlyst.
+        <div className="text-muted-foreground flex flex-col items-center gap-1 pt-2 text-center text-xs sm:flex-row sm:justify-between sm:text-left">
+          <span className="flex items-center gap-1.5">
+            <Eye className="h-3.5 w-3.5 shrink-0" />
+            {t("readOnlyNotice")}
           </span>
-        </Card>
+          <Link
+            href="/"
+            className="hover:text-foreground underline-offset-4 transition-colors hover:underline"
+          >
+            {t("madeWith")}
+          </Link>
+        </div>
       </div>
 
-      <PublicExportPdfDialog
+      <ExportPdfDialog
+        endpoint={pdfEndpoint}
         setlistTitle={setlist.title}
-        token={token}
         isOpen={isPdfDialogOpen}
         onClose={() => setIsPdfDialogOpen(false)}
       />

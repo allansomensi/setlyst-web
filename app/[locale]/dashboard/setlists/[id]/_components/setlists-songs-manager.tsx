@@ -51,8 +51,10 @@ import {
   Layers,
   Coffee,
   Pencil,
-  MoreHorizontal,
+  ListPlus,
+  ChevronDown,
 } from "lucide-react";
+import { cn, formatDuration } from "@/lib/utils";
 import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
 import { AddSongDialog } from "./add-song-dialog";
@@ -118,13 +120,16 @@ function SortableSongRow({
   handleRemove,
   handlePlay,
   isReordering,
+  actionsDisabled,
 }: {
   row: Extract<Row, { kind: "song" }>;
   songNumber: number;
   handleRemove: (id: string) => void;
   handlePlay: (id: string) => void;
   isReordering: boolean;
+  actionsDisabled: boolean;
 }) {
+  const t = useTranslations("setlists.songs");
   const { song } = row;
   const {
     attributes,
@@ -146,70 +151,136 @@ function SortableSongRow({
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={` ${isDragging ? "bg-muted" : ""} ${!isReordering ? "hover:bg-muted/50 cursor-pointer transition-colors" : ""} `}
+      className={cn(
+        isDragging && "bg-muted",
+        !isReordering && "hover:bg-muted/50 group cursor-pointer",
+      )}
       onClick={() => {
         if (!isReordering) {
           handlePlay(song.id);
         }
       }}
+      title={isReordering ? undefined : t("playFromHere")}
     >
-      <TableCell className="w-16">
+      <TableCell className="w-12">
         {isReordering ? (
-          <div
-            {...attributes}
-            {...listeners}
-            className="hover:bg-accent cursor-grab rounded p-1 active:cursor-grabbing"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <GripVertical className="text-muted-foreground h-4 w-4" />
-          </div>
+          <DragHandle attributes={attributes} listeners={listeners} />
         ) : (
-          <span className="text-muted-foreground font-medium">
-            {songNumber}
+          <span className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
+            {String(songNumber).padStart(2, "0")}
           </span>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell className="w-full max-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium">{song.title}</span>
+          <span className="truncate font-medium">{song.title}</span>
           {song.tonality && (
             <Badge
               variant="outline"
-              className="h-5 px-1.5 font-mono text-[10px]"
+              className="h-5 shrink-0 px-1.5 font-mono text-[10px]"
             >
               {song.tonality}
             </Badge>
           )}
         </div>
+        {/* The artist column is dropped on phones; keep the name visible. */}
+        <p className="text-muted-foreground truncate text-xs md:hidden">
+          {song.artist_name}
+        </p>
       </TableCell>
-      <TableCell>{song.artist_name}</TableCell>
+      <TableCell className="text-muted-foreground hidden md:table-cell">
+        {song.artist_name}
+      </TableCell>
+      <TableCell className="hidden sm:table-cell">
+        <span className="text-muted-foreground font-mono text-sm tabular-nums">
+          {song.duration ? formatDuration(song.duration) : "–"}
+        </span>
+      </TableCell>
       <TableCell>
-        {song.tempo ? (
-          <span className="text-muted-foreground font-mono text-sm">
-            {song.tempo}
-          </span>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
+        <span className="text-muted-foreground font-mono text-sm tabular-nums">
+          {song.tempo ?? "–"}
+        </span>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="w-12 text-right">
         {!isReordering && (
-          <div className="flex justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative z-10 text-red-600 hover:bg-red-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemove(song.id);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive relative z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemove(song.id);
+            }}
+            disabled={actionsDisabled}
+            aria-label={t("removeSong")}
+            title={t("removeSong")}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         )}
       </TableCell>
     </TableRow>
+  );
+}
+
+function DragHandle({
+  attributes,
+  listeners,
+}: {
+  attributes: ReturnType<typeof useSortable>["attributes"];
+  listeners: ReturnType<typeof useSortable>["listeners"];
+}) {
+  return (
+    <div
+      {...attributes}
+      {...listeners}
+      className="hover:bg-accent flex h-8 w-8 cursor-grab touch-none items-center justify-center rounded active:cursor-grabbing"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <GripVertical className="text-muted-foreground h-4 w-4" />
+    </div>
+  );
+}
+
+/**
+ * Edit/delete buttons shared by block and break rows. Offline these are
+ * disabled like every other write in the manager.
+ */
+function MarkerActions({
+  onEdit,
+  onDelete,
+  disabled,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  disabled: boolean;
+}) {
+  const tCommon = useTranslations("common");
+  return (
+    <div className="flex justify-end gap-0.5">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground"
+        onClick={onEdit}
+        disabled={disabled}
+        aria-label={tCommon("edit")}
+        title={tCommon("edit")}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        onClick={onDelete}
+        disabled={disabled}
+        aria-label={tCommon("delete")}
+        title={tCommon("delete")}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }
 
@@ -218,11 +289,13 @@ function SortableBlockRow({
   isReordering,
   onEdit,
   onDelete,
+  actionsDisabled,
 }: {
   row: Extract<Row, { kind: "block" }>;
   isReordering: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  actionsDisabled: boolean;
 }) {
   const t = useTranslations("setlists.songs");
   const {
@@ -241,27 +314,28 @@ function SortableBlockRow({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Same cells (and the same responsive hiding) as a song row, so the
+  // columns line up at every width; the name simply sits in the title
+  // column.
   return (
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={`bg-primary/5 hover:bg-primary/10 ${isDragging ? "bg-primary/20" : ""}`}
+      className={cn(
+        "bg-primary/5 hover:bg-primary/10",
+        isDragging && "bg-primary/20",
+      )}
     >
-      <TableCell className="w-16">
-        {isReordering && (
-          <div
-            {...attributes}
-            {...listeners}
-            className="hover:bg-accent cursor-grab rounded p-1 active:cursor-grabbing"
-          >
-            <GripVertical className="text-muted-foreground h-4 w-4" />
-          </div>
+      <TableCell className="w-12">
+        {isReordering ? (
+          <DragHandle attributes={attributes} listeners={listeners} />
+        ) : (
+          <Layers className="text-primary h-4 w-4" />
         )}
       </TableCell>
-      <TableCell colSpan={isReordering ? 3 : 2}>
+      <TableCell>
         <div className="flex items-center gap-2 py-0.5">
-          <Layers className="text-primary h-4 w-4 shrink-0" />
-          <span className="text-primary font-semibold tracking-wide uppercase">
+          <span className="text-primary truncate font-semibold tracking-wide uppercase">
             {row.name}
           </span>
           <span className="text-muted-foreground text-xs font-normal normal-case">
@@ -269,22 +343,16 @@ function SortableBlockRow({
           </span>
         </div>
       </TableCell>
-      {!isReordering && <TableCell />}
+      <TableCell className="hidden md:table-cell" />
+      <TableCell className="hidden sm:table-cell" />
+      <TableCell />
       <TableCell className="text-right">
         {!isReordering && (
-          <div className="flex justify-end gap-1">
-            <Button variant="ghost" size="icon" onClick={onEdit}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-red-600 hover:bg-red-50"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <MarkerActions
+            onEdit={onEdit}
+            onDelete={onDelete}
+            disabled={actionsDisabled}
+          />
         )}
       </TableCell>
     </TableRow>
@@ -296,11 +364,13 @@ function SortableBreakRow({
   isReordering,
   onEdit,
   onDelete,
+  actionsDisabled,
 }: {
   row: Extract<Row, { kind: "break" }>;
   isReordering: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  actionsDisabled: boolean;
 }) {
   const t = useTranslations("setlists.songs");
   const {
@@ -319,51 +389,53 @@ function SortableBreakRow({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const hasDuration =
+    typeof row.durationMinutes === "number" && row.durationMinutes > 0;
+
   return (
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={`bg-muted/40 border-y border-dashed ${isDragging ? "bg-muted" : ""}`}
+      className={cn(
+        "bg-muted/40 border-y border-dashed",
+        isDragging && "bg-muted",
+      )}
     >
-      <TableCell className="w-16">
-        {isReordering && (
-          <div
-            {...attributes}
-            {...listeners}
-            className="hover:bg-accent cursor-grab rounded p-1 active:cursor-grabbing"
-          >
-            <GripVertical className="text-muted-foreground h-4 w-4" />
-          </div>
+      <TableCell className="w-12">
+        {isReordering ? (
+          <DragHandle attributes={attributes} listeners={listeners} />
+        ) : (
+          <Coffee className="text-muted-foreground h-4 w-4" />
         )}
       </TableCell>
-      <TableCell colSpan={isReordering ? 3 : 2}>
+      <TableCell>
         <div className="text-muted-foreground flex items-center gap-2 py-0.5 italic">
-          <Coffee className="h-4 w-4 shrink-0" />
-          <span>{row.label || t("breakDefaultLabel")}</span>
-          {typeof row.durationMinutes === "number" &&
-            row.durationMinutes > 0 && (
-              <span className="text-xs not-italic">
-                ({t("breakMinutes", { count: row.durationMinutes })})
-              </span>
-            )}
+          <span className="truncate">
+            {row.label || t("breakDefaultLabel")}
+          </span>
+          {hasDuration && (
+            <span className="text-xs not-italic sm:hidden">
+              ({t("breakMinutes", { count: row.durationMinutes ?? 0 })})
+            </span>
+          )}
         </div>
       </TableCell>
-      {!isReordering && <TableCell />}
+      <TableCell className="hidden md:table-cell" />
+      <TableCell className="hidden sm:table-cell">
+        {hasDuration && (
+          <span className="text-muted-foreground font-mono text-sm">
+            {t("breakMinutes", { count: row.durationMinutes ?? 0 })}
+          </span>
+        )}
+      </TableCell>
+      <TableCell />
       <TableCell className="text-right">
         {!isReordering && (
-          <div className="flex justify-end gap-1">
-            <Button variant="ghost" size="icon" onClick={onEdit}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-red-600 hover:bg-red-50"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <MarkerActions
+            onEdit={onEdit}
+            onDelete={onDelete}
+            disabled={actionsDisabled}
+          />
         )}
       </TableCell>
     </TableRow>
@@ -593,28 +665,42 @@ export function SetlistSongsManager({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="gap-2"
+                    className="gap-1.5"
                     title={offlineDisabled.title ?? t("addSection")}
+                    aria-label={t("addSection")}
                     disabled={offlineDisabled.disabled}
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <ListPlus className="h-4 w-4" />
                     <span className="hidden sm:inline">{t("addSection")}</span>
+                    <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuItem
                     onClick={() => setBlockDialog({ name: "" })}
+                    className="items-start gap-3 py-2"
                   >
-                    <Layers className="mr-2 h-4 w-4" />
-                    {t("addBlock")}
+                    <Layers className="text-primary mt-0.5 h-4 w-4" />
+                    <div>
+                      <p className="font-medium">{t("addBlock")}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {t("addBlockHint")}
+                      </p>
+                    </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() =>
                       setBreakDialog({ label: "", durationMinutes: "" })
                     }
+                    className="items-start gap-3 py-2"
                   >
-                    <Coffee className="mr-2 h-4 w-4" />
-                    {t("addBreak")}
+                    <Coffee className="mt-0.5 h-4 w-4" />
+                    <div>
+                      <p className="font-medium">{t("addBreak")}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {t("addBreakHint")}
+                      </p>
+                    </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -633,7 +719,10 @@ export function SetlistSongsManager({
       </div>
 
       <div
-        className={`bg-background rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
+        className={cn(
+          "bg-card overflow-hidden rounded-xl border",
+          isPending && "pointer-events-none opacity-60",
+        )}
       >
         <DndContext
           sensors={sensors}
@@ -643,14 +732,19 @@ export function SetlistSongsManager({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">
-                  {isReordering ? "" : t("table.pos")}
+                <TableHead className="w-12">
+                  {isReordering ? "" : "#"}
                 </TableHead>
                 <TableHead>{t("table.title")}</TableHead>
-                <TableHead>{t("table.artist")}</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  {t("table.artist")}
+                </TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t("table.duration")}
+                </TableHead>
                 <TableHead>{t("table.bpm")}</TableHead>
-                <TableHead className="text-right">
-                  {!isReordering && t("table.actions")}
+                <TableHead className="w-12 text-right">
+                  <span className="sr-only">{t("table.actions")}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -658,7 +752,7 @@ export function SetlistSongsManager({
               {displayRows.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="text-muted-foreground h-24 text-center"
                   >
                     {t("empty")}
@@ -679,6 +773,7 @@ export function SetlistSongsManager({
                           handleRemove={handleRemoveClick}
                           handlePlay={handlePlay}
                           isReordering={isReordering}
+                          actionsDisabled={!!offlineDisabled.disabled}
                         />
                       );
                     }
@@ -692,6 +787,7 @@ export function SetlistSongsManager({
                             setBlockDialog({ id: row.id, name: row.name })
                           }
                           onDelete={() => setMarkerToDelete(row.id)}
+                          actionsDisabled={!!offlineDisabled.disabled}
                         />
                       );
                     }
@@ -711,6 +807,7 @@ export function SetlistSongsManager({
                           })
                         }
                         onDelete={() => setMarkerToDelete(row.id)}
+                        actionsDisabled={!!offlineDisabled.disabled}
                       />
                     );
                   })}

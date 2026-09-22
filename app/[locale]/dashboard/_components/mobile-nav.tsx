@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Link } from "@/components/nav-link";
-import { ListMusic, Menu, X, Settings } from "lucide-react";
+import { ListMusic, Menu, X, Settings, Info } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";
 import { NotificationBell } from "./notification-bell";
@@ -17,6 +18,7 @@ export function MobileNav({
   user?: { name?: string | null; role?: User["role"] | null };
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("nav");
 
   return (
     <div className="bg-background flex h-16 items-center justify-between border-b px-4 md:hidden">
@@ -28,16 +30,27 @@ export function MobileNav({
           <ListMusic className="text-primary h-6 w-6" />
           <span>Setlyst</span>
         </Link>
-        <span className="bg-muted/40 text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] font-medium shadow-sm select-none">
+        <Link
+          href="/dashboard/about"
+          aria-label={`${t("about")} · v${packageJson.version}`}
+          className="bg-muted/40 text-muted-foreground rounded-full border px-2 py-0.5 font-mono text-[10px] font-medium"
+        >
           v{packageJson.version}
-        </span>
+        </Link>
       </div>
 
       <div className="flex items-center gap-1">
         <NotificationBellErrorBoundary>
           <NotificationBell />
         </NotificationBellErrorBoundary>
-        <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10"
+          onClick={() => setIsOpen(true)}
+          aria-label={t("openMenu")}
+          aria-expanded={isOpen}
+        >
           <Menu className="h-6 w-6" />
         </Button>
       </div>
@@ -45,11 +58,13 @@ export function MobileNav({
       {isOpen && (
         <div className="bg-background animate-in slide-in-from-right fixed inset-0 z-50 flex flex-col duration-300">
           <div className="flex h-16 items-center justify-between border-b px-4">
-            <span className="text-xl font-bold">Menu</span>
+            <span className="text-xl font-bold">{t("menu")}</span>
             <Button
               variant="ghost"
               size="icon"
+              className="h-10 w-10"
               onClick={() => setIsOpen(false)}
+              aria-label={t("closeMenu")}
             >
               <X className="h-6 w-6" />
             </Button>
@@ -83,8 +98,19 @@ export function MobileNav({
 
             <div className="flex items-center gap-1">
               <Link
+                href="/dashboard/about"
+                onClick={() => setIsOpen(false)}
+                aria-label={t("about")}
+                title={t("about")}
+                className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+              >
+                <Info className="h-5 w-5" />
+              </Link>
+              <Link
                 href="/dashboard/settings"
                 onClick={() => setIsOpen(false)}
+                aria-label={t("settings")}
+                title={t("settings")}
                 className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
               >
                 <Settings className="h-5 w-5" />

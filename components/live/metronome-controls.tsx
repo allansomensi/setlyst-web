@@ -43,6 +43,7 @@ interface MetronomeControlsProps {
   onBeatsPerBarChange: (beats: number) => void;
   audioEnabled: boolean;
   onAudioEnabledChange: (enabled: boolean) => void;
+  className?: string;
 }
 
 /**
@@ -102,6 +103,7 @@ export function MetronomeControls({
   onBeatsPerBarChange,
   audioEnabled,
   onAudioEnabledChange,
+  className,
 }: MetronomeControlsProps) {
   const t = useTranslations("liveMode.metronome");
 
@@ -145,19 +147,19 @@ export function MetronomeControls({
   };
 
   return (
-    <div className="bg-card/90 flex flex-wrap items-center gap-1.5 rounded-xl border p-1 shadow-2xl backdrop-blur-lg md:gap-2 md:p-2">
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <Button
         variant={isRunning ? "default" : "ghost"}
         size="icon"
         onClick={onToggleRunning}
-        className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10"
+        className="h-10 w-10 shrink-0 rounded-lg"
         title={isRunning ? t("stop") : t("start")}
         aria-pressed={isRunning}
       >
         {isRunning ? (
-          <Pause className="h-4 w-4 md:h-5 md:w-5" />
+          <Pause className="h-5 w-5" />
         ) : (
-          <Metronome className="h-4 w-4 md:h-5 md:w-5" />
+          <Metronome className="h-5 w-5" />
         )}
       </Button>
 
@@ -166,7 +168,7 @@ export function MetronomeControls({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 md:h-9 md:w-9"
+          className="h-10 w-10"
           onClick={() => adjustBpm(-BPM_STEP)}
           onContextMenu={(event) => {
             event.preventDefault();
@@ -175,19 +177,19 @@ export function MetronomeControls({
           disabled={bpm <= MIN_BPM}
           title={t("decreaseTempo")}
         >
-          <Minus className="h-3 w-3 md:h-4 md:w-4" />
+          <Minus className="h-4 w-4" />
         </Button>
 
         <span
-          className="flex w-14 flex-col items-center leading-none md:w-16"
+          className="flex w-16 flex-col items-center leading-none"
           title={isSongTempo ? t("songTempo") : t("manualTempo")}
         >
-          <span className="font-mono text-xs font-bold tabular-nums md:text-sm">
+          <span className="font-mono text-sm font-bold tabular-nums">
             {bpm}
           </span>
           <span
             className={cn(
-              "text-[8px] tracking-wider uppercase md:text-[9px]",
+              "text-[9px] tracking-wider uppercase",
               isSongTempo ? "text-primary" : "text-muted-foreground",
             )}
           >
@@ -198,7 +200,7 @@ export function MetronomeControls({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 md:h-9 md:w-9"
+          className="h-10 w-10"
           onClick={() => adjustBpm(BPM_STEP)}
           onContextMenu={(event) => {
             event.preventDefault();
@@ -207,7 +209,7 @@ export function MetronomeControls({
           disabled={bpm >= MAX_BPM}
           title={t("increaseTempo")}
         >
-          <Plus className="h-3 w-3 md:h-4 md:w-4" />
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
 
@@ -216,13 +218,11 @@ export function MetronomeControls({
         variant="outline"
         size="sm"
         onClick={handleTap}
-        className="h-8 gap-1 px-2 md:h-9 md:px-3"
+        className="h-10 gap-1.5 px-3"
         title={t("tapTempoTitle")}
       >
-        <Hand className="h-3 w-3 md:h-4 md:w-4" />
-        <span className="text-[10px] font-bold tracking-wider md:text-xs">
-          {t("tap")}
-        </span>
+        <Hand className="h-4 w-4" />
+        <span className="text-xs font-bold tracking-wider">{t("tap")}</span>
       </Button>
 
       {/* Time signature */}
@@ -230,7 +230,7 @@ export function MetronomeControls({
         variant="outline"
         size="sm"
         onClick={cycleBeatsPerBar}
-        className="h-8 px-2 font-mono text-[10px] font-bold md:h-9 md:px-3 md:text-xs"
+        className="h-10 px-3 font-mono text-xs font-bold"
         title={t("beatsPerBarTitle")}
       >
         {beatsPerBar}/4
@@ -242,14 +242,14 @@ export function MetronomeControls({
         variant={audioEnabled ? "secondary" : "ghost"}
         size="icon"
         onClick={() => onAudioEnabledChange(!audioEnabled)}
-        className="h-8 w-8 md:h-9 md:w-9"
+        className="h-10 w-10"
         title={audioEnabled ? t("muteClick") : t("unmuteClick")}
         aria-pressed={audioEnabled}
       >
         {audioEnabled ? (
-          <Volume2 className="h-3 w-3 md:h-4 md:w-4" />
+          <Volume2 className="h-4 w-4" />
         ) : (
-          <VolumeX className="h-3 w-3 md:h-4 md:w-4" />
+          <VolumeX className="h-4 w-4" />
         )}
       </Button>
 

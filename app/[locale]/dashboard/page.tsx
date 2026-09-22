@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ListMusic,
   Music,
@@ -10,9 +9,9 @@ import {
   Guitar,
   Calendar,
   BarChart3,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "@/components/nav-link";
-import { Separator } from "@/components/ui/separator";
 import { getDashboardMetrics } from "./actions";
 import { UserMetricsCharts } from "./_components/user-metrics";
 import { AdminMetricsCharts } from "./_components/admin-metrics";
@@ -75,33 +74,44 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 pb-10">
+    <div className="mx-auto max-w-5xl space-y-10 pb-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          {t("title")}
+        </h1>
         <p className="text-muted-foreground mt-1">
           {t("welcome", { name: session?.user?.name || "User" })}
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {quickLinks.map(({ href, icon: Icon, label, description }) => (
-          <Link key={href} href={href}>
-            <Card className="hover:border-primary/50 h-full cursor-pointer transition-colors hover:shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Icon className="text-primary h-5 w-5" />
+      <section className="space-y-3">
+        <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+          {t("shortcuts")}
+        </h2>
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+          {quickLinks.map(({ href, icon: Icon, label, description }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group bg-card hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-ring/50 flex items-center gap-3 rounded-xl border p-3 transition-colors outline-none focus-visible:ring-3"
+            >
+              <span className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10">
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">
                   {label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">{description}</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      <Separator />
+                </span>
+                {/* Phones get a compact two-column grid of names only. */}
+                <span className="text-muted-foreground hidden truncate text-xs sm:block">
+                  {description}
+                </span>
+              </span>
+              <ChevronRight className="text-muted-foreground/60 group-hover:text-foreground hidden h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 sm:block" />
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {metrics && metrics.scope === "admin" && (
         <AdminMetricsCharts data={metrics} />

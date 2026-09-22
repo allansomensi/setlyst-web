@@ -145,24 +145,29 @@
 /*
  * Elevation.
  *
- * The previous theme relied on a 1px ring alone, so cards and primary
- * buttons sat perfectly flush with the page — no sense of layering. These
- * shadows are deliberately soft and slightly tinted with the surface's own
- * color (foreground for ambient contact shadow, primary for a faint stage-
- * light glow) rather than plain black, so they stay coherent in both
- * themes instead of just darkening light mode and disappearing in dark
- * mode.
+ * Deliberately faint. Surfaces are separated by their 1px ring and the
+ * tinted page background; a shadow only adds a hint of contact. The
+ * previous large, primary-tinted drop shadow looked fine on one card but
+ * turned pages with many cards (the dashboard especially) into a haze of
+ * overlapping glows.
  */
 [data-slot="card"] {
-  box-shadow:
-    0 1px 2px -1px color-mix(in oklch, var(--foreground) 6%, transparent),
-    0 10px 28px -14px color-mix(in oklch, var(--primary) 20%, transparent);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 5%, transparent);
 }
 
 [data-slot="button"][data-variant="default"] {
-  box-shadow:
-    0 1px 2px color-mix(in oklch, var(--primary) 25%, transparent),
-    0 6px 16px -6px color-mix(in oklch, var(--primary) 40%, transparent);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--primary) 30%, transparent);
+}
+
+/*
+ * Toasts: the close button is for pointer-sized screens only. On phones,
+ * tapping the toast dismisses it (components/ui/toaster.tsx forwards the
+ * tap to this same button, which is why it's hidden rather than removed).
+ */
+@media (max-width: 47.99rem) {
+  [data-sonner-toast] [data-close-button] {
+    display: none;
+  }
 }
 
 /*

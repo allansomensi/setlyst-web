@@ -2,23 +2,42 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+export type LiveFontFamily = "sans" | "mono" | "serif";
+
+export const LIVE_FONT_FAMILIES: readonly LiveFontFamily[] = [
+  "sans",
+  "mono",
+  "serif",
+];
+
 export interface LiveDisplayPrefs {
   /** Pure black/white with stage-yellow chords, for bright or dim stages. */
   highContrast: boolean;
   /** Whole song on one screen: auto-sized text, no scrolling needed. */
   fitToScreen: boolean;
+  /** Typeface of the lyrics. Mono keeps chords aligned on any font stack. */
+  fontFamily: LiveFontFamily;
+  /** Chords over the lyrics, or lyrics alone (for the singer's screen). */
+  showChords: boolean;
 }
 
 const STORAGE_KEY = "setlyst:live-display";
-const DEFAULTS: LiveDisplayPrefs = { highContrast: false, fitToScreen: false };
+const DEFAULTS: LiveDisplayPrefs = {
+  highContrast: false,
+  fitToScreen: false,
+  fontFamily: "sans",
+  showChords: true,
+};
 
 /*
  * These live on the device, not on the account: they're about the screen
  * and the stage, not about the person. The phone on the mic stand may
  * want the whole song on one screen while the tablet on the keyboard
  * scrolls, and a dark club and a daylight festival want different
- * contrast. (Font size is on the account because it follows the reader's
- * eyes; these follow the hardware.)
+ * contrast. The typeface and chords on/off follow the same logic — the
+ * singer's phone wants lyrics only, the guitarist's tablet wants chords.
+ * (Font size is on the account because it follows the reader's eyes;
+ * these follow the hardware.)
  *
  * Read through useSyncExternalStore so the server render and the first
  * client render agree on the defaults (no hydration mismatch), after which
@@ -37,6 +56,13 @@ function read(): LiveDisplayPrefs {
     cached = {
       highContrast: parsed.highContrast === true,
       fitToScreen: parsed.fitToScreen === true,
+      fontFamily: LIVE_FONT_FAMILIES.includes(
+        parsed.fontFamily as LiveFontFamily,
+      )
+        ? (parsed.fontFamily as LiveFontFamily)
+        : DEFAULTS.fontFamily,
+      // Absent means "never changed", which is chords on.
+      showChords: parsed.showChords !== false,
     };
   } catch {
     // Private mode, blocked storage, corrupt JSON: fall back to defaults
@@ -83,10 +109,13 @@ export function useLiveDisplayPrefs() {
     [],
   );
 
-  const toggle = useCallback((key: keyof LiveDisplayPrefs) => {
-    const current = read();
-    write({ ...current, [key]: !current[key] });
-  }, []);
+  const toggle = useCallback(
+    (key: "highContrast" | "fitToScreen" | "showChords") => {
+      const current = read();
+      write({ ...current, [key]: !current[key] });
+    },
+    [],
+  );
 
   return { ...prefs, setPref, toggle };
 }

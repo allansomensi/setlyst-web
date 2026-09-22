@@ -16,6 +16,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Disc3, Guitar, ListMusic, Music } from "lucide-react";
+import { StatGrid } from "./stat-grid";
 
 export function UserMetricsCharts({ data }: { data: UserMetrics }) {
   const t = useTranslations("metrics");
@@ -42,49 +44,30 @@ export function UserMetricsCharts({ data }: { data: UserMetrics }) {
   } satisfies ChartConfig;
 
   return (
-    <div className="mt-8 flex flex-col space-y-4">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("myBands")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_bands}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalArtists")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_artists}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalSongs")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_songs}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalSetlists")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_setlists}</div>
-          </CardContent>
-        </Card>
-      </div>
+    <section className="flex flex-col space-y-3">
+      <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+        {t("overview")}
+      </h2>
+      <StatGrid
+        items={[
+          { label: t("myBands"), value: data.total_bands, icon: Guitar },
+          {
+            label: t("platformOverview.totalArtists"),
+            value: data.total_artists,
+            icon: Disc3,
+          },
+          {
+            label: t("platformOverview.totalSongs"),
+            value: data.total_songs,
+            icon: Music,
+          },
+          {
+            label: t("platformOverview.totalSetlists"),
+            value: data.total_setlists,
+            icon: ListMusic,
+          },
+        ]}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="flex flex-col">
@@ -175,37 +158,64 @@ export function UserMetricsCharts({ data }: { data: UserMetrics }) {
           <CardTitle>{t("repertoireHealth.title")}</CardTitle>
           <CardDescription>{t("repertoireHealth.description")}</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="bg-muted/50 flex flex-col space-y-1 rounded-xl p-4">
-            <span className="text-muted-foreground text-sm font-medium">
-              {t("repertoireHealth.withLyrics")}
-            </span>
-            <span className="text-2xl font-bold">{data.songs_with_lyrics}</span>
-          </div>
-          <div className="bg-muted/50 flex flex-col space-y-1 rounded-xl p-4">
-            <span className="text-muted-foreground text-sm font-medium">
-              {t("repertoireHealth.withoutLyrics")}
-            </span>
-            <span className="text-2xl font-bold">
-              {data.songs_without_lyrics}
-            </span>
-          </div>
-          <div className="bg-muted/50 flex flex-col space-y-1 rounded-xl p-4">
-            <span className="text-muted-foreground text-sm font-medium">
-              {t("repertoireHealth.withTonality")}
-            </span>
-            <span className="text-2xl font-bold">
-              {data.songs_with_tonality}
-            </span>
-          </div>
-          <div className="bg-muted/50 flex flex-col space-y-1 rounded-xl p-4">
-            <span className="text-muted-foreground text-sm font-medium">
-              {t("repertoireHealth.withBpm")}
-            </span>
-            <span className="text-2xl font-bold">{data.songs_with_tempo}</span>
-          </div>
+        <CardContent className="grid gap-5 sm:grid-cols-3">
+          <CoverageBar
+            label={t("repertoireHealth.withLyrics")}
+            value={data.songs_with_lyrics}
+            total={data.total_songs}
+          />
+          <CoverageBar
+            label={t("repertoireHealth.withTonality")}
+            value={data.songs_with_tonality}
+            total={data.total_songs}
+          />
+          <CoverageBar
+            label={t("repertoireHealth.withBpm")}
+            value={data.songs_with_tempo}
+            total={data.total_songs}
+          />
         </CardContent>
       </Card>
+    </section>
+  );
+}
+
+/**
+ * How much of the repertoire has a given detail filled in. A share of the
+ * whole reads faster than two bare counts ("with" / "without") side by
+ * side, and makes the gap to close obvious.
+ */
+function CoverageBar({
+  label,
+  value,
+  total,
+}: {
+  label: string;
+  value: number;
+  total: number;
+}) {
+  const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-muted-foreground font-mono text-xs tabular-nums">
+          {value}/{total}
+        </span>
+      </div>
+      <div
+        className="bg-muted h-2 overflow-hidden rounded-full"
+        role="progressbar"
+        aria-label={label}
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div
+          className="bg-primary h-full rounded-full transition-[width]"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
     </div>
   );
 }

@@ -30,7 +30,14 @@
     "gigs": "Shows",
     "users": "Usuários",
     "logout": "Sair",
-    "bands": "Bandas"
+    "bands": "Bandas",
+    "about": "Sobre",
+    "settings": "Configurações",
+    "menu": "Menu",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "collapseSidebar": "Recolher barra lateral",
+    "expandSidebar": "Expandir barra lateral"
   },
   "auth": {
     "login": {
@@ -102,7 +109,8 @@
     },
     "bands": {
       "description": "Gerencie as bandas das quais você participa"
-    }
+    },
+    "shortcuts": "Atalhos"
   },
   "artists": {
     "title": "Artistas",
@@ -305,7 +313,8 @@
       "export": "Exportar PDF",
       "exporting": "Exportando...",
       "exportSuccess": "PDF exportado com sucesso!",
-      "exportFailed": "Erro ao exportar o PDF."
+      "exportFailed": "Erro ao exportar o PDF.",
+      "language": "Idioma do PDF"
     },
     "empty": "Nenhuma setlist cadastrada.",
     "emptySearch": "Nenhuma setlist encontrada para \"{search}\".",
@@ -343,7 +352,8 @@
         "title": "Título",
         "artist": "Artista",
         "bpm": "BPM",
-        "actions": "Ações"
+        "actions": "Ações",
+        "duration": "Duração"
       },
       "removeConfirm": "Remover esta música da setlist?",
       "removed": "Música removida",
@@ -379,7 +389,11 @@
       "editBreakTitle": "Editar Pausa",
       "breakDialogDescription": "Uma pausa visual na setlist — não é uma música.",
       "breakLabelLabel": "Texto (opcional)",
-      "breakDurationLabel": "Duração (minutos, opcional)"
+      "breakDurationLabel": "Duração (minutos, opcional)",
+      "playFromHere": "Abrir o modo ao vivo a partir desta música",
+      "removeSong": "Remover da setlist",
+      "addBlockHint": "Um título que agrupa músicas",
+      "addBreakHint": "Uma pausa entre músicas, com duração opcional"
     },
     "errors": {
       "titleLength": "O título do setlist deve ter entre 1 e 255 caracteres.",
@@ -408,7 +422,8 @@
       "disableAction": "Desativar link",
       "disableConfirm": "Tem certeza? O link atual deixará de funcionar imediatamente para quem já tiver ele.",
       "disabled": "Link público desativado"
-    }
+    },
+    "songCount": "{count, plural, one {# música} other {# músicas}}"
   },
   "gigs": {
     "title": "Shows",
@@ -501,14 +516,9 @@
     "key": "Tom:",
     "offline": "Offline",
     "settings": {
-      "autoScrollTitle": "Iniciar/parar rolagem automática",
       "decreaseSize": "Diminuir tamanho do texto",
       "increaseSize": "Aumentar tamanho do texto",
       "fontLabel": "Fonte",
-      "showChords": "Mostrar/ocultar acordes",
-      "chordsOn": "Acordes",
-      "chordsOff": "Sem acordes",
-      "scroll": "Rolar",
       "decreaseSpeed": "Diminuir velocidade (-)",
       "increaseSpeed": "Aumentar velocidade (+)"
     },
@@ -541,6 +551,33 @@
       "fitToScreen": "Tela única",
       "fitToScreenHelp": "Mostra a música inteira em uma tela só, sem precisar rolar",
       "fitOverflow": "Longa demais para caber em uma tela num tamanho legível — role para ver o resto."
+    },
+    "fullscreen": "Tela cheia",
+    "swipeHint": "Deslize para trocar de música",
+    "sheet": {
+      "title": "Ajustes do modo ao vivo",
+      "open": "Ajustes",
+      "description": "As mudanças valem na hora e ficam salvas neste dispositivo.",
+      "close": "Fechar ajustes",
+      "autoScroll": "Rolagem",
+      "autoScrollFitHint": "Indisponível com a música inteira na tela",
+      "metronome": "Metrônomo",
+      "chords": "Acordes",
+      "text": "Texto",
+      "size": "Tamanho",
+      "scrollSpeed": "Velocidade da rolagem",
+      "display": "Exibição",
+      "fullscreenHelp": "Esconde as barras do navegador para ganhar espaço",
+      "transpose": "Tom",
+      "shortcuts": "Atalhos de teclado",
+      "keyNav": "Música anterior / próxima",
+      "keyScroll": "Iniciar / parar rolagem",
+      "keySpeed": "Rolagem mais rápida / lenta",
+      "keyMetronome": "Iniciar / parar metrônomo",
+      "keyTranspose": "Descer / subir tom"
+    },
+    "active": {
+      "pauseScroll": "Pausar rolagem"
     }
   },
   "offlineSync": {
@@ -746,7 +783,8 @@
       "title": "Status de Contas",
       "description": "Usuários ativos vs inativos"
     },
-    "myBands": "Minhas Bandas"
+    "myBands": "Minhas Bandas",
+    "overview": "Visão geral"
   },
   "settings": {
     "title": "Preferências",
@@ -968,5 +1006,36 @@
   "rateLimit": {
     "message": "Muitas requisições no momento. Aguarde um instante e tente de novo.",
     "messageWithWait": "Muitas requisições no momento. Tente de novo em {seconds, plural, one {# segundo} other {# segundos}}."
+  },
+  "about": {
+    "title": "Sobre",
+    "tagline": "Setlists, letras e cifras — prontas para o palco.",
+    "license": "Licença MIT",
+    "projectDescription": "O Setlyst é um catálogo de letras e cifras feito para apresentações ao vivo. Cantores e músicos guardam repertório, ordem das músicas, tons e andamentos em um só lugar e levam tudo para o palco com um modo ao vivo pensado para ser lido no pedestal — com metrônomo, transposição, rolagem automática e funcionamento offline.",
+    "openSource": "É código aberto: um app web em Next.js e uma API em Rust, desenvolvidos abertamente no GitHub. Feito por músicos, para músicos.",
+    "repositories": "Repositórios",
+    "repo": {
+      "web": "Aplicação web e PWA",
+      "api": "API REST e exportação de PDF"
+    },
+    "openRepository": "Abrir {name} no GitHub",
+    "lastCommit": "Último commit",
+    "live": "esta versão",
+    "commitUnavailable": "Não foi possível acessar o GitHub agora.",
+    "deployedBuild": "Versão em execução:",
+    "author": "Autor",
+    "authorRole": "Guitarrista, professor de guitarra e desenvolvedor de software",
+    "authorBio": "O Setlyst é pensado e desenvolvido por um guitarrista na ativa que também programa — por isso cada recurso nasce do que realmente faz falta no palco.",
+    "contributeTitle": "Encontrou um bug ou tem uma ideia?",
+    "contributeDescription": "Issues e pull requests são bem-vindos.",
+    "reportIssue": "Abrir uma issue"
+  },
+  "publicPage": {
+    "language": "Idioma",
+    "theme": "Tema",
+    "downloadPdf": "Baixar PDF",
+    "noSongs": "Esta setlist ainda não tem músicas.",
+    "readOnlyNotice": "Visualização somente leitura de uma setlist compartilhada pelo Setlyst.",
+    "madeWith": "Feito com Setlyst"
   }
 }

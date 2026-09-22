@@ -24,6 +24,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Disc3, Guitar, ListMusic, Music, Users } from "lucide-react";
+import { StatGrid } from "./stat-grid";
 
 export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
   const t = useTranslations("metrics");
@@ -84,59 +86,39 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
   }));
 
   return (
-    <div className="mt-8 flex flex-col space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalUsers")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_users}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalArtists")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_artists}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalSongs")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_songs}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalSetlists")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_setlists}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("platformOverview.totalBands")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.total_bands}</div>
-          </CardContent>
-        </Card>
-      </div>
+    <section className="flex flex-col space-y-3">
+      <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+        {t("platformOverview.title")}
+      </h2>
+      <StatGrid
+        items={[
+          {
+            label: t("platformOverview.totalUsers"),
+            value: data.total_users,
+            icon: Users,
+          },
+          {
+            label: t("platformOverview.totalArtists"),
+            value: data.total_artists,
+            icon: Disc3,
+          },
+          {
+            label: t("platformOverview.totalSongs"),
+            value: data.total_songs,
+            icon: Music,
+          },
+          {
+            label: t("platformOverview.totalSetlists"),
+            value: data.total_setlists,
+            icon: ListMusic,
+          },
+          {
+            label: t("platformOverview.totalBands"),
+            value: data.total_bands,
+            icon: Guitar,
+          },
+        ]}
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="col-span-1 flex flex-col">
@@ -236,6 +218,6 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </section>
   );
 }

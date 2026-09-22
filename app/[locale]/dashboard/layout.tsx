@@ -19,12 +19,17 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="bg-muted/40 flex min-h-screen flex-col md:flex-row">
+    // A fixed-height shell (dvh, so mobile browser bars are accounted for)
+    // with the page scrolling inside <main>. Previously <main> was a full
+    // `h-screen` *below* the 64px mobile header, so every page on a phone
+    // was 64px taller than the screen and scrolled twice — the document
+    // and the content area.
+    <div className="bg-muted/40 flex h-dvh flex-col overflow-hidden md:flex-row">
       <Sidebar user={{ name: session.user?.name, role: session.user?.role }} />
       <MobileNav
         user={{ name: session.user?.name, role: session.user?.role }}
       />
-      <main className="flex h-screen flex-1 flex-col overflow-hidden">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <OfflineStatusBanner />
         <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>

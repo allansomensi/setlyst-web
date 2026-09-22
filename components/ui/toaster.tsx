@@ -18,15 +18,18 @@ const INTERACTIVE_SELECTOR = "button, a, [role='button']";
  *
  * Adds two things on top of sonner's `<Toaster>`:
  *
- *  - **A close button on every toast.** Some toasts are deliberately
- *    sticky (the "new version available" prompt has no timeout at all),
- *    and sonner's only built-in way to dismiss one otherwise is a swipe —
- *    undiscoverable with a mouse and easy to miss on a phone.
+ *  - **A close button on every toast, on larger screens.** Some toasts
+ *    are deliberately sticky (the "new version available" prompt has no
+ *    timeout at all), and sonner's only built-in way to dismiss one
+ *    otherwise is a swipe — undiscoverable with a mouse. On phones the
+ *    button is hidden (see globals.css): it's a tiny target crowding a
+ *    narrow toast, and tapping the toast itself already dismisses it.
  *  - **Tap anywhere on a toast to dismiss it.** The obvious gesture when
  *    a notification is in the way, and without it a stuck toast can sit
  *    over the UI indefinitely.
  *
- * The click is forwarded to that toast's own close button rather than
+ * The click is forwarded to that toast's own close button (which still
+ * exists on phones, only visually hidden — `click()` works regardless) rather than
  * calling `toast.dismiss()` directly: sonner doesn't expose the toast's id
  * on the DOM node, and going through its own control keeps the exit
  * animation and any `onDismiss` callback intact. It also degrades

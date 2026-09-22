@@ -10,7 +10,7 @@ import {
   BandWithMembership,
   BAND_ROLE_LEVEL,
 } from "@/types/api";
-import Link from "next/link";
+import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

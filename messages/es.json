@@ -30,7 +30,14 @@
     "gigs": "Shows",
     "users": "Usuarios",
     "logout": "Cerrar sesión",
-    "bands": "Bandas"
+    "bands": "Bandas",
+    "about": "Acerca de",
+    "settings": "Configuración",
+    "menu": "Menú",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "collapseSidebar": "Contraer barra lateral",
+    "expandSidebar": "Expandir barra lateral"
   },
   "auth": {
     "login": {
@@ -102,7 +109,8 @@
     },
     "bands": {
       "description": "Gestiona las bandas de las que formas parte"
-    }
+    },
+    "shortcuts": "Accesos directos"
   },
   "artists": {
     "title": "Artistas",
@@ -305,7 +313,8 @@
       "export": "Exportar PDF",
       "exporting": "Exportando...",
       "exportSuccess": "¡PDF exportado con éxito!",
-      "exportFailed": "Error al exportar el PDF."
+      "exportFailed": "Error al exportar el PDF.",
+      "language": "Idioma del PDF"
     },
     "empty": "No hay setlists registradas.",
     "emptySearch": "No se encontraron setlists para \"{search}\".",
@@ -343,7 +352,8 @@
         "title": "Título",
         "artist": "Artista",
         "bpm": "BPM",
-        "actions": "Acciones"
+        "actions": "Acciones",
+        "duration": "Duración"
       },
       "removeConfirm": "¿Eliminar esta canción de la setlist?",
       "removed": "Canción eliminada",
@@ -379,7 +389,11 @@
       "editBreakTitle": "Editar Pausa",
       "breakDialogDescription": "Una pausa visual en la setlist — no es una canción.",
       "breakLabelLabel": "Texto (opcional)",
-      "breakDurationLabel": "Duración (minutos, opcional)"
+      "breakDurationLabel": "Duración (minutos, opcional)",
+      "playFromHere": "Abrir el modo en vivo desde esta canción",
+      "removeSong": "Quitar de la setlist",
+      "addBlockHint": "Un encabezado que agrupa canciones",
+      "addBreakHint": "Una pausa entre canciones, con duración opcional"
     },
     "errors": {
       "titleLength": "El título del setlist debe tener entre 1 y 255 caracteres.",
@@ -408,7 +422,8 @@
       "disableAction": "Desactivar enlace",
       "disableConfirm": "¿Seguro? El enlace actual dejará de funcionar de inmediato para quien ya lo tenga.",
       "disabled": "Enlace público desactivado"
-    }
+    },
+    "songCount": "{count, plural, one {# canción} other {# canciones}}"
   },
   "gigs": {
     "title": "Shows",
@@ -501,14 +516,9 @@
     "key": "Ton.:",
     "offline": "Sin conexión",
     "settings": {
-      "autoScrollTitle": "Iniciar/detener desplazamiento automático",
       "decreaseSize": "Reducir tamaño del texto",
       "increaseSize": "Aumentar tamaño del texto",
       "fontLabel": "Fuente",
-      "showChords": "Mostrar/ocultar acordes",
-      "chordsOn": "Acordes",
-      "chordsOff": "Sin acordes",
-      "scroll": "Desplazar",
       "decreaseSpeed": "Reducir velocidad (-)",
       "increaseSpeed": "Aumentar velocidad (+)"
     },
@@ -541,6 +551,33 @@
       "fitToScreen": "Pantalla única",
       "fitToScreenHelp": "Muestra la canción entera en una sola pantalla, sin desplazarse",
       "fitOverflow": "Demasiado larga para caber en una pantalla a un tamaño legible — desplázate para ver el resto."
+    },
+    "fullscreen": "Pantalla completa",
+    "swipeHint": "Desliza para cambiar de canción",
+    "sheet": {
+      "title": "Ajustes del modo en vivo",
+      "open": "Ajustes",
+      "description": "Los cambios se aplican al instante y se guardan en este dispositivo.",
+      "close": "Cerrar ajustes",
+      "autoScroll": "Desplazamiento",
+      "autoScrollFitHint": "No disponible con la canción entera en pantalla",
+      "metronome": "Metrónomo",
+      "chords": "Acordes",
+      "text": "Texto",
+      "size": "Tamaño",
+      "scrollSpeed": "Velocidad de desplazamiento",
+      "display": "Visualización",
+      "fullscreenHelp": "Oculta las barras del navegador para ganar espacio",
+      "transpose": "Tonalidad",
+      "shortcuts": "Atajos de teclado",
+      "keyNav": "Canción anterior / siguiente",
+      "keyScroll": "Iniciar / detener desplazamiento",
+      "keySpeed": "Desplazamiento más rápido / lento",
+      "keyMetronome": "Iniciar / detener metrónomo",
+      "keyTranspose": "Bajar / subir tono"
+    },
+    "active": {
+      "pauseScroll": "Pausar desplazamiento"
     }
   },
   "offlineSync": {
@@ -746,7 +783,8 @@
       "title": "Estado de Cuentas",
       "description": "Usuarios activos vs inactivos"
     },
-    "myBands": "Mis Bandas"
+    "myBands": "Mis Bandas",
+    "overview": "Resumen"
   },
   "settings": {
     "title": "Preferencias",
@@ -968,5 +1006,36 @@
   "rateLimit": {
     "message": "Demasiadas solicitudes en este momento. Espera un momento e inténtalo de nuevo.",
     "messageWithWait": "Demasiadas solicitudes en este momento. Inténtalo de nuevo en {seconds, plural, one {# segundo} other {# segundos}}."
+  },
+  "about": {
+    "title": "Acerca de",
+    "tagline": "Setlists, letras y acordes — listos para el escenario.",
+    "license": "Licencia MIT",
+    "projectDescription": "Setlyst es un catálogo de letras y acordes pensado para actuaciones en vivo. Cantantes y músicos guardan repertorio, orden de las canciones, tonalidades y tempos en un solo lugar, y lo llevan al escenario con un modo en vivo diseñado para leerse en el atril — con metrónomo, transposición, desplazamiento automático y funcionamiento sin conexión.",
+    "openSource": "Es de código abierto: una app web en Next.js y una API en Rust, desarrolladas abiertamente en GitHub. Hecho por músicos, para músicos.",
+    "repositories": "Repositorios",
+    "repo": {
+      "web": "Aplicación web y PWA",
+      "api": "API REST y exportación a PDF"
+    },
+    "openRepository": "Abrir {name} en GitHub",
+    "lastCommit": "Último commit",
+    "live": "esta versión",
+    "commitUnavailable": "No se pudo acceder a GitHub ahora.",
+    "deployedBuild": "Versión en ejecución:",
+    "author": "Autor",
+    "authorRole": "Guitarrista, profesor de guitarra y desarrollador de software",
+    "authorBio": "Setlyst lo diseña y desarrolla un guitarrista en activo que también programa — por eso cada función nace de lo que de verdad hace falta en el escenario.",
+    "contributeTitle": "¿Encontraste un error o tienes una idea?",
+    "contributeDescription": "Issues y pull requests son bienvenidos.",
+    "reportIssue": "Abrir una issue"
+  },
+  "publicPage": {
+    "language": "Idioma",
+    "theme": "Tema",
+    "downloadPdf": "Descargar PDF",
+    "noSongs": "Esta setlist aún no tiene canciones.",
+    "readOnlyNotice": "Vista de solo lectura de una setlist compartida con Setlyst.",
+    "madeWith": "Hecho con Setlyst"
   }
 }

@@ -1,6 +1,6 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { Setlist, SetlistItem } from "@/types/api";
-import Link from "next/link";
+import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";

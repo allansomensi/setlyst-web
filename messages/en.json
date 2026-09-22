@@ -30,7 +30,14 @@
     "gigs": "Shows",
     "users": "Users",
     "logout": "Log out",
-    "bands": "Bands"
+    "bands": "Bands",
+    "about": "About",
+    "settings": "Settings",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "auth": {
     "login": {
@@ -102,7 +109,8 @@
     },
     "bands": {
       "description": "Manage the bands you're part of"
-    }
+    },
+    "shortcuts": "Shortcuts"
   },
   "artists": {
     "title": "Artists",
@@ -305,7 +313,8 @@
       "export": "Export PDF",
       "exporting": "Exporting...",
       "exportSuccess": "PDF exported successfully!",
-      "exportFailed": "Failed to export PDF."
+      "exportFailed": "Failed to export PDF.",
+      "language": "PDF language"
     },
     "empty": "No setlists registered.",
     "emptySearch": "No setlists found for \"{search}\".",
@@ -343,7 +352,8 @@
         "title": "Title",
         "artist": "Artist",
         "bpm": "BPM",
-        "actions": "Actions"
+        "actions": "Actions",
+        "duration": "Duration"
       },
       "removeConfirm": "Remove this song from the setlist?",
       "removed": "Song removed",
@@ -379,7 +389,11 @@
       "editBreakTitle": "Edit Break",
       "breakDialogDescription": "A visual pause in the setlist — not a song.",
       "breakLabelLabel": "Label (optional)",
-      "breakDurationLabel": "Duration (minutes, optional)"
+      "breakDurationLabel": "Duration (minutes, optional)",
+      "playFromHere": "Open Live Mode from this song",
+      "removeSong": "Remove from setlist",
+      "addBlockHint": "A named header that groups songs",
+      "addBreakHint": "A pause between songs, with optional duration"
     },
     "errors": {
       "titleLength": "Setlist title must be between 1 and 255 characters.",
@@ -408,7 +422,8 @@
       "disableAction": "Disable link",
       "disableConfirm": "Are you sure? The current link will stop working immediately for anyone who has it.",
       "disabled": "Public link disabled"
-    }
+    },
+    "songCount": "{count, plural, one {# song} other {# songs}}"
   },
   "gigs": {
     "title": "Shows",
@@ -501,14 +516,9 @@
     "key": "Key:",
     "offline": "Offline",
     "settings": {
-      "autoScrollTitle": "Start/stop auto-scroll",
       "decreaseSize": "Decrease text size",
       "increaseSize": "Increase text size",
       "fontLabel": "Font",
-      "showChords": "Show/hide chords",
-      "chordsOn": "Chords",
-      "chordsOff": "No chords",
-      "scroll": "Scroll",
       "decreaseSpeed": "Decrease speed (-)",
       "increaseSpeed": "Increase speed (+)"
     },
@@ -541,6 +551,33 @@
       "fitToScreen": "Whole song",
       "fitToScreenHelp": "Fit the whole song on one screen, so there's nothing to scroll",
       "fitOverflow": "Too long to fit on one screen at a readable size — scroll for the rest."
+    },
+    "fullscreen": "Fullscreen",
+    "swipeHint": "Swipe to change songs",
+    "sheet": {
+      "title": "Live settings",
+      "open": "Settings",
+      "description": "Changes apply instantly and stay on this device.",
+      "close": "Close settings",
+      "autoScroll": "Auto-scroll",
+      "autoScrollFitHint": "Not available while the whole song fits on screen",
+      "metronome": "Metronome",
+      "chords": "Chords",
+      "text": "Text",
+      "size": "Size",
+      "scrollSpeed": "Scroll speed",
+      "display": "Display",
+      "fullscreenHelp": "Hide the browser bars for more room",
+      "transpose": "Key",
+      "shortcuts": "Keyboard shortcuts",
+      "keyNav": "Previous / next song",
+      "keyScroll": "Start / stop auto-scroll",
+      "keySpeed": "Scroll faster / slower",
+      "keyMetronome": "Start / stop metronome",
+      "keyTranspose": "Transpose down / up"
+    },
+    "active": {
+      "pauseScroll": "Pause auto-scroll"
     }
   },
   "offlineSync": {
@@ -746,7 +783,8 @@
       "title": "Account Status",
       "description": "Active vs inactive users"
     },
-    "myBands": "My Bands"
+    "myBands": "My Bands",
+    "overview": "Overview"
   },
   "settings": {
     "title": "Preferences",
@@ -968,5 +1006,36 @@
   "rateLimit": {
     "message": "Too many requests right now. Wait a moment and try again.",
     "messageWithWait": "Too many requests right now. Try again in {seconds, plural, one {# second} other {# seconds}}."
+  },
+  "about": {
+    "title": "About",
+    "tagline": "Setlists, lyrics and chords — ready for the stage.",
+    "license": "MIT License",
+    "projectDescription": "Setlyst is a lyrics and chords library built for live performance. Singers and musicians keep their repertoire, running order, keys and tempos in one place, and take it on stage with a Live Mode designed to be read from a mic stand — with metronome, live transpose, auto-scroll and full offline support.",
+    "openSource": "It's open source: a Next.js web app and a Rust API, developed in the open on GitHub. Made by musicians, for musicians.",
+    "repositories": "Repositories",
+    "repo": {
+      "web": "Web app and PWA",
+      "api": "REST API and PDF export"
+    },
+    "openRepository": "Open {name} on GitHub",
+    "lastCommit": "Last commit",
+    "live": "this build",
+    "commitUnavailable": "Couldn't reach GitHub right now.",
+    "deployedBuild": "Running build:",
+    "author": "Author",
+    "authorRole": "Guitarist, guitar teacher and software developer",
+    "authorBio": "Setlyst is designed and built by a working guitarist who also writes software — so every feature is shaped by what's actually needed on stage.",
+    "contributeTitle": "Found a bug or have an idea?",
+    "contributeDescription": "Issues and pull requests are welcome.",
+    "reportIssue": "Open an issue"
+  },
+  "publicPage": {
+    "language": "Language",
+    "theme": "Theme",
+    "downloadPdf": "Download PDF",
+    "noSongs": "This setlist has no songs yet.",
+    "readOnlyNotice": "Read-only view of a setlist shared via Setlyst.",
+    "madeWith": "Made with Setlyst"
   }
 }
