@@ -6,7 +6,7 @@ import {
   BandRolePermission,
 } from "@/types/api";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { BandHeader } from "./_components/band-header";

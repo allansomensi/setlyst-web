@@ -3,14 +3,14 @@ import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/providers/theme_provider";
 import { AuthProvider } from "@/components/providers/session_provider";
 import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { fetchServerApi } from "@/lib/api-server";
 import { UserPreferences } from "@/types/api";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export default async function LocaleLayout({
   children,

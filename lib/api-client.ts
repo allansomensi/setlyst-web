@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useCallback } from "react";
+import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
 import {
   MAX_RETRIES,
   RETRYABLE_STATUSES,
@@ -44,8 +45,16 @@ export function useApi() {
         suppressAuthRedirect?: boolean;
       } = {},
     ): Promise<T> => {
-      if (!endpoint.startsWith("/") || endpoint.startsWith("//")) {
-        throw new ApiError(400, "Invalid endpoint");
+      // Same guarantee the server-side caller enforces: an endpoint can
+      // neither point at another host nor be re-targeted with `..`
+      // segments. See lib/api-endpoint.ts.
+      try {
+        assertSafeEndpoint(endpoint);
+      } catch (error) {
+        if (error instanceof InvalidEndpointError) {
+          throw new ApiError(400, "Invalid endpoint");
+        }
+        throw error;
       }
 
       const { suppressAuthRedirect, ...requestInit } = options;

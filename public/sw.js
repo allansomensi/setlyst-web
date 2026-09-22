@@ -485,7 +485,13 @@ async function networkFirst(request) {
     const requestPathname = new URL(request.url).pathname;
     const landingPath = await findCachedLandingPath(cache, requestPathname);
     if (landingPath && landingPath !== requestPathname) {
-      return Response.redirect(landingPath, 302);
+      // Absolute: Response.redirect() throws a TypeError on a bare
+      // pathname, which inside this catch block would escape as a failed
+      // navigation — the exact dead end this fallback exists to avoid.
+      return Response.redirect(
+        new URL(landingPath, self.location.origin).href,
+        302,
+      );
     }
 
     const offline = await cache.match(OFFLINE_URL);
@@ -506,7 +512,11 @@ async function cacheFirst(request, cacheName) {
   try {
     const response = await fetch(request);
     if (response && response.ok) {
-      cache.put(request, response.clone());
+      // Not awaited — the response goes back to the page either way — but
+      // the rejection is caught: cache.put() rejects on a redirected or
+      // otherwise unstorable response, and an uncaught rejection inside a
+      // service worker is a console error on every navigation.
+      cache.put(request, response.clone()).catch(() => {});
     }
     return response;
   } catch {
@@ -520,7 +530,7 @@ async function staleWhileRevalidate(request) {
   const networkPromise = fetch(request)
     .then((response) => {
       if (response && response.ok) {
-        cache.put(request, response.clone());
+        cache.put(request, response.clone()).catch(() => {});
       }
       return response;
     })

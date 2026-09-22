@@ -490,6 +490,7 @@
   },
   "liveMode": {
     "noSongs": "Nenhuma música nesta setlist",
+    "songPosition": "{current} de {total}",
     "singleSongMode": "Modo Ao Vivo — Música Única",
     "back": "Voltar",
     "nextSong": "Próxima música",
@@ -499,7 +500,6 @@
     "bpm": "BPM",
     "key": "Tom:",
     "offline": "Offline",
-    "offlineReady": "Salvo para uso offline",
     "settings": {
       "autoScrollTitle": "Iniciar/parar rolagem automática",
       "decreaseSize": "Diminuir tamanho do texto",

@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { updatePreferences } from "../actions";
+import { FONT_SIZE_PRESETS, normalizeFontSize } from "@/lib/preferences";
 import { UserPreferences, UserTheme } from "@/types/api";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -32,7 +33,6 @@ import {
   Globe,
   Palette,
   Type,
-  Percent,
   SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -42,22 +42,16 @@ interface SettingsFormProps {
   initialPreferences: UserPreferences;
 }
 
-const FONT_SIZE_PRESETS = [75, 100, 125, 150, 200];
-const FONT_SIZE_MIN = 50;
-const FONT_SIZE_MAX = 300;
-
 export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   const t = useTranslations("settings");
   const router = useRouter();
   const pathname = usePathname();
+  const { update: updateSession } = useSession();
   const { setTheme } = useTheme();
   const [isPending, startTransition] = useTransition();
-  const [fontSize, setFontSize] = useState(
-    initialPreferences.live_mode_font_size || 100,
+  const [fontSize, setFontSize] = useState(() =>
+    normalizeFontSize(initialPreferences.live_mode_font_size),
   );
-
-  const clampFontSize = (value: number) =>
-    Math.min(Math.max(value, FONT_SIZE_MIN), FONT_SIZE_MAX);
 
   const handleAction = (formData: FormData) => {
     const languageValue = formData.get("language");
@@ -74,25 +68,31 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
     const payload = {
       language,
       theme,
-      live_mode_font_size: clampFontSize(fontSize),
+      live_mode_font_size: fontSize,
     };
 
     startTransition(async () => {
       const result = await updatePreferences(payload);
 
-      if (result.success) {
-        setTheme(payload.theme);
-        toast.success(t("saveSuccess") || "Preferences updated");
-
-        setTimeout(() => {
-          if (payload.language !== initialPreferences.language) {
-            router.replace(pathname, { locale: payload.language });
-          } else {
-            router.refresh();
-          }
-        }, 1200);
-      } else {
+      if (!result.success) {
         toast.error(result.error || "Failed to update preferences");
+        return;
+      }
+
+      setTheme(payload.theme);
+      toast.success(t("saveSuccess") || "Preferences updated");
+
+      // Keep the language on the session token in step with what was just
+      // saved. The token is what decides the locale when the app is opened
+      // at a URL with no locale in it — an installed PWA's start_url, say
+      // — so leaving it stale here would send the person back to their
+      // previous language on the next launch. See lib/auth.ts.
+      await updateSession({ language: payload.language });
+
+      if (payload.language !== initialPreferences.language) {
+        router.replace(pathname, { locale: payload.language });
+      } else {
+        router.refresh();
       }
     });
   };
@@ -181,16 +181,26 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
           </CardTitle>
           <CardDescription>{t("liveModeFontSizeHelp")}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
+        <CardContent>
+          {/* A radiogroup rather than plain buttons: these are mutually
+              exclusive choices, so arrow-key navigation and the selected
+              state need to be exposed to assistive tech, which a row of
+              <button>s doesn't do on its own. */}
+          <div
+            role="radiogroup"
+            aria-label={t("liveModeFontSize")}
+            className="flex flex-wrap items-center gap-2"
+          >
             {FONT_SIZE_PRESETS.map((preset) => (
               <button
                 key={preset}
                 type="button"
+                role="radio"
+                aria-checked={fontSize === preset}
                 disabled={isPending}
                 onClick={() => setFontSize(preset)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  "focus-visible:ring-ring rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
                   fontSize === preset
                     ? "border-primary bg-primary text-primary-foreground"
                     : "bg-background hover:bg-accent/50 border-input",
@@ -199,26 +209,6 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                 {preset}%
               </button>
             ))}
-          </div>
-
-          <div className="relative w-full sm:max-w-[12rem]">
-            <Type className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              id="live_mode_font_size"
-              name="live_mode_font_size"
-              type="number"
-              min={FONT_SIZE_MIN}
-              max={FONT_SIZE_MAX}
-              value={fontSize}
-              onChange={(e) => {
-                const parsed = parseInt(e.target.value, 10);
-                setFontSize(Number.isNaN(parsed) ? FONT_SIZE_MIN : parsed);
-              }}
-              onBlur={() => setFontSize((prev) => clampFontSize(prev))}
-              disabled={isPending}
-              className="hover:border-primary/50 w-full pr-9 pl-9 transition-colors"
-            />
-            <Percent className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
           </div>
         </CardContent>
 

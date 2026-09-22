@@ -1,9 +1,40 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+import { ApiError } from "@/lib/api-server";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T }
   | { success: false; error: string };
+
+const GENERIC_ERROR = "An unexpected error occurred. Please try again.";
+
+/**
+ * Turns a thrown error into something safe to show a user.
+ *
+ * A 4xx from the backend is a message *about the request* — "that title is
+ * already taken", "you don't have permission" — and is worth surfacing
+ * verbatim, since it's the only thing that tells the person what to do
+ * differently. Anything else is not: a 5xx body can carry a database
+ * error, a panic message or a stack trace, and every one of these strings
+ * ends up rendered in a toast. Those collapse to a generic message, with
+ * the real one kept in the server logs where it's actually useful.
+ */
+function toClientMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status >= 400 && error.status < 500) {
+      return error.message || GENERIC_ERROR;
+    }
+    console.error(
+      "[guardedAction] Upstream error:",
+      error.status,
+      error.message,
+    );
+    return GENERIC_ERROR;
+  }
+
+  console.error("[guardedAction] Unhandled error:", error);
+  return GENERIC_ERROR;
+}
 
 /**
  * Wraps a Server Action with authentication and error handling.
@@ -25,10 +56,7 @@ export async function guardedAction<T>(
     revalidateFn?.();
     return { success: true, data: result };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "An unexpected error occurred.";
-
-    return { success: false, error: message };
+    return { success: false, error: toClientMessage(error) };
   }
 }
 

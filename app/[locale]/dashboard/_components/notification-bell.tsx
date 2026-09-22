@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, Check, ShieldAlert, UserMinus, Users } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -47,13 +47,37 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
   );
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // The interval below must call the LATEST `fetchApi` without being
+  // re-armed every time that function changes identity — which it does
+  // whenever NextAuth rotates the session token (hourly, per `updateAge`).
+  // Listing it as a dependency would tear down and restart the timer on
+  // every rotation, firing an extra off-schedule request each time. Same
+  // reasoning, and same fix, as the sync interval in
+  // components/providers/offline-sync-provider.tsx.
+  const fetchApiRef = useRef(fetchApi);
+  useEffect(() => {
+    fetchApiRef.current = fetchApi;
+  }, [fetchApi]);
+
   useEffect(() => {
     if (!isAuthReady) return;
 
     let cancelled = false;
 
     const poll = () => {
-      fetchApi<UnreadCountResponse>("/notifications/unread-count")
+      // Don't poll a tab nobody is looking at, or one with no connection.
+      // This runs every 30s for as long as the app is open — on a phone
+      // left on a music stand between sets, that is a lot of pointless
+      // radio wake-ups and a lot of requests the backend rate-limits.
+      if (
+        document.visibilityState !== "visible" ||
+        navigator.onLine === false
+      ) {
+        return;
+      }
+
+      fetchApiRef
+        .current<UnreadCountResponse>("/notifications/unread-count")
         .then((res) => {
           if (!cancelled) setUnreadCount(res.unread_count);
         })
@@ -65,11 +89,16 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
     poll();
     const interval = setInterval(poll, POLL_INTERVAL_MS);
 
+    // Catch up as soon as the tab is looked at again, rather than leaving
+    // a stale badge until the next tick comes round.
+    document.addEventListener("visibilitychange", poll);
+
     return () => {
       cancelled = true;
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", poll);
     };
-  }, [fetchApi, isAuthReady]);
+  }, [isAuthReady]);
 
   useEffect(() => {
     if (!open || !isAuthReady) return;

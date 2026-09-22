@@ -1,4 +1,5 @@
 import { fetchServerApi } from "@/lib/api-server";
+import { apiPath } from "@/lib/api-endpoint";
 import { PublicSetlist } from "@/types/api";
 import { notFound } from "next/navigation";
 import { PublicSetlistView } from "./_components/public-setlist-view";
@@ -12,7 +13,11 @@ export default async function PublicSetlistPage({
 
   let setlist: PublicSetlist;
   try {
-    setlist = await fetchServerApi<PublicSetlist>(`/public/setlists/${token}`);
+    // Encoded rather than interpolated raw: this token is the one value in
+    // the app that arrives from a link a stranger can craft and send.
+    setlist = await fetchServerApi<PublicSetlist>(
+      apiPath`/public/setlists/${token}`,
+    );
   } catch {
     notFound();
   }

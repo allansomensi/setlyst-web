@@ -1,7 +1,8 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { headers } from "next/headers"; // <-- Importado aqui
+import { authOptions } from "@/lib/auth";
+import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
+import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
 import {
   MAX_RETRIES,
   RETRYABLE_STATUSES,
@@ -40,12 +41,20 @@ function getApiBaseUrl(): string {
 }
 
 /**
- * Validates that the endpoint is a safe relative path and cannot be used
- * for SSRF (e.g. "//evil.com" or absolute URLs).
+ * Validates that the endpoint is a safe, root-relative API path — it can
+ * neither be redirected at another host (SSRF) nor re-targeted at a
+ * different endpoint via `..` segments. See lib/api-endpoint.ts for why
+ * that second case is reachable from ordinary route params.
  */
 function validateEndpoint(endpoint: string): void {
-  if (!endpoint.startsWith("/") || endpoint.startsWith("//")) {
-    throw new ApiError(400, `Invalid API endpoint: ${endpoint}`);
+  try {
+    assertSafeEndpoint(endpoint);
+  } catch (error) {
+    if (error instanceof InvalidEndpointError) {
+      console.error("[fetchServerApi] Rejected unsafe endpoint:", endpoint);
+      throw new ApiError(400, "Invalid API endpoint.");
+    }
+    throw error;
   }
 }
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { fetchServerApi } from "@/lib/api-server";
+import { apiPath } from "@/lib/api-endpoint";
 import { guardedAction, ActionResult } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
@@ -219,7 +220,11 @@ export async function acceptBandInvite(
   if (!code) return { success: false, error: t("invalidInviteCode") };
 
   return guardedAction(
-    () => fetchServerApi<Band>(`/invites/${code}/accept`, { method: "POST" }),
+    // Encoded: an invite code arrives from a link someone else sent.
+    () =>
+      fetchServerApi<Band>(apiPath`/invites/${code}/accept`, {
+        method: "POST",
+      }),
     () => revalidatePath("/dashboard/bands"),
   );
 }

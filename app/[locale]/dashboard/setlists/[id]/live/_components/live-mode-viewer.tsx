@@ -28,7 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSetlistBundle } from "@/hooks/use-offline-setlist-bundle";
-import { toast } from "sonner";
+import { useWakeLock } from "@/hooks/use-wake-lock";
+import { useFullscreen } from "@/hooks/use-fullscreen";
 
 // Types
 
@@ -77,10 +78,10 @@ export function LiveModeViewer({
   // with — it stays fresh on a schedule instead of being frozen at
   // whatever moment this exact URL last got cached, which matters once
   // you're relying on it with no signal at a venue.
-  const { setlist, songs, syncedAt } = useOfflineSetlistBundle(
-    initialSetlist.id,
-    { setlist: initialSetlist, songs: initialSongs },
-  );
+  const { setlist, songs } = useOfflineSetlistBundle(initialSetlist.id, {
+    setlist: initialSetlist,
+    songs: initialSongs,
+  });
 
   const startIndex = initialSongId
     ? Math.max(
@@ -90,8 +91,10 @@ export function LiveModeViewer({
     : 0;
 
   const [currentIndex, setCurrentIndex] = useState(startIndex);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
+
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
+  useWakeLock();
 
   const [settings, setSettings] = useState<LiveSettings>({
     zoomLevel: initialFontSize / 100,
@@ -103,26 +106,40 @@ export function LiveModeViewer({
 
   const scrollContainerRef = useRef<HTMLElement>(null);
 
-  const currentSong = songs[currentIndex];
-  const nextSong = songs[currentIndex + 1];
+  // The running order can change underneath this screen: the offline
+  // bundle above swaps in a freshly synced copy, and a bandmate removing
+  // songs elsewhere can make it shorter than the one this page rendered
+  // with. Clamping here rather than trusting `currentIndex` keeps a stale
+  // index from reading past the end and dropping the performer onto the
+  // "no songs" empty state mid-set.
+  const safeIndex = Math.min(currentIndex, Math.max(0, songs.length - 1));
+  const currentSong = songs[safeIndex];
+  const nextSong = songs[safeIndex + 1];
   const progress =
-    songs.length > 0 ? ((currentIndex + 1) / songs.length) * 100 : 0;
+    songs.length > 0 ? ((safeIndex + 1) / songs.length) * 100 : 0;
 
   // Navigation
+  //
+  // Both step from `safeIndex` rather than the raw previous value: if the
+  // running order shrank while this screen was open, `currentIndex` can
+  // still hold an index past the end, and stepping from *that* would move
+  // within the out-of-range region instead of from the song actually on
+  // screen. Writing the clamped value back also settles `currentIndex`
+  // without a separate synchronising effect.
 
   const handleNext = useCallback(() => {
-    if (currentIndex < songs.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+    if (safeIndex < songs.length - 1) {
+      setCurrentIndex(safeIndex + 1);
       setSettings((s) => ({ ...s, isAutoScroll: false }));
     }
-  }, [currentIndex, songs.length]);
+  }, [safeIndex, songs.length]);
 
   const handlePrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+    if (safeIndex > 0) {
+      setCurrentIndex(safeIndex - 1);
       setSettings((s) => ({ ...s, isAutoScroll: false }));
     }
-  }, [currentIndex]);
+  }, [safeIndex]);
 
   // Scroll to top on song change
 
@@ -130,7 +147,7 @@ export function LiveModeViewer({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
-  }, [currentIndex]);
+  }, [safeIndex]);
 
   // Auto-scroll
 
@@ -143,38 +160,6 @@ export function LiveModeViewer({
     }, SCROLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [settings.isAutoScroll, settings.scrollSpeed]);
-
-  // Wake Lock
-
-  useEffect(() => {
-    let wakeLock: WakeLockSentinel | null = null;
-    const requestWakeLock = async () => {
-      try {
-        if ("wakeLock" in navigator) {
-          wakeLock = await navigator.wakeLock.request("screen");
-        }
-      } catch (err) {
-        console.error("Wake Lock failed:", err);
-      }
-    };
-    requestWakeLock();
-    return () => {
-      wakeLock?.release();
-    };
-  }, []);
-
-  // Let the performer know, once per tab session, that this show is now
-  // saved for offline use — reassurance worth having before walking into a
-  // venue with bad signal. Gated on `syncedAt` rather than just "we're
-  // online and mounted": that reflects an actual on-device copy in
-  // IndexedDB, not merely a hope that the page happened to get cached.
-  useEffect(() => {
-    if (!isOnline || syncedAt === null) return;
-    const key = `setlyst:offline-ready:setlist:${setlist.id}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-    toast.success(t("offlineReady"));
-  }, [isOnline, syncedAt, setlist.id, t]);
 
   // Keyboard shortcuts
 
@@ -218,18 +203,6 @@ export function LiveModeViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleNext, handlePrev]);
 
-  // Fullscreen
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
   // Setting helpers
 
   const update = <K extends keyof LiveSettings>(
@@ -269,7 +242,11 @@ export function LiveModeViewer({
               {currentSong.title}
             </h1>
             <p className="text-muted-foreground truncate text-[10px] tracking-wider uppercase md:text-xs">
-              {setlist.title} · {currentIndex + 1} of {songs.length}
+              {setlist.title} ·{" "}
+              {t("songPosition", {
+                current: safeIndex + 1,
+                total: songs.length,
+              })}
             </p>
           </div>
         </div>
@@ -505,7 +482,7 @@ export function LiveModeViewer({
               variant="outline"
               size="lg"
               onClick={handlePrev}
-              disabled={currentIndex === 0}
+              disabled={safeIndex === 0}
               className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg"
             >
               <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
@@ -526,7 +503,7 @@ export function LiveModeViewer({
             <Button
               size="lg"
               onClick={handleNext}
-              disabled={currentIndex === songs.length - 1}
+              disabled={safeIndex === songs.length - 1}
               className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg"
             >
               <span className="hidden sm:inline">{t("next")}</span>

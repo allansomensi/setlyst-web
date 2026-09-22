@@ -25,7 +25,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSongBundle } from "@/hooks/use-offline-song-bundle";
-import { toast } from "sonner";
+import { useWakeLock } from "@/hooks/use-wake-lock";
+import { useFullscreen } from "@/hooks/use-fullscreen";
 
 type FontFamily = "sans" | "mono" | "serif";
 
@@ -66,10 +67,12 @@ export function SongLiveModeViewer({
   // See the analogous comment in setlists' LiveModeViewer: prefer the
   // on-device copy kept warm by OfflineSyncProvider over the
   // server-rendered prop.
-  const { song, syncedAt } = useOfflineSongBundle(initialSong.id, initialSong);
+  const { song } = useOfflineSongBundle(initialSong.id, initialSong);
 
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
+
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
+  useWakeLock();
 
   const [settings, setSettings] = useState<LiveSettings>({
     zoomLevel: initialFontSize / 100,
@@ -91,35 +94,6 @@ export function SongLiveModeViewer({
     }, SCROLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [settings.isAutoScroll, settings.scrollSpeed]);
-
-  // Wake Lock
-  useEffect(() => {
-    let wakeLock: WakeLockSentinel | null = null;
-    const requestWakeLock = async () => {
-      try {
-        if ("wakeLock" in navigator) {
-          wakeLock = await navigator.wakeLock.request("screen");
-        }
-      } catch (err) {
-        console.error("Wake Lock failed:", err);
-      }
-    };
-    requestWakeLock();
-    return () => {
-      wakeLock?.release();
-    };
-  }, []);
-
-  // Let the performer know, once per tab session, that this song is now
-  // saved for offline use. Gated on `syncedAt` so it reflects an actual
-  // on-device copy in IndexedDB, not just "we're online right now."
-  useEffect(() => {
-    if (!isOnline || syncedAt === null) return;
-    const key = `setlyst:offline-ready:song:${song.id}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-    toast.success(t("offlineReady"));
-  }, [isOnline, syncedAt, song.id, t]);
 
   // Keyboard shortcuts (space to toggle auto-scroll, +/- for its speed —
   // no left/right since there's nothing to navigate between)
@@ -154,16 +128,6 @@ export function SongLiveModeViewer({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
 
   const update = <K extends keyof LiveSettings>(
     key: K,

@@ -5,6 +5,22 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const isDev = process.env.NODE_ENV !== "production";
 
+/**
+ * Vercel's preview toolbar (vercel.live) is injected into preview and
+ * development deployments only — it is never part of a production page.
+ * Allowing its origin to run scripts and frame the app in production
+ * widens the policy for something that will never load there, so it is
+ * gated on the deployment environment rather than on NODE_ENV (which is
+ * "production" for preview builds too).
+ */
+const isProductionDeployment = process.env.VERCEL_ENV === "production";
+const previewOrigins = isProductionDeployment
+  ? []
+  : ["https://vercel.live", "https://vercel.com"];
+
+/** Vercel Web Analytics — loaded on every deployment, production included. */
+const ANALYTICS_ORIGIN = "https://va.vercel-scripts.com";
+
 const getApiOrigin = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
   try {
@@ -17,50 +33,59 @@ const getApiOrigin = () => {
 
 const apiOrigin = getApiOrigin();
 
-const vercelOrigins = [
-  "https://vercel.live",
-  "https://vercel.com",
-  "https://va.vercel-scripts.com",
-];
-
 const connectSrc = [
   "'self'",
   apiOrigin,
   ...(isDev
     ? ["ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"]
     : []),
-  ...vercelOrigins,
+  ANALYTICS_ORIGIN,
+  ...previewOrigins,
 ].filter(Boolean);
 
+/**
+ * Directives with no value (`upgrade-insecure-requests`) are listed here
+ * separately from the source-list ones so they can be emitted bare — a
+ * source-list directive with an empty value is treated as "block
+ * everything", which is very much not what is meant.
+ */
 const cspDirectives: Record<string, string[]> = {
   "default-src": ["'self'"],
   "script-src": [
     "'self'",
+    // Next.js inlines its bootstrap and route payloads as inline scripts.
+    // Replacing this with a per-request nonce is the meaningful next step
+    // for XSS hardening; it requires generating the nonce in proxy.ts and
+    // opting every statically-rendered route out of that path.
     "'unsafe-inline'",
     ...(isDev ? ["'unsafe-eval'"] : []),
-    "https://vercel.live",
-    "https://va.vercel-scripts.com",
+    ANALYTICS_ORIGIN,
+    ...previewOrigins,
   ],
-  "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-  "font-src": ["'self'", "https://fonts.gstatic.com"],
-  "img-src": ["'self'", "data:", "blob:", "https://vercel.com"],
+  // No external stylesheet or font origins: next/font/google downloads and
+  // self-hosts at build time, so nothing is ever fetched from Google at
+  // runtime and allowing those origins only widens the policy.
+  "style-src": ["'self'", "'unsafe-inline'"],
+  "font-src": ["'self'"],
+  "img-src": ["'self'", "data:", "blob:", ...previewOrigins],
   "connect-src": connectSrc,
-  "frame-src": ["'self'", "https://vercel.live"],
+  "frame-src": ["'self'", ...previewOrigins],
   "frame-ancestors": ["'none'"],
   "worker-src": ["'self'"],
   "manifest-src": ["'self'"],
   "base-uri": ["'self'"],
   "form-action": ["'self'"],
   "object-src": ["'none'"],
-  "upgrade-insecure-requests": isDev ? [] : [""],
 };
 
-const csp = Object.entries(cspDirectives)
-  .map(([key, values]) =>
-    values.length === 0 ? "" : `${key} ${values.join(" ")}`,
-  )
-  .filter(Boolean)
-  .join("; ");
+const valuelessDirectives = isDev ? [] : ["upgrade-insecure-requests"];
+
+const csp = [
+  ...Object.entries(cspDirectives)
+    .filter(([, values]) => values.length > 0)
+    .map(([key, values]) => `${key} ${values.join(" ")}`),
+  ...valuelessDirectives,
+].join("; ");
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -79,6 +104,13 @@ const securityHeaders = [
     ].join(", "),
   },
   { key: "Content-Security-Policy", value: csp },
+  // Severs the opener relationship with any window that launched this one,
+  // so a page that opens the app can neither reach into it via
+  // window.opener nor keep a handle on it after navigation.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // The app serves only its own assets; refusing to be loaded as a
+  // subresource elsewhere closes off cross-origin leak techniques.
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   ...(isDev
     ? []
     : [
