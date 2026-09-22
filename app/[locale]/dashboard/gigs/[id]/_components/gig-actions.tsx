@@ -97,7 +97,7 @@ export function GigActions({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setIsDeleteOpen(true)}
-            className="text-red-600 focus:text-red-600"
+            variant="destructive"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {tCommon("delete")}

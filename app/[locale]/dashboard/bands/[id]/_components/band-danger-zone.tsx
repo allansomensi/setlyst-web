@@ -88,7 +88,7 @@ export function BandDangerZone({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-red-600">{t("title")}</h2>
+        <h2 className="text-destructive text-lg font-semibold">{t("title")}</h2>
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 

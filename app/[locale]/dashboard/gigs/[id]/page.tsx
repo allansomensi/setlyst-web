@@ -1,6 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
+import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import {
-  PaginatedResponse,
   Gig,
   Setlist,
   Song,
@@ -58,7 +57,7 @@ export default async function GigDetailsPage({
   }
 
   const [personalSetlistsRes, bands] = await Promise.all([
-    fetchServerApi<PaginatedResponse<Setlist>>("/setlists?page=1&per_page=100"),
+    fetchAllServerPages<Setlist>("/setlists"),
     fetchServerApi<BandWithMembership[]>("/bands"),
   ]);
   const personalSetlists = personalSetlistsRes.data || [];
@@ -78,9 +77,9 @@ export default async function GigDetailsPage({
     bands
       .filter((band) => bandsById[band.id]?.canManage)
       .map((band) =>
-        fetchServerApi<PaginatedResponse<Setlist>>(
-          `/bands/${band.id}/setlists?page=1&per_page=100`,
-        ).then((res) => ({ id: band.id, name: band.name, res })),
+        fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`).then(
+          (res) => ({ id: band.id, name: band.name, res }),
+        ),
       ),
   );
   const manageableBands: BandOption[] = bandSetlistsResults.map((b) => ({
@@ -104,12 +103,10 @@ export default async function GigDetailsPage({
       allArtistsRes,
     ] = await Promise.all([
       fetchServerApi<Setlist>(`/setlists/${gig.setlist_id}`),
-      fetchServerApi<PaginatedResponse<SetlistSong>>(
-        `/setlists/${gig.setlist_id}/songs?page=1&per_page=100`,
-      ),
+      fetchAllServerPages<SetlistSong>(`/setlists/${gig.setlist_id}/songs`),
       fetchServerApi<SetlistItem[]>(`/setlists/${gig.setlist_id}/items`),
-      fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
-      fetchServerApi<PaginatedResponse<Artist>>("/artists?page=1&per_page=100"),
+      fetchAllServerPages<Song>("/songs"),
+      fetchAllServerPages<Artist>("/artists"),
     ]);
     setlist = setlistRes;
     setlistSongs = setlistSongsRes.data || [];

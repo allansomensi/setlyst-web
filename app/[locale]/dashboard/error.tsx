@@ -40,8 +40,8 @@ export default function DashboardError({
       data-error-boundary="dashboard"
       className="animate-in fade-in-50 flex h-[50vh] w-full flex-col items-center justify-center space-y-4 rounded-md border border-dashed p-8 text-center"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-        <AlertTriangle className="h-6 w-6 text-red-600" />
+      <div className="bg-destructive/10 flex h-12 w-12 items-center justify-center rounded-full">
+        <AlertTriangle className="text-destructive h-6 w-6" />
       </div>
       <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
       <p className="text-muted-foreground max-w-sm">{userMessage}</p>

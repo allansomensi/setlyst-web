@@ -19,7 +19,15 @@
   "pagination": {
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {current} of {total}"
+    "page": "Page {current} of {total}",
+    "range": "{first}–{last} of {total}",
+    "forSearch": "for “{search}”",
+    "perPage": "Rows per page",
+    "label": "Pagination",
+    "first": "First page",
+    "last": "Last page",
+    "jumpTo": "Go to page",
+    "goTo": "Go to page {page}"
   },
   "nav": {
     "home": "Home",
@@ -253,13 +261,38 @@
       "buildUp": "Build-up",
       "theme": "Theme",
       "outro": "Outro",
-      "coda": "Coda"
+      "coda": "Coda",
+      "sections": "Sections",
+      "riff": "Riff",
+      "part": "Part",
+      "adLib": "Ad lib",
+      "spoken": "Spoken",
+      "rap": "Rap",
+      "fadeOut": "Fade out"
     },
     "help": {
-      "title": "ChordPro Format"
+      "title": "ChordPro Format",
+      "intro": "Setlyst reads ChordPro and also the formats most chord sites use.",
+      "inlineChords": "Chords in brackets, right before the syllable they fall on.",
+      "sections": "A section on its own line — in English, Portuguese or Spanish, with or without brackets, numbers and repeats (\"Verse 2\", \"Refrão x2\").",
+      "environments": "ChordPro sections: chorus, verse, bridge, and {sot}…{eot} for tabs.",
+      "comment": "A note for the band, shown in the lyrics.",
+      "formatting": "Bold, italic and underline.",
+      "pasteTip": "Tip: pasting a song with chords on the line above the lyrics just works — they're placed over the right syllables automatically."
     },
     "readOnlyOffline": "Offline — read only",
-    "loadFailedOffline": "These lyrics aren't saved on this device yet."
+    "loadFailedOffline": "These lyrics aren't saved on this device yet.",
+    "commentPlaceholder": "note",
+    "placeholder": "[Verse 1]\n[Am]Type the [G]lyrics here — chords in brackets before the syllable\n\n[Chorus]\n[C]Or paste a song with the chords on the line above the lyrics",
+    "noChanges": "No changes to save",
+    "discardTitle": "Discard changes?",
+    "discardDescription": "Your edits to these lyrics haven't been saved and will be lost.",
+    "keepEditing": "Keep editing",
+    "discard": "Discard",
+    "render": {
+      "capo": "Capo {fret}",
+      "repeatChorus": "Repeat chorus"
+    }
   },
   "setlists": {
     "title": "Setlists",
@@ -548,8 +581,8 @@
     "display": {
       "highContrast": "High contrast",
       "highContrastHelp": "Black background, white lyrics and bright chords — easier to read under stage lights",
-      "fitToScreen": "Whole song",
-      "fitToScreenHelp": "Fit the whole song on one screen, so there's nothing to scroll",
+      "fitToScreen": "Compact mode",
+      "fitToScreenHelp": "Fits the whole song on one screen, in columns when there's room — no scrolling",
       "fitOverflow": "Too long to fit on one screen at a readable size — scroll for the rest."
     },
     "fullscreen": "Fullscreen",
@@ -560,7 +593,7 @@
       "description": "Changes apply instantly and stay on this device.",
       "close": "Close settings",
       "autoScroll": "Auto-scroll",
-      "autoScrollFitHint": "Not available while the whole song fits on screen",
+      "autoScrollFitHint": "Not needed in compact mode — the whole song is on screen",
       "metronome": "Metronome",
       "chords": "Chords",
       "text": "Text",
@@ -574,7 +607,10 @@
       "keyScroll": "Start / stop auto-scroll",
       "keySpeed": "Scroll faster / slower",
       "keyMetronome": "Start / stop metronome",
-      "keyTranspose": "Transpose down / up"
+      "keyTranspose": "Transpose down / up",
+      "sections": "Sections",
+      "keyChords": "Show / hide chords",
+      "keySections": "Show / hide sections"
     },
     "active": {
       "pauseScroll": "Pause auto-scroll"
@@ -1009,10 +1045,10 @@
   },
   "about": {
     "title": "About",
-    "tagline": "Setlists, lyrics and chords — ready for the stage.",
+    "tagline": "Your repertoire, setlists and gigs — ready for the stage.",
     "license": "MIT License",
-    "projectDescription": "Setlyst is a lyrics and chords library built for live performance. Singers and musicians keep their repertoire, running order, keys and tempos in one place, and take it on stage with a Live Mode designed to be read from a mic stand — with metronome, live transpose, auto-scroll and full offline support.",
-    "openSource": "It's open source: a Next.js web app and a Rust API, developed in the open on GitHub. Made by musicians, for musicians.",
+    "projectDescription": "Setlyst is a musician's companion for the stage. Keep the lyrics of your own repertoire — with chords if you want them — build setlists, organise your gigs, and perform with a Live Mode designed to be read from a mic stand: live transposition, metronome, auto-scroll, compact mode and full offline support.",
+    "openSource": "Solo or with your band, everything you need to step on stage lives in one place. Setlyst is open source — a Next.js web app and a Rust API, built in the open by musicians, for musicians.",
     "repositories": "Repositories",
     "repo": {
       "web": "Web app and PWA",

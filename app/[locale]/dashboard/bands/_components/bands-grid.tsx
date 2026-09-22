@@ -239,7 +239,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                       {band.my_role === "owner" ? (
                         <DropdownMenuItem
                           onClick={() => setBandToDelete(band)}
-                          className="text-red-600"
+                          variant="destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {t("menu.delete")}
@@ -247,7 +247,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                       ) : (
                         <DropdownMenuItem
                           onClick={() => setBandToLeave(band)}
-                          className="text-red-600"
+                          variant="destructive"
                         >
                           <LogOut className="mr-2 h-4 w-4" />
                           {t("menu.leave")}

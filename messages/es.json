@@ -19,7 +19,15 @@
   "pagination": {
     "previous": "Anterior",
     "next": "Siguiente",
-    "page": "Página {current} de {total}"
+    "page": "Página {current} de {total}",
+    "range": "{first}–{last} de {total}",
+    "forSearch": "para “{search}”",
+    "perPage": "Filas por página",
+    "label": "Paginación",
+    "first": "Primera página",
+    "last": "Última página",
+    "jumpTo": "Ir a la página",
+    "goTo": "Ir a la página {page}"
   },
   "nav": {
     "home": "Inicio",
@@ -59,7 +67,7 @@
       "welcomeBack": "¡Bienvenido de nuevo!"
     },
     "register": {
-      "title": "Crear una Cuenta",
+      "title": "Crear una cuenta",
       "subtitle": "Ingresa tus datos para crear tu cuenta",
       "username": "Usuario",
       "usernamePlaceholder": "Elige un nombre de usuario",
@@ -115,7 +123,7 @@
   "artists": {
     "title": "Artistas",
     "subtitle": "Administra los artistas de tu banda.",
-    "addArtist": "Agregar Artista",
+    "addArtist": "Agregar artista",
     "searchPlaceholder": "Buscar artista...",
     "table": {
       "name": "Nombre",
@@ -125,11 +133,11 @@
     "empty": "No hay artistas registrados. Empieza agregando uno.",
     "emptySearch": "No se encontraron artistas para \"{search}\".",
     "dialog": {
-      "addTitle": "Agregar Nuevo Artista",
-      "editTitle": "Editar Artista",
+      "addTitle": "Agregar nuevo artista",
+      "editTitle": "Editar artista",
       "addDescription": "Ingresa los datos del nuevo artista.",
       "editDescription": "Actualiza los datos del artista.",
-      "nameLabel": "Nombre del Artista",
+      "nameLabel": "Nombre del artista",
       "namePlaceholder": "ej.: Carlos Santana",
       "created": "¡Artista creado!",
       "updated": "¡Artista actualizado!",
@@ -146,7 +154,7 @@
   "songs": {
     "title": "Canciones",
     "subtitle": "Administra el repertorio de tu banda.",
-    "addSong": "Agregar Canción",
+    "addSong": "Agregar canción",
     "export": "Exportar",
     "exportChordpro": "ChordPro (.cho)",
     "exportSuccess": "¡Canciones exportadas con éxito!",
@@ -164,8 +172,8 @@
     "empty": "No hay canciones registradas. Empieza agregando una.",
     "emptySearch": "No se encontraron canciones para \"{search}\".",
     "dialog": {
-      "addTitle": "Agregar Canción",
-      "editTitle": "Editar Canción",
+      "addTitle": "Agregar canción",
+      "editTitle": "Editar canción",
       "addDescription": "Completa los datos. La letra puede agregarse después.",
       "editDescription": "Actualiza los datos y metadatos de la canción.",
       "titleLabel": "Título",
@@ -205,7 +213,7 @@
     }
   },
   "lyrics": {
-    "editTitle": "Editar Letra",
+    "editTitle": "Editar letra",
     "save": "Guardar",
     "cancel": "Cancelar",
     "saving": "Guardando...",
@@ -237,12 +245,12 @@
       "interlude": "Interludio",
       "instrumental": "Instrumental",
       "solo": "Solo",
-      "guitarSolo": "Solo de Guitarra",
-      "keyboardSolo": "Solo de Teclado",
-      "bassSolo": "Solo de Bajo",
-      "drumSolo": "Solo de Batería",
-      "saxSolo": "Solo de Saxofón",
-      "synthSolo": "Solo de Sintetizador",
+      "guitarSolo": "Solo de guitarra",
+      "keyboardSolo": "Solo de teclado",
+      "bassSolo": "Solo de bajo",
+      "drumSolo": "Solo de batería",
+      "saxSolo": "Solo de saxofón",
+      "synthSolo": "Solo de sintetizador",
       "break": "Pausa",
       "breakdown": "Caída",
       "drop": "Drop",
@@ -253,35 +261,60 @@
       "buildUp": "Subida",
       "theme": "Tema",
       "outro": "Final",
-      "coda": "Coda"
+      "coda": "Coda",
+      "sections": "Secciones",
+      "riff": "Riff",
+      "part": "Parte",
+      "adLib": "Improvisación",
+      "spoken": "Recitado",
+      "rap": "Rap",
+      "fadeOut": "Fade out"
     },
     "help": {
-      "title": "Formato ChordPro"
+      "title": "Formato ChordPro",
+      "intro": "Setlyst lee ChordPro y también los formatos de la mayoría de sitios de acordes.",
+      "inlineChords": "Acordes entre corchetes, justo antes de la sílaba donde entran.",
+      "sections": "Una sección en su propia línea — en español, inglés o portugués, con o sin corchetes, números y repeticiones (\"Verso 2\", \"Coro x2\").",
+      "environments": "Secciones ChordPro: coro, verso, puente, y {sot}…{eot} para tablaturas.",
+      "comment": "Una nota para la banda, mostrada en la letra.",
+      "formatting": "Negrita, cursiva y subrayado.",
+      "pasteTip": "Consejo: puedes pegar canciones con los acordes en la línea de arriba — se colocan sobre las sílabas correctas automáticamente."
     },
     "readOnlyOffline": "Sin conexión — solo lectura",
-    "loadFailedOffline": "Esta letra todavía no está guardada en este dispositivo."
+    "loadFailedOffline": "Esta letra todavía no está guardada en este dispositivo.",
+    "commentPlaceholder": "nota",
+    "placeholder": "[Verso 1]\n[Am]Escribe la [G]letra aquí — acordes entre corchetes antes de la sílaba\n\n[Coro]\n[C]O pega una canción con los acordes en la línea de arriba",
+    "noChanges": "No hay cambios para guardar",
+    "discardTitle": "¿Descartar cambios?",
+    "discardDescription": "Los cambios en esta letra no se han guardado y se perderán.",
+    "keepEditing": "Seguir editando",
+    "discard": "Descartar",
+    "render": {
+      "capo": "Cejilla en el traste {fret}",
+      "repeatChorus": "Repetir estribillo"
+    }
   },
   "setlists": {
     "title": "Setlists",
     "subtitle": "Administra tus setlists. Haz clic en una para editar las canciones.",
-    "addSetlist": "Agregar Setlist",
-    "liveModeBtn": "Modo en Vivo",
+    "addSetlist": "Agregar setlist",
+    "liveModeBtn": "Modo en vivo",
     "analyticsBtn": "Analytics",
     "favorite": "Marcar como favorito",
     "unfavorite": "Quitar de favoritos",
     "searchPlaceholder": "Buscar setlist...",
-    "totalDuration": "Duración Total",
+    "totalDuration": "Duración total",
     "analytics": {
-      "title": "Analytics de la Setlist",
+      "title": "Analytics de la setlist",
       "chartTitle": "Progresión de tempo",
       "chartDescription": "BPM de cada canción en el orden de la setlist — mira dónde el show baja y dónde se dispara.",
       "bpmAxisLabel": "BPM",
       "empty": "Agrega canciones con BPM definido para ver el gráfico.",
       "breakDefaultLabel": "Pausa",
       "stats": {
-        "average": "BPM Promedio",
-        "peak": "Pico de Energía",
-        "calmest": "Momento Más Calmo",
+        "average": "BPM promedio",
+        "peak": "Pico de energía",
+        "calmest": "Momento más calmo",
         "missing": "Sin BPM definido"
       },
       "legend": {
@@ -325,8 +358,8 @@
       "duplicate": "Duplicar"
     },
     "dialog": {
-      "addTitle": "Agregar Nueva Setlist",
-      "editTitle": "Editar Setlist",
+      "addTitle": "Agregar nueva setlist",
+      "editTitle": "Editar setlist",
       "description": "Ingresa los datos de la setlist.",
       "titleLabel": "Título",
       "titlePlaceholder": "ej., Gira de Verano 2026",
@@ -341,10 +374,10 @@
       "copyTitle": "{title} (copia)"
     },
     "songs": {
-      "title": "Canciones en esta Setlist",
-      "addSong": "Agregar Canción",
+      "title": "Canciones en esta setlist",
+      "addSong": "Agregar canción",
       "reorder": "Reordenar",
-      "saveOrder": "Guardar Orden",
+      "saveOrder": "Guardar orden",
       "cancelReorder": "Cancelar",
       "empty": "Aún no hay canciones agregadas.",
       "table": {
@@ -359,12 +392,12 @@
       "removed": "Canción eliminada",
       "orderSaved": "Orden guardado con éxito",
       "addDialog": {
-        "title": "Agregar Canción a la Setlist",
+        "title": "Agregar canción a la setlist",
         "description": "Selecciona una canción de tu repertorio para agregar a esta setlist.",
         "songLabel": "Canción",
         "selectSong": "Selecciona una canción",
         "noMoreSongs": "No hay más canciones disponibles",
-        "addButton": "Agregar Canción",
+        "addButton": "Agregar canción",
         "added": "¡Canción agregada a la setlist!",
         "addFailed": "Error al agregar la canción"
       },
@@ -380,13 +413,13 @@
       "breakUpdated": "Pausa actualizada",
       "markerDeleted": "Eliminado",
       "markerDeleteConfirm": "¿Eliminar este elemento de la setlist?",
-      "addBlockTitle": "Agregar Bloque",
-      "editBlockTitle": "Editar Bloque",
+      "addBlockTitle": "Agregar bloque",
+      "editBlockTitle": "Editar bloque",
       "blockDialogDescription": "Agrupa canciones bajo una sección con nombre, ej.: \"Baladas\" o \"Movidas\".",
       "blockNameLabel": "Nombre del bloque",
       "blockNamePlaceholder": "ej., Bloque Baladas",
-      "addBreakTitle": "Agregar Pausa",
-      "editBreakTitle": "Editar Pausa",
+      "addBreakTitle": "Agregar pausa",
+      "editBreakTitle": "Editar pausa",
       "breakDialogDescription": "Una pausa visual en la setlist — no es una canción.",
       "breakLabelLabel": "Texto (opcional)",
       "breakDurationLabel": "Duración (minutos, opcional)",
@@ -428,7 +461,7 @@
   "gigs": {
     "title": "Shows",
     "subtitle": "Gestiona tus próximos shows y los ya realizados.",
-    "addGig": "Agregar Show",
+    "addGig": "Agregar show",
     "searchPlaceholder": "Buscar shows...",
     "upcoming": "Próximos",
     "past": "Pasados",
@@ -446,8 +479,8 @@
       "delete": "Eliminar"
     },
     "dialog": {
-      "addTitle": "Agregar Nuevo Show",
-      "editTitle": "Editar Show",
+      "addTitle": "Agregar nuevo show",
+      "editTitle": "Editar show",
       "description": "Ingresa los detalles del show a continuación.",
       "venueLabel": "Lugar",
       "venuePlaceholder": "ej., The Blue Note",
@@ -478,7 +511,7 @@
       "invalidId": "ID de show inválido."
     },
     "bandGig": "Banda",
-    "liveModeBtn": "Modo En Vivo",
+    "liveModeBtn": "Modo en vivo",
     "bandGigTooltip": "Show de la banda {name}",
     "shareBtn": "Compartir",
     "share": {
@@ -506,7 +539,7 @@
   "liveMode": {
     "noSongs": "No hay canciones en esta setlist",
     "songPosition": "{current} de {total}",
-    "singleSongMode": "Modo En Vivo — Canción Única",
+    "singleSongMode": "Modo en vivo — canción única",
     "back": "Volver",
     "nextSong": "Siguiente canción",
     "endOfShow": "FIN DEL SHOW",
@@ -548,8 +581,8 @@
     "display": {
       "highContrast": "Alto contraste",
       "highContrastHelp": "Fondo negro, letra blanca y acordes destacados — más legible bajo las luces del escenario",
-      "fitToScreen": "Pantalla única",
-      "fitToScreenHelp": "Muestra la canción entera en una sola pantalla, sin desplazarse",
+      "fitToScreen": "Modo compacto",
+      "fitToScreenHelp": "Ajusta la canción entera a una pantalla, en columnas si hay espacio — sin desplazarse",
       "fitOverflow": "Demasiado larga para caber en una pantalla a un tamaño legible — desplázate para ver el resto."
     },
     "fullscreen": "Pantalla completa",
@@ -560,7 +593,7 @@
       "description": "Los cambios se aplican al instante y se guardan en este dispositivo.",
       "close": "Cerrar ajustes",
       "autoScroll": "Desplazamiento",
-      "autoScrollFitHint": "No disponible con la canción entera en pantalla",
+      "autoScrollFitHint": "No hace falta en modo compacto — la canción entera ya está en pantalla",
       "metronome": "Metrónomo",
       "chords": "Acordes",
       "text": "Texto",
@@ -574,7 +607,10 @@
       "keyScroll": "Iniciar / detener desplazamiento",
       "keySpeed": "Desplazamiento más rápido / lento",
       "keyMetronome": "Iniciar / detener metrónomo",
-      "keyTranspose": "Bajar / subir tono"
+      "keyTranspose": "Bajar / subir tono",
+      "sections": "Secciones",
+      "keyChords": "Mostrar / ocultar acordes",
+      "keySections": "Mostrar / ocultar secciones"
     },
     "active": {
       "pauseScroll": "Pausar desplazamiento"
@@ -609,7 +645,7 @@
   "users": {
     "title": "Usuarios",
     "subtitle": "Administra los miembros de la plataforma.",
-    "addUser": "Agregar Usuario",
+    "addUser": "Agregar usuario",
     "searchPlaceholder": "Buscar por usuario, correo...",
     "table": {
       "user": "Usuario",
@@ -629,8 +665,8 @@
       "inactive": "inactivo"
     },
     "dialog": {
-      "addTitle": "Agregar Nuevo Usuario",
-      "editTitle": "Editar Usuario",
+      "addTitle": "Agregar nuevo usuario",
+      "editTitle": "Editar usuario",
       "addDescription": "Ingresa los datos y credenciales del nuevo usuario.",
       "editDescription": "Actualiza los permisos y el perfil del usuario.",
       "usernameLabel": "Usuario",
@@ -643,8 +679,8 @@
       "lastNameLabel": "Apellido",
       "roleLabel": "Rol",
       "statusLabel": "Estado",
-      "saveChanges": "Guardar Cambios",
-      "createUser": "Crear Usuario",
+      "saveChanges": "Guardar cambios",
+      "createUser": "Crear usuario",
       "created": "¡Usuario creado con éxito!",
       "updated": "¡Usuario actualizado con éxito!",
       "createFailed": "Error al crear el usuario",
@@ -654,18 +690,18 @@
       "deleteFailed": "Error al eliminar el usuario"
     },
     "passwordDialog": {
-      "title": "Cambiar Contraseña",
+      "title": "Cambiar contraseña",
       "description": "Establece una nueva contraseña para {username}.",
-      "newPassword": "Nueva Contraseña",
-      "confirmPassword": "Confirmar Nueva Contraseña",
-      "update": "Actualizar Contraseña",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "update": "Actualizar contraseña",
       "success": "¡Contraseña cambiada con éxito!",
       "mismatch": "Las contraseñas no coinciden.",
       "failed": "Error al cambiar la contraseña"
     },
     "menu": {
       "edit": "Editar",
-      "changePassword": "Cambiar Contraseña",
+      "changePassword": "Cambiar contraseña",
       "delete": "Eliminar"
     },
     "errors": {
@@ -692,11 +728,11 @@
     "manageInUsers": "Gestionar en la pantalla de usuarios"
   },
   "profile": {
-    "title": "Configuración de la Cuenta",
+    "title": "Configuración de la cuenta",
     "subtitle": "Administra tu perfil público y preferencias de seguridad.",
-    "personalInfo": "Información Personal",
-    "editProfile": "Editar Perfil",
-    "saveChanges": "Guardar Cambios",
+    "personalInfo": "Información personal",
+    "editProfile": "Editar perfil",
+    "saveChanges": "Guardar cambios",
     "saving": "Guardando...",
     "firstNameLabel": "Nombre",
     "lastNameLabel": "Apellido",
@@ -704,16 +740,16 @@
     "usernameTaken": "Este nombre de usuario ya está en uso.",
     "usernameAvailable": "¡Nombre de usuario disponible!",
     "usernameCooldown": "Podrás cambiar tu nombre de usuario de nuevo el {date}.",
-    "emailLabel": "Correo Electrónico",
+    "emailLabel": "Correo electrónico",
     "joinedOn": "Miembro desde {date}",
     "success": "Perfil actualizado con éxito",
     "failed": "Error al actualizar el perfil",
-    "changePasswordTitle": "Cambiar Contraseña",
+    "changePasswordTitle": "Cambiar contraseña",
     "changePasswordDescription": "Mantén tu cuenta segura utilizando una contraseña fuerte.",
-    "currentPassword": "Contraseña Actual",
-    "newPassword": "Nueva Contraseña",
-    "confirmPassword": "Confirmar Nueva Contraseña",
-    "updatePassword": "Actualizar Contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar nueva contraseña",
+    "updatePassword": "Actualizar contraseña",
     "passwordsDoNotMatch": "Las contraseñas no coinciden.",
     "passwordChanged": "¡Tu contraseña ha sido cambiada con éxito!",
     "security": "Seguridad",
@@ -750,40 +786,40 @@
     "active": "Activos",
     "inactive": "Inactivos",
     "topGenres": {
-      "title": "Top Géneros",
+      "title": "Top géneros",
       "description": "Tus géneros musicales más tocados",
-      "globalTitle": "Géneros Populares",
+      "globalTitle": "Géneros populares",
       "globalDescription": "Top géneros en la plataforma"
     },
     "topArtists": {
-      "title": "Top Artistas",
+      "title": "Top artistas",
       "description": "Artistas con más canciones registradas"
     },
     "repertoireHealth": {
-      "title": "Salud del Repertorio",
+      "title": "Salud del repertorio",
       "description": "Métricas sobre qué tan completas están tus canciones",
-      "withLyrics": "Con Letra",
-      "withoutLyrics": "Sin Letra",
-      "withTonality": "Con Tonalidad",
+      "withLyrics": "Con letra",
+      "withoutLyrics": "Sin letra",
+      "withTonality": "Con tonalidad",
       "withBpm": "Con BPM (Tempo)"
     },
     "platformOverview": {
-      "title": "Visión General de la Plataforma",
-      "totalUsers": "Total de Usuarios",
-      "totalArtists": "Total de Artistas",
-      "totalSongs": "Total de Canciones",
-      "totalSetlists": "Total de Setlists",
-      "totalBands": "Total de Bandas"
+      "title": "Visión general de la plataforma",
+      "totalUsers": "Total de usuarios",
+      "totalArtists": "Total de artistas",
+      "totalSongs": "Total de canciones",
+      "totalSetlists": "Total de setlists",
+      "totalBands": "Total de bandas"
     },
     "userRoles": {
-      "title": "Roles de Usuario",
+      "title": "Roles de usuario",
       "description": "Distribución de permisos"
     },
     "accountStatus": {
-      "title": "Estado de Cuentas",
+      "title": "Estado de cuentas",
       "description": "Usuarios activos vs inactivos"
     },
-    "myBands": "Mis Bandas",
+    "myBands": "Mis bandas",
     "overview": "Resumen"
   },
   "settings": {
@@ -796,14 +832,14 @@
     "themeLight": "Claro",
     "themeDark": "Oscuro",
     "themeSystem": "Sistema",
-    "liveModeFontSize": "Tamaño de Fuente (Modo en Vivo)",
+    "liveModeFontSize": "Tamaño de fuente (Modo en vivo)",
     "liveModeFontSizeHelp": "Tamaño de fuente base para el teleprompter del Modo en Vivo (50% a 300%).",
     "save": "Guardar preferencias",
     "saveSuccess": "¡Preferencias actualizadas con éxito!",
-    "backupTitle": "Respaldo de Datos",
+    "backupTitle": "Respaldo de datos",
     "backupDescription": "Exporta tu repertorio completo o restaura desde un archivo de respaldo anterior (.json).",
     "backupExportBtn": "Exportar Respaldo",
-    "backupImportBtn": "Importar Respaldo",
+    "backupImportBtn": "Importar respaldo",
     "backupExportSuccess": "¡Respaldo exportado con éxito!",
     "backupImportSuccess": "¡Respaldo importado con éxito!",
     "backupImportSuccessTitle": "¡Respaldo importado con éxito!",
@@ -828,17 +864,17 @@
   "bands": {
     "title": "Bandas",
     "subtitle": "Gestiona las bandas de las que formas parte.",
-    "addBand": "Nueva Banda",
+    "addBand": "Nueva banda",
     "favorite": "Marcar como favorito",
     "unfavorite": "Quitar de favoritos",
     "searchPlaceholder": "Buscar banda...",
     "empty": "Todavía no formas parte de ninguna banda.",
     "emptySearch": "No se encontraron bandas para \"{search}\".",
     "memberCount": "{count} integrante(s)",
-    "viewSetlists": "Ver Setlists",
-    "bandSetlistsTitle": "Setlists de la Banda",
-    "viewGigs": "Ver Shows",
-    "bandGigsTitle": "Shows de la Banda",
+    "viewSetlists": "Ver setlists",
+    "bandSetlistsTitle": "Setlists de la banda",
+    "viewGigs": "Ver shows",
+    "bandGigsTitle": "Shows de la banda",
     "menu": {
       "manage": "Gestionar",
       "edit": "Editar",
@@ -846,8 +882,8 @@
       "leave": "Salir de la banda"
     },
     "dialog": {
-      "addTitle": "Nueva Banda",
-      "editTitle": "Editar Banda",
+      "addTitle": "Nueva banda",
+      "editTitle": "Editar banda",
       "description": "Completa los datos de la banda a continuación.",
       "nameLabel": "Nombre",
       "namePlaceholder": "ej., Los Errantes",
@@ -900,7 +936,7 @@
     "invites": {
       "title": "Invitaciones",
       "subtitle": "Genera enlaces de invitación para que nuevos integrantes se unan a la banda.",
-      "createInvite": "Crear Invitación",
+      "createInvite": "Crear invitación",
       "createDescription": "Elige el rol y las condiciones de la invitación.",
       "empty": "Aún no se han creado invitaciones.",
       "table": {
@@ -962,7 +998,7 @@
       "saveFailed": "Error al actualizar los permisos"
     },
     "danger": {
-      "title": "Zona de Peligro",
+      "title": "Zona de peligro",
       "subtitle": "Acciones irreversibles relacionadas con esta banda.",
       "transferTitle": "Transferir administración",
       "transferDescription": "Convierte a otro integrante en el administrador de esta banda.",
@@ -1009,10 +1045,10 @@
   },
   "about": {
     "title": "Acerca de",
-    "tagline": "Setlists, letras y acordes — listos para el escenario.",
+    "tagline": "Tu repertorio, tus setlists y tus shows — listos para el escenario.",
     "license": "Licencia MIT",
-    "projectDescription": "Setlyst es un catálogo de letras y acordes pensado para actuaciones en vivo. Cantantes y músicos guardan repertorio, orden de las canciones, tonalidades y tempos en un solo lugar, y lo llevan al escenario con un modo en vivo diseñado para leerse en el atril — con metrónomo, transposición, desplazamiento automático y funcionamiento sin conexión.",
-    "openSource": "Es de código abierto: una app web en Next.js y una API en Rust, desarrolladas abiertamente en GitHub. Hecho por músicos, para músicos.",
+    "projectDescription": "Setlyst es el compañero del músico en el escenario. Guarda las letras de tu propio repertorio — con acordes, si quieres —, arma setlists, organiza tus shows y toca con un modo en vivo pensado para leerse en el atril: transposición de tono, metrónomo, desplazamiento automático, modo compacto y funcionamiento sin conexión.",
+    "openSource": "Solo o con tu banda, todo lo que necesitas para subir al escenario está en un solo lugar. Setlyst es de código abierto — una app web en Next.js y una API en Rust, desarrolladas abiertamente por músicos, para músicos.",
     "repositories": "Repositorios",
     "repo": {
       "web": "Aplicación web y PWA",

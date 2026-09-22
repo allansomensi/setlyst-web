@@ -1,10 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
-import {
-  PaginatedResponse,
-  Setlist,
-  BandWithMembership,
-  BAND_ROLE_LEVEL,
-} from "@/types/api";
+import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { Setlist, BandWithMembership, BAND_ROLE_LEVEL } from "@/types/api";
 import { SetlistsTable } from "./_components/setlists-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
@@ -18,11 +13,7 @@ export default async function SetlistsPage() {
   // them this time (see <LoadErrorNotice />, which SetlistsTable shows
   // instead when `loadError` is true and the list ends up empty).
   const [personalRes, bandsRaw] = await Promise.all([
-    fetchOrFailed(
-      fetchServerApi<PaginatedResponse<Setlist>>(
-        "/setlists?page=1&per_page=100",
-      ),
-    ),
+    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
     fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
   ]);
 
@@ -43,11 +34,7 @@ export default async function SetlistsPage() {
   // shouldn't hide every other band's (or the personal ones).
   const bandSetlistsResults = await Promise.all(
     bands.map((band) =>
-      fetchOrFailed(
-        fetchServerApi<PaginatedResponse<Setlist>>(
-          `/bands/${band.id}/setlists?page=1&per_page=100`,
-        ),
-      ),
+      fetchOrFailed(fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`)),
     ),
   );
   const bandSetlistsFailed = bandSetlistsResults.some(

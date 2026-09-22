@@ -183,7 +183,7 @@ export function ShareSetlistDialog({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="text-red-600 hover:text-red-600"
+                    className="text-destructive hover:text-destructive"
                     onClick={() => setIsConfirmingDisable(true)}
                     disabled={isPending}
                   >

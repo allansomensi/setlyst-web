@@ -115,9 +115,14 @@ const MINOR_SIGNATURE = [-3, 4, -1, -6, 1, -4, 3, -2, 5, 0, -5, 2] as const;
  * `[Bridge]` into `[C#ridge]`. Requiring the suffix to be built only from
  * real chord vocabulary means those headings simply fail to parse and are
  * left untouched.
+ *
+ * A slash followed by a *number* is an extension, not a bass note — the
+ * Brazilian way of writing tensions (`A7/9`, `E7/9-`, `G7/13`, `D4/7`).
+ * Without it those chords weren't recognised at all: never transposed,
+ * and drawn as plain text.
  */
 const CHORD_SUFFIX_TOKEN =
-  "(?:maj|min|sus|add|aug|dim|alt|M|m|°|º|ø|Δ|\\+|-|[#b]|\\d|\\(|\\)|,)";
+  "(?:maj|min|sus|add|aug|dim|alt|no|omit|M|m|°|º|ø|Δ|\\+|-|[#b]|\\d|\\(|\\)|,|\\/[#b+-]?\\d+[+-]?)";
 
 const CHORD_PATTERN = new RegExp(
   `^([A-G])([#b]{0,2})(${CHORD_SUFFIX_TOKEN}*)(?:/([A-G])([#b]{0,2}))?$`,

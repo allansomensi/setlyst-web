@@ -23,6 +23,7 @@ interface LiveLyricsAreaProps {
   containerRef: RefObject<HTMLElement | null>;
   content: string;
   showChords: boolean;
+  showSections: boolean;
   fontFamily: FontFamily;
   /** The reader's size (rem). In fit mode, the most the text may grow to. */
   fontSize: number;
@@ -50,6 +51,7 @@ export function LiveLyricsArea({
   containerRef,
   content,
   showChords,
+  showSections,
   fontFamily,
   fontSize,
   fitToScreen,
@@ -65,7 +67,7 @@ export function LiveLyricsArea({
     containerRef,
     contentRef,
     maxFontSize: fontSize,
-    contentKey: `${showChords}|${fontFamily}|${content}`,
+    contentKey: `${showChords}|${showSections}|${fontFamily}|${content}`,
   });
 
   const overflows = fit?.overflows ?? false;
@@ -90,7 +92,9 @@ export function LiveLyricsArea({
         swipe && "touch-pan-y touch-pinch-zoom",
         fitToScreen
           ? cn("p-3 md:p-6", overflows ? "overflow-y-auto" : "overflow-hidden")
-          : "overflow-auto scroll-smooth p-4 md:p-12",
+          : // No `scroll-smooth`: auto-scroll moves a pixel at a time, and
+            // smooth scrolling turned each of those into its own animation.
+            "overflow-auto p-4 pb-24 md:p-12 md:pb-28",
       )}
     >
       {fitToScreen && overflows && (
@@ -117,9 +121,10 @@ export function LiveLyricsArea({
         <ChordProRenderer
           content={content}
           showChords={showChords}
+          showSections={showSections}
           fontSize={fitToScreen ? "inherit" : fontSize}
           fontFamily={fontFamily}
-          className={fitToScreen ? "max-w-none" : undefined}
+          className={fitToScreen ? "max-w-none" : "mx-auto"}
         />
       </div>
     </main>

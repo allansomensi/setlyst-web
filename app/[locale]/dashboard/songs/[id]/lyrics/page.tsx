@@ -34,7 +34,16 @@ import {
   ChevronDown,
   HelpCircle,
   WifiOff,
+  ListTree,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -207,10 +216,17 @@ function ChordPopover({ onInsert }: ChordPopoverProps) {
   );
 }
 
-// Help Dialog
+// Help
 
 function HelpPopover() {
   const t = useTranslations("lyrics.help");
+  const rows: Array<[string, string]> = [
+    ["[Am]Hello [G]world", t("inlineChords")],
+    ["[Refrão]  /  Pré-Refrão:", t("sections")],
+    ["{soc} … {eoc}", t("environments")],
+    ["{c: …}", t("comment")],
+    ["**b**  *i*  __u__", t("formatting")],
+  ];
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -219,61 +235,54 @@ function HelpPopover() {
           size="icon"
           className="h-8 w-8"
           title={t("title")}
+          aria-label={t("title")}
         >
           <HelpCircle className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="end">
-        <h4 className="mb-3 font-semibold">{t("title")}</h4>
-        <div className="text-muted-foreground space-y-2 text-sm">
-          <div className="bg-muted rounded px-2 py-1 font-mono text-xs">
-            [Am]Song [G]lyrics
-          </div>
-          <p className="text-xs">Chords in brackets before the syllable</p>
-          <hr className="my-2" />
-          <div className="space-y-1 font-mono text-xs">
-            <div>
-              <span className="text-foreground">**text**</span> →{" "}
-              <strong>bold</strong>
+      <PopoverContent
+        className="w-[22rem] max-w-[calc(100vw-2rem)] p-4"
+        align="end"
+      >
+        <h4 className="mb-1 font-semibold">{t("title")}</h4>
+        <p className="text-muted-foreground mb-3 text-xs leading-relaxed">
+          {t("intro")}
+        </p>
+        <dl className="space-y-2.5">
+          {rows.map(([code, description]) => (
+            <div key={code} className="space-y-1">
+              <dt className="bg-muted w-fit rounded px-1.5 py-0.5 font-mono text-xs">
+                {code}
+              </dt>
+              <dd className="text-muted-foreground text-xs leading-snug">
+                {description}
+              </dd>
             </div>
-            <div>
-              <span className="text-foreground">*text*</span> → <em>italic</em>
-            </div>
-            <div>
-              <span className="text-foreground">__text__</span> →{" "}
-              <u>underline</u>
-            </div>
-          </div>
-          <hr className="my-2" />
-          <div className="text-foreground space-y-1 font-mono text-xs">
-            <div>
-              {"{"}
-              <span className="text-primary">soc</span>
-              {"}"} / {"{"}
-              <span className="text-primary">eoc</span>
-              {"}"} — Chorus
-            </div>
-            <div>
-              {"{"}
-              <span className="text-primary">sov: Verse 1</span>
-              {"}"} — Verse
-            </div>
-            <div>
-              {"{"}
-              <span className="text-primary">sob</span>
-              {"}"} — Bridge
-            </div>
-            <div>
-              {"{"}
-              <span className="text-primary">c: comment</span>
-              {"}"} — Note
-            </div>
-          </div>
-        </div>
+          ))}
+        </dl>
+        <p className="text-muted-foreground mt-3 border-t pt-3 text-xs leading-relaxed">
+          {t("pasteTip")}
+        </p>
       </PopoverContent>
     </Popover>
   );
 }
+
+/** Sections offered in the editor's menu, most used first. */
+const INSERTABLE_SECTIONS = [
+  "intro",
+  "verse",
+  "preChorus",
+  "chorus",
+  "postChorus",
+  "bridge",
+  "solo",
+  "instrumental",
+  "interlude",
+  "riff",
+  "break",
+  "outro",
+] as const;
 
 // Main Page
 
@@ -294,8 +303,18 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [songTitle, setSongTitle] = useState("");
   const [lyrics, setLyrics] = useState("");
-  const [showPreview, setShowPreview] = useState(true);
+  // Side by side on wide screens. On a phone the two can't share the
+  // width, so the preview replaces the editor instead — and it starts on
+  // the editor, since that's what this page is for.
+  const [showPreview, setShowPreview] = useState(
+    () =>
+      typeof window === "undefined" ||
+      window.matchMedia("(min-width: 768px)").matches,
+  );
   const [showChords, setShowChords] = useState(true);
+  const [showSections, setShowSections] = useState(true);
+  const [savedLyrics, setSavedLyrics] = useState("");
+  const [confirmLeave, setConfirmLeave] = useState(false);
   // True when what's on screen came from the on-device copy rather than the
   // API. The lyrics are fully readable either way; saving is what needs a
   // connection, so the editor turns read-only instead of offering a Save
@@ -315,6 +334,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     async function load() {
       const apply = (song: Song, fromCache: boolean) => {
         setLyrics(song.lyrics ?? "");
+        setSavedLyrics(song.lyrics ?? "");
         setSongTitle(song.title);
         setIsReadOnly(fromCache);
         hasLoaded.current = !fromCache;
@@ -368,6 +388,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     startTransition(async () => {
       const result = await updateSong(id, { lyrics });
       if (result.success) {
+        setSavedLyrics(lyrics);
         toast.success(t("saved"));
         router.back();
       } else {
@@ -399,9 +420,31 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   }, []);
 
   const insertSection = useCallback((template: string) => {
-    if (textareaRef.current)
-      insertAtCursor(textareaRef.current, template, setLyrics);
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    // Headings only work on a line of their own.
+    const before = textarea.value.slice(0, textarea.selectionStart);
+    const prefix = before && !before.endsWith("\n") ? "\n" : "";
+    insertAtCursor(textarea, prefix + template, setLyrics);
   }, []);
+
+  // Unsaved changes
+
+  const isDirty = !isReadOnly && lyrics !== savedLyrics;
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
+
+  const handleLeave = useCallback(() => {
+    if (isDirty) setConfirmLeave(true);
+    else router.back();
+  }, [isDirty, router]);
 
   // Keyboard shortcuts
 
@@ -434,15 +477,18 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col gap-0">
+    // Edge to edge: cancels the dashboard's page padding and fills the
+    // scroll area exactly, instead of a 100vh guess that overflowed it.
+    <div className="-m-4 flex h-[calc(100%+2rem)] min-h-[28rem] flex-col md:-m-8 md:h-[calc(100%+4rem)]">
       {/* Header */}
-      <div className="flex items-center justify-between border-b px-4 py-3">
+      <div className="bg-background flex items-center justify-between gap-3 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.back()}
+            onClick={handleLeave}
             className="shrink-0"
+            aria-label={tCommon("cancel")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -463,8 +509,9 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.back()}
+            onClick={handleLeave}
             disabled={isPending}
+            className="hidden sm:inline-flex"
           >
             {tCommon("cancel")}
           </Button>
@@ -479,8 +526,9 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={isPending}
+              disabled={isPending || !isDirty}
               className="gap-1.5"
+              title={isDirty ? undefined : t("noChanges")}
             >
               {isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -534,21 +582,18 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
               <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={() => insertSection("{soc}\n\n{eoc}\n")}>
-              {t("toolbar.chorus")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => insertSection("{sov: Verse 1}\n\n{eov}\n")}
-            >
-              {t("toolbar.verse")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => insertSection("{sob}\n\n{eob}\n")}>
-              {t("toolbar.bridge")}
-            </DropdownMenuItem>
+          <DropdownMenuContent align="start" className="max-h-80 w-52">
+            {INSERTABLE_SECTIONS.map((key) => (
+              <DropdownMenuItem
+                key={key}
+                onClick={() => insertSection(`[${t(`toolbar.${key}`)}]\n`)}
+              >
+                {t(`toolbar.${key}`)}
+              </DropdownMenuItem>
+            ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => insertSection("{c: comment here}\n")}
+              onClick={() => insertSection(`{c: ${t("commentPlaceholder")}}\n`)}
             >
               {t("toolbar.comment")}
             </DropdownMenuItem>
@@ -573,16 +618,30 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         </Button>
 
         {showPreview && (
-          <Button
-            variant={showChords ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={() => setShowChords((v) => !v)}
-            title={t("toolbar.chords")}
-          >
-            <Music className="h-3.5 w-3.5" />
-            {t("toolbar.chords")}
-          </Button>
+          <>
+            <Button
+              variant={showChords ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setShowChords((v) => !v)}
+              aria-pressed={showChords}
+              title={t("toolbar.chords")}
+            >
+              <Music className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t("toolbar.chords")}</span>
+            </Button>
+            <Button
+              variant={showSections ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setShowSections((v) => !v)}
+              aria-pressed={showSections}
+              title={t("toolbar.sections")}
+            >
+              <ListTree className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t("toolbar.sections")}</span>
+            </Button>
+          </>
         )}
 
         <div className="ml-auto">
@@ -598,14 +657,19 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         )}
       >
         {/* Editor */}
-        <div className={cn("flex flex-col", showPreview ? "w-1/2" : "w-full")}>
+        <div
+          className={cn(
+            "flex min-w-0 flex-col",
+            showPreview ? "hidden md:flex md:w-1/2" : "w-full",
+          )}
+        >
           <textarea
             ref={textareaRef}
             className={cn(
               "bg-background flex-1 resize-none p-4 font-mono text-sm leading-relaxed focus:outline-none",
               "placeholder:text-muted-foreground/50",
             )}
-            placeholder={`[Am]Type the [G]lyrics in ChordPro format\n\n{soc}\n[Am]Chorus [G]here\n{eoc}\n\n**Bold**, *italic*, __underline__`}
+            placeholder={t("placeholder")}
             value={lyrics}
             onChange={(e) => setLyrics(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -625,7 +689,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
 
         {/* Preview */}
         {showPreview && (
-          <div className="bg-muted/20 w-1/2 overflow-y-auto p-6">
+          <div className="bg-muted/20 w-full overflow-y-auto p-4 md:w-1/2 md:p-6">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 {t("preview")}
@@ -634,12 +698,36 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
             <ChordProRenderer
               content={lyrics}
               showChords={showChords}
+              showSections={showSections}
               fontSize={1}
               fontFamily="sans"
             />
           </div>
         )}
       </div>
+
+      <Dialog open={confirmLeave} onOpenChange={setConfirmLeave}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("discardTitle")}</DialogTitle>
+            <DialogDescription>{t("discardDescription")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmLeave(false)}>
+              {t("keepEditing")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setConfirmLeave(false);
+                router.back();
+              }}
+            >
+              {t("discard")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

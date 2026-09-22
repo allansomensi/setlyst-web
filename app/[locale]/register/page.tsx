@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Link } from "@/components/nav-link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { AppLogo } from "@/components/app-logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -72,7 +73,8 @@ export default function RegisterPage() {
   return (
     <div className="bg-muted/40 flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
+        <CardHeader className="items-center text-center">
+          <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
           <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
           <CardDescription>{t("subtitle")}</CardDescription>
         </CardHeader>
@@ -80,7 +82,7 @@ export default function RegisterPage() {
           <form action={registerAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">
-                {t("username")} <span className="text-red-500">*</span>
+                {t("username")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="username"
@@ -132,7 +134,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">
-                {t("password")} <span className="text-red-500">*</span>
+                {t("password")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="password"
@@ -148,7 +150,7 @@ export default function RegisterPage() {
             {error && (
               <p
                 role="alert"
-                className="text-center text-sm font-medium text-red-500"
+                className="text-destructive text-center text-sm font-medium"
               >
                 {error}
               </p>

@@ -1,11 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
-import {
-  PaginatedResponse,
-  Gig,
-  Setlist,
-  BandWithMembership,
-  BAND_ROLE_LEVEL,
-} from "@/types/api";
+import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { Gig, Setlist, BandWithMembership, BAND_ROLE_LEVEL } from "@/types/api";
 import { GigsTable } from "./_components/gigs-table";
 import { BandOption } from "./_components/gigs-dialog";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
@@ -16,14 +10,8 @@ export default async function GigsPage() {
   // fine. `hadError` is what tells GigsTable an empty `gigs` array means
   // "this fetch failed," not "you have no shows" — see LoadErrorNotice.
   const [personalGigsRes, personalSetlistsRes, bandsRaw] = await Promise.all([
-    fetchOrFailed(
-      fetchServerApi<PaginatedResponse<Gig>>("/gigs?page=1&per_page=100"),
-    ),
-    fetchOrFailed(
-      fetchServerApi<PaginatedResponse<Setlist>>(
-        "/setlists?page=1&per_page=100",
-      ),
-    ),
+    fetchOrFailed(fetchAllServerPages<Gig>("/gigs")),
+    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
     fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
   ]);
 
@@ -53,19 +41,13 @@ export default async function GigsPage() {
   const [bandGigsResults, bandSetlistsResults] = await Promise.all([
     Promise.all(
       bands.map((band) =>
-        fetchOrFailed(
-          fetchServerApi<PaginatedResponse<Gig>>(
-            `/bands/${band.id}/gigs?page=1&per_page=100`,
-          ),
-        ),
+        fetchOrFailed(fetchAllServerPages<Gig>(`/bands/${band.id}/gigs`)),
       ),
     ),
     Promise.all(
       bands.map((band) =>
         fetchOrFailed(
-          fetchServerApi<PaginatedResponse<Setlist>>(
-            `/bands/${band.id}/setlists?page=1&per_page=100`,
-          ),
+          fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`),
         ),
       ),
     ),

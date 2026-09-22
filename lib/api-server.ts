@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
+import type { PaginatedResponse } from "@/types/api";
 import {
   MAX_RETRIES,
   RETRYABLE_STATUSES,
@@ -180,4 +181,51 @@ export async function fetchServerApi<T>(
 
     return res.json();
   }
+}
+
+/** The API's own ceiling for `per_page`. */
+const MAX_PAGE_SIZE = 100;
+/** Safety valve: 50 pages × 100 rows is far beyond any real repertoire. */
+const MAX_PAGES = 50;
+
+/**
+ * Every row of a paginated collection, as a single `PaginatedResponse`.
+ *
+ * List pages used to request `?page=1&per_page=100` and stop there, so the
+ * 101st song, setlist or artist silently never appeared anywhere in the
+ * app — not in its list, not in the "add song" picker, not in a setlist's
+ * running order. The API caps `per_page` at 100, so the rest has to be
+ * fetched page by page; after the first page tells us how many there are,
+ * the remaining ones are requested in parallel.
+ *
+ * `path` must not carry its own `page`/`per_page`.
+ */
+export async function fetchAllServerPages<T>(
+  path: string,
+  options: RequestInit & { timeoutMs?: number } = {},
+): Promise<PaginatedResponse<T>> {
+  const separator = path.includes("?") ? "&" : "?";
+  const pageUrl = (page: number) =>
+    `${path}${separator}page=${page}&per_page=${MAX_PAGE_SIZE}`;
+
+  const first = await fetchServerApi<PaginatedResponse<T>>(pageUrl(1), options);
+  const totalPages = Math.min(first.meta?.total_pages ?? 1, MAX_PAGES);
+  if (totalPages <= 1) return first;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, i) =>
+      fetchServerApi<PaginatedResponse<T>>(pageUrl(i + 2), options),
+    ),
+  );
+
+  const data = [first, ...rest].flatMap((page) => page.data ?? []);
+  return {
+    data,
+    meta: {
+      ...first.meta,
+      current_page: 1,
+      per_page: data.length,
+      total_pages: 1,
+    },
+  };
 }

@@ -1,11 +1,9 @@
-import { fetchServerApi } from "@/lib/api-server";
-import { PaginatedResponse, Artist } from "@/types/api";
+import { fetchAllServerPages } from "@/lib/api-server";
+import { Artist } from "@/types/api";
 import { ArtistsTable } from "./_components/artists-table";
 
 export default async function ArtistsPage() {
-  const response = await fetchServerApi<PaginatedResponse<Artist>>(
-    "/artists?page=1&per_page=100",
-  );
+  const response = await fetchAllServerPages<Artist>("/artists");
 
   const artists = response.data || [];
 

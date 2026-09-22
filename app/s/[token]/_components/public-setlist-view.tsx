@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, Download, Eye, ListMusic, Music } from "lucide-react";
+import { Clock, Download, Eye, Music } from "lucide-react";
+import { AppLogo } from "@/components/app-logo";
 import { formatDuration } from "@/lib/utils";
 import { apiPath } from "@/lib/api-endpoint";
 import { ExportPdfDialog } from "@/components/setlists/export-pdf-dialog";
@@ -44,7 +45,7 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
             aria-label="Setlyst"
             className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-semibold transition-colors"
           >
-            <ListMusic className="text-primary h-5 w-5" />
+            <AppLogo size={24} className="rounded-[5px]" />
             <span className="hidden sm:inline">Setlyst</span>
           </Link>
           <PublicPreferences />

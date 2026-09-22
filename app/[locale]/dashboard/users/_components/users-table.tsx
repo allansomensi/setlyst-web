@@ -74,6 +74,8 @@ export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
     currentPage,
     totalPages,
     setCurrentPage,
+    pageSize,
+    setPageSize,
     totalItems,
   } = useTableControls(initialUsers, SEARCHABLE_KEYS);
 
@@ -230,7 +232,7 @@ export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteClick(user.id)}
-                          className="text-red-600"
+                          variant="destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {t("menu.delete")}
@@ -245,22 +247,21 @@ export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {tCommon("showing", {
-            count: users.length,
-            total: totalItems,
-            entity: totalItems !== 1 ? tCommon("results") : tCommon("result"),
-          })}
-          {search && ` ${tCommon("showingFor", { search })}`}
-        </p>
+      <TablePagination
+        currentPage={currentPage}
 
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-        />
-      </div>
+        totalPages={totalPages}
+
+        setCurrentPage={setCurrentPage}
+
+        totalItems={totalItems}
+
+        pageSize={pageSize}
+
+        setPageSize={setPageSize}
+
+        search={search}
+      />
 
       <UserDialog
         isOpen={isDialogOpen}

@@ -136,7 +136,7 @@ export function OfflineSection() {
         )}
 
         {isOnline && hasFailed && (
-          <p className="text-xs text-red-600 dark:text-red-400">
+          <p className="text-destructive text-xs dark:text-red-400">
             {lastError ? `${t("syncFailed")}: ${lastError}` : t("syncFailed")}
           </p>
         )}

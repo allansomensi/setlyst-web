@@ -1,11 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
-import {
-  BandWithMembership,
-  PaginatedResponse,
-  Gig,
-  Setlist,
-  BAND_ROLE_LEVEL,
-} from "@/types/api";
+import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { BandWithMembership, Gig, Setlist, BAND_ROLE_LEVEL } from "@/types/api";
 import { GigsTable } from "@/app/[locale]/dashboard/gigs/_components/gigs-table";
 import { BandOption } from "@/app/[locale]/dashboard/gigs/_components/gigs-dialog";
 import { Button } from "@/components/ui/button";
@@ -25,12 +19,8 @@ export default async function BandGigsPage({
 
   const [band, gigsRes, setlistsRes] = await Promise.all([
     fetchServerApi<BandWithMembership>(`/bands/${id}`),
-    fetchServerApi<PaginatedResponse<Gig>>(
-      `/bands/${id}/gigs?page=1&per_page=100`,
-    ),
-    fetchServerApi<PaginatedResponse<Setlist>>(
-      `/bands/${id}/setlists?page=1&per_page=100`,
-    ),
+    fetchAllServerPages<Gig>(`/bands/${id}/gigs`),
+    fetchAllServerPages<Setlist>(`/bands/${id}/setlists`),
   ]);
 
   const gigs = gigsRes.data || [];

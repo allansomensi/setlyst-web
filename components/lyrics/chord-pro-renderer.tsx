@@ -1,252 +1,250 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Mic,
-  Music,
   AlignLeft,
-  Play,
+  Guitar,
   ListEnd,
+  MessageSquareText,
+  Mic,
   MoveRight,
-  Timer,
+  Music,
+  Play,
+  Repeat,
   SquareArrowRightEnter,
+  Timer,
+  Waves,
+  type LucideIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  ANNOTATION_MARK,
+  PILL_SECTIONS,
+  parseChordPro,
+  splitAnnotations,
+  type Block,
+  type SectionKey,
+  type Word,
+} from "@/lib/music/chordpro";
 
-// Token Types
-type Token = { type: "chord"; value: string } | { type: "text"; value: string };
-
-type ToolbarKey =
-  | "intro"
-  | "verse"
-  | "chorus"
-  | "preChorus"
-  | "postChorus"
-  | "bridge"
-  | "interlude"
-  | "instrumental"
-  | "solo"
-  | "guitarSolo"
-  | "keyboardSolo"
-  | "bassSolo"
-  | "drumSolo"
-  | "saxSolo"
-  | "synthSolo"
-  | "break"
-  | "breakdown"
-  | "drop"
-  | "vamp"
-  | "tag"
-  | "hook"
-  | "turnaround"
-  | "buildUp"
-  | "theme"
-  | "outro"
-  | "coda";
-
-const SECTION_MAP: Record<string, ToolbarKey> = {
-  intro: "intro",
-  introduction: "intro",
-  outro: "outro",
-  ending: "outro",
-  coda: "coda",
-  finale: "outro",
-  verse: "verse",
-  chorus: "chorus",
-  refrain: "chorus",
-  "pre-chorus": "preChorus",
-  "pre chorus": "preChorus",
-  prechorus: "preChorus",
-  "post-chorus": "postChorus",
-  "post chorus": "postChorus",
-  postchorus: "postChorus",
-  bridge: "bridge",
-  interlude: "interlude",
-  instrumental: "instrumental",
-  solo: "solo",
-  "guitar solo": "guitarSolo",
-  "keyboard solo": "keyboardSolo",
-  "piano solo": "keyboardSolo",
-  "bass solo": "bassSolo",
-  "drum solo": "drumSolo",
-  "sax solo": "saxSolo",
-  "synth solo": "synthSolo",
-  break: "break",
-  breakdown: "breakdown",
-  drop: "drop",
-  vamp: "vamp",
-  tag: "tag",
-  hook: "hook",
-  turnaround: "turnaround",
-  build: "buildUp",
-  "build up": "buildUp",
-  "build-up": "buildUp",
-  theme: "theme",
-};
-
-const PILL_SECTIONS = new Set<ToolbarKey>([
-  "interlude",
-  "instrumental",
-  "solo",
-  "guitarSolo",
-  "keyboardSolo",
-  "bassSolo",
-  "drumSolo",
-  "saxSolo",
-  "synthSolo",
-  "break",
-  "breakdown",
-  "drop",
-  "turnaround",
-]);
-
-const ICON_MAP: Partial<Record<ToolbarKey, React.ElementType>> = {
+const ICONS: Partial<Record<SectionKey, LucideIcon>> = {
   intro: Play,
-  outro: ListEnd,
   verse: AlignLeft,
-  chorus: Mic,
   preChorus: SquareArrowRightEnter,
+  chorus: Mic,
+  postChorus: Mic,
+  hook: Mic,
   bridge: MoveRight,
-  solo: Music,
-  guitarSolo: Music,
+  interlude: Music,
+  instrumental: Music,
+  solo: Guitar,
+  guitarSolo: Guitar,
   keyboardSolo: Music,
-  bassSolo: Music,
+  bassSolo: Guitar,
   drumSolo: Music,
   saxSolo: Music,
   synthSolo: Music,
-  instrumental: Music,
+  riff: Guitar,
+  theme: Music,
   break: Timer,
   breakdown: Timer,
+  fadeOut: Waves,
+  outro: ListEnd,
   coda: ListEnd,
 };
 
-// Parsers
-function parseChordLine(line: string): Token[] {
-  const tokens: Token[] = [];
-  const regex = /\[([^\]]+)\]/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+const FONT_CLASS = {
+  sans: "font-sans",
+  mono: "font-mono",
+  serif: "font-serif",
+} as const;
 
-  while ((match = regex.exec(line)) !== null) {
-    if (match.index > lastIndex) {
-      tokens.push({ type: "text", value: line.slice(lastIndex, match.index) });
-    }
-    tokens.push({ type: "chord", value: match[1] });
-    lastIndex = regex.lastIndex;
-  }
+/** "(2x)", "x3" at the end of a lyric line: a repeat mark, not a lyric. */
+const TRAILING_REPEAT =
+  /\s*(\(\s*(?:x\s*\d+|\d+\s*x)\s*\)|\b(?:x\d+|\d+x))\s*$/i;
 
-  if (lastIndex < line.length) {
-    tokens.push({ type: "text", value: line.slice(lastIndex) });
-  }
+// Inline text
 
-  return tokens;
-}
-
-function hasChords(line: string): boolean {
-  return /\[[^\]]+\]/.test(line);
-}
-
-function stripChords(line: string): string {
-  return line.replace(/\[[^\]]+\]/g, "");
-}
-
-function parseDirective(
-  line: string,
-): { directive: string; value?: string } | null {
-  const match = line.match(/^\{([^:}]+)(?::([^}]*))?\}$/);
-  if (!match) return null;
-  return {
-    directive: match[1].trim().toLowerCase(),
-    value: match[2]?.trim(),
-  };
-}
-
-function renderFormattedText(text: string): React.ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__)/g);
+function renderFormatted(text: string, keyPrefix: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|__[^_]+__)/g);
   return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
+    const key = `${keyPrefix}-${i}`;
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
       return (
-        <strong key={i} className="font-bold">
+        <strong key={key} className="font-bold">
           {part.slice(2, -2)}
         </strong>
       );
     }
-    if (part.startsWith("*") && part.endsWith("*")) {
+    if (part.startsWith("__") && part.endsWith("__") && part.length > 4) {
       return (
-        <em key={i} className="italic opacity-90">
-          {part.slice(1, -1)}
-        </em>
-      );
-    }
-    if (part.startsWith("__") && part.endsWith("__")) {
-      return (
-        <u
-          key={i}
-          className="decoration-muted-foreground underline underline-offset-4"
-        >
+        <u key={key} className="underline underline-offset-4">
           {part.slice(2, -2)}
         </u>
       );
     }
-    return part || null;
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return (
+        <em key={key} className="italic">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return part ? <React.Fragment key={key}>{part}</React.Fragment> : null;
   });
 }
 
-function renderChordTokens(tokens: Token[]): React.ReactNode {
-  const pairs: Array<{ chord?: string; text: string }> = [];
-  let current: { chord?: string; text: string } = { text: "" };
-
-  for (const token of tokens) {
-    if (token.type === "chord") {
-      if (current.chord !== undefined || current.text) {
-        pairs.push(current);
-      }
-      current = { chord: token.value, text: "" };
-    } else {
-      current.text += token.value;
-    }
-  }
-  if (current.chord !== undefined || current.text) pairs.push(current);
-
+function Annotation({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex flex-wrap">
-      {pairs.map((pair, i) => (
-        <span key={i} className="relative inline-block">
-          <span
-            data-chord=""
-            className="text-muted-foreground/60 block font-mono font-semibold tracking-tighter"
-            style={{ fontSize: "0.65em", marginBottom: "-0.2em" }}
-          >
-            {pair.chord ?? "\u00A0"}
-          </span>
-          <span
-            data-lyric=""
-            className="text-foreground leading-relaxed font-medium whitespace-pre-wrap"
-          >
-            {renderFormattedText(pair.text) || "\u00A0"}
-          </span>
-        </span>
-      ))}
+    <span
+      data-annotation=""
+      className="text-muted-foreground mx-[0.15em] align-baseline text-[0.7em] font-semibold tracking-wide italic"
+    >
+      {children}
     </span>
   );
 }
 
-function SectionLabel({
-  children,
-  icon: Icon,
-  variant = "block",
+function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
+  return splitAnnotations(text).flatMap((part, i): React.ReactNode[] => {
+    const key = `${keyPrefix}-${i}`;
+    if (part.type === "annotation") {
+      return [<Annotation key={key}>{part.text}</Annotation>];
+    }
+    return renderFormatted(part.text, key);
+  });
+}
+
+/** A lyric line as plain text, chords dropped and spacing tidied. */
+function plainText(words: Word[]): string {
+  return words
+    .map((word) => word.map((segment) => segment.text).join(""))
+    .join("")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+// Pieces
+
+function ChordLine({ words }: { words: Word[] }) {
+  // A chord only needs breathing room after it when another chord follows
+  // straight away — otherwise the padding just pushes the lyric apart.
+  const flat = words.flat();
+  let index = 0;
+
+  return (
+    <div data-line="" data-has-chords="" className="flex flex-wrap items-end">
+      {words.map((word, w) => (
+        // A word never wraps internally, even with a chord mid-word.
+        <span key={w} className="inline-flex items-end">
+          {word.map((segment, s) => {
+            const next = flat[++index];
+            const lyric = (
+              <span data-lyric="" className="leading-[1.35] whitespace-pre">
+                {segment.text
+                  ? renderInline(segment.text, `${w}-${s}`)
+                  : "\u00A0"}
+              </span>
+            );
+            // Chordless pieces carry no empty chord row: aligned to the
+            // bottom, they sit on the same baseline anyway, and a wrapped
+            // line with no chords on it doesn't reserve space for them.
+            if (segment.chord === null) {
+              return <React.Fragment key={s}>{lyric}</React.Fragment>;
+            }
+            // Padding on the chord only widens the segment when the chord is
+            // wider than its syllable, which is exactly when it's needed.
+            const crowded = next?.chord != null;
+            return (
+              <span key={s} className="inline-flex flex-col">
+                <span
+                  data-chord=""
+                  className={cn(
+                    "text-primary font-mono text-[0.72em] leading-[1.35] font-bold tracking-tight",
+                    crowded ? "pr-[0.6em]" : "pr-[0.15em]",
+                  )}
+                >
+                  {segment.chord}
+                </span>
+                {lyric}
+              </span>
+            );
+          })}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function TextLine({ text }: { text: string }) {
+  const repeat = TRAILING_REPEAT.exec(text);
+  const body = repeat ? text.slice(0, repeat.index) : text;
+  return (
+    <div data-line="" data-lyric="" className="leading-[1.45]">
+      {renderInline(body, "t")}
+      {repeat && <Annotation>{repeat[1]}</Annotation>}
+    </div>
+  );
+}
+
+function ChordsRow({
+  items,
 }: {
-  children: React.ReactNode;
-  icon?: React.ElementType;
-  variant?: "block" | "pill";
+  items: Array<{ chord: boolean; text: string }>;
 }) {
-  if (variant === "pill") {
+  return (
+    <div
+      data-line=""
+      data-chord-line=""
+      className="flex flex-wrap items-baseline gap-x-[0.9em] gap-y-[0.2em] py-[0.1em]"
+    >
+      {items.map((item, i) =>
+        item.chord ? (
+          <span
+            key={i}
+            data-chord=""
+            className="text-primary font-mono text-[0.8em] font-bold tracking-tight"
+          >
+            {item.text}
+          </span>
+        ) : (
+          <span
+            key={i}
+            className="text-muted-foreground font-mono text-[0.7em]"
+          >
+            {item.text}
+          </span>
+        ),
+      )}
+    </div>
+  );
+}
+
+function SectionHeading({
+  label,
+  icon: Icon,
+  pill,
+  repeat,
+}: {
+  label: string;
+  icon?: LucideIcon;
+  pill: boolean;
+  repeat: number | null;
+}) {
+  const repeatBadge = repeat && repeat > 1 && (
+    <span className="bg-muted text-foreground rounded-[0.4em] px-[0.5em] py-[0.1em] font-mono text-[0.95em] tracking-normal normal-case">
+      ×{repeat}
+    </span>
+  );
+
+  if (pill) {
     return (
-      <div data-section-label="" className="my-5 flex items-center">
-        <div className="border-border bg-muted/10 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-widest uppercase shadow-sm">
-          {Icon && <Icon className="h-4 w-4 opacity-80" strokeWidth={2.5} />}
-          <span>{children}</span>
+      <div data-section-label="" className="mt-[1.4em] mb-[0.6em] first:mt-0">
+        <div className="text-muted-foreground bg-muted/40 inline-flex items-center gap-[0.5em] rounded-full border px-[1em] py-[0.35em] text-[0.62em] font-bold tracking-[0.14em] uppercase">
+          {Icon && <Icon className="size-[1.25em]" strokeWidth={2.5} />}
+          <span>{label}</span>
+          {repeatBadge}
         </div>
       </div>
     );
@@ -255,84 +253,69 @@ function SectionLabel({
   return (
     <div
       data-section-label=""
-      className="border-border/50 text-muted-foreground mt-8 mb-3 flex items-center gap-2 border-b pb-1 text-xs font-bold tracking-widest uppercase"
+      className="text-muted-foreground border-border/60 mt-[1.6em] mb-[0.6em] flex items-center gap-[0.5em] border-b pb-[0.35em] text-[0.62em] font-bold tracking-[0.14em] uppercase first:mt-0"
     >
-      {Icon && <Icon className="h-4 w-4" strokeWidth={2.5} />}
-      <span>{children}</span>
+      {Icon && <Icon className="size-[1.25em]" strokeWidth={2.5} />}
+      <span>{label}</span>
+      {repeatBadge}
     </div>
   );
 }
 
-// Main Component
+// Main component
+
 export interface ChordProRendererProps {
   content: string;
+  /** Chords above the lyrics (and chord-only lines, tabs, capo). */
   showChords?: boolean;
+  /** Section headings (Verse, Chorus…) and the chorus accent. */
+  showSections?: boolean;
   /**
    * In rem — or "inherit" to take the size from the surrounding element,
-   * which Live Mode's fit-to-screen layout uses to size the text itself.
+   * which Live Mode's compact layout uses to size the text itself.
    */
   fontSize?: number | "inherit";
   fontFamily?: "sans" | "mono" | "serif";
   className?: string;
 }
 
+type Item =
+  | { kind: "gap" }
+  | { kind: "heading"; node: React.ReactNode }
+  | { kind: "content"; node: React.ReactNode; chorus: boolean };
+
+/**
+ * Renders ChordPro lyrics — see lib/music/chordpro.ts for what's parsed.
+ *
+ * Everything is sized in `em`, relative to the chosen text size, so the
+ * spacing scales with it — including in Live Mode's compact layout, which
+ * shrinks the text to fit the screen and would otherwise be left with
+ * gaps as large as the lyrics.
+ *
+ * Vertical space is decided here rather than copied from the source:
+ * runs of blank lines collapse to one gap, and no gap is drawn at the top,
+ * at the bottom, or next to a section heading (which has its own spacing).
+ * Hiding chords can't leave holes where chord-only lines used to be.
+ */
 export function ChordProRenderer({
   content,
   showChords = true,
+  showSections = true,
   fontSize = 1.1,
   fontFamily = "sans",
   className,
 }: ChordProRendererProps) {
   const t = useTranslations("lyrics");
-  const tToolbar = useTranslations("lyrics.toolbar");
+  const tSection = useTranslations("lyrics.toolbar");
 
-  const parseSectionInfo = (text?: string, defaultKey?: ToolbarKey) => {
-    if (!text) {
-      return {
-        key: defaultKey || null,
-        label: defaultKey ? tToolbar(defaultKey) : "",
-      };
-    }
-
-    const trimmed = text.trim();
-
-    if (defaultKey && /^\d+$/.test(trimmed)) {
-      return { key: defaultKey, label: `${tToolbar(defaultKey)} ${trimmed}` };
-    }
-
-    const sortedKeys = Object.keys(SECTION_MAP).sort(
-      (a, b) => b.length - a.length,
-    );
-
-    for (const key of sortedKeys) {
-      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-      const regex = new RegExp(
-        `^(\\[?\\s*)(${escapedKey})(?=[^a-zA-Z]|$)`,
-        "i",
-      );
-
-      const match = trimmed.match(regex);
-      if (match) {
-        const prefix = match[1] || "";
-        const mappedKey = SECTION_MAP[key];
-        const translated = tToolbar(mappedKey);
-
-        let label = trimmed.replace(regex, `${prefix}${translated}`);
-
-        label = label.replace(/^\[(.*)\]$/, "$1");
-
-        return { key: mappedKey, label };
-      }
-    }
-
-    const finalLabel = trimmed.replace(/^\[(.*)\]$/, "$1");
-    return { key: defaultKey || null, label: finalLabel };
-  };
+  const blocks = useMemo<Block[]>(
+    () => (content?.trim() ? parseChordPro(content) : []),
+    [content],
+  );
 
   const cssFontSize = fontSize === "inherit" ? "1em" : `${fontSize}rem`;
 
-  if (!content?.trim()) {
+  if (blocks.length === 0) {
     return (
       <div
         className="text-muted-foreground flex h-full items-center justify-center italic"
@@ -343,175 +326,209 @@ export function ChordProRenderer({
     );
   }
 
-  const fontClass = {
-    sans: "font-sans",
-    mono: "font-mono",
-    serif: "font-serif",
-  }[fontFamily];
+  const headingLabel = (block: Extract<Block, { type: "heading" }>) => {
+    if (!block.key) return block.raw.replace(ANNOTATION_MARK, "");
+    const parts = [tSection(block.key)];
+    if (block.heading?.number) parts.push(block.heading.number);
+    let label = parts.join(" ");
+    if (block.heading?.extra) label += ` · ${block.heading.extra}`;
+    return label;
+  };
 
-  const lines = content.split("\n");
-  const elements: React.ReactNode[] = [];
-
-  let inChorus = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      elements.push(
-        <div
-          key={i}
-          data-blank=""
-          className={cn(
-            "h-4",
-            inChorus && "border-foreground/20 bg-muted/10 border-l-2",
-          )}
-        />,
-      );
-      continue;
-    }
-
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      const dir = parseDirective(trimmed);
-      if (dir) {
-        const { directive, value } = dir;
-
-        if (directive === "soc" || directive === "start_of_chorus") {
-          inChorus = true;
-          const info = parseSectionInfo(value, "chorus");
-          elements.push(
-            <SectionLabel key={i} icon={ICON_MAP["chorus"]}>
-              {info.label}
-            </SectionLabel>,
-          );
-          continue;
+  // 1. Blocks → items, honouring what's shown.
+  const items: Item[] = [];
+  blocks.forEach((block, i) => {
+    switch (block.type) {
+      case "blank":
+        items.push({ kind: "gap" });
+        return;
+      case "heading":
+        if (!showSections) {
+          items.push({ kind: "gap" });
+          return;
         }
-
-        if (directive === "eoc" || directive === "end_of_chorus") {
-          inChorus = false;
-          continue;
+        if (!block.key && !block.raw) return;
+        items.push({
+          kind: "heading",
+          node: (
+            <SectionHeading
+              key={i}
+              label={headingLabel(block)}
+              icon={block.key ? ICONS[block.key] : undefined}
+              pill={block.key ? PILL_SECTIONS.has(block.key) : false}
+              repeat={block.heading?.repeat ?? null}
+            />
+          ),
+        });
+        return;
+      case "lyric": {
+        if (showChords && block.hasChords) {
+          items.push({
+            kind: "content",
+            chorus: block.chorus,
+            node: <ChordLine key={i} words={block.words} />,
+          });
+          return;
         }
-
-        if (directive === "sov" || directive === "start_of_verse") {
-          const info = parseSectionInfo(value, "verse");
-          elements.push(
-            <SectionLabel key={i} icon={ICON_MAP["verse"]}>
-              {info.label}
-            </SectionLabel>,
-          );
-          continue;
-        }
-
-        if (directive === "eov" || directive === "end_of_verse") {
-          continue;
-        }
-
-        if (directive === "sob" || directive === "start_of_bridge") {
-          const info = parseSectionInfo(value, "bridge");
-          elements.push(
-            <SectionLabel key={i} icon={ICON_MAP["bridge"]}>
-              {info.label}
-            </SectionLabel>,
-          );
-          continue;
-        }
-
-        if (directive === "eob" || directive === "end_of_bridge") {
-          continue;
-        }
-
-        if (directive === "c" || directive === "comment") {
-          const info = parseSectionInfo(value);
-
-          if (info.key) {
-            const variant = PILL_SECTIONS.has(info.key) ? "pill" : "block";
-            elements.push(
-              <SectionLabel key={i} icon={ICON_MAP[info.key]} variant={variant}>
-                {info.label}
-              </SectionLabel>,
-            );
-          } else {
-            elements.push(
-              <div
-                key={i}
-                className="text-muted-foreground my-2 font-mono text-xs tracking-wider uppercase"
-              >
-                [{value}]
-              </div>,
-            );
-          }
-          continue;
-        }
-
-        if (directive === "title") continue;
-        continue;
+        const text = plainText(block.words);
+        if (!text.replace(new RegExp(ANNOTATION_MARK, "g"), "").trim()) return;
+        items.push({
+          kind: "content",
+          chorus: block.chorus,
+          node: <TextLine key={i} text={text} />,
+        });
+        return;
       }
+      case "chords":
+        if (!showChords) return;
+        items.push({
+          kind: "content",
+          chorus: block.chorus,
+          node: <ChordsRow key={i} items={block.items} />,
+        });
+        return;
+      case "tab":
+        if (!showChords) return;
+        items.push({
+          kind: "content",
+          chorus: false,
+          node: (
+            <pre
+              key={i}
+              data-line=""
+              data-tab=""
+              className="bg-muted/40 text-foreground my-[0.4em] overflow-x-auto rounded-[0.5em] px-[0.8em] py-[0.5em] font-mono text-[0.68em] leading-[1.35]"
+            >
+              {block.lines.join("\n")}
+            </pre>
+          ),
+        });
+        return;
+      case "capo":
+        if (!showChords) return;
+        items.push({
+          kind: "content",
+          chorus: false,
+          node: (
+            <div key={i} data-line="" className="my-[0.3em]">
+              <span className="border-primary/40 text-primary inline-flex items-center rounded-full border px-[0.8em] py-[0.15em] text-[0.62em] font-bold tracking-[0.12em] uppercase">
+                {t("render.capo", { fret: block.fret })}
+              </span>
+            </div>
+          ),
+        });
+        return;
+      case "chorusRepeat":
+        items.push({
+          kind: "heading",
+          node: (
+            <SectionHeading
+              key={i}
+              label={
+                block.label
+                  ? `${tSection("chorus")} · ${block.label}`
+                  : t("render.repeatChorus")
+              }
+              icon={Repeat}
+              pill
+              repeat={null}
+            />
+          ),
+        });
+        return;
+      case "comment":
+        items.push({
+          kind: "content",
+          chorus: false,
+          node: (
+            <div
+              key={i}
+              data-line=""
+              data-comment=""
+              className={cn(
+                "text-muted-foreground my-[0.3em] flex items-start gap-[0.4em] text-[0.75em]",
+                block.style === "italic" && "italic",
+                block.style === "box" &&
+                  "w-fit rounded-[0.4em] border px-[0.6em] py-[0.2em]",
+              )}
+            >
+              <MessageSquareText className="mt-[0.2em] size-[1em] shrink-0 opacity-70" />
+              <span>{renderInline(block.text, `c${i}`)}</span>
+            </div>
+          ),
+        });
+        return;
     }
+  });
 
-    if (trimmed.startsWith("#")) {
-      continue;
+  // 2. Collapse gaps: none at the edges, none next to a heading, never two
+  //    in a row.
+  const tidy: Item[] = [];
+  for (const item of items) {
+    const prev = tidy[tidy.length - 1];
+    if (item.kind === "gap") {
+      if (!prev || prev.kind === "gap" || prev.kind === "heading") continue;
+    } else if (item.kind === "heading" && prev?.kind === "gap") {
+      tidy.pop();
     }
+    tidy.push(item);
+  }
+  while (tidy.length && tidy[tidy.length - 1].kind === "gap") tidy.pop();
 
-    let handledAsUgSection = false;
-    const ugMatch = trimmed.match(/^\[(.*?)\]$/);
-
-    if (ugMatch && !ugMatch[1].includes("[")) {
-      const info = parseSectionInfo(ugMatch[1]);
-      if (info.key) {
-        const variant = PILL_SECTIONS.has(info.key) ? "pill" : "block";
-        elements.push(
-          <SectionLabel key={i} icon={ICON_MAP[info.key]} variant={variant}>
-            {info.label}
-          </SectionLabel>,
-        );
-        handledAsUgSection = true;
-      }
-    }
-
-    if (handledAsUgSection) continue;
-
-    const lineWrapperClass = cn(
-      "mb-1.5",
-      inChorus &&
-        "border-foreground/20 bg-muted/10 border-l-2 py-0.5 pl-4 transition-colors",
-    );
-
-    if (showChords && hasChords(line)) {
-      const tokens = parseChordLine(line);
-      elements.push(
-        <div
-          key={i}
-          data-line=""
-          data-chorus={inChorus ? "" : undefined}
-          className={lineWrapperClass}
-        >
-          {renderChordTokens(tokens)}
-        </div>,
-      );
-      continue;
-    }
-
-    const textLine = showChords ? line : stripChords(line);
-    elements.push(
+  // 3. Group consecutive chorus lines under one accent bar.
+  const output: React.ReactNode[] = [];
+  let chorusGroup: React.ReactNode[] = [];
+  const flushChorus = () => {
+    if (!chorusGroup.length) return;
+    output.push(
       <div
-        key={i}
-        data-line=""
-        data-lyric=""
-        data-chorus={inChorus ? "" : undefined}
-        className={cn(lineWrapperClass, "text-foreground font-medium")}
+        key={`chorus-${output.length}`}
+        data-chorus=""
+        className="border-primary/35 border-l-[0.15em] pl-[0.8em]"
       >
-        {renderFormattedText(textLine)}
+        {chorusGroup}
       </div>,
     );
-  }
+    chorusGroup = [];
+  };
+
+  tidy.forEach((item, index) => {
+    const node =
+      item.kind === "gap" ? (
+        <div key={`gap-${index}`} data-blank="" className="h-[0.8em]" />
+      ) : (
+        item.node
+      );
+
+    const isChorusLine = showSections && item.kind === "content" && item.chorus;
+    // A gap between two chorus stanzas stays inside the bar.
+    const continuesChorus =
+      showSections &&
+      item.kind === "gap" &&
+      chorusGroup.length > 0 &&
+      tidy[index + 1]?.kind === "content" &&
+      (tidy[index + 1] as Extract<Item, { kind: "content" }>).chorus;
+
+    if (isChorusLine || continuesChorus) {
+      chorusGroup.push(node);
+    } else {
+      flushChorus();
+      output.push(node);
+    }
+  });
+  flushChorus();
 
   return (
     <div
-      className={cn(fontClass, "max-w-3xl", className)}
+      data-chordpro=""
+      className={cn(
+        FONT_CLASS[fontFamily],
+        "text-foreground max-w-3xl font-medium [overflow-wrap:anywhere]",
+        className,
+      )}
       style={{ fontSize: cssFontSize }}
     >
-      {elements}
+      {output}
     </div>
   );
 }

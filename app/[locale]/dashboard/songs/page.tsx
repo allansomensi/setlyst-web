@@ -1,5 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
-import { PaginatedResponse, Song, Artist } from "@/types/api";
+import { fetchAllServerPages } from "@/lib/api-server";
+import { Song, Artist } from "@/types/api";
 import { SongsTable } from "./_components/songs-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
@@ -9,12 +9,8 @@ export default async function SongsPage() {
   // `hadError` is what tells SongsTable an empty `songs` array means "this
   // fetch failed," not "you have no songs" — see LoadErrorNotice.
   const [songsRes, artistsRes] = await Promise.all([
-    fetchOrFailed(
-      fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
-    ),
-    fetchOrFailed(
-      fetchServerApi<PaginatedResponse<Artist>>("/artists?page=1&per_page=100"),
-    ),
+    fetchOrFailed(fetchAllServerPages<Song>("/songs")),
+    fetchOrFailed(fetchAllServerPages<Artist>("/artists")),
   ]);
 
   const hadError = songsRes === FETCH_FAILED || artistsRes === FETCH_FAILED;

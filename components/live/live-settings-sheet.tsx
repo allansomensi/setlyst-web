@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import {
   Contrast,
   Expand,
+  ListTree,
   Maximize,
   Metronome,
   Minus,
@@ -54,6 +55,8 @@ interface LiveSettingsSheetProps {
   onFontFamilyChange: (font: LiveFontFamily) => void;
   showChords: boolean;
   onToggleChords: () => void;
+  showSections: boolean;
+  onToggleSections: () => void;
   metronomeRunning: boolean;
   onToggleMetronome: () => void;
   /** The transpose row, rendered by the viewer (it owns that state). */
@@ -96,6 +99,8 @@ export function LiveSettingsSheet({
   onFontFamilyChange,
   showChords,
   onToggleChords,
+  showSections,
+  onToggleSections,
   metronomeRunning,
   onToggleMetronome,
   transpose,
@@ -149,7 +154,7 @@ export function LiveSettingsSheet({
 
           <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-5">
             {/* Mid-song controls */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               <QuickToggle
                 icon={controls.isAutoScroll ? Pause : Play}
                 label={t("sheet.autoScroll")}
@@ -169,6 +174,12 @@ export function LiveSettingsSheet({
                 label={t("sheet.chords")}
                 active={showChords}
                 onClick={onToggleChords}
+              />
+              <QuickToggle
+                icon={ListTree}
+                label={t("sheet.sections")}
+                active={showSections}
+                onClick={onToggleSections}
               />
             </div>
 
@@ -269,6 +280,8 @@ export function LiveSettingsSheet({
                 <Shortcut keys={["Space"]} label={t("sheet.keyScroll")} />
                 <Shortcut keys={["+", "−"]} label={t("sheet.keySpeed")} />
                 <Shortcut keys={["M"]} label={t("sheet.keyMetronome")} />
+                <Shortcut keys={["C"]} label={t("sheet.keyChords")} />
+                <Shortcut keys={["S"]} label={t("sheet.keySections")} />
                 <Shortcut keys={[",", "."]} label={t("sheet.keyTranspose")} />
               </dl>
             </Section>
@@ -381,7 +394,7 @@ function QuickToggle({
       aria-pressed={active}
       title={hint}
       className={cn(
-        "flex h-20 flex-col items-center justify-center gap-1.5 rounded-xl border text-xs font-medium transition-colors",
+        "flex h-20 flex-col items-center justify-center gap-1.5 rounded-xl border px-1 text-center text-[11px] font-medium transition-colors sm:text-xs",
         "focus-visible:ring-ring/50 outline-none focus-visible:ring-3",
         "disabled:pointer-events-none disabled:opacity-40",
         active

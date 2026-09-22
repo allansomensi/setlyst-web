@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { usePageSize } from "@/hooks/use-page-size";
 
 export type SortDirection = "asc" | "desc" | null;
 
@@ -12,14 +13,14 @@ export interface SortConfig {
 export function useTableControls<T>(
   data: T[],
   searchableKeys: readonly (keyof T)[],
-  itemsPerPage: number = 10,
 ) {
+  const [itemsPerPage, setItemsPerPage] = usePageSize();
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     direction: null,
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [requestedPage, setCurrentPage] = useState(1);
 
   const handleSearch = useCallback((term: string) => {
     setSearch(term);
@@ -69,7 +70,19 @@ export function useTableControls<T>(
   }, [data, search, searchableKeys, sortConfig]);
 
   const totalItems = filteredAndSortedData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  // Clamped rather than trusted: deleting the last row on the last page,
+  // or a search narrowing the results, would otherwise leave the table on
+  // a page that no longer exists — an empty table with no way to tell why.
+  const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
+
+  const setPageSize = useCallback(
+    (size: number) => {
+      setItemsPerPage(size);
+      setCurrentPage(1);
+    },
+    [setItemsPerPage],
+  );
 
   const processedData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -86,5 +99,7 @@ export function useTableControls<T>(
     totalPages,
     setCurrentPage,
     totalItems,
+    pageSize: itemsPerPage,
+    setPageSize,
   };
 }

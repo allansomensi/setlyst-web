@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Link } from "@/components/nav-link";
-import { ListMusic, Menu, X, Settings, Info } from "lucide-react";
+import { Menu, X, Settings, Info } from "lucide-react";
+import { AppLogo } from "@/components/app-logo";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SidebarLinks } from "./sidebar-links";
@@ -27,7 +28,7 @@ export function MobileNav({
           href="/dashboard"
           className="flex items-center gap-2 text-xl font-bold"
         >
-          <ListMusic className="text-primary h-6 w-6" />
+          <AppLogo size={28} priority className="rounded-md" />
           <span>Setlyst</span>
         </Link>
         <Link

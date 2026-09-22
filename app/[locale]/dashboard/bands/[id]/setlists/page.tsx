@@ -1,10 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
-import {
-  BandWithMembership,
-  PaginatedResponse,
-  Setlist,
-  BAND_ROLE_LEVEL,
-} from "@/types/api";
+import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { BandWithMembership, Setlist, BAND_ROLE_LEVEL } from "@/types/api";
 import { SetlistsTable } from "@/app/[locale]/dashboard/setlists/_components/setlists-table";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/nav-link";
@@ -23,9 +18,7 @@ export default async function BandSetlistsPage({
 
   const [band, setlistsRes] = await Promise.all([
     fetchServerApi<BandWithMembership>(`/bands/${id}`),
-    fetchServerApi<PaginatedResponse<Setlist>>(
-      `/bands/${id}/setlists?page=1&per_page=100`,
-    ),
+    fetchAllServerPages<Setlist>(`/bands/${id}/setlists`),
   ]);
 
   const setlists = setlistsRes.data || [];

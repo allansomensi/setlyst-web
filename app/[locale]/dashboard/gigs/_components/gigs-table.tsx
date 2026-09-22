@@ -244,7 +244,7 @@ export function GigsTable({
                       e.stopPropagation();
                       setGigToDelete(gig);
                     }}
-                    className="text-red-600"
+                    variant="destructive"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     {t("menu.delete")}

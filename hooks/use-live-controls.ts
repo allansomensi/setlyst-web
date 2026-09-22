@@ -2,7 +2,8 @@
 
 import { RefObject, useCallback, useEffect, useState } from "react";
 
-const SCROLL_INTERVAL_MS = 50;
+/** 1× = the old 1px-per-50ms pace, which people have tuned their speeds to. */
+const PIXELS_PER_SECOND_AT_1X = 20;
 export const SCROLL_MIN = 0.25;
 export const SCROLL_MAX = 8;
 export const SCROLL_STEP = 0.25;
@@ -73,12 +74,36 @@ export function useLiveControls({
   useEffect(() => {
     // Nothing to scroll through when the whole song is already on screen.
     if (!isAutoScroll || fitToScreen) return;
-    const interval = setInterval(() => {
+
+    // Driven by animation frames with a fractional accumulator rather than
+    // adding `speed` px to scrollTop on a timer: several browsers round
+    // scrollTop to whole pixels, so slow speeds (0.25–0.75) never moved at
+    // all, and a timer drifts and stutters against the display's refresh.
+    let frame = 0;
+    let last = performance.now();
+    let carry = 0;
+
+    const step = (now: number) => {
       const el = scrollContainerRef.current;
-      if (!el) return;
-      el.scrollTop += scrollSpeed;
-    }, SCROLL_INTERVAL_MS);
-    return () => clearInterval(interval);
+      const elapsed = Math.min(100, now - last);
+      last = now;
+      if (el) {
+        carry += (scrollSpeed * PIXELS_PER_SECOND_AT_1X * elapsed) / 1000;
+        const whole = Math.floor(carry);
+        if (whole > 0) {
+          el.scrollTop += whole;
+          carry -= whole;
+        }
+        // Stop at the end of the song instead of "running" invisibly.
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+          setAutoScroll(false);
+          return;
+        }
+      }
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
   }, [isAutoScroll, scrollSpeed, fitToScreen, scrollContainerRef]);
 
   return {

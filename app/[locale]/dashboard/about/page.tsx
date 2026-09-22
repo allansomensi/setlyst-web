@@ -10,13 +10,13 @@ import {
   GitCommitHorizontal,
   Globe,
   Heart,
-  ListMusic,
   Monitor,
   Scale,
   Server,
   type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AppLogo } from "@/components/app-logo";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import packageJson from "@/package.json";
 import {
@@ -79,9 +79,11 @@ export default async function AboutPage() {
         />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <span className="bg-primary text-primary-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
-              <ListMusic className="h-7 w-7" />
-            </span>
+            <AppLogo
+              size={64}
+              priority
+              className="rounded-2xl shadow-lg shadow-black/20"
+            />
             <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Setlyst

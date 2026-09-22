@@ -7,6 +7,7 @@ import {
   transposeChordPro,
   transposeKey,
 } from "@/lib/music/chords";
+import { normalizeChordPro } from "@/lib/music/chordpro";
 
 /**
  * An octave either way is the whole useful range: twelve semitones lands
@@ -50,8 +51,13 @@ export interface Transpose {
 export function useTranspose(
   songId: string | undefined,
   tonality: string | null | undefined,
-  lyrics: string,
+  rawLyrics: string,
 ): Transpose {
+  // Chords written above the lyrics (the usual layout of pasted charts)
+  // become inline ChordPro first — otherwise they're plain text, and
+  // transposing would leave every one of them in the original key.
+  const lyrics = useMemo(() => normalizeChordPro(rawLyrics), [rawLyrics]);
+
   const [offset, setOffset] = useState<{
     songId: string | undefined;
     semitones: number;

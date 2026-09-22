@@ -62,6 +62,8 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
     currentPage,
     totalPages,
     setCurrentPage,
+    pageSize,
+    setPageSize,
     totalItems,
   } = useTableControls(initialArtists, SEARCHABLE_KEYS);
 
@@ -166,7 +168,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteClick(artist.id)}
-                          className="text-red-600"
+                          variant="destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {tCommon("delete")}
@@ -181,22 +183,21 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {tCommon("showing", {
-            count: artists.length,
-            total: totalItems,
-            entity: totalItems !== 1 ? tCommon("results") : tCommon("result"),
-          })}
-          {search && ` ${tCommon("showingFor", { search })}`}
-        </p>
+      <TablePagination
+        currentPage={currentPage}
 
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-        />
-      </div>
+        totalPages={totalPages}
+
+        setCurrentPage={setCurrentPage}
+
+        totalItems={totalItems}
+
+        pageSize={pageSize}
+
+        setPageSize={setPageSize}
+
+        search={search}
+      />
 
       <ArtistDialog
         isOpen={isDialogOpen}

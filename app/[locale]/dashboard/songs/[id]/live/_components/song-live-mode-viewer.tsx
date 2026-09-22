@@ -66,7 +66,7 @@ export function SongLiveModeViewer({
 
   // Per device, not per account — see use-live-display-prefs.ts.
   const display = useLiveDisplayPrefs();
-  const { fitToScreen } = display;
+  const { fitToScreen, toggle: toggleDisplay } = display;
 
   const controls = useLiveControls({
     initialFontSize,
@@ -98,6 +98,14 @@ export function SongLiveModeViewer({
         case "M":
           toggleMetronome();
           break;
+        case "c":
+        case "C":
+          toggleDisplay("showChords");
+          break;
+        case "s":
+        case "S":
+          toggleDisplay("showSections");
+          break;
         case ",":
         case "<":
           shiftTranspose(-1);
@@ -124,6 +132,7 @@ export function SongLiveModeViewer({
     toggleAutoScroll,
     stepScrollSpeed,
     settingsOpen,
+    toggleDisplay,
   ]);
 
   // Base: 1.5rem (~text-2xl). Scaled by zoomLevel.
@@ -153,6 +162,7 @@ export function SongLiveModeViewer({
           containerRef={scrollContainerRef}
           content={transpose.content}
           showChords={display.showChords}
+          showSections={display.showSections}
           fontFamily={display.fontFamily}
           fontSize={baseFontSize}
           fitToScreen={fitToScreen}
@@ -185,6 +195,8 @@ export function SongLiveModeViewer({
         onFontFamilyChange={(font) => display.setPref("fontFamily", font)}
         showChords={display.showChords}
         onToggleChords={() => display.toggle("showChords")}
+        showSections={display.showSections}
+        onToggleSections={() => display.toggle("showSections")}
         metronomeRunning={metronomeSettings.isRunning}
         onToggleMetronome={toggleMetronome}
         fullscreen={

@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { fetchServerApi } from "@/lib/api-server";
-import { PaginatedResponse, User } from "@/types/api";
+import { fetchAllServerPages } from "@/lib/api-server";
+import { User } from "@/types/api";
 import { UsersTable } from "./_components/users-table";
 
 export default async function UsersPage() {
@@ -12,9 +12,7 @@ export default async function UsersPage() {
     redirect("/dashboard");
   }
 
-  const response = await fetchServerApi<PaginatedResponse<User>>(
-    "/users?page=1&per_page=100",
-  );
+  const response = await fetchAllServerPages<User>("/users");
 
   const users = response.data || [];
 

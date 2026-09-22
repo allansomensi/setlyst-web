@@ -2,16 +2,11 @@
 
 import { useState } from "react";
 import { Link } from "@/components/nav-link";
-import {
-  ListMusic,
-  ChevronLeft,
-  ChevronRight,
-  Settings,
-  Info,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings, Info } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/routing";
 import { SidebarLinks } from "./sidebar-links";
+import { AppLogo } from "@/components/app-logo";
 import { NotificationBell } from "./notification-bell";
 import { NotificationBellErrorBoundary } from "./notification-bell-error-boundary";
 import { LogoutButton } from "./logout-button";
@@ -62,7 +57,7 @@ export function Sidebar({ user }: SidebarProps) {
           href="/dashboard"
           className="flex items-center gap-2 overflow-hidden text-xl font-bold"
         >
-          <ListMusic className="h-6 w-6 shrink-0" />
+          <AppLogo size={28} priority className="rounded-md" />
           {!isCollapsed && <span className="truncate">Setlyst</span>}
         </Link>
 

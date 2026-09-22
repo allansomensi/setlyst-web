@@ -1,12 +1,5 @@
-import { fetchServerApi } from "@/lib/api-server";
-import {
-  PaginatedResponse,
-  Setlist,
-  Song,
-  SetlistSong,
-  SetlistItem,
-  Artist,
-} from "@/types/api";
+import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { Setlist, Song, SetlistSong, SetlistItem, Artist } from "@/types/api";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Clock, Music } from "lucide-react";
@@ -29,12 +22,10 @@ export default async function SetlistDetailsPage({
   const [setlist, setlistSongsRes, setlistItems, allSongsRes, allArtistsRes] =
     await Promise.all([
       fetchServerApi<Setlist>(`/setlists/${id}`),
-      fetchServerApi<PaginatedResponse<SetlistSong>>(
-        `/setlists/${id}/songs?page=1&per_page=100`,
-      ),
+      fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
       fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
-      fetchServerApi<PaginatedResponse<Song>>("/songs?page=1&per_page=100"),
-      fetchServerApi<PaginatedResponse<Artist>>("/artists?page=1&per_page=100"),
+      fetchAllServerPages<Song>("/songs"),
+      fetchAllServerPages<Artist>("/artists"),
     ]);
 
   const setlistSongs = setlistSongsRes.data || [];

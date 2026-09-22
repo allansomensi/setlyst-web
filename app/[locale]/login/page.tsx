@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/routing";
 import { Link } from "@/components/nav-link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { AppLogo } from "@/components/app-logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -37,7 +38,6 @@ export default function LoginPage() {
         });
 
         if (result?.error) {
-          toast.error(t("invalidCredentials"));
           return t("invalidCredentials");
         }
 
@@ -49,7 +49,6 @@ export default function LoginPage() {
         router.refresh();
         return null;
       } catch {
-        toast.error(t("connectionError"));
         return t("connectionError");
       }
     },
@@ -59,7 +58,8 @@ export default function LoginPage() {
   return (
     <div className="bg-muted/40 flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
+        <CardHeader className="items-center text-center">
+          <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
           <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
           <CardDescription>{t("subtitle")}</CardDescription>
         </CardHeader>
@@ -74,7 +74,6 @@ export default function LoginPage() {
                 placeholder={t("usernamePlaceholder")}
                 required
                 disabled={isPending}
-                tabIndex={1}
               />
             </div>
 
@@ -84,7 +83,6 @@ export default function LoginPage() {
                 <Link
                   href="/forgot-password"
                   className="text-muted-foreground text-sm hover:underline"
-                  tabIndex={4}
                 >
                   {t("forgotPassword")}
                 </Link>
@@ -97,14 +95,12 @@ export default function LoginPage() {
                   placeholder={t("passwordPlaceholder")}
                   required
                   disabled={isPending}
-                  tabIndex={2}
                   className="pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                  tabIndex={-1}
                   aria-label={
                     showPassword ? t("hidePassword") : t("showPassword")
                   }
@@ -119,17 +115,15 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="text-center text-sm font-medium text-red-500">
+              <p
+                role="alert"
+                className="text-destructive text-center text-sm font-medium"
+              >
                 {error}
               </p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending}
-              tabIndex={3}
-            >
+            <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -147,7 +141,6 @@ export default function LoginPage() {
             <Link
               href="/register"
               className="text-primary font-medium hover:underline"
-              tabIndex={5}
             >
               {t("signUp")}
             </Link>

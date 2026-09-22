@@ -74,7 +74,7 @@ export function LiveModeViewer({
   // High contrast, whole-song fit, typeface and chords. Per device, not per
   // account — see use-live-display-prefs.ts.
   const display = useLiveDisplayPrefs();
-  const { fitToScreen } = display;
+  const { fitToScreen, toggle: toggleDisplay } = display;
 
   const controls = useLiveControls({
     initialFontSize,
@@ -219,6 +219,14 @@ export function LiveModeViewer({
         case "M":
           toggleMetronome();
           break;
+        case "c":
+        case "C":
+          toggleDisplay("showChords");
+          break;
+        case "s":
+        case "S":
+          toggleDisplay("showSections");
+          break;
         case ",":
         case "<":
           shiftTranspose(-1);
@@ -247,6 +255,7 @@ export function LiveModeViewer({
     toggleAutoScroll,
     stepScrollSpeed,
     settingsOpen,
+    toggleDisplay,
   ]);
 
   // Empty state
@@ -292,6 +301,7 @@ export function LiveModeViewer({
           containerRef={scrollContainerRef}
           content={transpose.content}
           showChords={display.showChords}
+          showSections={display.showSections}
           fontFamily={display.fontFamily}
           fontSize={baseFontSize}
           fitToScreen={fitToScreen}
@@ -390,6 +400,8 @@ export function LiveModeViewer({
         onFontFamilyChange={(font) => display.setPref("fontFamily", font)}
         showChords={display.showChords}
         onToggleChords={() => display.toggle("showChords")}
+        showSections={display.showSections}
+        onToggleSections={() => display.toggle("showSections")}
         metronomeRunning={metronomeSettings.isRunning}
         onToggleMetronome={toggleMetronome}
         hasNavigation

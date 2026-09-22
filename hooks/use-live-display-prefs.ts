@@ -19,6 +19,8 @@ export interface LiveDisplayPrefs {
   fontFamily: LiveFontFamily;
   /** Chords over the lyrics, or lyrics alone (for the singer's screen). */
   showChords: boolean;
+  /** Section headings (Verse, Chorus…) and the chorus accent bar. */
+  showSections: boolean;
 }
 
 const STORAGE_KEY = "setlyst:live-display";
@@ -26,7 +28,11 @@ const DEFAULTS: LiveDisplayPrefs = {
   highContrast: false,
   fitToScreen: false,
   fontFamily: "sans",
-  showChords: true,
+  // Most people reading Live Mode are singing, not playing: lyrics first,
+  // chords one tap away. Sections stay on — they're how you find your
+  // place in the song.
+  showChords: false,
+  showSections: true,
 };
 
 /*
@@ -61,8 +67,8 @@ function read(): LiveDisplayPrefs {
       )
         ? (parsed.fontFamily as LiveFontFamily)
         : DEFAULTS.fontFamily,
-      // Absent means "never changed", which is chords on.
-      showChords: parsed.showChords !== false,
+      showChords: parsed.showChords === true,
+      showSections: parsed.showSections !== false,
     };
   } catch {
     // Private mode, blocked storage, corrupt JSON: fall back to defaults
@@ -110,7 +116,7 @@ export function useLiveDisplayPrefs() {
   );
 
   const toggle = useCallback(
-    (key: "highContrast" | "fitToScreen" | "showChords") => {
+    (key: "highContrast" | "fitToScreen" | "showChords" | "showSections") => {
       const current = read();
       write({ ...current, [key]: !current[key] });
     },

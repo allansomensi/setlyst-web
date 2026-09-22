@@ -119,6 +119,8 @@ export function SongsTable({
     currentPage,
     totalPages,
     setCurrentPage,
+    pageSize,
+    setPageSize,
     totalItems,
   } = useTableControls(songsWithArtistName, SEARCHABLE_KEYS);
 
@@ -254,6 +256,7 @@ export function SongsTable({
                 sortKey="artist_name"
                 sortConfig={sortConfig}
                 onSort={handleSort}
+                className="hidden sm:table-cell"
               />
               <SortableColumnHeader
                 label={t("table.key")}
@@ -306,9 +309,9 @@ export function SongsTable({
                     router.push(`/dashboard/songs/${song.id}/live`);
                   }}
                 >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {song.title}
+                  <TableCell className="w-full max-w-0 font-medium">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate">{song.title}</span>
                       <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span
@@ -319,8 +322,14 @@ export function SongsTable({
                         </span>
                       )}
                     </div>
+                    {/* The artist column is dropped on phones. */}
+                    <p className="text-muted-foreground truncate text-xs font-normal sm:hidden">
+                      {song.artist_name}
+                    </p>
                   </TableCell>
-                  <TableCell>{song.artist_name}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {song.artist_name}
+                  </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {song.tonality ? (
                       <Badge variant="secondary" className="px-1.5 font-mono">
@@ -359,7 +368,7 @@ export function SongsTable({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleDeleteClick(song.id)}
-                          className="text-red-600"
+                          variant="destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {t("menu.delete")}
@@ -374,22 +383,21 @@ export function SongsTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {tCommon("showing", {
-            count: songs.length,
-            total: totalItems,
-            entity: totalItems !== 1 ? tCommon("results") : tCommon("result"),
-          })}
-          {search && ` ${tCommon("showingFor", { search })}`}
-        </p>
+      <TablePagination
+        currentPage={currentPage}
 
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-        />
-      </div>
+        totalPages={totalPages}
+
+        setCurrentPage={setCurrentPage}
+
+        totalItems={totalItems}
+
+        pageSize={pageSize}
+
+        setPageSize={setPageSize}
+
+        search={search}
+      />
 
       <SongDialog
         key={editingSong?.id ?? "new"}

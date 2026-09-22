@@ -37,7 +37,7 @@ export function AcceptInviteCard({ code }: { code: string }) {
         {code}
       </p>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
 
       <div className="mt-4 flex gap-2">
         <Button variant="outline" asChild disabled={isPending}>
