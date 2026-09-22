@@ -526,6 +526,14 @@
       "beatsPerBarTitle": "Tempos por compasso",
       "muteClick": "Silenciar o clique",
       "unmuteClick": "Tocar clique audível"
+    },
+    "transpose": {
+      "up": "Meio tom acima (.)",
+      "down": "Meio tom abaixo (,)",
+      "reset": "Voltar ao tom original",
+      "original": "original",
+      "capo": "Capo {fret}",
+      "capoHelp": "Coloque o capotraste nesta casa para tocar estas formas e soar no tom original da música"
     }
   },
   "offlineSync": {

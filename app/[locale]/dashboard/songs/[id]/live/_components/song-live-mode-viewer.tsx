@@ -31,6 +31,8 @@ import { useMetronome } from "@/hooks/use-metronome";
 import { useMetronomeSettings } from "@/hooks/use-metronome-settings";
 import { MetronomeFlash } from "@/components/live/metronome-flash";
 import { MetronomeControls } from "@/components/live/metronome-controls";
+import { useTranspose } from "@/hooks/use-transpose";
+import { TransposeControls } from "@/components/live/transpose-controls";
 
 type FontFamily = "sans" | "mono" | "serif";
 
@@ -90,6 +92,10 @@ export function SongLiveModeViewer({
   });
   const { toggleRunning: toggleMetronome } = metronomeSettings;
 
+  // Live key changes. See use-transpose.ts.
+  const transpose = useTranspose(song.id, song.tonality, song.lyrics ?? "");
+  const { shift: shiftTranspose } = transpose;
+
   const [settings, setSettings] = useState<LiveSettings>({
     zoomLevel: initialFontSize / 100,
     fontFamily: "sans",
@@ -130,6 +136,14 @@ export function SongLiveModeViewer({
         case "M":
           toggleMetronome();
           break;
+        case ",":
+        case "<":
+          shiftTranspose(-1);
+          break;
+        case ".":
+        case ">":
+          shiftTranspose(1);
+          break;
         case "+":
         case "=":
           setSettings((s) => ({
@@ -147,7 +161,7 @@ export function SongLiveModeViewer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleMetronome]);
+  }, [toggleMetronome, shiftTranspose]);
 
   const update = <K extends keyof LiveSettings>(
     key: K,
@@ -197,15 +211,23 @@ export function SongLiveModeViewer({
               <span className="ml-1 opacity-70">{t("bpm")}</span>
             </Badge>
           )}
-          {song.tonality && (
+          {transpose.key && (
             <Badge
               variant="default"
               className="px-2 py-1 text-xs font-bold md:px-3 md:py-2 md:text-base"
+              title={
+                transpose.semitones !== 0
+                  ? `${song.tonality} ${transpose.semitones > 0 ? "+" : ""}${transpose.semitones}`
+                  : undefined
+              }
             >
               <span className="mr-1 hidden opacity-70 sm:inline">
                 {t("key")}
               </span>
-              {song.tonality}
+              {transpose.key}
+              {transpose.semitones !== 0 && (
+                <span className="ml-1 opacity-70">*</span>
+              )}
             </Badge>
           )}
           <Button
@@ -230,7 +252,7 @@ export function SongLiveModeViewer({
       >
         <div className="mx-auto max-w-5xl">
           <ChordProRenderer
-            content={song.lyrics ?? ""}
+            content={transpose.content}
             showChords={settings.showChords}
             fontSize={baseFontSize}
             fontFamily={settings.fontFamily}
@@ -253,6 +275,18 @@ export function SongLiveModeViewer({
             : "translate-x-[calc(100%-40px)] md:translate-x-[calc(100%-48px)]",
         )}
       >
+        {showControls && (
+          <div className="animate-in fade-in slide-in-from-right-2">
+            <TransposeControls
+              semitones={transpose.semitones}
+              onShift={transpose.shift}
+              onReset={transpose.reset}
+              transposedKey={transpose.key}
+              capoFret={transpose.capoFret}
+            />
+          </div>
+        )}
+
         {showControls && (
           <div className="animate-in fade-in slide-in-from-right-2">
             <MetronomeControls

@@ -526,6 +526,14 @@
       "beatsPerBarTitle": "Beats per bar",
       "muteClick": "Mute the click",
       "unmuteClick": "Play an audible click"
+    },
+    "transpose": {
+      "up": "Up a semitone (.)",
+      "down": "Down a semitone (,)",
+      "reset": "Back to the written key",
+      "original": "written",
+      "capo": "Capo {fret}",
+      "capoHelp": "Clamp a capo here to play these shapes and still sound in the song's original key"
     }
   },
   "offlineSync": {

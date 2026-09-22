@@ -526,6 +526,14 @@
       "beatsPerBarTitle": "Tiempos por compás",
       "muteClick": "Silenciar el clic",
       "unmuteClick": "Reproducir clic audible"
+    },
+    "transpose": {
+      "up": "Medio tono arriba (.)",
+      "down": "Medio tono abajo (,)",
+      "reset": "Volver al tono original",
+      "original": "original",
+      "capo": "Cejilla {fret}",
+      "capoHelp": "Coloca la cejilla en este traste para tocar estas formas y sonar en el tono original"
     }
   },
   "offlineSync": {
