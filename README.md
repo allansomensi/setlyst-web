@@ -24,17 +24,21 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 
 ## ✨ Features
 
-> ⚠️ Setlyst is in active development. Features marked 🚧 are planned but not yet implemented.
+> ⚠️ Setlyst is in active development.
 
-- ✅ **Dashboard** — Centralized management of Artists, Songs, Bands and Setlists.
-- ✅ **Live Mode** — High-contrast, distraction-free performance viewer.
-- ✅ **ChordPro Support** — Dynamic rendering of lyrics and chords.
-- ✅ **Authentication** — Secure access via NextAuth.
+- ✅ **Dashboard** — Centralized management of Artists, Songs, Bands, Setlists, and Gigs.
+- ✅ **Live Mode** — High-contrast, distraction-free performance viewer with a built-in metronome and live transpose.
+- ✅ **ChordPro Support** — Dynamic rendering and editing of lyrics and chords.
+- ✅ **Setlist Analytics** — Visualize a setlist's tempo/energy progression before you play it.
+- ✅ **Authentication** — Secure access via NextAuth, with role-based access control.
+- ✅ **Band Collaboration** — Multiple members share the same song library, setlists, and gigs.
+- ✅ **Public Sharing** — Shareable, read-only links and QR codes for setlists and gigs.
+- ✅ **Offline Support** — Setlists, songs, and Live Mode keep working with no signal.
+- ✅ **Installable (PWA)** — Add Setlyst to your home screen like a native app.
+- ✅ **PDF & ChordPro Export** — Generate printable setlists or export songs as `.cho` files.
+- ✅ **Backup & Restore** — Export and import a full snapshot of your data.
 - ✅ **Responsive Design** — Optimized for desktops, tablets, and mobile phones.
-- ✅ **Multi-language** — Full support for English and Portuguese (i18n).
-- ✅ **PDF Export** — Generate printable versions of your setlists.
-- ✅ **Setlist Sharing** — Collaborative editing with band members.
-- 🚧 **Offline Support** — Access your setlists even without an internet connection.
+- ✅ **Multi-language** — Full support for English, Portuguese, and Spanish (i18n).
 
 ---
 
@@ -50,7 +54,7 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 
 ## 📥 Installation
 
-**Prerequisites:** Node.js 18+ and a running instance of the [Setlyst API](https://github.com/allansomensi/setlyst-api).
+**Prerequisites:** Node.js 20.9+ and a running instance of the [Setlyst API](https://github.com/allansomensi/setlyst-api).
 
 1. **Clone the repository:**
 
@@ -92,6 +96,10 @@ The **Live Mode** is the heart of Setlyst. It is designed to be used on tablets 
 - **Zero Layout Shift:** Content remains stable during performance.
 - **High Contrast:** Readable under stage lights or in dark venues.
 - **Stay Awake:** Prevents the device from sleeping during use.
+- **Metronome:** Per-song BPM, tap tempo, and an audible or visual click.
+- **Live Transpose:** Shift the key on the fly, with capo suggestions.
+- **Auto-scroll:** Hands-free lyric scrolling at an adjustable speed.
+- **Offline-ready:** Works with no signal — nothing depends on a live connection once synced.
 
 ---
 
