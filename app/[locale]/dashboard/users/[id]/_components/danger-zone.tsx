@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { DangerSection } from "@/components/staff/danger-section";
 import { useRouter } from "@/i18n/routing";
 import { toastActionError } from "@/lib/action-toast";

@@ -36,7 +36,7 @@ function getSiteUrl(): URL | undefined {
 
 const APP_NAME = "Setlyst";
 const APP_DESCRIPTION =
-  "Your band's song library, setlists and gigs — with a Live Mode that works offline.";
+  "Lyrics, chords, setlists and gigs for musicians who play live, with a Live Mode that works offline.";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),

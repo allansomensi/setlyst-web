@@ -25,8 +25,11 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Loader2, Plus, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { onFormSubmit } from "@/lib/forms";
+import { copyText } from "@/lib/clipboard";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const INVITE_ROLES: BandRole[] = ["member", "moderator", "admin"];
 const EXPIRY_OPTIONS = [
@@ -61,9 +64,6 @@ export function BandInvitesSection({
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [inviteToRevoke, setInviteToRevoke] = useState<BandInvite | null>(null);
-
-  const inputClass =
-    "border-input bg-background flex h-10 w-full rounded-md border px-3 py-2 text-sm disabled:opacity-50";
 
   const handleCreate = (formData: FormData) => {
     const role = formData.get("role") as BandRole;
@@ -103,10 +103,14 @@ export function BandInvitesSection({
     });
   };
 
-  const copyInviteLink = (code: string) => {
+  const copyInviteLink = async (code: string) => {
     const url = `${window.location.origin}/dashboard/invite/${code}`;
-    navigator.clipboard.writeText(url);
-    toast.success(t("linkCopied"));
+    if (await copyText(url)) {
+      toast.success(t("linkCopied"));
+    } else {
+      // Nothing was copied: show the link so it can be copied by hand.
+      toast.info(t("copyLinkManually"), { description: url, duration: 15_000 });
+    }
   };
 
   return (
@@ -125,7 +129,7 @@ export function BandInvitesSection({
       {invites.length === 0 ? (
         <p className="text-muted-foreground text-sm">{t("empty")}</p>
       ) : (
-        <div className="bg-background rounded-md border">
+        <div className="bg-card rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -144,9 +148,7 @@ export function BandInvitesSection({
                 return (
                   <TableRow key={invite.id}>
                     <TableCell className="font-mono">{invite.code}</TableCell>
-                    <TableCell className="capitalize">
-                      {t(`roles.${invite.role}`)}
-                    </TableCell>
+                    <TableCell>{t(`roles.${invite.role}`)}</TableCell>
                     <TableCell>
                       {invite.uses_count}
                       {invite.max_uses !== null ? ` / ${invite.max_uses}` : ""}
@@ -154,7 +156,6 @@ export function BandInvitesSection({
                     <TableCell>
                       <Badge
                         variant={status === "active" ? "outline" : "secondary"}
-                        className="capitalize"
                       >
                         {t(`status.${status}`)}
                       </Badge>
@@ -194,7 +195,7 @@ export function BandInvitesSection({
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
-          <form action={handleCreate}>
+          <form onSubmit={onFormSubmit(handleCreate)}>
             <DialogHeader>
               <DialogTitle>{t("createInvite")}</DialogTitle>
               <DialogDescription>{t("createDescription")}</DialogDescription>
@@ -202,10 +203,9 @@ export function BandInvitesSection({
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="role">{t("roleLabel")}</Label>
-                <select
+                <NativeSelect
                   id="role"
                   name="role"
-                  className={inputClass}
                   defaultValue="member"
                   disabled={isPending}
                 >
@@ -214,14 +214,13 @@ export function BandInvitesSection({
                       {t(`roles.${role}`)}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="expires_in_hours">{t("expiresLabel")}</Label>
-                <select
+                <NativeSelect
                   id="expires_in_hours"
                   name="expires_in_hours"
-                  className={inputClass}
                   defaultValue="168"
                   disabled={isPending}
                 >
@@ -233,7 +232,7 @@ export function BandInvitesSection({
                       {t(`expiresOptions.${option.key}`)}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="max_uses">{t("maxUsesLabel")}</Label>

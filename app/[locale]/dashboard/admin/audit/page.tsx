@@ -15,6 +15,12 @@ const CATEGORIES = [
   "setlist.",
   "share.",
   "settings.",
+  "moderation.",
+  "announcement.",
+  "release_note.",
+  "billing.",
+  "promo.",
+  "promotion.",
 ] as const;
 
 export async function generateMetadata(): Promise<Metadata> {

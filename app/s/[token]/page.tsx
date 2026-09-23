@@ -6,6 +6,7 @@ import { PublicSetlist } from "@/types/api";
 import { notFound } from "next/navigation";
 import { PublicSetlistView } from "./_components/public-setlist-view";
 import { PublicShell } from "@/components/public/public-shell";
+import { getNonce } from "@/lib/server/nonce";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 
 // One fetch per request, shared by the metadata and the page.
@@ -54,10 +55,13 @@ export default async function PublicSetlistPage({
   const setlist = await getPublicSetlist(token);
   if (!setlist) notFound();
 
-  const { locale, messages } = await resolvePublicLocale(lang);
+  const [{ locale, messages }, nonce] = await Promise.all([
+    resolvePublicLocale(lang),
+    getNonce(),
+  ]);
 
   return (
-    <PublicShell locale={locale} messages={messages}>
+    <PublicShell locale={locale} messages={messages} nonce={nonce}>
       <PublicSetlistView setlist={setlist} token={token} />
     </PublicShell>
   );

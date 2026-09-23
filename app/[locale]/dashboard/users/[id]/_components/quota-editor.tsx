@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import { Loader2, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toastActionError } from "@/lib/action-toast";
-import { QUOTA_RESOURCES, type QuotaResource } from "@/lib/api-errors";
+import { LIMITABLE_QUOTA_RESOURCES } from "@/lib/api-errors";
+import type { QuotaResource } from "@/types/api";
 import type {
   QuotaLimits,
   QuotaOverrides,
@@ -23,7 +24,7 @@ type Draft = Record<QuotaResource, string>;
 
 function toDraft(overrides: QuotaOverrides): Draft {
   return Object.fromEntries(
-    QUOTA_RESOURCES.map((r) => [
+    LIMITABLE_QUOTA_RESOURCES.map((r) => [
       r,
       overrides[r] != null ? String(overrides[r]) : "",
     ]),
@@ -51,7 +52,7 @@ export function QuotaEditor({
   const [unlimited, setUnlimited] = useState(settings.unlimited);
   const [isPending, startTransition] = useTransition();
 
-  const invalid = QUOTA_RESOURCES.filter((r) => {
+  const invalid = LIMITABLE_QUOTA_RESOURCES.filter((r) => {
     const value = draft[r].trim();
     if (!value) return false;
     const n = Number(value);
@@ -60,13 +61,13 @@ export function QuotaEditor({
 
   const dirty =
     unlimited !== settings.unlimited ||
-    QUOTA_RESOURCES.some(
+    LIMITABLE_QUOTA_RESOURCES.some(
       (r) => draft[r].trim() !== (settings.overrides[r]?.toString() ?? ""),
     );
 
   const save = () => {
     const overrides: QuotaOverrides = {};
-    for (const r of QUOTA_RESOURCES) {
+    for (const r of LIMITABLE_QUOTA_RESOURCES) {
       const value = draft[r].trim();
       overrides[r] = value ? Number(value) : null;
     }
@@ -96,7 +97,7 @@ export function QuotaEditor({
         className={`grid gap-3 sm:grid-cols-2 ${unlimited ? "pointer-events-none opacity-50" : ""}`}
         aria-disabled={unlimited}
       >
-        {QUOTA_RESOURCES.map((resource) => (
+        {LIMITABLE_QUOTA_RESOURCES.map((resource) => (
           <div key={resource} className="space-y-1">
             <label
               htmlFor={`quota-${resource}`}

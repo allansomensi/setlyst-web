@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { usePageSize } from "@/hooks/use-page-size";
+import { filterBySearch } from "@/lib/search";
 
 export type SortDirection = "asc" | "desc" | null;
 
@@ -39,17 +40,8 @@ export function useTableControls<T>(
   }, []);
 
   const filteredAndSortedData = useMemo(() => {
-    let result = [...data];
-
-    if (search.trim()) {
-      const term = search.toLowerCase();
-      result = result.filter((item) =>
-        searchableKeys.some((key) => {
-          const val = item[key];
-          return typeof val === "string" && val.toLowerCase().includes(term);
-        }),
-      );
-    }
+    // Case- and accent-insensitive: "cancao" finds "Canção".
+    const result = filterBySearch(data, searchableKeys, search);
 
     if (sortConfig.key && sortConfig.direction) {
       const { key, direction } = sortConfig;

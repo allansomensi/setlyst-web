@@ -40,7 +40,7 @@ export default async function AdminBandsPage({
       <AdminPageHeader title={t("title")} description={t("description")} />
       <ListToolbar placeholder={t("search")} />
 
-      <div className="bg-background rounded-md border">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -78,6 +78,7 @@ export default async function AdminBandsPage({
                       className="group flex items-center gap-3"
                     >
                       <BandAvatar
+                        bandId={band.id}
                         name={band.name}
                         logoUrl={band.logo_url}
                         className="h-8 w-8"

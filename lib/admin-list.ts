@@ -3,6 +3,8 @@
  * (`/dashboard/admin/*`), which page and filter on the API side.
  */
 
+import { isUuid } from "@/lib/uuid";
+
 export type ListSearchParams = Promise<
   Record<string, string | string[] | undefined>
 >;
@@ -12,8 +14,6 @@ export const ADMIN_PAGE_SIZE = 25;
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Builds the API query string from the page's search params, keeping only
@@ -32,8 +32,7 @@ export function adminListQuery(
   for (const key of allowed) {
     const value = first(raw[key])?.trim();
     if (!value) continue;
-    if ((key.endsWith("_id") || key === "user_id") && !UUID.test(value))
-      continue;
+    if ((key.endsWith("_id") || key === "user_id") && !isUuid(value)) continue;
     if (key === "shared" && value !== "true" && value !== "false") continue;
     params.set(key, value.slice(0, 100));
   }

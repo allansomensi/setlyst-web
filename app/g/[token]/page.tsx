@@ -4,6 +4,9 @@ import { apiPath } from "@/lib/api-endpoint";
 import { PublicGig } from "@/types/api";
 import { notFound } from "next/navigation";
 import { PublicGigView } from "./_components/public-gig-view";
+import { PublicShell } from "@/components/public/public-shell";
+import { getNonce } from "@/lib/server/nonce";
+import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 
 export async function generateMetadata({
   params,
@@ -39,10 +42,12 @@ export async function generateMetadata({
  */
 export default async function PublicGigPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ lang?: string | string[] }>;
 }) {
-  const { token } = await params;
+  const [{ token }, { lang }] = await Promise.all([params, searchParams]);
 
   let gig: PublicGig;
   try {
@@ -53,5 +58,14 @@ export default async function PublicGigPage({
     notFound();
   }
 
-  return <PublicGigView gig={gig} />;
+  const [{ locale, messages }, nonce] = await Promise.all([
+    resolvePublicLocale(lang),
+    getNonce(),
+  ]);
+
+  return (
+    <PublicShell locale={locale} messages={messages} nonce={nonce}>
+      <PublicGigView gig={gig} />
+    </PublicShell>
+  );
 }

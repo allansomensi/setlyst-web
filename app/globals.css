@@ -59,43 +59,48 @@
  * dark surfaces). Hover and selection states use a soft tint of that same
  * violet — an earlier warm-amber accent read as a burnt orange that
  * clashed with it — while amber stays in the chart palette, where a
- * second hue is actually needed to tell series apart. Light-mode surfaces are no longer a single flat white: the
- * page background carries a faint violet-gray tint so white cards actually
- * sit *on* something instead of disappearing into the page.
+ * second hue is actually needed to tell series apart.
+ *
+ * Light mode is built in layers: a tinted page background, near-white
+ * cards and tables on top of it (with a visible border and a soft shadow),
+ * and a sidebar a step darker than the page. Text on every surface meets
+ * WCAG AA (muted text is at least 5.5:1).
  */
 :root {
-  --background: oklch(0.984 0.007 280);
-  --foreground: oklch(0.2 0.025 280);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.025 280);
+  --background: oklch(0.962 0.011 280);
+  --foreground: oklch(0.2 0.03 280);
+  --card: oklch(0.995 0.003 280);
+  --card-foreground: oklch(0.2 0.03 280);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.025 280);
+  --popover-foreground: oklch(0.2 0.03 280);
   --primary: oklch(0.48 0.2 280);
   --primary-foreground: oklch(0.985 0.01 280);
-  --secondary: oklch(0.945 0.022 280);
+  --secondary: oklch(0.925 0.03 280);
   --secondary-foreground: oklch(0.32 0.08 280);
-  --muted: oklch(0.96 0.008 280);
-  --muted-foreground: oklch(0.51 0.02 275);
-  --accent: oklch(0.95 0.025 280);
+  --muted: oklch(0.94 0.013 280);
+  --muted-foreground: oklch(0.47 0.03 280);
+  --accent: oklch(0.925 0.04 280);
   --accent-foreground: oklch(0.32 0.1 280);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.908 0.015 280);
-  --input: oklch(0.908 0.015 280);
-  --ring: oklch(0.61 0.19 280);
-  --chart-1: oklch(0.61 0.19 280);
-  --chart-2: oklch(0.74 0.155 60);
-  --chart-3: oklch(0.66 0.14 200);
-  --chart-4: oklch(0.62 0.19 15);
-  --chart-5: oklch(0.57 0.14 150);
+  --destructive: oklch(0.55 0.22 27);
+  --border: oklch(0.865 0.02 280);
+  --input: oklch(0.82 0.025 280);
+  --ring: oklch(0.58 0.19 280);
+  --chart-1: oklch(0.58 0.19 280);
+  --chart-2: oklch(0.72 0.155 60);
+  --chart-3: oklch(0.62 0.13 200);
+  --chart-4: oklch(0.6 0.19 15);
+  --chart-5: oklch(0.55 0.14 150);
   --radius: 0.75rem;
-  --sidebar: oklch(0.97 0.009 280);
-  --sidebar-foreground: oklch(0.2 0.025 280);
+  --sidebar: oklch(0.93 0.02 280);
+  --sidebar-foreground: oklch(0.2 0.03 280);
   --sidebar-primary: oklch(0.48 0.2 280);
   --sidebar-primary-foreground: oklch(0.985 0.01 280);
-  --sidebar-accent: oklch(0.93 0.035 280);
-  --sidebar-accent-foreground: oklch(0.32 0.08 280);
-  --sidebar-border: oklch(0.9 0.016 280);
-  --sidebar-ring: oklch(0.61 0.19 280);
+  --sidebar-accent: oklch(0.885 0.05 280);
+  --sidebar-accent-foreground: oklch(0.28 0.09 280);
+  --sidebar-border: oklch(0.86 0.022 280);
+  --sidebar-ring: oklch(0.58 0.19 280);
+  --shadow-surface:
+    0 1px 2px oklch(0.2 0.03 280 / 6%), 0 1px 3px oklch(0.2 0.03 280 / 4%);
 }
 
 .dark {
@@ -130,6 +135,7 @@
   --sidebar-accent-foreground: oklch(0.92 0.012 280);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.73 0.17 280);
+  --shadow-surface: 0 1px 2px oklch(0 0 0 / 20%);
 }
 
 @layer base {
@@ -154,22 +160,11 @@
  * overlapping glows.
  */
 [data-slot="card"] {
-  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 5%, transparent);
+  box-shadow: var(--shadow-surface);
 }
 
 [data-slot="button"][data-variant="default"] {
   box-shadow: 0 1px 2px color-mix(in oklch, var(--primary) 30%, transparent);
-}
-
-/*
- * Toasts: the close button is for pointer-sized screens only. On phones,
- * tapping the toast dismisses it (components/ui/toaster.tsx forwards the
- * tap to this same button, which is why it's hidden rather than removed).
- */
-@media (max-width: 47.99rem) {
-  [data-sonner-toast] [data-close-button] {
-    display: none;
-  }
 }
 
 /*

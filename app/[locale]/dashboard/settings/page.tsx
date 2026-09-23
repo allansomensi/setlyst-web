@@ -1,127 +1,243 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import { Gauge, KeyRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { QuotaUsageList } from "@/components/quota-usage-list";
-import { Link } from "@/i18n/routing";
+import { getServerSession } from "next-auth";
+import { getLocale, getTranslations } from "next-intl/server";
+import { authOptions } from "@/lib/auth";
 import { fetchServerApi } from "@/lib/api-server";
-import { getMyPreferences } from "@/lib/server-data";
-import type { QuotaReport } from "@/types/api";
+import { getMe, getMyPreferences } from "@/lib/server-data";
+import { getPublicPlans } from "@/lib/public-api";
+import { pickLocalized } from "@/lib/localized";
+import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
+import type { PaginatedResponse, QuotaReport } from "@/types/api";
+import type { BillingMe } from "@/types/billing";
+import type {
+  CommunicationSettings,
+  CreditEntry,
+  LinkedIdentity,
+  ReferralEntry,
+  SecurityOverview,
+  SubscriptionEvent,
+} from "@/types/account";
 import { BackupSection } from "./_components/backup-section";
+import { CommunicationSection } from "./_components/communication-section";
+import { DeleteAccountSection } from "./_components/delete-account-section";
 import { DisplayDefaultsSection } from "./_components/display-defaults-section";
 import { HelpSection } from "./_components/help-section";
 import { OfflineSection } from "./_components/offline-section";
 import { PdfDefaultsSection } from "./_components/pdf-defaults-section";
+import {
+  SecuritySection,
+  type GoogleLinkStatus,
+} from "./_components/security-section";
 import { SettingsForm } from "./_components/settings-form";
+import {
+  SettingsNav,
+  SettingsSectionHeading,
+} from "./_components/settings-nav";
+import { SubscriptionSection } from "./_components/subscription-section";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings");
   return { title: t("title") };
 }
 
-const SECTIONS = [
-  "general",
-  "display",
-  "pdf",
-  "usage",
-  "security",
-  "offline",
-  "backup",
-  "help",
-] as const;
+const GOOGLE_STATUSES: readonly GoogleLinkStatus[] = [
+  "linked",
+  "mismatch",
+  "no_account",
+  "unverified",
+  "failed",
+];
 
-export default async function SettingsPage() {
+/** A failed load shows a notice in its section instead of the page failing. */
+function orNull<T>(promise: Promise<T>): Promise<T | null> {
+  return promise.catch(() => null);
+}
+
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getTranslations("settings");
-  const [preferences, usage] = await Promise.all([
+  const locale = await getLocale();
+  const params = await searchParams;
+  const session = await getServerSession(authOptions);
+  const readOnly = Boolean(session?.user.impersonator);
+
+  const [
+    preferences,
+    me,
+    usage,
+    security,
+    identities,
+    communication,
+    billing,
+    credits,
+    referrals,
+    history,
+    plans,
+  ] = await Promise.all([
     getMyPreferences(),
-    fetchServerApi<QuotaReport>("/users/me/quotas").catch(() => null),
+    orNull(getMe()),
+    orNull(fetchServerApi<QuotaReport>("/users/me/quotas")),
+    orNull(fetchServerApi<SecurityOverview>("/users/me/security")),
+    orNull(fetchServerApi<LinkedIdentity[]>("/users/me/identities")),
+    orNull(fetchServerApi<CommunicationSettings>("/users/me/communication")),
+    orNull(fetchServerApi<BillingMe>("/billing/me")),
+    orNull(
+      fetchServerApi<PaginatedResponse<CreditEntry>>(
+        "/billing/credits?page=1&per_page=10",
+      ),
+    ),
+    orNull(
+      fetchServerApi<PaginatedResponse<ReferralEntry>>(
+        "/billing/referrals?page=1&per_page=10",
+      ),
+    ),
+    orNull(fetchServerApi<SubscriptionEvent[]>("/billing/history")),
+    getPublicPlans(),
   ]);
 
+  const tPlans = await getTranslations("billing.plans");
+  const planNames: Record<string, string> = {
+    basic: tPlans("basic"),
+    intermediate: tPlans("intermediate"),
+    pro: tPlans("pro"),
+  };
+  for (const plan of plans ?? []) {
+    planNames[plan.code] = pickLocalized(plan.name, locale) || plan.code;
+  }
+  if (billing?.plan) {
+    planNames[billing.plan.code] =
+      pickLocalized(billing.plan.name, locale) || billing.plan.code;
+  }
+
+  const googleParam = Array.isArray(params.google)
+    ? params.google[0]
+    : params.google;
+  const googleStatus = GOOGLE_STATUSES.includes(googleParam as GoogleLinkStatus)
+    ? (googleParam as GoogleLinkStatus)
+    : null;
+
+  const username = me?.username ?? session?.user.name ?? "";
+  const passwordSet = me?.password_set ?? security?.password_set ?? true;
+
+  const sectionClass = "scroll-mt-20 space-y-4 lg:scroll-mt-6";
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4">
-      <div className="space-y-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("description")}</p>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("description")}</p>
+      </div>
+
+      <div className="lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
+        <SettingsNav />
+
+        <div className="min-w-0 space-y-12 pt-4 lg:pt-0">
+          <section
+            id="preferences"
+            className={sectionClass}
+            aria-labelledby="preferences-title"
+          >
+            <SettingsSectionHeading
+              id="preferences-title"
+              title={t("sections.preferences")}
+              description={t("sectionDescriptions.preferences")}
+            />
+            <SettingsForm initialPreferences={preferences} />
+            <DisplayDefaultsSection />
+            <PdfDefaultsSection />
+            <OfflineSection />
+          </section>
+
+          <section
+            id="security"
+            className={sectionClass}
+            aria-labelledby="security-title"
+          >
+            <SettingsSectionHeading
+              id="security-title"
+              title={t("sections.security")}
+              description={t("sectionDescriptions.security")}
+            />
+            <SecuritySection
+              username={username}
+              passwordSet={passwordSet}
+              passwordChangedAt={me?.password_changed_at ?? null}
+              security={security}
+              identities={identities}
+              googleEnabled={isGoogleSignInEnabled()}
+              googleStatus={googleStatus}
+              readOnly={readOnly}
+            />
+          </section>
+
+          <section
+            id="communications"
+            className={sectionClass}
+            aria-labelledby="communications-title"
+          >
+            <SettingsSectionHeading
+              id="communications-title"
+              title={t("sections.communications")}
+              description={t("sectionDescriptions.communications")}
+            />
+            <CommunicationSection initial={communication} />
+          </section>
+
+          <section
+            id="subscription"
+            className={sectionClass}
+            aria-labelledby="subscription-title"
+          >
+            <SettingsSectionHeading
+              id="subscription-title"
+              title={t("sections.subscription")}
+              description={t("sectionDescriptions.subscription")}
+            />
+            <SubscriptionSection
+              billing={billing}
+              usage={usage}
+              history={history}
+              credits={credits}
+              referrals={referrals}
+              planNames={planNames}
+              readOnly={readOnly}
+            />
+          </section>
+
+          <section
+            id="data"
+            className={sectionClass}
+            aria-labelledby="data-title"
+          >
+            <SettingsSectionHeading
+              id="data-title"
+              title={t("sections.data")}
+              description={t("sectionDescriptions.data")}
+            />
+            <BackupSection />
+            <DeleteAccountSection
+              username={username}
+              passwordSet={passwordSet}
+              readOnly={readOnly}
+            />
+          </section>
+
+          <section
+            id="help"
+            className={sectionClass}
+            aria-labelledby="help-title"
+          >
+            <SettingsSectionHeading
+              id="help-title"
+              title={t("sections.help")}
+              description={t("sectionDescriptions.help")}
+            />
+            <HelpSection />
+          </section>
         </div>
-        <nav aria-label={t("sectionsNav")} className="flex flex-wrap gap-1.5">
-          {SECTIONS.map((section) => (
-            <a
-              key={section}
-              href={`#${section}`}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/70 rounded-full px-3 py-1 text-xs font-medium transition-colors"
-            >
-              {t(`sections.${section}`)}
-            </a>
-          ))}
-        </nav>
-      </div>
-
-      <div id="general" className="scroll-mt-20">
-        <SettingsForm initialPreferences={preferences} />
-      </div>
-
-      <div className="scroll-mt-20">
-        <DisplayDefaultsSection />
-      </div>
-
-      <div className="scroll-mt-20">
-        <PdfDefaultsSection />
-      </div>
-
-      <Card id="usage" className="scroll-mt-20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Gauge className="text-primary h-4 w-4" />
-            {t("usage.title")}
-          </CardTitle>
-          <CardDescription>{t("usage.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {usage ? (
-            <QuotaUsageList report={usage} />
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              {t("usage.unavailable")}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card id="security" className="scroll-mt-20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <KeyRound className="text-primary h-4 w-4" />
-            {t("security.title")}
-          </CardTitle>
-          <CardDescription>{t("security.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" asChild>
-            <Link href="/dashboard/profile#password">
-              {t("security.changePassword")}
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div id="offline" className="scroll-mt-20">
-        <OfflineSection />
-      </div>
-
-      <div id="backup" className="scroll-mt-20">
-        <BackupSection />
-      </div>
-
-      <div className="scroll-mt-20">
-        <HelpSection />
       </div>
     </div>
   );

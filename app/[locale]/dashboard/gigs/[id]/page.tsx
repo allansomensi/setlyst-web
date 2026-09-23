@@ -1,6 +1,7 @@
 import { AuditStamp } from "@/components/audit-stamp";
 import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { canManageBandSetlists } from "@/lib/band-permissions";
 import {
   Gig,
   Setlist,
@@ -9,8 +10,8 @@ import {
   SetlistItem,
   Artist,
   BandWithMembership,
-  BAND_ROLE_LEVEL,
 } from "@/types/api";
+import { formatWallClock } from "@/lib/dates";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,11 +22,15 @@ import {
   Guitar,
   Play,
   MapPin,
+  Route,
 } from "lucide-react";
 import { SetlistSongsManager } from "../../setlists/[id]/_components/setlists-songs-manager";
 import { GigActions } from "./_components/gig-actions";
 import { LinkSetlistPrompt } from "./_components/link-setlist-prompt";
-import { BandOption } from "../_components/gigs-dialog";
+import { BandOption, TourOption } from "../_components/gigs-dialog";
+import { PinButton } from "@/components/content/pin-button";
+import { getEntitlements, hasFeature } from "@/lib/entitlements";
+import type { Tour } from "@/types/content";
 import { getTranslations, getLocale } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { notFound } from "next/navigation";
@@ -57,6 +62,7 @@ export default async function GigDetailsPage({
   const { id } = await params;
   const t = await getTranslations("gigs");
   const tNav = await getTranslations("nav");
+  const tSetlists = await getTranslations("setlists");
   const locale = await getLocale();
 
   let gig: Gig;
@@ -67,17 +73,27 @@ export default async function GigDetailsPage({
     throw err;
   }
 
-  const [personalSetlistsRes, bands] = await Promise.all([
-    fetchAllServerPages<Setlist>("/setlists"),
-    fetchServerApi<BandWithMembership[]>("/bands"),
-  ]);
+  const [personalSetlistsRes, bands, toursRes, entitlements] =
+    await Promise.all([
+      fetchAllServerPages<Setlist>("/setlists"),
+      fetchServerApi<BandWithMembership[]>("/bands"),
+      fetchAllServerPages<Tour>(
+        gig.band_id
+          ? `/bands/${gig.band_id}/tours?status=all`
+          : "/tours?status=all",
+      ).catch(() => ({ data: [] as Tour[] })),
+      getEntitlements(),
+    ]);
+  const tours: TourOption[] = toursRes.data.map((tour) => ({
+    id: tour.id,
+    name: tour.name,
+    band_id: tour.band_id,
+  }));
   const personalSetlists = personalSetlistsRes.data || [];
 
   const bandsById: Record<string, { name: string; canManage: boolean }> = {};
   for (const band of bands) {
-    const canManage =
-      BAND_ROLE_LEVEL[band.my_role] >= BAND_ROLE_LEVEL.moderator ||
-      (band.my_role === "member" && band.members_can_manage_setlists);
+    const canManage = canManageBandSetlists(band);
     bandsById[band.id] = { name: band.name, canManage };
   }
 
@@ -156,12 +172,24 @@ export default async function GigDetailsPage({
                   {bandInfo?.name ?? t("bandGig")}
                 </Badge>
               )}
+              {gig.tour_id && gig.tour_name && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 text-xs font-normal"
+                  asChild
+                >
+                  <Link href={`/dashboard/tours/${gig.tour_id}`}>
+                    <Route className="h-3 w-3" aria-hidden />
+                    {gig.tour_name}
+                  </Link>
+                </Badge>
+              )}
             </div>
             <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-4 text-sm">
               <div className="bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium">
                 <Calendar className="text-primary h-4 w-4" />
                 <span>
-                  {new Date(gig.scheduled_at).toLocaleString(locale, {
+                  {formatWallClock(gig.scheduled_at, locale, {
                     dateStyle: "full",
                     timeStyle: "short",
                   })}
@@ -188,7 +216,14 @@ export default async function GigDetailsPage({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <PinButton
+            type="gig"
+            id={gig.id}
+            name={gig.venue}
+            pinned={!!gig.is_pinned}
+            variant="default"
+          />
           {gig.setlist_id && setlist && (
             <Button asChild size="lg" className="gap-2">
               <Link href={`/dashboard/setlists/${setlist.id}/live`}>
@@ -202,6 +237,7 @@ export default async function GigDetailsPage({
             canManage={canManage}
             personalSetlists={personalSetlists}
             bands={manageableBands}
+            tours={tours}
           />
         </div>
       </div>
@@ -209,7 +245,11 @@ export default async function GigDetailsPage({
       {gig.setlist_id && setlist ? (
         <div className="space-y-2">
           <h2 className="text-muted-foreground text-sm font-medium">
-            {t("setlistFor", { title: setlist.title })}
+            {t("setlistFor", {
+              title: setlist.is_repertoire
+                ? tSetlists("repertoire.name")
+                : setlist.title,
+            })}
           </h2>
           <SetlistSongsManager
             setlistId={setlist.id}
@@ -218,6 +258,16 @@ export default async function GigDetailsPage({
             setlistItems={setlistItems}
             allSongs={allSongs}
             artists={allArtists}
+            band={
+              gig.band_id
+                ? {
+                    id: gig.band_id,
+                    canManage,
+                    canSuggest: hasFeature(entitlements, "song_suggestions"),
+                    isRepertoire: !!setlist.is_repertoire,
+                  }
+                : undefined
+            }
           />
         </div>
       ) : (

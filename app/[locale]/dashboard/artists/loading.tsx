@@ -24,7 +24,7 @@ export default function ArtistsLoading() {
       <Skeleton className="h-10 w-full max-w-sm" />
 
       {/* Table Skeleton */}
-      <div className="bg-background rounded-md border">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>

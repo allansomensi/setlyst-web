@@ -2,13 +2,14 @@
 
 import type { ReactNode } from "react";
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
-import { useTheme } from "next-themes";
 import { ThemeProvider } from "@/components/providers/theme_provider";
 import { Toaster } from "@/components/ui/toaster";
 
 interface PublicShellProps {
   locale: string;
   messages: AbstractIntlMessages;
+  /** CSP nonce for next-themes' inline script (lib/server/nonce.ts). */
+  nonce?: string;
   children: ReactNode;
 }
 
@@ -21,7 +22,12 @@ interface PublicShellProps {
  * The theme here is the visitor's own choice (or their system's), stored
  * by next-themes on their device — there's no account to read it from.
  */
-export function PublicShell({ locale, messages, children }: PublicShellProps) {
+export function PublicShell({
+  locale,
+  messages,
+  nonce,
+  children,
+}: PublicShellProps) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
       <ThemeProvider
@@ -29,6 +35,7 @@ export function PublicShell({ locale, messages, children }: PublicShellProps) {
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
+        nonce={nonce}
       >
         {/* The document's own `lang` comes from the root layout, which
             can't see this page's locale; this keeps screen readers and
@@ -36,18 +43,8 @@ export function PublicShell({ locale, messages, children }: PublicShellProps) {
         <div lang={locale} className="contents">
           {children}
         </div>
-        <ThemedToaster />
+        <Toaster position="top-center" />
       </ThemeProvider>
     </NextIntlClientProvider>
-  );
-}
-
-function ThemedToaster() {
-  const { theme } = useTheme();
-  return (
-    <Toaster
-      position="top-center"
-      theme={theme === "light" || theme === "dark" ? theme : "system"}
-    />
   );
 }

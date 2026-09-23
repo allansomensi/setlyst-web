@@ -11,7 +11,7 @@ import { updateBandRolePermissions } from "../../actions";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 
 interface BandPermissionsSectionProps {
@@ -91,7 +91,7 @@ export function BandPermissionsSection({
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 
-      <div className="bg-background overflow-x-auto rounded-md border">
+      <div className="bg-card overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">

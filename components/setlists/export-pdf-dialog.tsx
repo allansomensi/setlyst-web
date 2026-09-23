@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { FileDown, Languages, Loader2, RotateCcw } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,22 +31,27 @@ import {
   pdfOptionsToQuery,
   type PdfExportOptions,
 } from "@/lib/pdf-export-options";
+import { useDownload } from "@/hooks/use-download";
 import { PdfOptionsEditor } from "./pdf-options-editor";
 
 interface ExportPdfDialogProps {
-  /** The export endpoint, without query string. */
+  /**
+   * The export URL, without query string: the app's own route handler
+   * (`/api/export/setlists/{id}/pdf`) for signed-in people, the API's
+   * public endpoint on a share page.
+   */
   endpoint: string;
-  /** Bearer token for the authenticated endpoint; omitted for public links. */
-  authToken?: string;
+  /** Offer "save as my default" (signed-in exports only). */
+  canSaveDefault?: boolean;
   setlistTitle: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
 /**
- * PDF export — shared by the dashboard and the public share page, which
- * differ only in the endpoint and whether a token is sent (and so whether
- * the options can be saved as the account's default).
+ * PDF export, shared by the dashboard and the public share page, which
+ * differ only in the endpoint and in whether the options can be saved as
+ * the account's default.
  *
  * The printed language is chosen here rather than inferred from the UI:
  * a band sheet often goes to a sound engineer or a venue that doesn't
@@ -68,7 +73,7 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
 
 function ExportForm({
   endpoint,
-  authToken,
+  canSaveDefault = false,
   setlistTitle,
   onClose,
 }: ExportPdfDialogProps) {
@@ -76,7 +81,7 @@ function ExportForm({
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const { settings, update } = useUiSettings();
-  const canSaveDefault = Boolean(authToken);
+  const download = useDownload();
 
   const [isPending, startTransition] = useTransition();
   const [options, setOptions] = useState<PdfExportOptions>(settings.pdf);
@@ -88,45 +93,20 @@ function ExportForm({
 
   const handleExport = () => {
     startTransition(async () => {
-      try {
-        const query = pdfOptionsToQuery(options, { lang: language, subtitle });
-        const response = await fetch(`${endpoint}?${query}`, {
-          method: "GET",
-          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-        });
+      const query = pdfOptionsToQuery(options, { lang: language, subtitle });
+      const saved = await download(
+        `${endpoint}?${query}`,
+        `${setlistTitle}.pdf`,
+      );
+      if (!saved) return;
 
-        if (!response.ok) {
-          toast.error(
-            response.status === 429 ? t("rateLimited") : t("exportFailed"),
-          );
-          return;
-        }
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download =
-          filenameFromDisposition(
-            response.headers.get("content-disposition"),
-          ) ?? `${setlistTitle}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        // Revoking in the same tick can cancel the download in Safari.
-        window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-
-        if (saveAsDefault && canSaveDefault) {
-          const saved = await update({ pdf: options });
-          if (!saved.success) toast.error(t("defaultNotSaved"));
-        }
-
-        toast.success(t("exportSuccess"));
-        onClose();
-      } catch (error) {
-        console.error(error);
-        toast.error(t("exportFailed"));
+      if (saveAsDefault && canSaveDefault) {
+        const result = await update({ pdf: options });
+        if (!result.success) toast.error(t("defaultNotSaved"));
       }
+
+      toast.success(t("exportSuccess"));
+      onClose();
     });
   };
 
@@ -232,23 +212,4 @@ function ExportForm({
       </DialogFooter>
     </>
   );
-}
-
-/**
- * Reads the file name out of a Content-Disposition header, preferring the
- * RFC 5987 `filename*` form (which carries non-ASCII titles intact) over
- * the plain one.
- */
-function filenameFromDisposition(header: string | null): string | null {
-  if (!header) return null;
-  const extended = /filename\*\s*=\s*(?:UTF-8'')?([^;]+)/i.exec(header);
-  if (extended) {
-    try {
-      return decodeURIComponent(extended[1].trim().replace(/^"|"$/g, ""));
-    } catch {
-      // Fall through to the plain form.
-    }
-  }
-  const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(header);
-  return plain ? plain[1].trim() : null;
 }

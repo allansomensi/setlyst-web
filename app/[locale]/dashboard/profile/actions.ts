@@ -2,42 +2,86 @@
 
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction } from "@/lib/action-guard";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
-import { UsernameAvailability } from "@/types/api";
+import type { User, UsernameAvailability } from "@/types/api";
+import {
+  AVATAR_URL_MAX,
+  BIO_MAX,
+  INSTRUMENT_MAX,
+  INSTRUMENTS_MAX,
+  LOCATION_MAX,
+  isAcceptableAvatarUrl,
+  normalizeInstruments,
+} from "@/lib/profile";
 
-interface UpdateProfilePayload {
+interface UpdateProfileInput {
   username: string;
-  email?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
+  first_name: string;
+  last_name: string;
+  bio: string;
+  location: string;
+  instruments: string[];
 }
 
-export async function updateProfile(data: UpdateProfilePayload) {
+/**
+ * Saves the public profile. Empty strings clear optional fields (the
+ * API's convention). The e-mail address has its own verified flow.
+ */
+export async function updateProfile(data: UpdateProfileInput) {
   const t = await getTranslations("profile.errors");
   const username = data.username?.trim();
 
-  if (!username || username.length < 1 || username.length > 128) {
-    return {
-      success: false,
-      error: t("usernameLength"),
-    };
+  if (!username || username.length > 128) {
+    return { success: false as const, error: t("usernameLength") };
   }
 
-  const safePayload: UpdateProfilePayload = {
-    username,
-    email: data.email?.trim() || null,
-    first_name: data.first_name?.trim() || null,
-    last_name: data.last_name?.trim() || null,
-  };
+  const bio = (data.bio ?? "").trim();
+  const location = (data.location ?? "").trim();
+  const instruments = normalizeInstruments(data.instruments ?? []);
+  if (
+    bio.length > BIO_MAX ||
+    location.length > LOCATION_MAX ||
+    instruments.length > INSTRUMENTS_MAX ||
+    instruments.some((item) => item.length > INSTRUMENT_MAX)
+  ) {
+    return { success: false as const, error: t("invalid") };
+  }
 
   return guardedAction(
     () =>
-      fetchServerApi("/users/me", {
+      fetchServerApi<User>("/users/me", {
         method: "PATCH",
-        body: JSON.stringify(safePayload),
+        body: JSON.stringify({
+          username,
+          first_name: (data.first_name ?? "").trim().slice(0, 50),
+          last_name: (data.last_name ?? "").trim().slice(0, 50),
+          bio,
+          location,
+          instruments,
+        }),
       }),
-    () => revalidatePath("/dashboard"),
+    () => revalidateDashboard("", "layout"),
+  );
+}
+
+/** Sets (an `https` image URL) or removes (`null`) the avatar. */
+export async function updateAvatar(url: string | null) {
+  const t = await getTranslations("apiErrors");
+  const value = url?.trim() ?? "";
+  if (
+    value &&
+    (value.length > AVATAR_URL_MAX || !isAcceptableAvatarUrl(value))
+  ) {
+    return { success: false as const, error: t("INVALID_IMAGE_URL") };
+  }
+  return guardedAction(
+    () =>
+      fetchServerApi<User>("/users/me", {
+        method: "PATCH",
+        body: JSON.stringify({ avatar_url: value }),
+      }),
+    () => revalidateDashboard("", "layout"),
   );
 }
 

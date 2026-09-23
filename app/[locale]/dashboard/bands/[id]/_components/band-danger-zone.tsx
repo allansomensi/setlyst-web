@@ -16,8 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { onFormSubmit } from "@/lib/forms";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface BandDangerZoneProps {
   band: BandWithMembership;
@@ -38,9 +40,6 @@ export function BandDangerZone({
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
-
-  const inputClass =
-    "border-input bg-background flex h-10 w-full rounded-md border px-3 py-2 text-sm disabled:opacity-50";
 
   const otherMembers = members.filter((m) => m.user_id !== currentUserId);
 
@@ -138,17 +137,16 @@ export function BandDangerZone({
 
       <Dialog open={isTransferOpen} onOpenChange={setIsTransferOpen}>
         <DialogContent>
-          <form action={handleTransfer}>
+          <form onSubmit={onFormSubmit(handleTransfer)}>
             <DialogHeader>
               <DialogTitle>{t("transferTitle")}</DialogTitle>
               <DialogDescription>{t("transferConfirm")}</DialogDescription>
             </DialogHeader>
             <div className="space-y-2 py-4">
               <Label htmlFor="new_owner_id">{t("newOwnerLabel")}</Label>
-              <select
+              <NativeSelect
                 id="new_owner_id"
                 name="new_owner_id"
-                className={inputClass}
                 required
                 disabled={isPending}
               >
@@ -157,7 +155,7 @@ export function BandDangerZone({
                     {member.username}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <DialogFooter>
               <Button

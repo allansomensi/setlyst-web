@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Globe, Link2Off, Lock, LockOpen, ShieldAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

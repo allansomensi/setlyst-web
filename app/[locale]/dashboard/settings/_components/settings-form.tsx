@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -35,12 +35,18 @@ import {
   Type,
   SlidersHorizontal,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 
 interface SettingsFormProps {
   initialPreferences: UserPreferences;
+}
+
+const THEMES: UserTheme[] = ["light", "dark", "system"];
+
+function isUserTheme(value: string): value is UserTheme {
+  return (THEMES as string[]).includes(value);
 }
 
 export function SettingsForm({ initialPreferences }: SettingsFormProps) {
@@ -50,46 +56,52 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   const { update: updateSession } = useSession();
   const { setTheme } = useTheme();
   const [isPending, startTransition] = useTransition();
+  const [isSavingTheme, startSavingTheme] = useTransition();
+  const [language, setLanguage] = useState(initialPreferences.language || "en");
+  const [theme, setThemeChoice] = useState<UserTheme>(
+    initialPreferences.theme || "system",
+  );
   const [fontSize, setFontSize] = useState(() =>
     normalizeFontSize(initialPreferences.live_mode_font_size),
   );
 
-  const handleAction = (formData: FormData) => {
-    const languageValue = formData.get("language");
-    const themeValue = formData.get("theme");
+  /**
+   * The theme applies the moment it's picked and is saved right away, so
+   * there's no "preview until you press Save" state to explain.
+   */
+  const changeTheme = (value: string) => {
+    if (!isUserTheme(value) || value === theme) return;
+    const previous = theme;
+    setThemeChoice(value);
+    setTheme(value);
+    startSavingTheme(async () => {
+      const result = await updatePreferences({ theme: value });
+      if (!result.success) {
+        setThemeChoice(previous);
+        setTheme(previous);
+        toastActionError(result, result.error);
+      }
+    });
+  };
 
-    const language = typeof languageValue === "string" ? languageValue : "en";
-
-    const theme = (
-      ["light", "dark", "system"].includes(themeValue as string)
-        ? themeValue
-        : "system"
-    ) as UserTheme;
-
-    const payload = {
-      language,
-      theme,
-      live_mode_font_size: fontSize,
-    };
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const payload = { language, theme, live_mode_font_size: fontSize };
 
     startTransition(async () => {
       const result = await updatePreferences(payload);
 
       if (!result.success) {
-        toastActionError(
-          result,
-          result.error || "Failed to update preferences",
-        );
+        toastActionError(result, result.error);
         return;
       }
 
-      setTheme(payload.theme);
-      toast.success(t("saveSuccess") || "Preferences updated");
+      toast.success(t("saveSuccess"));
 
       // Keep the language on the session token in step with what was just
       // saved. The token is what decides the locale when the app is opened
-      // at a URL with no locale in it — an installed PWA's start_url, say
-      // — so leaving it stale here would send the person back to their
+      // at a URL with no locale in it (an installed PWA's start_url, say),
+      // so leaving it stale here would send the person back to their
       // previous language on the next launch. See lib/auth.ts.
       await updateSession({ language: payload.language });
 
@@ -103,7 +115,7 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
 
   return (
     <form
-      action={handleAction}
+      onSubmit={handleSubmit}
       className={cn(
         "mx-auto w-full max-w-3xl space-y-6 transition-opacity duration-200",
         isPending && "pointer-events-none opacity-60",
@@ -129,8 +141,8 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
               <div className="relative w-full">
                 <Globe className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                 <Select
-                  name="language"
-                  defaultValue={initialPreferences.language || "en"}
+                  value={language}
+                  onValueChange={setLanguage}
                   disabled={isPending}
                 >
                   <SelectTrigger
@@ -155,9 +167,9 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
               <div className="relative w-full">
                 <Palette className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                 <Select
-                  name="theme"
-                  defaultValue={initialPreferences.theme || "system"}
-                  disabled={isPending}
+                  value={theme}
+                  onValueChange={changeTheme}
+                  disabled={isPending || isSavingTheme}
                 >
                   <SelectTrigger
                     id="theme"

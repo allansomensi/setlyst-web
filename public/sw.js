@@ -20,24 +20,42 @@
  *    filenames are content-hashed, so a cached copy is always valid.
  *  - Any other same-origin GET (images, fonts, etc.): stale-while-revalidate.
  *
- * Deliberately NOT cached: non-GET requests (mutations) and cross-origin
- * requests (the API server). Losing network never silently serves a stale
- * mutation result or a stale API response — only already-rendered pages
- * and static assets are replayed offline.
+ * Deliberately NOT cached: non-GET requests (mutations), cross-origin
+ * requests (the API server), the app's own /api/* routes, responses marked
+ * `Cache-Control: no-store` or `private` (other than page navigations,
+ * which Next.js always marks that way), and the account and staff pages
+ * listed in PRIVATE_PATHS, which only ever come from the network. Losing
+ * network never silently serves a stale mutation result or a stale API
+ * response; only already-rendered pages and static assets are replayed
+ * offline.
+ *
+ * On sign-out the app posts `{ type: "CLEAR" }` (lib/client-logout.ts) and
+ * every cache is dropped, so the next person using the device can't read
+ * the previous one's pages.
  */
 
-// Bumped so every client picks up this fix cleanly: earlier versions could
+// v7: offline.html's script moved to /offline.js (strict CSP), precached
+// next to it.
+//
+// v6: drops every page cached by earlier versions, which could include the
+// staff console and account settings (now never cached, see PRIVATE_PATHS).
+//
+// v5 was bumped so every client picks up this fix cleanly: earlier versions could
 // cache a page that was silently showing the "couldn't load, retrying"
 // notice instead of real content (see LOAD_ERROR_MARKER below) — offline,
 // that retry can never succeed, so anyone who already has one of those
 // stuck in their cache needs it evicted, not just future ones avoided. Old
 // caches are deleted on activate (see the "activate" handler below) rather
 // than reused.
-const CACHE_VERSION = "setlyst-v5";
+const CACHE_VERSION = "setlyst-v7";
+const CACHE_PREFIX = "setlyst";
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = "/offline.html";
+// Its script (a separate file: the CSP allows no inline scripts). Kept in
+// the runtime cache, which is where staleWhileRevalidate looks for it.
+const OFFLINE_SCRIPT_URL = "/offline.js";
 
 // Matches the marker on app/[locale]/dashboard/error.tsx's error boundary.
 // React can stream an HTTP 200 for a document whose nested data fetch threw
@@ -58,6 +76,48 @@ const ERROR_BOUNDARY_MARKER = "data-error-boundary";
 // never happen — worse than falling back to the cached-landing-page logic
 // below, which at least finds them a page with real data on it.
 const LOAD_ERROR_MARKER = "data-load-error-notice";
+
+/**
+ * Pages that are never stored, not even for offline use: account settings,
+ * profiles and the staff console hold personal data of the signed-in
+ * person or of other users, and none of them is needed at a venue.
+ * Matched with or without the locale prefix.
+ */
+const PRIVATE_PATHS = [
+  "/dashboard/users",
+  "/dashboard/admin",
+  "/dashboard/settings",
+  "/dashboard/profile",
+];
+
+function isPrivatePath(pathname) {
+  const segments = pathname.split("/");
+  const withoutLocale = hasLocalePrefix(pathname)
+    ? `/${segments.slice(2).join("/")}`
+    : pathname;
+  return PRIVATE_PATHS.some(
+    (prefix) =>
+      withoutLocale === prefix || withoutLocale.startsWith(`${prefix}/`),
+  );
+}
+
+/** `Cache-Control: no-store` or `private` on a non-page response. */
+function forbidsCaching(response) {
+  const cacheControl = (
+    response.headers.get("cache-control") || ""
+  ).toLowerCase();
+  return /\b(no-store|private)\b/.test(cacheControl);
+}
+
+/** Deletes every cache this worker (any version of it) ever created. */
+async function clearAllCaches() {
+  const keys = await caches.keys();
+  await Promise.all(
+    keys
+      .filter((key) => key.startsWith(CACHE_PREFIX))
+      .map((key) => caches.delete(key)),
+  );
+}
 
 /**
  * Whether a response is safe to cache as a page/asset. Non-HTML responses
@@ -185,13 +245,15 @@ async function mapWithConcurrency(items, limit, fn) {
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(PAGES_CACHE)
-      .then((cache) => cache.addAll([OFFLINE_URL]))
-      .catch(() => {
-        // Precaching the offline fallback is best-effort; a fetch-time
-        // failure here must never block the service worker from installing.
-      }),
+    Promise.all([
+      caches.open(PAGES_CACHE).then((cache) => cache.addAll([OFFLINE_URL])),
+      caches
+        .open(RUNTIME_CACHE)
+        .then((cache) => cache.addAll([OFFLINE_SCRIPT_URL])),
+    ]).catch(() => {
+      // Precaching the offline fallback is best-effort; a fetch-time
+      // failure here must never block the service worker from installing.
+    }),
   );
   // Deliberately NOT calling self.skipWaiting() here. Taking over
   // immediately (and the "activate" handler below evicting every older
@@ -238,8 +300,38 @@ self.addEventListener("message", (event) => {
     return;
   }
 
+  // Sent on sign-out (lib/client-logout.ts) and when a different account
+  // signs in on this device (lib/offline/owner.ts). The offline fallback
+  // page holds no personal data and is put back right away.
+  if (event.data.type === "CLEAR") {
+    event.waitUntil(
+      (async () => {
+        try {
+          await clearAllCaches();
+          await (await caches.open(PAGES_CACHE)).add(OFFLINE_URL);
+          await (await caches.open(RUNTIME_CACHE)).add(OFFLINE_SCRIPT_URL);
+        } catch {
+          // Best-effort: the page also clears Cache Storage itself.
+        }
+      })(),
+    );
+    return;
+  }
+
   if (event.data.type !== "PRECACHE_URLS") return;
-  const urls = Array.isArray(event.data.urls) ? event.data.urls : [];
+  const urls = (Array.isArray(event.data.urls) ? event.data.urls : []).filter(
+    (url) => {
+      try {
+        const parsed = new URL(url, self.location.origin);
+        return (
+          parsed.origin === self.location.origin &&
+          !isPrivatePath(parsed.pathname)
+        );
+      } catch {
+        return false;
+      }
+    },
+  );
   if (urls.length === 0) return;
 
   event.waitUntil(
@@ -303,9 +395,16 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request));
+    event.respondWith(
+      isPrivatePath(url.pathname)
+        ? networkOnly(request)
+        : networkFirst(request),
+    );
     return;
   }
+
+  // Data behind the private pages is never kept either.
+  if (isPrivatePath(url.pathname)) return;
 
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
@@ -494,14 +593,33 @@ async function networkFirst(request) {
       );
     }
 
-    const offline = await cache.match(OFFLINE_URL);
-    if (offline) return offline;
-    const locale = resolveLocaleFromPathname(requestPathname);
-    return new Response(
-      `<!doctype html><meta charset=utf-8><title>Offline</title>` +
-        `<p>${FALLBACK_STRINGS[locale]}</p>`,
-      { headers: { "Content-Type": "text/html; charset=utf-8" }, status: 200 },
-    );
+    return offlineResponse(cache, requestPathname);
+  }
+}
+
+/** The generic "you're offline" page. */
+async function offlineResponse(cache, requestPathname) {
+  const offline = await cache.match(OFFLINE_URL);
+  if (offline) return offline;
+  const locale = resolveLocaleFromPathname(requestPathname);
+  return new Response(
+    `<!doctype html><meta charset=utf-8><title>Offline</title>` +
+      `<p>${FALLBACK_STRINGS[locale]}</p>`,
+    { headers: { "Content-Type": "text/html; charset=utf-8" }, status: 200 },
+  );
+}
+
+/**
+ * Private pages (see PRIVATE_PATHS): straight from the network, never
+ * stored, and offline only ever the generic offline page, never a cached
+ * copy (which older versions of this worker may still have written).
+ */
+async function networkOnly(request) {
+  try {
+    return await fetch(request);
+  } catch {
+    const cache = await caches.open(PAGES_CACHE);
+    return offlineResponse(cache, new URL(request.url).pathname);
   }
 }
 
@@ -511,7 +629,7 @@ async function cacheFirst(request, cacheName) {
   if (cached) return cached;
   try {
     const response = await fetch(request);
-    if (response && response.ok) {
+    if (response && response.ok && !forbidsCaching(response)) {
       // Not awaited — the response goes back to the page either way — but
       // the rejection is caught: cache.put() rejects on a redirected or
       // otherwise unstorable response, and an uncaught rejection inside a
@@ -529,7 +647,7 @@ async function staleWhileRevalidate(request) {
   const cached = await cache.match(request);
   const networkPromise = fetch(request)
     .then((response) => {
-      if (response && response.ok) {
+      if (response && response.ok && !forbidsCaching(response)) {
         cache.put(request, response.clone()).catch(() => {});
       }
       return response;

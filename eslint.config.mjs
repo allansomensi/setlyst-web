@@ -5,6 +5,33 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "sonner",
+              importNames: ["toast"],
+              message:
+                'Import { toast } from "@/lib/toast" (tap-to-dismiss needs its tag).',
+            },
+            {
+              name: "next-auth/react",
+              importNames: ["signOut"],
+              message:
+                'Use secureSignOut from "@/lib/client-logout" (clears offline data).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["lib/toast.ts", "lib/client-logout.ts"],
+    rules: { "no-restricted-imports": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -8,6 +8,7 @@ import {
   Info,
   LifeBuoy,
   Lock,
+  Megaphone,
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "@/components/nav-link";
@@ -29,6 +30,7 @@ import { STATUS_PATH, WIKI_URL } from "@/lib/links";
 export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations("nav");
   const tLegal = useTranslations("legal");
+  const tAnnouncements = useTranslations("announcements");
 
   return (
     <DropdownMenu>
@@ -66,6 +68,12 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
           <Link href="/dashboard/about" onClick={onNavigate}>
             <Info className="mr-2 h-4 w-4" />
             {t("about")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/announcements" onClick={onNavigate}>
+            <Megaphone className="mr-2 h-4 w-4" />
+            {tAnnouncements("pageTitle")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

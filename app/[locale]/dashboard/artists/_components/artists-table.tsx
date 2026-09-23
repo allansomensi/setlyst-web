@@ -7,7 +7,7 @@ import { ArtistDialog } from "./artist-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,10 +32,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
+import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
-import { parseApiTimestamp } from "@/lib/dates";
+import { ClientDate } from "@/components/client-date";
 
 const SEARCHABLE_KEYS = ["name"] as const;
 
@@ -46,7 +46,7 @@ interface ArtistsTableProps {
 export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
   const t = useTranslations("artists");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
+  const tTrash = useTranslations("trash");
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -86,7 +86,12 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
       if (!result.success) {
         toastActionError(result, result.error ?? t("dialog.deleteFailed"));
       } else {
-        toast.success(t("dialog.deleted"));
+        toastMovedToTrash("artist", artistToDelete, {
+          message: t("dialog.deleted"),
+          undoLabel: tTrash("undo"),
+          restored: t("dialog.restored"),
+          restoreFailed: tTrash("restoreFailed"),
+        });
       }
       setArtistToDelete(null);
     });
@@ -116,7 +121,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
 
       {/* Table */}
       <div
-        className={`bg-background rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
+        className={`bg-card rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
       >
         <Table>
           <TableHeader>
@@ -151,15 +156,19 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                 <TableRow key={artist.id}>
                   <TableCell className="font-medium">{artist.name}</TableCell>
                   <TableCell>
-                    {parseApiTimestamp(artist.created_at).toLocaleDateString(
-                      locale,
-                    )}
+                    <ClientDate value={artist.created_at} />
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          aria-label={tCommon("moreActionsFor", {
+                            name: artist.name,
+                          })}
+                        >
+                          <MoreHorizontal className="h-4 w-4" aria-hidden />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -214,7 +223,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
             <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>

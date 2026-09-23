@@ -20,6 +20,7 @@ import { formatDuration } from "@/lib/utils";
 import { apiPath } from "@/lib/api-endpoint";
 import { ExportPdfDialog } from "@/components/setlists/export-pdf-dialog";
 import { PublicPreferences } from "@/components/public/public-preferences";
+import { LinkButtons } from "@/components/content/link-buttons";
 
 interface PublicSetlistViewProps {
   setlist: PublicSetlist;
@@ -32,9 +33,9 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
   const tSetlists = useTranslations("setlists");
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
-  // Built with apiPath so a crafted token can't walk to another endpoint.
-  const pdfEndpoint = `${baseUrl}${apiPath`/public/setlists/${token}/export/pdf`}`;
+  // Same-origin proxy (app/api/export/public/...); built with apiPath so a
+  // crafted token can't walk to another route.
+  const pdfEndpoint = apiPath`/api/export/public/setlists/${token}/pdf`;
 
   return (
     <div className="bg-background flex min-h-screen flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
@@ -90,6 +91,10 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
           </Button>
         </div>
 
+        {setlist.links && setlist.links.length > 0 && (
+          <LinkButtons links={setlist.links} />
+        )}
+
         <div className="bg-card overflow-hidden rounded-xl border">
           <Table>
             <TableHeader>
@@ -119,7 +124,7 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
                 </TableRow>
               ) : (
                 setlist.songs.map((song, index) => (
-                  <TableRow key={song.id}>
+                  <TableRow key={`${song.position}-${index}`}>
                     <TableCell className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
                       {String(index + 1).padStart(2, "0")}
                     </TableCell>

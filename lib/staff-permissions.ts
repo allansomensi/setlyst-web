@@ -48,3 +48,50 @@ export function assignableRoles(actor: UserRole): UserRole[] {
   if (actor === "moderator") return ["user"];
   return [];
 }
+
+/**
+ * What each staff role can reach in the console, mirroring the API's
+ * `require_staff` / `require_admin` checks. Capabilities ending in
+ * `.write` gate changes; the others gate seeing a screen at all.
+ *
+ * Moderators review: users, the moderation queue, audit, content and
+ * public links; they write announcements, and read release notes, the
+ * billing overview and the default limits. Everything else (plans,
+ * billing settings, promo codes, promotions, release-note edits, limit
+ * edits, rescans) is admin-only.
+ */
+export type StaffCapability =
+  | "users"
+  | "moderation"
+  | "moderation.rescan"
+  | "audit"
+  | "announcements"
+  | "releaseNotes"
+  | "releaseNotes.write"
+  | "billing"
+  | "billing.write"
+  | "promoCodes"
+  | "promotions"
+  | "content"
+  | "content.write"
+  | "limits"
+  | "limits.write";
+
+const ADMIN_ONLY: ReadonlySet<StaffCapability> = new Set<StaffCapability>([
+  "moderation.rescan",
+  "releaseNotes.write",
+  "billing.write",
+  "promoCodes",
+  "promotions",
+  "content.write",
+  "limits.write",
+]);
+
+export function hasStaffCapability(
+  role: UserRole | null | undefined,
+  capability: StaffCapability,
+): boolean {
+  if (role === "admin") return true;
+  if (role === "moderator") return !ADMIN_ONLY.has(capability);
+  return false;
+}

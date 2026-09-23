@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { FileText, Loader2, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,

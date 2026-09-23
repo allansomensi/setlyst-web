@@ -118,13 +118,17 @@ export default async function StatusPage({
   const status = await fetchSystemStatus();
   const overall: ServiceHealth = status?.status ?? "down";
   const apiHealth: ServiceHealth = status ? "operational" : "down";
-  const database = status?.dependencies.database;
-  const dbHealth: ServiceHealth = database?.status ?? "down";
+  const database = status?.dependencies?.database;
+  // The public endpoint doesn't detail dependencies: without them the
+  // database is as healthy as the overall report says.
+  const dbHealth: ServiceHealth = database?.status ?? overall;
   const OverallIcon = HEALTH_STYLES[overall].icon;
   const checkedAt = new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "medium",
-  }).format(status ? parseApiTimestamp(status.updated_at) : new Date());
+  }).format(
+    status?.updated_at ? parseApiTimestamp(status.updated_at) : new Date(),
+  );
 
   const poolUsage =
     database && database.max_connections
@@ -146,9 +150,13 @@ export default async function StatusPage({
       details: status
         ? [
             t("details.version", { version: status.version }),
-            t("details.uptime", {
-              uptime: formatUptime(status.uptime_seconds, locale),
-            }),
+            ...(status.uptime_seconds != null
+              ? [
+                  t("details.uptime", {
+                    uptime: formatUptime(status.uptime_seconds, locale),
+                  }),
+                ]
+              : []),
           ]
         : [t("details.unreachable")],
     },

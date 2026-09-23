@@ -1,3 +1,8 @@
+"use client";
+
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { CalendarDays, Clock, Eye, ListMusic, MapPin } from "lucide-react";
 import { PublicGig, GigStatus } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -9,7 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CalendarDays, Clock, ListMusic, MapPin, Music } from "lucide-react";
+import { AppLogo } from "@/components/app-logo";
+import { PublicPreferences } from "@/components/public/public-preferences";
+import { formatWallClock } from "@/lib/dates";
 import { formatDuration } from "@/lib/utils";
 
 interface PublicGigViewProps {
@@ -25,60 +32,59 @@ const STATUS_VARIANT: Record<
   completed: "secondary",
 };
 
-const STATUS_LABEL: Record<GigStatus, string> = {
-  confirmed: "Confirmed",
-  cancelled: "Cancelled",
-  completed: "Completed",
-};
-
 /**
- * A server component: this page renders once, has no interactive state,
- * and is opened by people without an account — so there's no reason to
- * ship it as client JavaScript.
- *
- * Its strings are hardcoded English for the same reason the setlist share
- * page's are: these routes sit outside the `[locale]` segment and so have
- * no next-intl context to translate against.
+ * The public, read-only page of a shared gig, in the visitor's language
+ * (same locale resolution and preferences as the setlist share page).
  */
 export function PublicGigView({ gig }: PublicGigViewProps) {
-  const scheduledAt = new Date(gig.scheduled_at);
-  const isValidDate = !Number.isNaN(scheduledAt.getTime());
+  const t = useTranslations("publicPage");
+  const tStatus = useTranslations("gigs.dialog.status");
+  const tTable = useTranslations("setlists.songs.table");
+  const tSetlists = useTranslations("setlists");
+  const locale = useLocale();
 
+  // The venue's wall-clock time, shown as entered (see lib/dates.ts).
+  const when = formatWallClock(gig.scheduled_at, locale, {
+    dateStyle: "full",
+    timeStyle: "short",
+  });
   const setlist = gig.setlist;
 
   return (
-    <div className="bg-background flex min-h-screen flex-col items-center px-4 py-10">
+    <div className="bg-background flex min-h-screen flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
       <div className="w-full max-w-3xl space-y-6">
-        <div className="flex items-center gap-2">
-          <Music className="text-primary h-5 w-5" />
-          <span className="text-muted-foreground text-sm font-medium">
-            Setlyst
-          </span>
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href="/"
+            aria-label="Setlyst"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-semibold transition-colors"
+          >
+            <AppLogo size={24} className="rounded-[5px]" />
+            <span className="hidden sm:inline">Setlyst</span>
+          </Link>
+          <PublicPreferences />
         </div>
 
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">{gig.venue}</h1>
+            <h1 className="text-3xl font-bold tracking-tight break-words">
+              {gig.venue}
+            </h1>
             <Badge variant={STATUS_VARIANT[gig.status] ?? "secondary"}>
-              {STATUS_LABEL[gig.status] ?? gig.status}
+              {tStatus(gig.status)}
             </Badge>
           </div>
 
           <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            {isValidDate && (
+            {when && (
               <span className="flex items-center gap-1.5">
-                <CalendarDays className="text-primary h-4 w-4" />
-                <time dateTime={gig.scheduled_at}>
-                  {new Intl.DateTimeFormat("en", {
-                    dateStyle: "full",
-                    timeStyle: "short",
-                  }).format(scheduledAt)}
-                </time>
+                <CalendarDays className="text-primary h-4 w-4" aria-hidden />
+                <time dateTime={gig.scheduled_at}>{when}</time>
               </span>
             )}
             {gig.location && (
               <span className="flex items-center gap-1.5">
-                <MapPin className="text-primary h-4 w-4" />
+                <MapPin className="text-primary h-4 w-4" aria-hidden />
                 {gig.location}
               </span>
             )}
@@ -88,8 +94,10 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
         {setlist ? (
           <div className="space-y-4">
             <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-              <div>
-                <h2 className="text-xl font-semibold">{setlist.title}</h2>
+              <div className="min-w-0">
+                <h2 className="text-xl font-semibold break-words">
+                  {setlist.title}
+                </h2>
                 {setlist.description && (
                   <p className="text-muted-foreground mt-1 text-sm">
                     {setlist.description}
@@ -97,19 +105,28 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
                 )}
               </div>
               <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
-                <Clock className="text-primary h-4 w-4" />
-                <span>Total: {formatDuration(setlist.total_duration)}</span>
+                <Clock className="text-primary h-4 w-4" aria-hidden />
+                <span>
+                  {tSetlists("totalDuration")}:{" "}
+                  <span className="text-foreground font-mono tabular-nums">
+                    {formatDuration(setlist.total_duration)}
+                  </span>
+                </span>
               </div>
             </div>
 
-            <div className="bg-background rounded-md border">
+            <div className="bg-card overflow-hidden rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Artist</TableHead>
-                    <TableHead>BPM</TableHead>
+                    <TableHead>{tTable("title")}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      {tTable("artist")}
+                    </TableHead>
+                    <TableHead className="text-right sm:text-left">
+                      {tTable("bpm")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -119,37 +136,40 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
                         colSpan={4}
                         className="text-muted-foreground h-24 text-center"
                       >
-                        This setlist has no songs yet.
+                        {t("noSongs")}
                       </TableCell>
                     </TableRow>
                   ) : (
                     setlist.songs.map((song, index) => (
-                      <TableRow key={song.id}>
-                        <TableCell className="text-muted-foreground font-medium">
-                          {index + 1}
+                      <TableRow key={`${index}-${song.title}`}>
+                        <TableCell className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
+                          {String(index + 1).padStart(2, "0")}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-full max-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{song.title}</span>
+                            <span className="truncate font-medium">
+                              {song.title}
+                            </span>
                             {song.tonality && (
                               <Badge
                                 variant="outline"
-                                className="h-5 px-1.5 font-mono text-[10px]"
+                                className="h-5 shrink-0 px-1.5 font-mono text-[10px]"
                               >
                                 {song.tonality}
                               </Badge>
                             )}
                           </div>
+                          <p className="text-muted-foreground truncate text-xs sm:hidden">
+                            {song.artist_name}
+                          </p>
                         </TableCell>
-                        <TableCell>{song.artist_name}</TableCell>
-                        <TableCell>
-                          {song.tempo ? (
-                            <span className="text-muted-foreground font-mono text-sm">
-                              {song.tempo}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
+                        <TableCell className="text-muted-foreground hidden sm:table-cell">
+                          {song.artist_name}
+                        </TableCell>
+                        <TableCell className="text-right sm:text-left">
+                          <span className="text-muted-foreground font-mono text-sm tabular-nums">
+                            {song.tempo ?? "–"}
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))
@@ -160,17 +180,23 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
           </div>
         ) : (
           <Card className="text-muted-foreground flex flex-row items-center gap-2 px-4 py-6 text-sm">
-            <ListMusic className="h-4 w-4 shrink-0" />
-            <span>No setlist has been linked to this gig yet.</span>
+            <ListMusic className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{t("gigNoSetlist")}</span>
           </Card>
         )}
 
-        <Card className="text-muted-foreground flex flex-row items-center gap-2 px-4 py-3 text-sm">
-          <ListMusic className="h-4 w-4 shrink-0" />
-          <span>
-            This is a read-only, public view of a gig shared via Setlyst.
+        <div className="text-muted-foreground flex flex-col items-center gap-1 pt-2 text-center text-xs sm:flex-row sm:justify-between sm:text-left">
+          <span className="flex items-center gap-1.5">
+            <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            {t("gigReadOnlyNotice")}
           </span>
-        </Card>
+          <Link
+            href="/"
+            className="hover:text-foreground underline-offset-4 transition-colors hover:underline"
+          >
+            {t("madeWith")}
+          </Link>
+        </div>
       </div>
     </div>
   );

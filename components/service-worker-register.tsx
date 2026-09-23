@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
+import { isServiceWorkerEnabled } from "@/lib/offline/sw-enabled";
 
 /**
  * Registers the offline service worker (public/sw.js) and, when a new
@@ -44,6 +45,19 @@ function resolveLocale(): Locale {
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
+
+    if (!isServiceWorkerEnabled()) {
+      // Development: remove a worker left over from an earlier session
+      // (or a production build on the same origin), which would keep
+      // serving cached pages and pre-caching in the background.
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) =>
+          Promise.all(registrations.map((r) => r.unregister())),
+        )
+        .catch(() => {});
+      return;
+    }
 
     const strings = STRINGS[resolveLocale()];
 

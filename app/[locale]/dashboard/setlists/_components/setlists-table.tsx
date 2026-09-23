@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { Setlist } from "@/types/api";
 import {
@@ -15,7 +15,7 @@ import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
 import { useOfflineSetlists } from "@/hooks/use-offline-library";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -51,15 +51,19 @@ import {
   Guitar,
   Copy,
   Star,
+  Library,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
+import { toastMovedToTrash } from "@/components/content/trash-toast";
+import { PinButton } from "@/components/content/pin-button";
+import { setlistDisplayTitle } from "@/lib/repertoire";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 import { OfflineIndicator } from "@/components/offline-indicator";
-import { parseApiTimestamp } from "@/lib/dates";
+import { ClientDate } from "@/components/client-date";
 
 const SEARCHABLE_KEYS = ["title", "description"] as const;
 
@@ -97,7 +101,8 @@ export function SetlistsTable({
   const offlineDisabled = useOfflineDisabled();
   const t = useTranslations("setlists");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
+  const tTrash = useTranslations("trash");
+  const repertoireName = t("repertoire.name");
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -113,10 +118,19 @@ export function SetlistsTable({
   // the page's own fetch failed — so this list is never blank at a venue,
   // and a transient API failure shows the library instead of an error.
   // See hooks/use-offline-records.ts.
-  const { records: availableSetlists, isFromCache } = useOfflineSetlists({
+  const { records: cachedSetlists, isFromCache } = useOfflineSetlists({
     fallback: initialSetlists,
     loadError,
   });
+  // The repertoire is stored as "Repertoire": search and sort by the
+  // translated name people actually see.
+  const availableSetlists = useMemo(
+    () =>
+      cachedSetlists.map((setlist) =>
+        setlist.is_repertoire ? { ...setlist, title: repertoireName } : setlist,
+      ),
+    [cachedSetlists, repertoireName],
+  );
 
   const {
     search,
@@ -151,7 +165,12 @@ export function SetlistsTable({
         setlistToDelete.band_id ?? undefined,
       );
       if (result.success) {
-        toast.success(t("dialog.deleted"));
+        toastMovedToTrash("setlist", setlistToDelete.id, {
+          message: t("dialog.deleted"),
+          undoLabel: tTrash("undo"),
+          restored: t("dialog.restored"),
+          restoreFailed: tTrash("restoreFailed"),
+        });
       } else {
         toastActionError(result, result.error);
       }
@@ -163,10 +182,19 @@ export function SetlistsTable({
     startDuplicateTransition(async () => {
       const result = await duplicateSetlist(
         setlist.id,
-        t("dialog.copyTitle", { title: setlist.title }),
+        t("dialog.copyTitle", {
+          title: setlistDisplayTitle(setlist, repertoireName),
+        }),
       );
       if (result.success) {
-        toast.success(t("dialog.duplicated"));
+        const skipped = result.data?.skipped_band_songs ?? 0;
+        if (skipped > 0) {
+          toast.info(t("dialog.duplicatedSkipped", { count: skipped }), {
+            duration: 10000,
+          });
+        } else {
+          toast.success(t("dialog.duplicated"));
+        }
       } else {
         toastActionError(result, result.error);
       }
@@ -209,7 +237,7 @@ export function SetlistsTable({
       {/* Table */}
       <div
         className={cn(
-          "bg-background rounded-md border",
+          "bg-card rounded-md border",
           isPending && "pointer-events-none opacity-60",
         )}
       >
@@ -290,6 +318,12 @@ export function SetlistsTable({
                               ? t("unfavorite")
                               : t("favorite")
                           }
+                          aria-label={
+                            setlist.is_favorite
+                              ? t("unfavorite")
+                              : t("favorite")
+                          }
+                          aria-pressed={setlist.is_favorite}
                         >
                           <Star
                             className={cn(
@@ -299,11 +333,28 @@ export function SetlistsTable({
                             )}
                           />
                         </button>
-                        <ListMusic className="text-muted-foreground h-4 w-4 shrink-0" />
-                        <span className="font-medium group-hover:underline">
+                        {setlist.is_repertoire ? (
+                          <Library className="text-primary h-4 w-4 shrink-0" />
+                        ) : (
+                          <ListMusic className="text-muted-foreground h-4 w-4 shrink-0" />
+                        )}
+                        <Link
+                          href={`/dashboard/setlists/${setlist.id}`}
+                          data-no-row-click
+                          className="focus-visible:ring-ring rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                        >
                           {setlist.title}
-                        </span>
+                        </Link>
                         <OfflineIndicator kind="setlist" id={setlist.id} />
+                        {setlist.is_repertoire && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs"
+                            title={t("repertoire.tooltip")}
+                          >
+                            {t("repertoire.badge")}
+                          </Badge>
+                        )}
                         {isBandSetlist && (
                           <Badge
                             variant="outline"
@@ -326,64 +377,78 @@ export function SetlistsTable({
                       {setlist.description ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
-                      {parseApiTimestamp(setlist.created_at).toLocaleDateString(
-                        locale,
-                      )}
+                      <ClientDate value={setlist.created_at} />
                     </TableCell>
                     <TableCell className="text-right" data-no-row-click>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" data-no-row-click>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/setlists/${setlist.id}`}>
-                              <ListMusic className="mr-2 h-4 w-4" />
-                              {t("menu.manageSongs")}
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={isDuplicating}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDuplicate(setlist);
-                            }}
-                          >
-                            <Copy className="mr-2 h-4 w-4" />
-                            {t("menu.duplicate")}
-                          </DropdownMenuItem>
-                          {canManage && (
-                            <>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenDialog(setlist);
-                                }}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                {t("menu.edit")}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(setlist);
-                                }}
-                                variant="destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                {t("menu.delete")}
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center justify-end gap-0.5">
+                        <PinButton
+                          type="setlist"
+                          id={setlist.id}
+                          name={setlist.title}
+                          pinned={!!setlist.is_pinned}
+                          className="hidden sm:inline-flex"
+                        />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label={tCommon("moreActionsFor", {
+                                name: setlist.title,
+                              })}
+                            >
+                              <MoreHorizontal className="h-4 w-4" aria-hidden />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" data-no-row-click>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/setlists/${setlist.id}`}>
+                                <ListMusic className="mr-2 h-4 w-4" />
+                                {t("menu.manageSongs")}
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={isDuplicating}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicate(setlist);
+                              }}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              {t("menu.duplicate")}
+                            </DropdownMenuItem>
+                            {canManage && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenDialog(setlist);
+                                  }}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  {t("menu.edit")}
+                                </DropdownMenuItem>
+                                {!setlist.is_repertoire && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteClick(setlist);
+                                      }}
+                                      variant="destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      {t("menu.delete")}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -422,8 +487,12 @@ export function SetlistsTable({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
-            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
+            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("dialog.deleteConfirm", {
+                title: setlistToDelete?.title ?? "",
+              })}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
@@ -438,7 +507,7 @@ export function SetlistsTable({
               onClick={confirmDelete}
               disabled={isPending}
             >
-              {tCommon("delete")}
+              {t("dialog.moveToTrash")}
             </Button>
           </DialogFooter>
         </DialogContent>

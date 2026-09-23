@@ -5,7 +5,11 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { useTranslations } from "next-intl";
 import { Gig, Setlist } from "@/types/api";
 import { deleteGig } from "../../actions";
-import { GigDialog, BandOption } from "../../_components/gigs-dialog";
+import {
+  GigDialog,
+  BandOption,
+  TourOption,
+} from "../../_components/gigs-dialog";
 import { ShareGigDialog } from "./share-gig-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,14 +28,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Pencil, Share2, Trash2, Loader2, MoreVertical } from "lucide-react";
-import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
+import { toastMovedToTrash } from "@/components/content/trash-toast";
 
 interface GigActionsProps {
   gig: Gig;
   canManage: boolean;
   personalSetlists: Setlist[];
   bands: BandOption[];
+  /** Same-scope tours, for the tour select. */
+  tours?: TourOption[];
 }
 
 export function GigActions({
@@ -39,13 +45,17 @@ export function GigActions({
   canManage,
   personalSetlists,
   bands,
+  tours = [],
 }: GigActionsProps) {
   const router = useAppRouter();
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
+  const tTrash = useTranslations("trash");
 
   const [isPending, startTransition] = useTransition();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  // Bumped on every open so the dialog starts from the saved gig.
+  const [editSession, setEditSession] = useState(0);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -53,7 +63,17 @@ export function GigActions({
     startTransition(async () => {
       const result = await deleteGig(gig.id, gig.band_id ?? undefined);
       if (result.success) {
-        toast.success(t("dialog.deleted"));
+        toastMovedToTrash(
+          "gig",
+          gig.id,
+          {
+            message: t("dialog.deleted"),
+            undoLabel: tTrash("undo"),
+            restored: t("dialog.restored"),
+            restoreFailed: tTrash("restoreFailed"),
+          },
+          () => router.push(`/dashboard/gigs/${gig.id}`),
+        );
         router.push("/dashboard/gigs");
       } else {
         toastActionError(result, result.error);
@@ -90,7 +110,12 @@ export function GigActions({
             <Share2 className="mr-2 h-4 w-4" />
             {t("shareBtn")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              setEditSession((n) => n + 1);
+              setIsEditOpen(true);
+            }}
+          >
             <Pencil className="mr-2 h-4 w-4" />
             {tCommon("edit")}
           </DropdownMenuItem>
@@ -106,12 +131,14 @@ export function GigActions({
       </DropdownMenu>
 
       <GigDialog
+        key={`${gig.id}:${editSession}`}
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         gig={gig}
         personalSetlists={personalSetlists}
         bands={bands}
         fixedBandId={gig.band_id ?? undefined}
+        tours={tours}
       />
 
       <ShareGigDialog
@@ -127,7 +154,7 @@ export function GigActions({
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
             <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -37,6 +37,39 @@ export const AUDIT_ACTIONS = [
   "share.revoked",
   "share.unlocked",
   "settings.quota_defaults_updated",
+  "user.self_deleted",
+  "user.email_changed",
+  "user.two_factor_enabled",
+  "user.two_factor_disabled",
+  "user.password_recovered",
+  "user.login_locked",
+  "user.terms_accepted",
+  "user.subscription_granted",
+  "user.subscription_revoked",
+  "user.credits_adjusted",
+  "billing.settings_updated",
+  "billing.plan_updated",
+  "billing.trials_granted",
+  "promo.created",
+  "promo.updated",
+  "promotion.created",
+  "promotion.updated",
+  "promotion.deleted",
+  "announcement.created",
+  "announcement.updated",
+  "announcement.published",
+  "announcement.archived",
+  "announcement.deleted",
+  "release_note.created",
+  "release_note.updated",
+  "release_note.published",
+  "release_note.unpublished",
+  "release_note.deleted",
+  "moderation.dismissed",
+  "moderation.avatar_removed",
+  "moderation.band_logo_removed",
+  "moderation.username_reset",
+  "moderation.rescan",
 ] as const;
 
 const DESTRUCTIVE = new Set([
@@ -48,6 +81,14 @@ const DESTRUCTIVE = new Set([
   "setlist.deleted",
   "share.revoked",
   "band.member_removed",
+  "user.self_deleted",
+  "user.subscription_revoked",
+  "promotion.deleted",
+  "announcement.deleted",
+  "release_note.deleted",
+  "moderation.avatar_removed",
+  "moderation.band_logo_removed",
+  "moderation.username_reset",
 ]);
 
 export function useAuditActionLabel() {
@@ -70,6 +111,10 @@ function targetHref(entry: AuditLogEntry): string | null {
       return `/dashboard/admin/songs/${entry.target_id}`;
     case "setlist":
       return `/dashboard/admin/setlists/${entry.target_id}`;
+    case "announcement":
+      return `/dashboard/admin/announcements/${entry.target_id}`;
+    case "release_note":
+      return `/dashboard/admin/release-notes/${entry.target_id}`;
     default:
       return null;
   }

@@ -1,14 +1,13 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
 import { useCallback } from "react";
+import { secureSignOut } from "@/lib/client-logout";
 import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
 import {
   MAX_RETRIES,
-  RETRYABLE_STATUSES,
   isIdempotentMethod,
-  parseRetryAfterMs,
   retryDelayMs,
+  statusRetryDelayMs,
   sleep,
 } from "@/lib/api-retry";
 
@@ -25,10 +24,24 @@ export class ApiError extends Error {
   }
 }
 
-export function useApi() {
-  const { data: session } = useSession();
-  const token = session?.user?.apiToken;
+/** Same-origin route that adds the API token server-side. */
+const CLIENT_API_BASE = "/api/client";
 
+function localePrefix(): string {
+  if (typeof window === "undefined") return "";
+  const segment = window.location.pathname.split("/")[1];
+  return segment ? `/${segment}` : "";
+}
+
+/**
+ * API calls from client components.
+ *
+ * Requests go to this app's own `/api/client/*` route handler, which
+ * authenticates with the session cookie and attaches the API token on the
+ * server: the token is never exposed to page scripts (audit M6). Only the
+ * endpoints allowlisted in `app/api/client/[...path]/route.ts` work.
+ */
+export function useApi() {
   const fetchApi = useCallback(
     async <T>(
       endpoint: string,
@@ -62,17 +75,11 @@ export function useApi() {
 
       const { suppressAuthRedirect, ...requestInit } = options;
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
-
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         Accept: "application/json",
         ...(requestInit.headers as Record<string, string>),
       };
-
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
 
       // See lib/api-retry.ts: offline sync alone can mean dozens of these
       // calls in a short window (one per setlist/band), and without a
@@ -84,9 +91,10 @@ export function useApi() {
       for (;;) {
         let res: Response;
         try {
-          res = await fetch(`${baseUrl}${endpoint}`, {
+          res = await fetch(`${CLIENT_API_BASE}${endpoint}`, {
             ...requestInit,
             headers,
+            credentials: "same-origin",
           });
         } catch {
           if (canRetryMethod && attempt < MAX_RETRIES) {
@@ -102,22 +110,23 @@ export function useApi() {
 
         if (res.status === 401) {
           if (!suppressAuthRedirect) {
-            await signOut({ callbackUrl: "/login" });
+            await secureSignOut({
+              callbackUrl: `${localePrefix()}/login?reason=session`,
+            });
           }
           throw new ApiError(401, "Session expired. Please sign in again.");
         }
 
         if (!res.ok) {
-          const canRetryStatus =
-            res.status === 429 ||
-            (canRetryMethod && RETRYABLE_STATUSES.has(res.status));
-
-          if (canRetryStatus && attempt < MAX_RETRIES) {
+          const delay = statusRetryDelayMs(
+            options.method,
+            res.status,
+            res.headers.get("retry-after"),
+            attempt + 1,
+          );
+          if (delay !== null) {
             attempt++;
-            const retryAfterMs = parseRetryAfterMs(
-              res.headers.get("retry-after"),
-            );
-            await sleep(retryDelayMs(attempt, retryAfterMs));
+            await sleep(delay);
             continue;
           }
 
@@ -145,7 +154,7 @@ export function useApi() {
         return res.json();
       }
     },
-    [token],
+    [],
   );
 
   return { fetchApi };

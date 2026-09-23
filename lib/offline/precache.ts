@@ -1,3 +1,5 @@
+import { isServiceWorkerEnabled } from "./sw-enabled";
+
 /**
  * Asks the active service worker (public/sw.js) to fetch and store a set of
  * page URLs in its navigation cache, ahead of actually visiting them.
@@ -15,7 +17,7 @@
  * fall back to whatever caching already happened normally.
  */
 export function precacheUrls(urls: string[]): void {
-  if (urls.length === 0) return;
+  if (urls.length === 0 || !isServiceWorkerEnabled()) return;
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
     return;
   }

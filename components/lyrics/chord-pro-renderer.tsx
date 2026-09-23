@@ -523,7 +523,7 @@ export function ChordProRenderer({
       data-chordpro=""
       className={cn(
         FONT_CLASS[fontFamily],
-        "text-foreground max-w-3xl font-medium [overflow-wrap:anywhere]",
+        "text-foreground max-w-3xl font-medium wrap-anywhere",
         className,
       )}
       style={{ fontSize: cssFontSize }}

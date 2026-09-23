@@ -1,47 +1,41 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTheme } from "next-themes";
 import { Toaster as SonnerToaster, type ToasterProps } from "sonner";
+import { toast, toastIdFromElement } from "@/lib/toast";
 
-/**
- * Matches the attributes sonner puts on its own rendered elements.
- * Interactive children (the action button, the cancel button, the close
- * button) are excluded from tap-to-dismiss so pressing "Reload" on an
- * update prompt still reloads rather than just closing the prompt.
- */
 const TOAST_SELECTOR = "[data-sonner-toast]";
-const CLOSE_BUTTON_SELECTOR = "[data-close-button]";
-const INTERACTIVE_SELECTOR = "button, a, [role='button']";
+/** The toast's own controls (e.g. "Reload" on the update prompt). */
+const INTERACTIVE_SELECTOR = "button, a, input, [role='button']";
+
+/** True while the person is selecting text inside `element`. */
+function isSelectingTextIn(element: Element): boolean {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+    return false;
+  }
+  return (
+    element.contains(selection.anchorNode) ||
+    element.contains(selection.focusNode)
+  );
+}
 
 /**
  * The app's toast host.
  *
- * Adds two things on top of sonner's `<Toaster>`:
+ * There is no close button: a click or tap anywhere on a toast dismisses
+ * it (swiping still works too), except on the toast's own buttons and
+ * while text inside it is being selected, so an error message can still be
+ * copied. The theme follows next-themes unless one is passed.
  *
- *  - **A close button on every toast, on larger screens.** Some toasts
- *    are deliberately sticky (the "new version available" prompt has no
- *    timeout at all), and sonner's only built-in way to dismiss one
- *    otherwise is a swipe — undiscoverable with a mouse. On phones the
- *    button is hidden (see globals.css): it's a tiny target crowding a
- *    narrow toast, and tapping the toast itself already dismisses it.
- *  - **Tap anywhere on a toast to dismiss it.** The obvious gesture when
- *    a notification is in the way, and without it a stuck toast can sit
- *    over the UI indefinitely.
- *
- * The click is forwarded to that toast's own close button (which still
- * exists on phones, only visually hidden — `click()` works regardless) rather than
- * calling `toast.dismiss()` directly: sonner doesn't expose the toast's id
- * on the DOM node, and going through its own control keeps the exit
- * animation and any `onDismiss` callback intact. It also degrades
- * harmlessly — if a future sonner release renames the attribute, clicking
- * simply stops dismissing instead of breaking the page.
- *
- * A document-level listener is used rather than an `onClick` on a wrapper
- * element because sonner portals its toasts out of this subtree; the
- * listener is passive, only reacts to clicks that land inside a toast, and
- * is torn down on unmount.
+ * Sonner portals its toasts outside this subtree, hence the document-level
+ * listener. Toasts are matched to their id through the tag added by
+ * lib/toast.ts.
  */
-export function Toaster(props: ToasterProps) {
+export function Toaster({ theme, ...props }: ToasterProps) {
+  const { resolvedTheme } = useTheme();
+
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       const target = event.target;
@@ -49,21 +43,28 @@ export function Toaster(props: ToasterProps) {
 
       const toastElement = target.closest<HTMLElement>(TOAST_SELECTOR);
       if (!toastElement) return;
-
-      // Respect a toast explicitly marked as not dismissible.
       if (toastElement.dataset.dismissible === "false") return;
-
-      // Let the toast's own buttons handle their own clicks.
       if (target.closest(INTERACTIVE_SELECTOR)) return;
+      if (isSelectingTextIn(toastElement)) return;
 
-      toastElement
-        .querySelector<HTMLButtonElement>(CLOSE_BUTTON_SELECTOR)
-        ?.click();
+      const id = toastIdFromElement(toastElement);
+      if (id) toast.dismiss(id);
     };
 
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
 
-  return <SonnerToaster closeButton {...props} />;
+  return (
+    <SonnerToaster
+      theme={
+        theme ??
+        (resolvedTheme === "dark" || resolvedTheme === "light"
+          ? resolvedTheme
+          : "system")
+      }
+      toastOptions={{ className: "cursor-pointer select-text" }}
+      {...props}
+    />
+  );
 }

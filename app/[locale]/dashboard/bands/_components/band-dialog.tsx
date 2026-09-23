@@ -16,8 +16,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { onFormSubmit } from "@/lib/forms";
 
 interface BandDialogProps {
   band?: BandWithMembership | null;
@@ -55,7 +56,7 @@ export function BandDialog({ band, isOpen, onClose }: BandDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
-        <form action={handleAction} key={band?.id || "new"}>
+        <form onSubmit={onFormSubmit(handleAction)} key={band?.id || "new"}>
           <DialogHeader>
             <DialogTitle>
               {isEditing ? t("editTitle") : t("addTitle")}

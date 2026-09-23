@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useRouter } from "@/i18n/routing";
 import { requestImpersonation } from "@/lib/actions/impersonation";
 import { toastActionError } from "@/lib/action-toast";

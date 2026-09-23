@@ -1,6 +1,7 @@
 import { ThemeProvider } from "@/components/providers/theme_provider";
+import { getNonce } from "@/lib/server/nonce";
 
-export default function StatusLayout({
+export default async function StatusLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export default function StatusLayout({
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
+      nonce={await getNonce()}
     >
       {children}
     </ThemeProvider>

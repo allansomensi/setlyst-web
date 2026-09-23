@@ -4,13 +4,9 @@ import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction } from "@/lib/action-guard";
 import { normalizeFontSize } from "@/lib/preferences";
 import { routing } from "@/i18n/routing";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { cookies } from "next/headers";
-import {
-  UpdatePreferencesPayload,
-  ImportBackupResponse,
-  ImportBackupPayload,
-} from "@/types/api";
+import { UpdatePreferencesPayload } from "@/types/api";
 
 const LOCALE_COOKIE = "NEXT_LOCALE";
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -38,7 +34,7 @@ export async function updatePreferences(data: UpdatePreferencesPayload) {
         method: "PATCH",
         body: JSON.stringify(safePayload),
       }),
-    () => revalidatePath("/dashboard/settings"),
+    () => revalidateDashboard("/settings"),
   );
 
   // Record the choice where every later request can see it — including the
@@ -59,23 +55,4 @@ export async function updatePreferences(data: UpdatePreferencesPayload) {
   }
 
   return result;
-}
-
-export async function exportBackup() {
-  return guardedAction(() =>
-    fetchServerApi<ImportBackupPayload>("/backup/export", {
-      method: "GET",
-    }),
-  );
-}
-
-export async function importBackup(backupData: ImportBackupPayload) {
-  return guardedAction(
-    () =>
-      fetchServerApi<ImportBackupResponse>("/backup/import", {
-        method: "POST",
-        body: JSON.stringify(backupData),
-      }),
-    () => revalidatePath("/dashboard/settings"),
-  );
 }

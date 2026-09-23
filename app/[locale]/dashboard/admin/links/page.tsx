@@ -58,7 +58,7 @@ export default async function AdminLinksPage({
         ]}
       />
 
-      <div className="bg-background rounded-md border">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -153,7 +153,7 @@ export default async function AdminLinksPage({
                             date: formatApiDate(link.share_locked_at, locale),
                           })}
                           {link.share_lock_reason &&
-                            ` — ${link.share_lock_reason}`}
+                            `: ${link.share_lock_reason}`}
                         </span>
                       )}
                     </TableCell>

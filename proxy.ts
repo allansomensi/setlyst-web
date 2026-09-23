@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import type { JWT } from "next-auth/jwt";
 import { routing } from "./i18n/routing";
+import {
+  classifyPath,
+  getLocaleSegment,
+  stripLocale,
+} from "./lib/route-access";
+import { buildCsp, cspEnvironment, generateNonce } from "./lib/csp";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -12,16 +18,6 @@ const DEFAULT_LOCALE = routing.defaultLocale;
 /** The cookie next-intl reads when resolving a locale — see LOCALE_COOKIE below. */
 const LOCALE_COOKIE = "NEXT_LOCALE";
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
-
-function getLocaleSegment(pathname: string): string | null {
-  const segment = pathname.split("/")[1] ?? "";
-  return LOCALES.includes(segment) ? segment : null;
-}
-
-function stripLocale(pathname: string): string {
-  const segment = getLocaleSegment(pathname);
-  return segment ? pathname.slice(segment.length + 1) || "/" : pathname;
-}
 
 function isSupportedLocale(value: unknown): value is string {
   return typeof value === "string" && LOCALES.includes(value);
@@ -58,21 +54,63 @@ function resolvePreferredLocale(
   return null;
 }
 
-export default async function middleware(req: NextRequest) {
+const CSP_ENV = cspEnvironment();
+
+/**
+ * Public pages outside the locale segment (share links, status page):
+ * they only need the per-request CSP, never the auth gate or next-intl's
+ * locale redirect.
+ */
+function isLocaleFreePage(pathname: string): boolean {
+  return (
+    pathname.startsWith("/s/") ||
+    pathname.startsWith("/g/") ||
+    pathname === "/status" ||
+    pathname.startsWith("/status/")
+  );
+}
+
+/**
+ * Every page gets its own nonce: Next.js reads it from the request's
+ * `Content-Security-Policy` header and adds it to its scripts, and server
+ * components read `x-nonce` (lib/server/nonce.ts) for the few inline
+ * scripts of their own (next-themes). The same policy goes on the response.
+ */
+export default async function middleware(incoming: NextRequest) {
+  const nonce = generateNonce();
+  const csp = buildCsp(CSP_ENV, nonce);
+  const requestHeaders = new Headers(incoming.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+  const req = new NextRequest(incoming, { headers: requestHeaders });
+
+  const response = await route(req, requestHeaders);
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
+}
+
+async function route(
+  req: NextRequest,
+  requestHeaders: Headers,
+): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
-  const pathWithoutLocale = stripLocale(pathname);
-  const localeSegment = getLocaleSegment(pathname);
+
+  if (isLocaleFreePage(pathname)) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  const pathWithoutLocale = stripLocale(pathname, LOCALES);
+  const localeSegment = getLocaleSegment(pathname, LOCALES);
   const hasLocalePrefix = localeSegment !== null;
 
-  const isProtected = pathWithoutLocale.startsWith("/dashboard");
-  const isChangePassword =
-    pathWithoutLocale === "/change-password" ||
-    pathWithoutLocale.startsWith("/change-password/");
-  const isAuthPage =
-    pathWithoutLocale === "/login" ||
-    pathWithoutLocale.startsWith("/login/") ||
-    pathWithoutLocale === "/register" ||
-    pathWithoutLocale.startsWith("/register/");
+  // The public site (landing, pricing, changelog, legal texts,
+  // unsubscribe) is classified "public": it never needs a session and a
+  // signed-in visitor is never redirected away from it. See
+  // lib/route-access.ts.
+  const kind = classifyPath(pathWithoutLocale);
+  const isProtected = kind === "protected";
+  const isChangePassword = kind === "changePassword";
+  const isAuthPage = kind === "auth";
 
   // Resolved once and shared by the auth gate and the locale fallback
   // below, so a request never decrypts the session token twice.
@@ -98,6 +136,9 @@ export default async function middleware(req: NextRequest) {
       req.nextUrl.origin,
     );
     loginUrl.searchParams.set("callbackUrl", pathname);
+    // A session that existed and ran out: the login page clears the
+    // offline copy of the account's data (see LoginForm).
+    if (token) loginUrl.searchParams.set("reason", "expired");
     return NextResponse.redirect(loginUrl);
   }
 
@@ -161,11 +202,12 @@ export const config = {
   //  - the App Router's generated icon routes (`/icon0.svg`,
   //    `/apple-icon.png`, …), which exist only at the root.
   //
-  // Matching on "any path segment containing a dot" covers all of them at
-  // once, including files added later, instead of a hand-maintained list
-  // that silently falls out of date — which is exactly how the icon
-  // routes started 404ing.
+  // Only root-level files with a known static extension are skipped (see
+  // MIDDLEWARE_MATCHER in lib/csp.ts, which this literal must equal; Next.js
+  // reads it statically). A page URL that merely contains a dot, such as
+  // /pt-BR/dashboard/tours/abc.def, still goes through the auth gate.
+  // Skipped paths get the static fallback CSP from next.config.ts.
   matcher: [
-    "/((?!api|_next/static|_next/image|status|s/|g/|.*\\.[a-zA-Z0-9]+$).*)",
+    "/((?!api/|api$|_next/|[^/]+\\.(?:js|mjs|css|map|json|webmanifest|txt|xml|html|ico|png|jpe?g|gif|svg|webp|avif|woff2?|ttf|otf)$).*)",
   ],
 };

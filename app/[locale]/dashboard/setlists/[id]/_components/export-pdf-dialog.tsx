@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { ExportPdfDialog as SharedExportPdfDialog } from "@/components/setlists/export-pdf-dialog";
 
 interface ExportPdfDialogProps {
@@ -10,20 +9,20 @@ interface ExportPdfDialogProps {
   onClose: () => void;
 }
 
-/** The dashboard's PDF export: the shared dialog, authenticated. */
+/**
+ * The dashboard's PDF export: the shared dialog pointed at the app's own
+ * route handler, which adds the API token server-side.
+ */
 export function ExportPdfDialog({
   setlistId,
   setlistTitle,
   isOpen,
   onClose,
 }: ExportPdfDialogProps) {
-  const { data: session } = useSession();
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
-
   return (
     <SharedExportPdfDialog
-      endpoint={`${baseUrl}/setlists/${encodeURIComponent(setlistId)}/export/pdf`}
-      authToken={session?.user?.apiToken}
+      endpoint={`/api/export/setlists/${encodeURIComponent(setlistId)}/pdf`}
+      canSaveDefault
       setlistTitle={setlistTitle}
       isOpen={isOpen}
       onClose={onClose}

@@ -3,7 +3,7 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { apiPath } from "@/lib/api-endpoint";
 import { guardedAction, ActionResult } from "@/lib/action-guard";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 import {
   Band,
@@ -31,7 +31,7 @@ export async function createBand(data: {
         method: "POST",
         body: JSON.stringify({ name, description }),
       }),
-    () => revalidatePath("/dashboard/bands"),
+    () => revalidateDashboard("/bands"),
   );
 }
 
@@ -77,8 +77,8 @@ export async function updateBand(
         body: JSON.stringify(payload),
       }),
     () => {
-      revalidatePath("/dashboard/bands");
-      revalidatePath(`/dashboard/bands/${id}`);
+      revalidateDashboard("/bands");
+      revalidateDashboard("/bands/[id]", "layout");
     },
   );
 }
@@ -90,7 +90,7 @@ export async function deleteBand(id: string): Promise<ActionResult<void>> {
 
   return guardedAction(
     () => fetchServerApi(`/bands/${id}`, { method: "DELETE" }),
-    () => revalidatePath("/dashboard/bands"),
+    () => revalidateDashboard("/bands"),
   );
 }
 
@@ -108,7 +108,7 @@ export async function transferBandOwnership(
         method: "POST",
         body: JSON.stringify({ new_owner_id: newOwnerId }),
       }),
-    () => revalidatePath(`/dashboard/bands/${id}`),
+    () => revalidateDashboard("/bands/[id]", "layout"),
   );
 }
 
@@ -127,7 +127,7 @@ export async function updateBandMemberRole(
         method: "PATCH",
         body: JSON.stringify({ role }),
       }),
-    () => revalidatePath(`/dashboard/bands/${bandId}`),
+    () => revalidateDashboard("/bands/[id]", "layout"),
   );
 }
 
@@ -146,7 +146,7 @@ export async function updateBandMemberTitle(
         method: "PATCH",
         body: JSON.stringify({ title }),
       }),
-    () => revalidatePath(`/dashboard/bands/${bandId}`),
+    () => revalidateDashboard("/bands/[id]", "layout"),
   );
 }
 
@@ -164,8 +164,8 @@ export async function removeBandMember(
         method: "DELETE",
       }),
     () => {
-      revalidatePath(`/dashboard/bands/${bandId}`);
-      revalidatePath("/dashboard/bands");
+      revalidateDashboard("/bands/[id]", "layout");
+      revalidateDashboard("/bands");
     },
   );
 }
@@ -191,7 +191,7 @@ export async function createBandInvite(
         method: "POST",
         body: JSON.stringify(data),
       }),
-    () => revalidatePath(`/dashboard/bands/${bandId}`),
+    () => revalidateDashboard("/bands/[id]", "layout"),
   );
 }
 
@@ -208,7 +208,7 @@ export async function revokeBandInvite(
       fetchServerApi(`/bands/${bandId}/invites/${inviteId}`, {
         method: "DELETE",
       }),
-    () => revalidatePath(`/dashboard/bands/${bandId}`),
+    () => revalidateDashboard("/bands/[id]", "layout"),
   );
 }
 
@@ -225,7 +225,7 @@ export async function acceptBandInvite(
       fetchServerApi<Band>(apiPath`/invites/${code}/accept`, {
         method: "POST",
       }),
-    () => revalidatePath("/dashboard/bands"),
+    () => revalidateDashboard("/bands"),
   );
 }
 
@@ -255,7 +255,7 @@ export async function updateBandRolePermissions(
         method: "PUT",
         body: JSON.stringify({ permissions }),
       }),
-    () => revalidatePath(`/dashboard/bands/${bandId}`),
+    () => revalidateDashboard("/bands/[id]", "layout"),
   );
 }
 
@@ -267,8 +267,8 @@ export async function favoriteBand(id: string): Promise<ActionResult<void>> {
   return guardedAction(
     () => fetchServerApi(`/bands/${id}/favorite`, { method: "POST" }),
     () => {
-      revalidatePath("/dashboard/bands");
-      revalidatePath("/dashboard");
+      revalidateDashboard("/bands");
+      revalidateDashboard("");
     },
   );
 }
@@ -281,8 +281,8 @@ export async function unfavoriteBand(id: string): Promise<ActionResult<void>> {
   return guardedAction(
     () => fetchServerApi(`/bands/${id}/favorite`, { method: "DELETE" }),
     () => {
-      revalidatePath("/dashboard/bands");
-      revalidatePath("/dashboard");
+      revalidateDashboard("/bands");
+      revalidateDashboard("");
     },
   );
 }

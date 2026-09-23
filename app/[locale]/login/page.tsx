@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
 import { LoginForm } from "./_components/login-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,7 +14,7 @@ export default async function LoginPage() {
   return (
     <AuthShell>
       <Suspense>
-        <LoginForm />
+        <LoginForm googleEnabled={isGoogleSignInEnabled()} />
       </Suspense>
     </AuthShell>
   );

@@ -11,11 +11,15 @@ import {
   Calendar,
   BarChart3,
   ChevronRight,
+  Route,
 } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { getDashboardMetrics } from "./actions";
 import { UserMetricsCharts } from "./_components/user-metrics";
 import { AdminMetricsCharts } from "./_components/admin-metrics";
+import { PinnedItems } from "./_components/pins/pinned-items";
+import { fetchServerApi } from "@/lib/api-server";
+import type { PinnedItem } from "@/types/content";
 
 export async function generateMetadata() {
   return staticTitle("dashboard");
@@ -25,10 +29,14 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
+  const tTours = await getTranslations("tours");
 
   const userRole = session?.user?.role;
 
-  const metrics = await getDashboardMetrics();
+  const [metrics, pins] = await Promise.all([
+    getDashboardMetrics(),
+    fetchServerApi<PinnedItem[]>("/users/me/pins").catch(() => null),
+  ]);
 
   const quickLinks = [
     {
@@ -62,6 +70,12 @@ export default async function DashboardPage() {
       description: t("gigs.description"),
     },
     {
+      href: "/dashboard/tours",
+      icon: Route,
+      label: tTours("title"),
+      description: t("tours.description"),
+    },
+    {
       href: "/dashboard/bands",
       icon: Guitar,
       label: tNav("bands"),
@@ -85,9 +99,11 @@ export default async function DashboardPage() {
           {t("title")}
         </h1>
         <p className="text-muted-foreground mt-1">
-          {t("welcome", { name: session?.user?.name || "User" })}
+          {t("welcome", { name: session?.user?.name ?? "" })}
         </p>
       </div>
+
+      {pins && <PinnedItems initial={pins} />}
 
       <section className="space-y-3">
         <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">

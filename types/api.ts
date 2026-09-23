@@ -1,3 +1,10 @@
+import type {
+  Link,
+  LinkInput,
+  PublicMarker,
+  PublicSong,
+} from "@/types/content";
+
 export const TONALITIES = [
   "C",
   "C#",
@@ -201,6 +208,8 @@ export interface Song {
   id: string;
   title: string;
   artist_id: string;
+  /** Resolved by the API on `/songs` responses (also for band artists). */
+  artist_name?: string | null;
   user_id: string;
   band_id: string | null;
   /** The personal song this band-owned copy was forked from, if any. */
@@ -212,6 +221,20 @@ export interface Song {
   duration?: number | null;
   /** Normalized (lowercase) tags, alphabetically sorted. */
   tags: string[];
+  /** Perceived energy, 1 (very low) to 5 (very high). */
+  energy?: number | null;
+  /** One of `TIME_SIGNATURES` (lib/song-fields.ts). */
+  time_signature?: string | null;
+  /** Capo fret, 0 to 11. */
+  capo?: number | null;
+  /** Free-text tuning ("Drop D", "Meio tom abaixo"...). */
+  tuning?: string | null;
+  /** Notes for the stage (cues, arrangement reminders). */
+  performance_notes?: string | null;
+  /** Reference links (recordings, backing tracks, charts). */
+  links?: Link[];
+  /** Whether the caller pinned this song to the home page. */
+  is_pinned?: boolean;
   /** Who last changed the song (null if never edited or account deleted). */
   updated_by?: string | null;
   updated_by_username?: string | null;
@@ -244,11 +267,18 @@ export interface CreateSongPayload {
   genre?: Genre | null;
   duration?: number | null;
   tags?: string[];
+  energy?: number | null;
+  time_signature?: string | null;
+  capo?: number | null;
+  tuning?: string | null;
+  performance_notes?: string | null;
+  links?: LinkInput[];
 }
 
 /**
  * Nullable fields: omit to leave unchanged, send `null` to clear.
- * `tags`, when present, replaces the whole tag set.
+ * `tags`, when present, replaces the whole tag set; `links` likewise
+ * (`[]` removes every link).
  */
 export interface UpdateSongPayload {
   title?: string;
@@ -259,6 +289,12 @@ export interface UpdateSongPayload {
   genre?: Genre | null;
   duration?: number | null;
   tags?: string[];
+  energy?: number | null;
+  time_signature?: string | null;
+  capo?: number | null;
+  tuning?: string | null;
+  performance_notes?: string | null;
+  links?: LinkInput[];
 }
 
 export interface Setlist {
@@ -276,6 +312,16 @@ export interface Setlist {
   share_lock_reason?: string | null;
   /** Songs in the running order (blocks and breaks excluded). */
   song_count?: number;
+  /** Reference links (recordings, rehearsal videos, charts). */
+  links?: Link[];
+  /**
+   * The band's repertoire: created with the band, collects every song of
+   * every band setlist. Stored as "Repertoire"; always display the
+   * translated name (see lib/repertoire.ts).
+   */
+  is_repertoire?: boolean;
+  /** Whether the caller pinned this setlist to the home page. */
+  is_pinned?: boolean;
   owner_username?: string | null;
   updated_by?: string | null;
   updated_by_username?: string | null;
@@ -351,14 +397,17 @@ export interface PublicSetlist {
   title: string;
   description: string | null;
   total_duration: number;
-  songs: SetlistSong[];
-  markers: SetlistMarker[];
+  /** Reference links of the setlist. */
+  links?: Link[];
+  songs: PublicSong[];
+  markers: PublicMarker[];
 }
 
 export interface CreateSetlistPayload {
   title: string;
   description?: string;
   band_id?: string | null;
+  links?: LinkInput[];
 }
 
 export interface AddSongToSetlistPayload {
@@ -390,7 +439,24 @@ export interface User {
   updated_by_username: string | null;
   created_at: string;
   updated_at: string;
+  /** The e-mail address was confirmed with a code (or by Google). */
+  email_verified: boolean;
+  /** `https` image URL; the image itself is served through the proxy. */
+  avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+  instruments: string[];
+  two_factor_enabled: boolean;
+  /** `false` for accounts created with Google that never set a password. */
+  password_set: boolean;
+  /** Version of the Terms of Use accepted (`LEGAL_VERSION` when current). */
+  terms_version: string | null;
+  terms_accepted_at: string | null;
+  referral_code: string | null;
 }
+
+/** Alias kept for readability where the API calls it `UserPublic`. */
+export type UserPublic = User;
 
 export interface UsernameAvailability {
   available: boolean;
@@ -411,6 +477,15 @@ export interface UserProfileAdminDetails {
   is_banned: boolean;
   banned_until: string | null;
   last_login_at: string | null;
+  /** Open moderation flags about this account. */
+  open_flags?: number;
+}
+
+/** A band both the viewer and the profile's owner belong to. */
+export interface BandInCommon {
+  id: string;
+  name: string;
+  logo_url: string | null;
 }
 
 /** Another user's profile, as returned by GET /users/{id}/profile. */
@@ -420,7 +495,16 @@ export interface UserProfileView {
   first_name: string | null;
   last_name: string | null;
   created_at: string;
-  /** Present only when the viewer is an admin. */
+  /** `null` when there is none (or it was removed by moderation). */
+  avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+  instruments: string[];
+  bands_in_common: BandInCommon[];
+  member_since: string;
+  /** The viewer is looking at their own profile. */
+  is_self: boolean;
+  /** Present only when the viewer is staff. */
   admin_details: UserProfileAdminDetails | null;
 }
 
@@ -484,12 +568,16 @@ export interface DependenciesStatus {
   database: DatabaseStatus;
 }
 
+/**
+ * `GET /status`. The public endpoint returns only `status` and `version`;
+ * the other fields come with the staff-only `/status/details`.
+ */
 export interface ApiStatus {
   status: ServiceHealth;
-  updated_at: string;
   version: string;
-  uptime_seconds: number;
-  dependencies: DependenciesStatus;
+  updated_at?: string;
+  uptime_seconds?: number;
+  dependencies?: DependenciesStatus;
 }
 
 export interface GenreCount {
@@ -640,6 +728,35 @@ export interface BandWithMembership extends Band {
   my_role: BandRole;
   /** Whether the current user has favorited this band. */
   is_favorite: boolean;
+  /** The band's repertoire setlist (see `Setlist.is_repertoire`). */
+  repertoire_id?: string | null;
+  /** Up votes that accept a suggestion automatically (`null` = off). */
+  suggestion_auto_accept_votes?: number | null;
+  /** Suggestions still open for voting. */
+  open_suggestions?: number;
+  /** Whether the caller pinned this band to the home page. */
+  is_pinned?: boolean;
+  /** What the caller may do in this band (computed by the API). */
+  my_permissions: BandPermissions;
+}
+
+/** `GET /songs/{id}/setlists`: a live setlist the caller can see that contains the song. */
+export interface SongSetlistRef {
+  id: string;
+  title: string;
+  /** The band repertoire: show `setlists.repertoire.name`, not `title`. */
+  is_repertoire: boolean;
+  band_id: string | null;
+  band_name: string | null;
+  /** The song's position in that setlist. */
+  position: number;
+}
+
+/** The caller's effective band permissions (`BandWithMembership.my_permissions`). */
+export interface BandPermissions {
+  manage_setlists: boolean;
+  manage_songs: boolean;
+  export_pdf: boolean;
 }
 
 export interface CreateBandPayload {
@@ -653,6 +770,8 @@ export interface UpdateBandPayload {
   description?: string | null;
   logo_url?: string | null;
   members_can_manage_setlists?: boolean;
+  /** 1..100, `null` turns automatic acceptance off. */
+  suggestion_auto_accept_votes?: number | null;
 }
 
 export interface BandMember {
@@ -726,6 +845,11 @@ export interface Gig {
   share_token: string | null;
   share_locked_at?: string | null;
   share_lock_reason?: string | null;
+  /** The tour this gig belongs to, if any (same scope as the gig). */
+  tour_id?: string | null;
+  tour_name?: string | null;
+  /** Whether the caller pinned this gig to the home page. */
+  is_pinned?: boolean;
   updated_by?: string | null;
   updated_by_username?: string | null;
   created_at: string;
@@ -747,6 +871,7 @@ export interface CreateGigPayload {
   scheduled_at: string;
   band_id?: string | null;
   setlist_id?: string | null;
+  tour_id?: string | null;
   status?: GigStatus;
   notes?: string;
 }
@@ -757,6 +882,7 @@ export interface UpdateGigPayload {
   location?: string | null;
   scheduled_at?: string;
   setlist_id?: string | null;
+  tour_id?: string | null;
   status?: GigStatus;
   notes?: string | null;
 }
@@ -770,7 +896,16 @@ export type NotificationType =
   | "band_member_removed"
   | "platform_role_changed"
   | "band_member_added"
-  | "share_link_revoked";
+  | "share_link_revoked"
+  | "announcement"
+  | "release_published"
+  | "band_suggestion_created"
+  | "band_suggestion_resolved"
+  | "moderation_action"
+  | "subscription_changed"
+  | "trial_ending"
+  | "credits_granted"
+  | "security_alert";
 
 export interface BandRoleChangedData {
   band_id: string;
@@ -807,6 +942,66 @@ export interface ShareLinkRevokedData {
   actor_id: string;
 }
 
+export interface AnnouncementNotificationData {
+  announcement_id: string;
+  title: string;
+  level: "info" | "success" | "warning" | "critical";
+}
+
+export interface ReleasePublishedData {
+  version: string;
+  release_id: string;
+}
+
+export interface BandSuggestionCreatedData {
+  band_id: string;
+  band_name: string;
+  suggestion_id: string;
+  song_title: string;
+  suggested_by: string;
+}
+
+export interface BandSuggestionResolvedData {
+  band_id: string;
+  band_name: string;
+  suggestion_id: string;
+  song_title: string;
+  /** `accepted`, `rejected` or `withdrawn`. */
+  status: string;
+}
+
+export interface ModerationActionData {
+  /** `avatar_removed`, `band_logo_removed` or `username_reset`. */
+  action: string;
+  note: string | null;
+  band_id: string | null;
+  band_name: string | null;
+}
+
+export interface SubscriptionChangedData {
+  /** `plan_granted`, `extended`, `trial_started`, `trial_extended`, `revoked`, `expired`. */
+  kind: string;
+  plan_code: string | null;
+  status: string | null;
+  current_period_end: string | null;
+}
+
+export interface TrialEndingData {
+  plan_code: string;
+  ends_at: string;
+}
+
+export interface CreditsGrantedData {
+  amount: number;
+  /** `admin_adjustment`, `promo_code`, `referral_referrer`, `referral_referred`... */
+  reason: string;
+}
+
+export interface SecurityAlertData {
+  /** `password_changed`, `email_changed`, `two_factor_enabled`... */
+  event: string;
+}
+
 export interface Notification {
   id: string;
   user_id: string;
@@ -816,7 +1011,16 @@ export interface Notification {
     | BandMemberRemovedData
     | PlatformRoleChangedData
     | BandMemberAddedData
-    | ShareLinkRevokedData;
+    | ShareLinkRevokedData
+    | AnnouncementNotificationData
+    | ReleasePublishedData
+    | BandSuggestionCreatedData
+    | BandSuggestionResolvedData
+    | ModerationActionData
+    | SubscriptionChangedData
+    | TrialEndingData
+    | CreditsGrantedData
+    | SecurityAlertData;
   read_at: string | null;
   created_at: string;
 }
@@ -841,7 +1045,9 @@ export type QuotaResource =
   | "band_setlists"
   | "band_gigs"
   | "band_songs"
-  | "setlist_items";
+  | "setlist_items"
+  | "tours"
+  | "band_tours";
 
 export type QuotaLimits = Record<QuotaResource, number>;
 export type QuotaOverrides = Partial<Record<QuotaResource, number | null>>;

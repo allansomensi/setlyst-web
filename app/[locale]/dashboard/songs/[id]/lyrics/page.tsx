@@ -12,11 +12,14 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { Button } from "@/components/ui/button";
 import { updateSong } from "../../actions";
 import { useApi } from "@/lib/api-client";
+import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import { insertAtCursor, wrapSelection } from "./_components/text-editing";
+import { ChordPopover, HelpPopover } from "./_components/toolbar-popovers";
 import { readCachedSong } from "@/lib/offline/read";
 import { isKnownOffline } from "@/lib/offline/navigation";
 import { Song } from "@/types/api";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { useTranslations } from "next-intl";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
@@ -32,7 +35,6 @@ import {
   EyeOff,
   Underline,
   ChevronDown,
-  HelpCircle,
   WifiOff,
   ListTree,
 } from "lucide-react";
@@ -51,222 +53,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-
-function wrapSelection(
-  textarea: HTMLTextAreaElement,
-  prefix: string,
-  suffix: string,
-  setText: (v: string) => void,
-) {
-  const { selectionStart: start, selectionEnd: end, value } = textarea;
-  const selected = value.slice(start, end);
-  const replacement = selected
-    ? `${prefix}${selected}${suffix}`
-    : `${prefix}text${suffix}`;
-  const next = value.slice(0, start) + replacement + value.slice(end);
-  setText(next);
-  requestAnimationFrame(() => {
-    textarea.focus();
-    const newStart = selected ? start + prefix.length : start + prefix.length;
-    const newEnd = selected
-      ? end + prefix.length
-      : start + prefix.length + "text".length;
-    textarea.setSelectionRange(newStart, newEnd);
-  });
-}
-
-function insertAtCursor(
-  textarea: HTMLTextAreaElement,
-  insertion: string,
-  setText: (v: string) => void,
-  cursorOffset?: number,
-) {
-  const { selectionStart: start, value } = textarea;
-  const next = value.slice(0, start) + insertion + value.slice(start);
-  setText(next);
-  requestAnimationFrame(() => {
-    textarea.focus();
-    const pos = start + (cursorOffset ?? insertion.length);
-    textarea.setSelectionRange(pos, pos);
-  });
-}
-
-// ChordPopover
-
-const COMMON_CHORDS = [
-  "C",
-  "Cm",
-  "C7",
-  "Cmaj7",
-  "D",
-  "Dm",
-  "D7",
-  "Dmaj7",
-  "E",
-  "Em",
-  "E7",
-  "F",
-  "Fm",
-  "F7",
-  "Fmaj7",
-  "G",
-  "Gm",
-  "G7",
-  "Gmaj7",
-  "A",
-  "Am",
-  "A7",
-  "Amaj7",
-  "B",
-  "Bm",
-  "B7",
-  "Bb",
-  "Bbm",
-  "Bb7",
-  "Eb",
-  "Ebm",
-  "Ab",
-  "Abm",
-];
-
-interface ChordPopoverProps {
-  onInsert: (chord: string) => void;
-}
-
-function ChordPopover({ onInsert }: ChordPopoverProps) {
-  const t = useTranslations("lyrics.toolbar");
-  const [custom, setCustom] = useState("");
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 gap-1.5 text-xs"
-          title={t("insertChord")}
-        >
-          <Music className="h-3.5 w-3.5" />
-          {t("chord")}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-3" align="start">
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">{t("customChord")}</Label>
-            <div className="flex gap-2">
-              <Input
-                value={custom}
-                onChange={(e) => setCustom(e.target.value)}
-                placeholder={t("customChordPlaceholder")}
-                className="h-8 text-sm"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && custom.trim()) {
-                    onInsert(custom.trim());
-                    setCustom("");
-                    setOpen(false);
-                  }
-                }}
-              />
-              <Button
-                size="sm"
-                className="h-8"
-                disabled={!custom.trim()}
-                onClick={() => {
-                  onInsert(custom.trim());
-                  setCustom("");
-                  setOpen(false);
-                }}
-              >
-                OK
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">
-              {t("commonChords")}
-            </Label>
-            <div className="flex flex-wrap gap-1">
-              {COMMON_CHORDS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    onInsert(c);
-                    setOpen(false);
-                  }}
-                  className="bg-muted hover:bg-accent hover:text-accent-foreground rounded px-2 py-0.5 font-mono text-xs transition-colors"
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-// Help
-
-function HelpPopover() {
-  const t = useTranslations("lyrics.help");
-  const rows: Array<[string, string]> = [
-    ["[Am]Hello [G]world", t("inlineChords")],
-    ["[Refrão]  /  Pré-Refrão:", t("sections")],
-    ["{soc} … {eoc}", t("environments")],
-    ["{c: …}", t("comment")],
-    ["**b**  *i*  __u__", t("formatting")],
-  ];
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          title={t("title")}
-          aria-label={t("title")}
-        >
-          <HelpCircle className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-[22rem] max-w-[calc(100vw-2rem)] p-4"
-        align="end"
-      >
-        <h4 className="mb-1 font-semibold">{t("title")}</h4>
-        <p className="text-muted-foreground mb-3 text-xs leading-relaxed">
-          {t("intro")}
-        </p>
-        <dl className="space-y-2.5">
-          {rows.map(([code, description]) => (
-            <div key={code} className="space-y-1">
-              <dt className="bg-muted w-fit rounded px-1.5 py-0.5 font-mono text-xs">
-                {code}
-              </dt>
-              <dd className="text-muted-foreground text-xs leading-snug">
-                {description}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <p className="text-muted-foreground mt-3 border-t pt-3 text-xs leading-relaxed">
-          {t("pasteTip")}
-        </p>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 /** Sections offered in the editor's menu, most used first. */
 const INSERTABLE_SECTIONS = [
@@ -314,7 +101,6 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const [showChords, setShowChords] = useState(true);
   const [showSections, setShowSections] = useState(true);
   const [savedLyrics, setSavedLyrics] = useState("");
-  const [confirmLeave, setConfirmLeave] = useState(false);
   // True when what's on screen came from the on-device copy rather than the
   // API. The lyrics are fully readable either way; saving is what needs a
   // connection, so the editor turns read-only instead of offering a Save
@@ -384,18 +170,32 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     };
   }, [id, fetchApi, router, t]);
 
+  /**
+   * Where the editor leaves to: the song's detail page, or its Live Mode
+   * when working from the offline copy (the detail page needs the API,
+   * Live Mode works from the device).
+   */
+  const songHref = isReadOnly
+    ? `/dashboard/songs/${id}/live`
+    : `/dashboard/songs/${id}`;
+
+  const isDirty = !isReadOnly && lyrics !== savedLyrics;
+  const guard = useUnsavedChangesGuard(isDirty);
+
   const handleSave = useCallback(() => {
+    if (isPending || isReadOnly || !isDirty) return;
     startTransition(async () => {
       const result = await updateSong(id, { lyrics });
       if (result.success) {
         setSavedLyrics(lyrics);
         toast.success(t("saved"));
-        router.back();
+        guard.release();
+        router.push(songHref);
       } else {
         toastActionError(result, result.error ?? t("saveFailed"));
       }
     });
-  }, [id, lyrics, router, t]);
+  }, [id, lyrics, router, t, isPending, isReadOnly, isDirty, guard, songHref]);
 
   // Toolbar actions
 
@@ -428,23 +228,9 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     insertAtCursor(textarea, prefix + template, setLyrics);
   }, []);
 
-  // Unsaved changes
-
-  const isDirty = !isReadOnly && lyrics !== savedLyrics;
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [isDirty]);
-
   const handleLeave = useCallback(() => {
-    if (isDirty) setConfirmLeave(true);
-    else router.back();
-  }, [isDirty, router]);
+    guard.requestLeave(() => router.push(songHref));
+  }, [guard, router, songHref]);
 
   // Keyboard shortcuts
 
@@ -488,9 +274,9 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
             size="icon"
             onClick={handleLeave}
             className="shrink-0"
-            aria-label={tCommon("cancel")}
+            aria-label={tCommon("back")}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden />
           </Button>
           <div className="min-w-0">
             <h1 className="truncate text-base leading-tight font-semibold md:text-lg">
@@ -549,6 +335,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           className="h-8 w-8"
           onClick={applyBold}
           title={t("toolbar.bold")}
+          aria-label={t("toolbar.bold")}
         >
           <Bold className="h-3.5 w-3.5" />
         </Button>
@@ -558,6 +345,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           className="h-8 w-8"
           onClick={applyItalic}
           title={t("toolbar.italic")}
+          aria-label={t("toolbar.italic")}
         >
           <Italic className="h-3.5 w-3.5" />
         </Button>
@@ -567,6 +355,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           className="h-8 w-8"
           onClick={applyUnderline}
           title={t("toolbar.underline")}
+          aria-label={t("toolbar.underline")}
         >
           <Underline className="h-3.5 w-3.5" />
         </Button>
@@ -627,8 +416,10 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
               aria-pressed={showChords}
               title={t("toolbar.chords")}
             >
-              <Music className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t("toolbar.chords")}</span>
+              <Music className="h-3.5 w-3.5" aria-hidden />
+              <span className="sr-only sm:not-sr-only">
+                {t("toolbar.chords")}
+              </span>
             </Button>
             <Button
               variant={showSections ? "secondary" : "ghost"}
@@ -638,8 +429,10 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
               aria-pressed={showSections}
               title={t("toolbar.sections")}
             >
-              <ListTree className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t("toolbar.sections")}</span>
+              <ListTree className="h-3.5 w-3.5" aria-hidden />
+              <span className="sr-only sm:not-sr-only">
+                {t("toolbar.sections")}
+              </span>
             </Button>
           </>
         )}
@@ -706,23 +499,20 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         )}
       </div>
 
-      <Dialog open={confirmLeave} onOpenChange={setConfirmLeave}>
+      <Dialog
+        open={guard.isConfirming}
+        onOpenChange={(open) => !open && guard.cancelLeave()}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("discardTitle")}</DialogTitle>
             <DialogDescription>{t("discardDescription")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmLeave(false)}>
+            <Button variant="outline" onClick={guard.cancelLeave}>
               {t("keepEditing")}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setConfirmLeave(false);
-                router.back();
-              }}
-            >
+            <Button variant="destructive" onClick={guard.confirmLeave}>
               {t("discard")}
             </Button>
           </DialogFooter>

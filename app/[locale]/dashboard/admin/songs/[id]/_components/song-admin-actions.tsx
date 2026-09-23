@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +28,7 @@ import {
 } from "@/lib/utils";
 import { TONALITIES, type SetlistSong, type Tonality } from "@/types/api";
 import { deleteSongAsAdmin, updateSongAsAdmin } from "../../../actions";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * Admin-only edit and delete of someone else's song. Every change is
@@ -129,19 +130,18 @@ export function SongAdminActions({ song }: { song: SetlistSong }) {
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="admin-song-key">{t("key")}</Label>
-                <select
+                <NativeSelect
                   id="admin-song-key"
                   value={tonality}
                   onChange={(e) => setTonality(e.target.value)}
-                  className="border-input bg-background flex h-9 w-full rounded-md border px-3 text-sm"
                 >
-                  <option value="">—</option>
+                  <option value="">{tCommon("none")}</option>
                   {TONALITIES.map((key) => (
                     <option key={key} value={key}>
                       {key}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-song-bpm">{t("bpm")}</Label>

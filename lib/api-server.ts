@@ -1,15 +1,16 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { headers } from "next/headers";
+import "server-only";
+
 import { getLocale } from "next-intl/server";
+import { getApiToken } from "@/lib/server/api-token";
+import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
 import type { PaginatedResponse } from "@/types/api";
 import {
   MAX_RETRIES,
-  RETRYABLE_STATUSES,
   isIdempotentMethod,
   parseRetryAfterMs,
   retryDelayMs,
+  statusRetryDelayMs,
   sleep,
 } from "@/lib/api-retry";
 
@@ -19,7 +20,7 @@ export class ApiError extends Error {
     message: string,
     /**
      * How long the backend asked us to wait before trying again, when it
-     * said so (a 429's `Retry-After`). Lets the UI tell someone *when* to
+     * said so (`Retry-After` on a 429 or 503). Lets the UI tell someone *when* to
      * retry instead of just "later".
      */
     public retryAfterMs: number | null = null,
@@ -44,7 +45,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  * Uses API_URL (server-only) first, falls back to NEXT_PUBLIC_API_URL.
  * Never exposed to the browser bundle.
  */
-function getApiBaseUrl(): string {
+export function getApiBaseUrl(): string {
   const url = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
 
   if (!url) {
@@ -72,14 +73,15 @@ function validateEndpoint(endpoint: string): void {
   }
 }
 
+export { getApiToken };
+
 export async function fetchServerApi<T>(
   endpoint: string,
   options: RequestInit & { timeoutMs?: number } = {},
 ): Promise<T> {
   validateEndpoint(endpoint);
 
-  const session = await getServerSession(authOptions);
-  const token = session?.user?.apiToken;
+  const token = await getApiToken();
 
   const requestHeaders = new Headers(options.headers);
   requestHeaders.set("Content-Type", "application/json");
@@ -97,17 +99,12 @@ export async function fetchServerApi<T>(
     requestHeaders.set("x-app-locale", locale);
   } catch {}
 
-  try {
-    const nextHeaders = await headers();
-    const forwardedFor = nextHeaders.get("x-forwarded-for");
-    const realIp = nextHeaders.get("x-real-ip");
-
-    if (forwardedFor) {
-      requestHeaders.set("x-forwarded-for", forwardedFor);
-    } else if (realIp) {
-      requestHeaders.set("x-forwarded-for", realIp);
-    }
-  } catch {}
+  // The visitor's address travels in a header the API only believes when
+  // it comes with the internal secret; the browser's own X-Forwarded-For
+  // is never passed along (see lib/server/client-ip.ts).
+  for (const [name, value] of Object.entries(await getInternalApiHeaders())) {
+    requestHeaders.set(name, value);
+  }
 
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
@@ -149,14 +146,18 @@ export async function fetchServerApi<T>(
     }
 
     if (!res.ok) {
-      const canRetryStatus =
-        res.status === 429 ||
-        (canRetryMethod && RETRYABLE_STATUSES.has(res.status));
-
-      if (canRetryStatus && attempt < MAX_RETRIES) {
+      // Only idempotent methods, and only for a short server-given wait
+      // (see statusRetryDelayMs): a POST answered 429 may be a business
+      // rule like TOO_MANY_ATTEMPTS, never something to send again.
+      const delay = statusRetryDelayMs(
+        fetchOptions.method,
+        res.status,
+        res.headers.get("retry-after"),
+        attempt + 1,
+      );
+      if (delay !== null) {
         attempt++;
-        const retryAfterMs = parseRetryAfterMs(res.headers.get("retry-after"));
-        await sleep(retryDelayMs(attempt, retryAfterMs));
+        await sleep(delay);
         continue;
       }
 
@@ -172,10 +173,11 @@ export async function fetchServerApi<T>(
         // Non-JSON error body: keep the generic message.
       }
 
-      let retryAfterMs: number | null = null;
+      // The API sends Retry-After on every "wait" answer (429 rate limits
+      // and rules, 503 SERVICE_BUSY), so the UI can say when to retry.
+      const retryAfterMs = parseRetryAfterMs(res.headers.get("retry-after"));
       if (res.status === 429) {
         message = "Too many requests. Please wait a moment and try again.";
-        retryAfterMs = parseRetryAfterMs(res.headers.get("retry-after"));
       }
 
       if (res.status === 401 && code !== "WRONG_PASSWORD") {

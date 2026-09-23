@@ -192,3 +192,140 @@ export const PDF_PRESETS: Record<
     margins: "narrow",
   },
 };
+
+/**
+ * Query keys the `/api/export/setlists/[id]/pdf` route handler forwards to
+ * the API (anything else is dropped).
+ */
+export const SETLIST_PDF_QUERY_KEYS: ReadonlySet<string> = new Set([
+  ...Object.keys(DEFAULT_PDF_OPTIONS),
+  "lang",
+  "subtitle",
+]);
+
+/**
+ * Query keys forwarded by `/api/export/songs/[id]/pdf` (single-song sheet,
+ * SPEC §8.2): exactly the API's `SongExportQuery`.
+ */
+export const SONG_PDF_QUERY_KEYS: ReadonlySet<string> = new Set([
+  "show_artist",
+  "show_key",
+  "show_capo",
+  "show_bpm",
+  "show_time_signature",
+  "show_tuning",
+  "show_notes",
+  "chord_mode",
+  "chords",
+  "columns",
+  "font_scale",
+  "uppercase_titles",
+  "watermark",
+  "page_numbers",
+  "paper",
+  "orientation",
+  "margins",
+  "lang",
+]);
+
+// ---------------------------------------------------------------------
+// Single-song sheet
+// ---------------------------------------------------------------------
+
+/** Header lines of a song sheet, each toggleable. */
+export const SONG_HEADER_TOGGLES = [
+  "show_artist",
+  "show_key",
+  "show_capo",
+  "show_bpm",
+  "show_time_signature",
+  "show_tuning",
+  "show_notes",
+] as const;
+
+export type SongHeaderToggle = (typeof SONG_HEADER_TOGGLES)[number];
+
+export interface SongPdfOptions extends Record<SongHeaderToggle, boolean> {
+  chord_mode: ChordMode;
+  columns: 1 | 2;
+  font_scale: number;
+  uppercase_titles: boolean;
+  watermark: boolean;
+  page_numbers: boolean;
+  paper: PaperFormat;
+  orientation: Orientation;
+  margins: MarginSize;
+}
+
+export const DEFAULT_SONG_PDF_OPTIONS: SongPdfOptions = {
+  show_artist: true,
+  show_key: true,
+  show_capo: true,
+  show_bpm: true,
+  show_time_signature: true,
+  show_tuning: true,
+  show_notes: false,
+  chord_mode: "above",
+  columns: 1,
+  font_scale: 100,
+  uppercase_titles: false,
+  watermark: true,
+  page_numbers: true,
+  paper: "a4",
+  orientation: "portrait",
+  margins: "normal",
+};
+
+/**
+ * Options that need the `advanced_pdf` feature when plans are enforced
+ * (the API's `AdvancedPdf` rule for songs): two columns, no watermark,
+ * margins other than normal.
+ */
+export function songPdfAdvancedKeys(
+  options: SongPdfOptions,
+): Array<"columns" | "watermark" | "margins"> {
+  const keys: Array<"columns" | "watermark" | "margins"> = [];
+  if (options.columns === 2) keys.push("columns");
+  if (!options.watermark) keys.push("watermark");
+  if (options.margins !== "normal") keys.push("margins");
+  return keys;
+}
+
+/** Resets the advanced options to what every plan includes. */
+export function withoutAdvancedSongOptions(
+  options: SongPdfOptions,
+): SongPdfOptions {
+  return { ...options, columns: 1, watermark: true, margins: "normal" };
+}
+
+/**
+ * The song sheet options derived from the account's saved setlist
+ * defaults (paper, orientation, chords, font size...), so a song sheet
+ * starts looking like the person's setlist PDFs.
+ */
+export function songPdfOptionsFrom(pdf: PdfExportOptions): SongPdfOptions {
+  return {
+    ...DEFAULT_SONG_PDF_OPTIONS,
+    chord_mode: pdf.chords,
+    font_scale: pdf.font_scale,
+    uppercase_titles: pdf.uppercase_titles,
+    watermark: pdf.watermark,
+    page_numbers: pdf.page_numbers,
+    paper: pdf.paper,
+    orientation: pdf.orientation,
+    margins: pdf.margins,
+  };
+}
+
+/** The query string of `/api/export/songs/{id}/pdf`. */
+export function songPdfOptionsToQuery(
+  options: SongPdfOptions,
+  lang: string,
+): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(options)) {
+    params.set(key, String(value));
+  }
+  params.set("lang", lang);
+  return params.toString();
+}

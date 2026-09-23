@@ -2,7 +2,7 @@
 
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction } from "@/lib/action-guard";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 
 export async function createArtist(data: { name: string }) {
@@ -22,7 +22,7 @@ export async function createArtist(data: { name: string }) {
         method: "POST",
         body: JSON.stringify({ name }),
       }),
-    () => revalidatePath("/dashboard/artists"),
+    () => revalidateDashboard("/artists"),
   );
 }
 
@@ -47,7 +47,8 @@ export async function updateArtist(id: string, data: { name: string }) {
         method: "PATCH",
         body: JSON.stringify({ name }),
       }),
-    () => revalidatePath("/dashboard/artists"),
+    // The artist name shows next to every one of its songs.
+    () => revalidateDashboard("", "layout"),
   );
 }
 
@@ -60,6 +61,7 @@ export async function deleteArtist(id: string) {
 
   return guardedAction(
     () => fetchServerApi(`/artists/${id}`, { method: "DELETE" }),
-    () => revalidatePath("/dashboard/artists"),
+    // Deleting an artist takes its songs with it.
+    () => revalidateDashboard("", "layout"),
   );
 }

@@ -1,6 +1,7 @@
 import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
-import { Setlist, BandWithMembership, BAND_ROLE_LEVEL } from "@/types/api";
+import { canManageBandSetlists } from "@/lib/band-permissions";
+import { Setlist, BandWithMembership } from "@/types/api";
 import { SetlistsTable } from "./_components/setlists-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
@@ -29,9 +30,7 @@ export default async function SetlistsPage() {
 
   const bandsById: Record<string, { name: string; canManage: boolean }> = {};
   for (const band of bands) {
-    const canManage =
-      BAND_ROLE_LEVEL[band.my_role] >= BAND_ROLE_LEVEL.moderator ||
-      (band.my_role === "member" && band.members_can_manage_setlists);
+    const canManage = canManageBandSetlists(band);
     bandsById[band.id] = { name: band.name, canManage };
   }
 

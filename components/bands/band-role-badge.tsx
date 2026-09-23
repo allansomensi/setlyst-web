@@ -15,9 +15,5 @@ const VARIANT_BY_ROLE: Record<
 export function BandRoleBadge({ role }: { role: BandRole }) {
   const t = useTranslations("bands.roles");
 
-  return (
-    <Badge variant={VARIANT_BY_ROLE[role]} className="capitalize">
-      {t(role)}
-    </Badge>
-  );
+  return <Badge variant={VARIANT_BY_ROLE[role]}>{t(role)}</Badge>;
 }

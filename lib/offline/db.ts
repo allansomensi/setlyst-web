@@ -88,6 +88,11 @@ export interface SyncMeta {
   id: "global";
   lastFullSyncAt: number | null;
   lastError: string | null;
+  /**
+   * The account this mirror belongs to. A different person signing in on
+   * the same device wipes it first (see lib/offline/owner.ts).
+   */
+  userId?: string | null;
 }
 
 class OfflineDatabase extends Dexie {

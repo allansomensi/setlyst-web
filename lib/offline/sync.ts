@@ -397,11 +397,12 @@ export async function syncAllForOffline(
   // still surface as an "error" sync result rather than an uncaught
   // rejection, so wrap it rather than letting it propagate raw.
   try {
+    const previous = await offlineDb.meta.get("global");
     await offlineDb.meta.put({
+      // Keeps the owner recorded by lib/offline/owner.ts.
+      ...previous,
       id: "global",
-      lastFullSyncAt: ok
-        ? syncedAt
-        : ((await offlineDb.meta.get("global"))?.lastFullSyncAt ?? null),
+      lastFullSyncAt: ok ? syncedAt : (previous?.lastFullSyncAt ?? null),
       lastError,
     });
   } catch (err) {

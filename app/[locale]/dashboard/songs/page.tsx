@@ -3,6 +3,7 @@ import { fetchAllServerPages } from "@/lib/api-server";
 import { Song, Artist } from "@/types/api";
 import { SongsTable } from "./_components/songs-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
+import { getEntitlements, hasFeature } from "@/lib/entitlements";
 
 export async function generateMetadata() {
   return staticTitle("songs");
@@ -13,9 +14,10 @@ export default async function SongsPage() {
   // shouldn't take the whole page down when the other loaded fine.
   // `hadError` is what tells SongsTable an empty `songs` array means "this
   // fetch failed," not "you have no songs" — see LoadErrorNotice.
-  const [songsRes, artistsRes] = await Promise.all([
+  const [songsRes, artistsRes, entitlements] = await Promise.all([
     fetchOrFailed(fetchAllServerPages<Song>("/songs")),
     fetchOrFailed(fetchAllServerPages<Artist>("/artists")),
+    getEntitlements(),
   ]);
 
   const hadError = songsRes === FETCH_FAILED || artistsRes === FETCH_FAILED;
@@ -24,7 +26,15 @@ export default async function SongsPage() {
 
   return (
     <div className="w-full space-y-4">
-      <SongsTable initialSongs={songs} artists={artists} loadError={hadError} />
+      <SongsTable
+        initialSongs={songs}
+        artists={artists}
+        loadError={hadError}
+        features={{
+          chordproImport: hasFeature(entitlements, "chordpro_import"),
+          advancedPdf: hasFeature(entitlements, "advanced_pdf"),
+        }}
+      />
     </div>
   );
 }

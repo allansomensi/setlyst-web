@@ -86,7 +86,18 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
    # Optional
    NEXT_PUBLIC_WIKI_URL=https://github.com/allansomensi/setlyst-web/wiki
    NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
+   NEXT_PUBLIC_PRIVACY_EMAIL=privacy@example.com   # LGPD officer, defaults to the support e-mail
+   NEXT_PUBLIC_BILLING_ENFORCED=false              # "true" once the API enforces billing
+   NEXT_PUBLIC_COMPANY_NAME=                       # controller shown in the legal documents
+   NEXT_PUBLIC_COMPANY_CNPJ=
+   NEXT_PUBLIC_COMPANY_ADDRESS=
+   INTERNAL_API_SECRET=                            # same value as the API's, see "Client address" below
+   TRUSTED_PROXY_HOPS=1                            # reverse proxies in front of Next.js (self-hosted)
+   TRUST_X_REAL_IP=false                           # "true" only if your proxy overwrites X-Real-IP
+   NEXT_PUBLIC_ENABLE_SW_IN_DEV=false              # register the service worker in `npm run dev`
    ```
+
+   **Client address.** With `INTERNAL_API_SECRET` set, the server tells the API who the visitor is so rate limits apply per visitor. On Vercel (`VERCEL` is set by the platform) the address comes from `x-vercel-forwarded-for`/`x-real-ip`. Self-hosted, it is the entry `TRUSTED_PROXY_HOPS` positions from the right of `X-Forwarded-For` (the address your closest reverse proxy appended; `0` disables it), or `X-Real-IP` when `TRUST_X_REAL_IP=true`. The leftmost `X-Forwarded-For` entry is written by the client and is never trusted; when nothing trustworthy is available no address is sent.
 
 4. **Run the development server**
 

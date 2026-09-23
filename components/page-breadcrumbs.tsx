@@ -42,7 +42,7 @@ export function PageBreadcrumbs({
   const t = useTranslations("nav");
 
   return (
-    <nav aria-label="Breadcrumb" className={cn("min-w-0", className)}>
+    <nav aria-label={t("breadcrumb")} className={cn("min-w-0", className)}>
       <ol
         className={cn(
           "text-muted-foreground flex min-w-0 items-center",

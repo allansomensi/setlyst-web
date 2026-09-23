@@ -1,16 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Bell,
-  Check,
-  Link2Off,
-  ShieldAlert,
-  UserMinus,
-  UserPlus,
-  Users,
-} from "lucide-react";
-import { useTranslations, useFormatter } from "next-intl";
+import { Bell, Check, Megaphone, SlidersHorizontal } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
@@ -23,33 +15,22 @@ import { Separator } from "@/components/ui/separator";
 import { useApi } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type {
-  BandMemberAddedData,
-  BandMemberRemovedData,
-  BandRoleChangedData,
   Notification,
   PaginatedResponse,
-  PlatformRoleChangedData,
-  ShareLinkRevokedData,
   UnreadCountResponse,
 } from "@/types/api";
-import { parseApiTimestamp } from "@/lib/dates";
+import { NotificationItem } from "@/components/notifications/notification-item";
+import {
+  ANNOUNCEMENTS_HREF,
+  describeNotification,
+  SETTINGS_COMMUNICATIONS_HREF,
+} from "@/lib/notification-messages";
 
 /** How often the unread badge is refreshed while the popover is closed. */
 const POLL_INTERVAL_MS = 30_000;
 
-const TYPE_ICON: Record<Notification["type"], typeof Bell> = {
-  band_role_changed: ShieldAlert,
-  band_member_removed: UserMinus,
-  platform_role_changed: Users,
-  band_member_added: UserPlus,
-  share_link_revoked: Link2Off,
-};
-
 export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
   const t = useTranslations("notifications");
-  const tBandRoles = useTranslations("bands.roles");
-  const tPlatformRoles = useTranslations("roles");
-  const format = useFormatter();
   const { fetchApi } = useApi();
   const { status: sessionStatus } = useSession();
   const isAuthReady = sessionStatus === "authenticated";
@@ -60,17 +41,19 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
   );
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // The interval below must call the LATEST `fetchApi` without being
-  // re-armed every time that function changes identity — which it does
-  // whenever NextAuth rotates the session token (hourly, per `updateAge`).
-  // Listing it as a dependency would tear down and restart the timer on
-  // every rotation, firing an extra off-schedule request each time. Same
-  // reasoning, and same fix, as the sync interval in
-  // components/providers/offline-sync-provider.tsx.
+  // Read by the polling interval, so the timer is never re-armed just
+  // because the function identity changed.
   const fetchApiRef = useRef(fetchApi);
   useEffect(() => {
     fetchApiRef.current = fetchApi;
   }, [fetchApi]);
+
+  // Marking as read is optimistic. A poll that was already on its way
+  // when the person pressed "mark all as read" would come back with the
+  // old count and put the badge back. Every local change bumps this
+  // generation (before and after the request), and a response is only
+  // applied when no change happened while it was in flight.
+  const generationRef = useRef(0);
 
   useEffect(() => {
     if (!isAuthReady) return;
@@ -89,10 +72,13 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
         return;
       }
 
+      const generation = generationRef.current;
       fetchApiRef
         .current<UnreadCountResponse>("/notifications/unread-count")
         .then((res) => {
-          if (!cancelled) setUnreadCount(res.unread_count);
+          if (!cancelled && generation === generationRef.current) {
+            setUnreadCount(res.unread_count);
+          }
         })
         .catch(() => {
           // Best-effort: the badge just skips this refresh cycle.
@@ -117,10 +103,13 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
     if (!open || !isAuthReady) return;
 
     let cancelled = false;
+    const generation = generationRef.current;
 
     fetchApi<PaginatedResponse<Notification>>("/notifications?per_page=15")
       .then((res) => {
-        if (!cancelled) setNotifications(res.data);
+        if (!cancelled && generation === generationRef.current) {
+          setNotifications(res.data);
+        }
       })
       .catch(() => {
         if (!cancelled) setNotifications([]);
@@ -145,6 +134,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
       );
       if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
 
+      generationRef.current++;
       try {
         await fetchApi(`/notifications/${id}/read`, {
           method: "PATCH",
@@ -152,6 +142,8 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
       } catch {
         // Best-effort: a notification that fails to sync as read simply
         // gets retried the next time the user opens the popover.
+      } finally {
+        generationRef.current++;
       }
     },
     [fetchApi, notifications],
@@ -167,81 +159,27 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
     );
     setUnreadCount(0);
 
+    generationRef.current++;
     try {
       await fetchApi("/notifications/read-all", { method: "PATCH" });
     } catch {
-      // Best-effort — see markAsRead.
+      // Best-effort, see markAsRead.
+    } finally {
+      generationRef.current++;
     }
   }, [fetchApi]);
-
-  const renderMessage = (notification: Notification): string => {
-    switch (notification.type) {
-      case "band_role_changed": {
-        const data = notification.data as BandRoleChangedData;
-        return t("bandRoleChanged", {
-          band: data.band_name,
-          role: tBandRoles(data.new_role),
-        });
-      }
-      case "band_member_removed": {
-        const data = notification.data as BandMemberRemovedData;
-        return t("bandMemberRemoved", { band: data.band_name });
-      }
-      case "platform_role_changed": {
-        const data = notification.data as PlatformRoleChangedData;
-        return t("platformRoleChanged", {
-          role: tPlatformRoles(data.new_role),
-        });
-      }
-      case "band_member_added": {
-        const data = notification.data as BandMemberAddedData;
-        return t("bandMemberAdded", {
-          band: data.band_name,
-          role: tBandRoles(data.role),
-        });
-      }
-      case "share_link_revoked": {
-        const data = notification.data as ShareLinkRevokedData;
-        return data.reason
-          ? t("shareLinkRevokedWithReason", {
-              title: data.title,
-              reason: data.reason,
-            })
-          : t("shareLinkRevoked", { title: data.title });
-      }
-      default:
-        return "";
-    }
-  };
-
-  const notificationHref = (notification: Notification): string | null => {
-    switch (notification.type) {
-      case "band_role_changed": {
-        const data = notification.data as BandRoleChangedData;
-        return `/dashboard/bands/${data.band_id}`;
-      }
-      case "band_member_removed":
-        return "/dashboard/bands";
-      case "band_member_added": {
-        const data = notification.data as BandMemberAddedData;
-        return `/dashboard/bands/${data.band_id}`;
-      }
-      case "share_link_revoked": {
-        const data = notification.data as ShareLinkRevokedData;
-        return data.kind === "gig"
-          ? `/dashboard/gigs/${data.target_id}`
-          : `/dashboard/setlists/${data.target_id}`;
-      }
-      default:
-        return null;
-    }
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          type="button"
           title={t("title")}
+          aria-label={
+            unreadCount > 0
+              ? `${t("title")} (${t("unreadCount", { count: unreadCount })})`
+              : t("title")
+          }
           className={cn(
             "text-muted-foreground hover:bg-muted hover:text-foreground relative flex h-9 w-9 items-center justify-center rounded-md transition-colors",
           )}
@@ -293,50 +231,9 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
           )}
 
           {notifications?.map((notification) => {
-            const Icon = TYPE_ICON[notification.type] ?? Bell;
-            const href = notificationHref(notification);
+            const href = describeNotification(notification).href;
             const isUnread = !notification.read_at;
-
-            const content = (
-              <div
-                className={cn(
-                  "flex gap-3 px-3 py-2.5 transition-colors",
-                  isUnread ? "bg-primary/5" : "hover:bg-muted/50",
-                )}
-              >
-                <div
-                  className={cn(
-                    "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                    isUnread
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <p
-                    className={cn(
-                      "text-sm leading-snug",
-                      isUnread && "font-medium",
-                    )}
-                  >
-                    {renderMessage(notification)}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {/* An explicit "now" — without it next-intl warns
-                        (ENVIRONMENT_FALLBACK) on every render. */}
-                    {format.relativeTime(
-                      parseApiTimestamp(notification.created_at),
-                      new Date(),
-                    )}
-                  </p>
-                </div>
-                {isUnread && (
-                  <span className="bg-primary mt-1.5 h-2 w-2 shrink-0 rounded-full" />
-                )}
-              </div>
-            );
+            const content = <NotificationItem notification={notification} />;
 
             return (
               <div
@@ -354,6 +251,26 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
               </div>
             );
           })}
+        </div>
+
+        <Separator />
+        <div className="flex items-center justify-between gap-1 p-1.5">
+          <Link
+            href={ANNOUNCEMENTS_HREF}
+            onClick={() => setOpen(false)}
+            className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors"
+          >
+            <Megaphone className="h-3.5 w-3.5" aria-hidden />
+            {t("footer.announcements")}
+          </Link>
+          <Link
+            href={SETTINGS_COMMUNICATIONS_HREF}
+            onClick={() => setOpen(false)}
+            className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
+            {t("footer.preferences")}
+          </Link>
         </div>
       </PopoverContent>
     </Popover>

@@ -40,9 +40,10 @@ import {
   Users,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
+import { PinButton } from "@/components/content/pin-button";
 import { Link } from "@/components/nav-link";
 import { useSession } from "next-auth/react";
 
@@ -187,12 +188,23 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                     )}
                   />
                 </button>
+                <PinButton
+                  type="band"
+                  id={band.id}
+                  name={band.name}
+                  pinned={!!band.is_pinned}
+                  className="absolute top-1.5 right-9 h-7 w-7"
+                />
 
                 <Link
                   href={`/dashboard/bands/${band.id}`}
                   className="flex items-start gap-3"
                 >
-                  <BandAvatar name={band.name} logoUrl={band.logo_url} />
+                  <BandAvatar
+                    bandId={band.id}
+                    name={band.name}
+                    logoUrl={band.logo_url}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{band.name}</p>
                     <p className="text-muted-foreground truncate text-xs">
@@ -216,8 +228,11 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                         variant="ghost"
                         className="h-8 w-8 p-0"
                         data-no-row-click
+                        aria-label={tCommon("moreActionsFor", {
+                          name: band.name,
+                        })}
                       >
-                        <MoreHorizontal className="h-4 w-4" />
+                        <MoreHorizontal className="h-4 w-4" aria-hidden />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" data-no-row-click>

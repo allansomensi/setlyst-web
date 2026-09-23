@@ -33,7 +33,7 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
   return (
     <aside
       className={cn(
-        "bg-background relative hidden flex-col border-r transition-all duration-300 md:flex",
+        "bg-sidebar text-sidebar-foreground border-sidebar-border relative hidden flex-col border-r transition-all duration-300 md:flex",
         isCollapsed ? "w-20" : "w-64",
       )}
     >
@@ -41,7 +41,7 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
         onClick={() => setIsCollapsed(!isCollapsed)}
         aria-label={isCollapsed ? t("expandSidebar") : t("collapseSidebar")}
         title={isCollapsed ? t("expandSidebar") : t("collapseSidebar")}
-        className="bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-6 -right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm transition-colors"
+        className="bg-card text-muted-foreground hover:bg-muted hover:text-foreground absolute top-6 -right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm transition-colors"
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4" />
@@ -52,7 +52,7 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
 
       <div
         className={cn(
-          "flex h-16 shrink-0 items-center border-b transition-all duration-300",
+          "border-sidebar-border flex h-16 shrink-0 items-center border-b transition-all duration-300",
           isCollapsed ? "justify-center px-0" : "justify-between px-6",
         )}
       >
@@ -73,7 +73,7 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
               "hover:border-primary/40 hover:text-foreground rounded-full border px-2 py-0.5 font-mono text-[10px] font-medium transition-colors",
               isAbout
                 ? "border-primary/40 bg-primary/10 text-primary"
-                : "bg-muted/40 text-muted-foreground",
+                : "bg-card/60 text-muted-foreground",
             )}
           >
             v{packageJson.version}
@@ -83,12 +83,12 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
 
       <SidebarLinks isCollapsed={isCollapsed} userRole={role} />
 
-      <div className="shrink-0 border-t p-3">
+      <div className="border-sidebar-border shrink-0 border-t p-3">
         {!isCollapsed && (
           <Link
             href="/dashboard/profile"
             title={t("profile")}
-            className="group hover:bg-muted mb-2 block overflow-hidden rounded-md px-2 py-1.5 transition-colors"
+            className="group hover:bg-sidebar-accent/60 mb-2 block overflow-hidden rounded-md px-2 py-1.5 transition-colors"
           >
             <p className="group-hover:text-primary truncate text-sm font-medium transition-colors">
               {user?.name}
@@ -110,7 +110,7 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
             href="/dashboard/settings"
             title={t("settings")}
             aria-label={t("settings")}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+            className="text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
           >
             <Settings className="h-4 w-4" />
           </Link>

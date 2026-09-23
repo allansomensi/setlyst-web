@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Copy, Loader2, Wand2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +35,7 @@ import { isValidUsername } from "@/lib/username-policy";
 import { assignableRoles } from "@/lib/staff-permissions";
 import type { User, UserRole, UserStatus } from "@/types/api";
 import { createUser, updateUser } from "../actions";
+import { copyText } from "@/lib/clipboard";
 
 interface UserFormDialogProps {
   open: boolean;
@@ -91,10 +92,9 @@ function UserForm({
   const generate = () => {
     const next = generateStrongPassword();
     setPassword(next);
-    void navigator.clipboard?.writeText(next).then(
-      () => toast.success(tPolicy("copied")),
-      () => undefined,
-    );
+    void copyText(next).then((copied) => {
+      if (copied) toast.success(tPolicy("copied"));
+    });
   };
 
   const submit = (event: React.FormEvent) => {
@@ -192,11 +192,13 @@ function UserForm({
               disabled={!password}
               aria-label={t("copyPassword")}
               title={t("copyPassword")}
-              onClick={() =>
-                navigator.clipboard
-                  ?.writeText(password)
-                  .then(() => toast.success(tPolicy("copied")))
-              }
+              onClick={async () => {
+                if (await copyText(password)) {
+                  toast.success(tPolicy("copied"));
+                } else {
+                  toast.info(tCommon("copyManually"));
+                }
+              }}
             >
               <Copy className="h-4 w-4" />
             </Button>

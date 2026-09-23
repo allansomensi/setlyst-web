@@ -85,7 +85,7 @@ export function TablePagination({
         <p aria-live="polite">
           {t("range", { first, last, total: totalItems })}
           {search?.trim() && (
-            <span className="hidden sm:inline">
+            <span className="sr-only sm:not-sr-only">
               {" "}
               {t("forSearch", { search: search.trim() })}
             </span>

@@ -17,6 +17,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { formatApiDay } from "@/lib/dates";
 
 interface ActivityChartProps {
   title: string;
@@ -45,17 +46,9 @@ export function ActivityChart({
 
   const total = data.reduce((sum, p) => sum + p.count, 0);
 
-  const formatDate = (value: string) => {
-    // `value` is a plain "YYYY-MM-DD" string from the backend; parsing it
-    // as UTC and formatting in that same zone avoids off-by-one-day shifts
-    // that a local-timezone Date parse could introduce near midnight.
-    const date = new Date(`${value}T00:00:00Z`);
-    return date.toLocaleDateString(locale, {
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC",
-    });
-  };
+  // `value` is a plain "YYYY-MM-DD" day: formatted in UTC, never shifted.
+  const formatDate = (value: string) =>
+    formatApiDay(value, locale, { month: "short", day: "numeric" });
 
   return (
     <Card className="flex flex-col">

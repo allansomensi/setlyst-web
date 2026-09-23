@@ -1,24 +1,33 @@
 import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
-import { Gig, Setlist, BandWithMembership, BAND_ROLE_LEVEL } from "@/types/api";
+import { canManageBandSetlists } from "@/lib/band-permissions";
+import { Gig, Setlist, BandWithMembership } from "@/types/api";
 import { GigsTable } from "./_components/gigs-table";
-import { BandOption } from "./_components/gigs-dialog";
+import { BandOption, TourOption } from "./_components/gigs-dialog";
+import type { Tour } from "@/types/content";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
 export async function generateMetadata() {
   return staticTitle("gigs");
 }
 
-export default async function GigsPage() {
+export default async function GigsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { tour_id: tourParam } = await searchParams;
   // Three independent sources — one failing (a transient rate limit,
   // timeout) shouldn't take the whole page down when the others loaded
   // fine. `hadError` is what tells GigsTable an empty `gigs` array means
   // "this fetch failed," not "you have no shows" — see LoadErrorNotice.
-  const [personalGigsRes, personalSetlistsRes, bandsRaw] = await Promise.all([
-    fetchOrFailed(fetchAllServerPages<Gig>("/gigs")),
-    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
-    fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
-  ]);
+  const [personalGigsRes, personalSetlistsRes, bandsRaw, personalToursRes] =
+    await Promise.all([
+      fetchOrFailed(fetchAllServerPages<Gig>("/gigs")),
+      fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
+      fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
+      fetchOrFailed(fetchAllServerPages<Tour>("/tours?status=all")),
+    ]);
 
   const personalGigsFailed = personalGigsRes === FETCH_FAILED;
   const personalSetlistsFailed = personalSetlistsRes === FETCH_FAILED;
@@ -32,9 +41,7 @@ export default async function GigsPage() {
 
   const bandsById: Record<string, { name: string; canManage: boolean }> = {};
   for (const band of bands) {
-    const canManage =
-      BAND_ROLE_LEVEL[band.my_role] >= BAND_ROLE_LEVEL.moderator ||
-      (band.my_role === "member" && band.members_can_manage_setlists);
+    const canManage = canManageBandSetlists(band);
     bandsById[band.id] = { name: band.name, canManage };
   }
 
@@ -43,20 +50,38 @@ export default async function GigsPage() {
   // call falls back to a FETCH_FAILED marker (rather than being dropped,
   // like a filtering helper would) so the results stay index-aligned
   // with `bands` below.
-  const [bandGigsResults, bandSetlistsResults] = await Promise.all([
-    Promise.all(
-      bands.map((band) =>
-        fetchOrFailed(fetchAllServerPages<Gig>(`/bands/${band.id}/gigs`)),
-      ),
-    ),
-    Promise.all(
-      bands.map((band) =>
-        fetchOrFailed(
-          fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`),
+  const [bandGigsResults, bandSetlistsResults, bandToursResults] =
+    await Promise.all([
+      Promise.all(
+        bands.map((band) =>
+          fetchOrFailed(fetchAllServerPages<Gig>(`/bands/${band.id}/gigs`)),
         ),
       ),
+      Promise.all(
+        bands.map((band) =>
+          fetchOrFailed(
+            fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`),
+          ),
+        ),
+      ),
+      Promise.all(
+        bands.map((band) =>
+          fetchOrFailed(
+            fetchAllServerPages<Tour>(`/bands/${band.id}/tours?status=all`),
+          ),
+        ),
+      ),
+    ]);
+  const tours: TourOption[] = [
+    ...(personalToursRes === FETCH_FAILED ? [] : personalToursRes.data),
+    ...bandToursResults.flatMap((res) =>
+      res === FETCH_FAILED ? [] : res.data,
     ),
-  ]);
+  ].map((tour) => ({ id: tour.id, name: tour.name, band_id: tour.band_id }));
+  const tourFilter =
+    typeof tourParam === "string"
+      ? (tours.find((tour) => tour.id === tourParam) ?? null)
+      : null;
 
   const bandGigsFailed = bandGigsResults.some((res) => res === FETCH_FAILED);
   const bandSetlistsFailed = bandSetlistsResults.some(
@@ -99,6 +124,8 @@ export default async function GigsPage() {
         personalSetlists={personalSetlists}
         bands={manageableBands}
         loadError={hadError}
+        tours={tours}
+        tourFilter={tourFilter}
       />
     </div>
   );

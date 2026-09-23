@@ -1,6 +1,7 @@
 import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
-import { BandWithMembership, Gig, Setlist, BAND_ROLE_LEVEL } from "@/types/api";
+import { canManageBandSetlists } from "@/lib/band-permissions";
+import { BandWithMembership, Gig, Setlist } from "@/types/api";
 import { GigsTable } from "@/app/[locale]/dashboard/gigs/_components/gigs-table";
 import { BandOption } from "@/app/[locale]/dashboard/gigs/_components/gigs-dialog";
 import { Button } from "@/components/ui/button";
@@ -40,9 +41,7 @@ export default async function BandGigsPage({
 
   const gigs = gigsRes.data || [];
   const setlists = setlistsRes.data || [];
-  const canManage =
-    BAND_ROLE_LEVEL[band.my_role] >= BAND_ROLE_LEVEL.moderator ||
-    (band.my_role === "member" && band.members_can_manage_setlists);
+  const canManage = canManageBandSetlists(band);
 
   const bandsById = { [id]: { name: band.name, canManage } };
   const bandOptions: BandOption[] = canManage

@@ -61,10 +61,11 @@ const SPECIAL_CODES: Record<string, ActionErrorCode> = {
  * user.
  *
  * Known API error codes get a message in the user's language (see
- * lib/api-errors.ts). Other 4xx responses are messages *about the
- * request* and are surfaced as the API worded them. Anything else — a 5xx
- * body can carry a database error or a stack trace — collapses to a
- * generic message, with the real one kept in the server logs.
+ * lib/api-errors.ts); other 4xx responses get a translated generic
+ * sentence (the API's own message is English and meant for developers).
+ * Anything else (a 5xx body can carry a database error or a stack trace)
+ * collapses to a generic message, with the real one kept in the server
+ * logs.
  */
 async function toFailure(
   error: unknown,
@@ -78,7 +79,31 @@ async function toFailure(
     return { success: false, error: generic };
   }
 
-  if (error.status === 429) return toRateLimitedResult(error);
+  // A bare 429 is the per-IP limiter. A 429 with a code is a business rule
+  // (`TOO_MANY_ATTEMPTS`, `ACCOUNT_LOCKED`) whose meta says how long to
+  // wait: translate it like any other code, keeping the wait.
+  if (error.status === 429 && !error.code) return toRateLimitedResult(error);
+  if (error.status === 429) {
+    const retry = error.meta?.retry_after_seconds;
+    const translated = describeApiError(
+      error.code,
+      error.meta,
+      (key, values) => tGeneric(key, values),
+      await getLocale(),
+    );
+    if (translated) {
+      return {
+        success: false,
+        code: "rate_limited",
+        apiCode: error.code ?? undefined,
+        meta: error.meta ?? undefined,
+        retryAfterSeconds:
+          typeof retry === "number" && retry > 0 ? Math.ceil(retry) : undefined,
+        error: translated,
+      };
+    }
+    return toRateLimitedResult(error);
+  }
 
   const base = {
     success: false as const,
@@ -104,7 +129,15 @@ async function toFailure(
   }
 
   if (error.status >= 400 && error.status < 500) {
-    return { ...base, error: error.message || generic };
+    // An untranslated code: the API's message is English prose meant for
+    // developers, so the person gets a translated sentence instead.
+    console.warn(
+      "[guardedAction] Untranslated API error:",
+      error.status,
+      error.code,
+      error.message,
+    );
+    return { ...base, error: fallback ?? tGeneric("rejected") };
   }
 
   if (error.status === 503 || error.status === 504) {
@@ -125,6 +158,16 @@ export async function toActionFailure(
   fallback?: string,
 ): Promise<ActionFailure> {
   return toFailure(error, fallback);
+}
+
+/**
+ * The result of an action refused before reaching the API (malformed id,
+ * unknown filter...), in the visitor's language. Such input never comes
+ * from the app's own UI, so the generic "rejected" message is enough.
+ */
+export async function invalidRequest<T = never>(): Promise<ActionResult<T>> {
+  const t = await getTranslations("apiErrors");
+  return { success: false, error: t("rejected") };
 }
 
 /**

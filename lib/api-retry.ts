@@ -20,13 +20,12 @@ export const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
 const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "PUT", "DELETE", "OPTIONS"]);
 
 /**
- * Whether retrying this method can't create a duplicate. A 429 is always
- * safe to retry regardless of method — the rate limiter rejects it before
- * the request reaches any business logic, so nothing was processed. A
- * network error, timeout, or 5xx is ambiguous for a non-idempotent write
- * (POST) — the request may have gone through right before the connection
- * dropped — so those are only retried for methods where sending it again
- * can't double up the effect.
+ * Whether retrying this method can't create a duplicate. A network error,
+ * timeout, 429 or 5xx is ambiguous for a non-idempotent write (POST,
+ * PATCH): the request may have gone through, and a 429 may be a business
+ * rule (`TOO_MANY_ATTEMPTS` on a code check, `ACCOUNT_LOCKED` on a
+ * sign-in) rather than the IP rate limiter. So only methods where sending
+ * the request again can't double up its effect are ever retried.
  */
 export function isIdempotentMethod(method: string | undefined): boolean {
   return IDEMPOTENT_METHODS.has((method ?? "GET").toUpperCase());
@@ -52,4 +51,33 @@ export function retryDelayMs(
   retryAfterMs?: number | null,
 ): number {
   return retryAfterMs ?? RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+}
+
+/**
+ * Longest `Retry-After` worth waiting for inside a request. Anything longer
+ * (a 60 s cooldown, a 15 min lockout) is surfaced to the caller at once,
+ * with the wait, instead of holding the page.
+ */
+export const MAX_RETRY_WAIT_MS = 5_000;
+
+/**
+ * How long to wait before retrying a failed response, or `null` to give
+ * up and surface the error: never for non-idempotent methods, only for
+ * retryable statuses, at most `MAX_RETRIES` times, and honouring the
+ * server's `Retry-After` when it gives one (unless it exceeds
+ * `MAX_RETRY_WAIT_MS`).
+ */
+export function statusRetryDelayMs(
+  method: string | undefined,
+  status: number,
+  retryAfterHeader: string | null,
+  attempt: number,
+): number | null {
+  if (!isIdempotentMethod(method) || !RETRYABLE_STATUSES.has(status)) {
+    return null;
+  }
+  if (attempt > MAX_RETRIES) return null;
+  const retryAfterMs = parseRetryAfterMs(retryAfterHeader);
+  if (retryAfterMs !== null && retryAfterMs > MAX_RETRY_WAIT_MS) return null;
+  return retryDelayMs(attempt, retryAfterMs);
 }

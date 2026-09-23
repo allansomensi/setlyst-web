@@ -14,6 +14,7 @@ import { useLocale } from "next-intl";
 import { useApi } from "@/lib/api-client";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { offlineDb } from "@/lib/offline/db";
+import { ensureOfflineOwner } from "@/lib/offline/owner";
 import { syncAllForOffline, type SyncProgress } from "@/lib/offline/sync";
 
 type SyncStatus = "idle" | "syncing" | "error";
@@ -63,12 +64,33 @@ export function OfflineSyncProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   // Never mirror someone else's library onto this device: while staff are
   // "viewing as" another user, the offline copy stays the staff member's
   // own and background sync is paused.
-  const isAuthenticated =
-    Boolean(session?.user?.apiToken) && !session?.user?.impersonator;
+  const userId =
+    sessionStatus === "authenticated" &&
+    !session?.error &&
+    !session?.user?.impersonator
+      ? (session?.user?.id ?? null)
+      : null;
+
+  // The mirror on this device must belong to whoever is signed in now; a
+  // different account wipes it (and the cached pages) before anything is
+  // synced or shown. See lib/offline/owner.ts.
+  const [ownerCheckedFor, setOwnerCheckedFor] = useState<string | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    ensureOfflineOwner(userId).finally(() => {
+      if (!cancelled) setOwnerCheckedFor(userId);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const isAuthenticated = userId !== null && ownerCheckedFor === userId;
   const isOnline = useOnlineStatus();
   const { fetchApi } = useApi();
   const locale = useLocale();

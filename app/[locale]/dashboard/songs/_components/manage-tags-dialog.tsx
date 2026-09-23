@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { Check, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,6 +53,17 @@ export function ManageTagsDialog({
     };
   }, [open]);
 
+  // Every open starts clean: fresh list, nothing half-edited or pending.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setEditing(null);
+      setDraft("");
+      setConfirmDelete(null);
+      setTags(null);
+    }
+    onOpenChange(next);
+  };
+
   const normalizedDraft = normalizeTag(draft);
   const draftIssue = normalizedDraft ? tagIssue(normalizedDraft) : "characters";
 
@@ -101,7 +112,7 @@ export function ManageTagsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>

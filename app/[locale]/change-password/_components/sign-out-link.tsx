@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { secureSignOut } from "@/lib/client-logout";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +11,7 @@ export function SignOutLink() {
     <Button
       type="button"
       variant="ghost"
-      onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+      onClick={() => secureSignOut({ callbackUrl: `/${locale}/login` })}
     >
       {t("signOut")}
     </Button>

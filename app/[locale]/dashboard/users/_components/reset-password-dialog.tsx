@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check, Copy, Wand2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/password-policy";
 import type { User } from "@/types/api";
 import { resetUserPassword } from "../actions";
+import { copyText } from "@/lib/clipboard";
 
 interface ResetPasswordDialogProps {
   user: Pick<User, "id" | "username"> | null;
@@ -51,13 +52,10 @@ export function ResetPasswordDialog({
   };
 
   const copy = async (value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
+    // When the copy fails, the field stays visible and selectable.
+    if (await copyText(value)) {
       setCopied(true);
       toast.success(tPolicy("copied"));
-    } catch {
-      // Clipboard can be unavailable (http, permissions) — the field is
-      // still visible and selectable.
     }
   };
 

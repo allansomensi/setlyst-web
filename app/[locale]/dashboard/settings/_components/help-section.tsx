@@ -8,13 +8,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@/i18n/routing";
 import { getLegalText } from "@/lib/legal-content";
 import {
@@ -115,15 +109,8 @@ export async function HelpSection() {
   ];
 
   return (
-    <Card id="help">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <LifeBuoy className="text-primary h-4 w-4" />
-          {t("title")}
-        </CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent className="-mx-3 grid gap-1 sm:grid-cols-2">
+    <Card>
+      <CardContent className="grid gap-1 px-3 sm:grid-cols-2">
         {rows.map((row) => (
           <RowLink key={row.href} row={row} />
         ))}

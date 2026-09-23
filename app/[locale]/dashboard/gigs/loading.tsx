@@ -21,7 +21,7 @@ export default function GigsLoading() {
 
       <Skeleton className="h-10 w-full max-w-sm" />
 
-      <div className="bg-background rounded-md border">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>

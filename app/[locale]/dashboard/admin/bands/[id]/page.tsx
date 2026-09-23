@@ -80,6 +80,7 @@ export default async function AdminBandDetailPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <BandAvatar
+            bandId={band.id}
             name={band.name}
             logoUrl={band.logo_url}
             className="h-14 w-14"

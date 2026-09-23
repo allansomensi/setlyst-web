@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction, requireStaff } from "@/lib/action-guard";
 import type {
@@ -27,8 +27,8 @@ const userPath = (id: string, suffix = "") =>
   `/users/${encodeURIComponent(id)}${suffix}`;
 
 function revalidateUser(id?: string) {
-  revalidatePath("/[locale]/dashboard/users", "page");
-  if (id) revalidatePath("/[locale]/dashboard/users/[id]", "page");
+  revalidateDashboard("/users", "page");
+  if (id) revalidateDashboard("/users/[id]", "page");
 }
 
 /** Trims text fields; blank optional fields are left out on create. */
@@ -213,7 +213,7 @@ export async function addUserToBand(
     },
     () => {
       revalidateUser(userId);
-      revalidatePath("/[locale]/dashboard/admin/bands", "layout");
+      revalidateDashboard("/admin/bands", "layout");
     },
   );
 }

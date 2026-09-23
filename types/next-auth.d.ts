@@ -8,7 +8,6 @@ declare module "next-auth" {
     user: {
       id: string;
       role: PlatformRole;
-      apiToken: string;
       isFirstLogin?: boolean;
       /**
        * The account must choose a new password before anything else (a
@@ -18,6 +17,15 @@ declare module "next-auth" {
       mustChangePassword?: boolean;
       /** The account's saved interface language — see lib/auth.ts. */
       language?: string;
+      /**
+       * The account's e-mail address is verified. Drives the dashboard's
+       * verification banner; refreshed with `update({ refreshAccount: true })`.
+       */
+      emailVerified: boolean;
+      /** The Terms of Use in force (`LEGAL_VERSION`) were accepted. */
+      termsAccepted: boolean;
+      /** Two-factor authentication is on (as of sign-in or last refresh). */
+      twoFactorEnabled?: boolean;
       /**
        * Set while a staff member is viewing the platform as this user
        * (read-only). Identifies who to switch back to.
@@ -39,6 +47,11 @@ declare module "next-auth" {
      * the `Accept-Language` header as it always did.
      */
     language?: string | null;
+    emailVerified?: boolean;
+    termsAccepted?: boolean;
+    twoFactorEnabled?: boolean;
+    /** This sign-in created the account (Google sign-up). */
+    isNewAccount?: boolean;
   }
 }
 
@@ -52,6 +65,9 @@ declare module "next-auth/jwt" {
     isFirstLogin?: boolean;
     mustChangePassword?: boolean;
     language?: string;
+    emailVerified?: boolean;
+    termsAccepted?: boolean;
+    twoFactorEnabled?: boolean;
     /** The staff member's own session, kept aside while impersonating. */
     impersonator?: {
       id: string;
@@ -59,6 +75,9 @@ declare module "next-auth/jwt" {
       role: PlatformRole;
       apiToken: string;
       apiTokenExpires?: number;
+      emailVerified?: boolean;
+      termsAccepted?: boolean;
+      twoFactorEnabled?: boolean;
     };
   }
 }

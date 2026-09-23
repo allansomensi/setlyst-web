@@ -6,10 +6,25 @@ import {
   fetchAllServerPages,
   fetchServerApi,
 } from "@/lib/api-server";
-import { Setlist, Song, SetlistSong, SetlistItem, Artist } from "@/types/api";
+import {
+  Setlist,
+  Song,
+  SetlistSong,
+  SetlistItem,
+  Artist,
+  BandWithMembership,
+} from "@/types/api";
+import { Badge } from "@/components/ui/badge";
+import { LinkButtons } from "@/components/content/link-buttons";
+import {
+  canExportBandPdf,
+  canManageBandSetlists,
+} from "@/lib/band-permissions";
+import { getEntitlements, hasFeature } from "@/lib/entitlements";
+import { setlistDisplayTitle } from "@/lib/repertoire";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Clock, Music } from "lucide-react";
+import { ChevronLeft, Clock, Guitar, Library, Music } from "lucide-react";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
 import { SetlistActions } from "./_components/setlist-actions";
 import { SetlistOfflineStatus } from "./_components/setlist-offline-status";
@@ -59,6 +74,18 @@ export default async function SetlistDetailsPage({
       throw error;
     });
 
+  const [band, entitlements] = await Promise.all([
+    setlist.band_id
+      ? fetchServerApi<BandWithMembership>(`/bands/${setlist.band_id}`).catch(
+          () => null,
+        )
+      : Promise.resolve(null),
+    getEntitlements(),
+  ]);
+  const canManage = !setlist.band_id || (!!band && canManageBandSetlists(band));
+  const canExport = !setlist.band_id || (!!band && canExportBandPdf(band));
+  const title = setlistDisplayTitle(setlist, t("repertoire.name"));
+
   const setlistSongs = setlistSongsRes.data || [];
   const allSongs = allSongsRes.data || [];
   const allArtists = allArtistsRes.data || [];
@@ -67,8 +94,13 @@ export default async function SetlistDetailsPage({
     <div className="w-full space-y-6">
       <PageBreadcrumbs
         items={[
-          { label: tNav("setlists"), href: "/dashboard/setlists" },
-          { label: setlist.title },
+          ...(band
+            ? [
+                { label: tNav("bands"), href: "/dashboard/bands" },
+                { label: band.name, href: `/dashboard/bands/${band.id}` },
+              ]
+            : [{ label: tNav("setlists"), href: "/dashboard/setlists" }]),
+          { label: title },
         ]}
       />
 
@@ -80,9 +112,30 @@ export default async function SetlistDetailsPage({
             </Link>
           </Button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
-              {setlist.title}
-            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+                {title}
+              </h1>
+              {setlist.is_repertoire && (
+                <Badge variant="secondary" className="gap-1">
+                  <Library aria-hidden />
+                  {t("repertoire.badge")}
+                </Badge>
+              )}
+              {band && (
+                <Badge variant="outline" className="gap-1 font-normal" asChild>
+                  <Link href={`/dashboard/bands/${band.id}`}>
+                    <Guitar aria-hidden />
+                    {band.name}
+                  </Link>
+                </Badge>
+              )}
+            </div>
+            {setlist.is_repertoire && (
+              <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+                {t("repertoire.explanation")}
+              </p>
+            )}
             {setlist.description && (
               <p className="text-muted-foreground mt-0.5">
                 {setlist.description}
@@ -113,8 +166,11 @@ export default async function SetlistDetailsPage({
         </div>
 
         <SetlistActions
+          setlist={setlist}
+          canEdit={canManage}
+          canExport={canExport}
           setlistId={setlist.id}
-          setlistTitle={setlist.title}
+          setlistTitle={title}
           shareToken={setlist.share_token}
           shareLock={
             setlist.share_locked_at
@@ -124,6 +180,18 @@ export default async function SetlistDetailsPage({
         />
       </div>
 
+      {setlist.links && setlist.links.length > 0 && (
+        <section aria-labelledby="setlist-links" className="space-y-2">
+          <h2
+            id="setlist-links"
+            className="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+          >
+            {t("linksTitle")}
+          </h2>
+          <LinkButtons links={setlist.links} />
+        </section>
+      )}
+
       <SetlistSongsManager
         setlistId={setlist.id}
         setlist={setlist}
@@ -131,6 +199,16 @@ export default async function SetlistDetailsPage({
         setlistItems={setlistItems}
         allSongs={allSongs}
         artists={allArtists}
+        band={
+          band
+            ? {
+                id: band.id,
+                canManage,
+                canSuggest: hasFeature(entitlements, "song_suggestions"),
+                isRepertoire: !!setlist.is_repertoire,
+              }
+            : undefined
+        }
       />
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useCallback, useEffect, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 
 /** 1× = the old 1px-per-50ms pace, which people have tuned their speeds to. */
 const PIXELS_PER_SECOND_AT_1X = 20;
@@ -118,4 +118,107 @@ export function useLiveControls({
     scrollSpeed,
     stepScrollSpeed,
   };
+}
+
+export interface LiveShortcutHandlers {
+  /** Next / previous song (setlist Live Mode only). */
+  onNext?: () => void;
+  onPrev?: () => void;
+  toggleAutoScroll: () => void;
+  stepScrollSpeed: (direction: 1 | -1) => void;
+  toggleMetronome: () => void;
+  toggleChords: () => void;
+  toggleSections: () => void;
+  shiftTranspose: (semitones: 1 | -1) => void;
+  /** Fit mode has nothing to scroll: Space does nothing then. */
+  fitToScreen: boolean;
+  /** True while something else owns the keyboard (the settings sheet). */
+  disabled?: boolean;
+}
+
+/**
+ * Live Mode's keyboard shortcuts, shared by both viewers:
+ *
+ *  - → / PageDown, ← / PageUp: next / previous song (when given)
+ *  - Space: start or stop auto-scroll; + / -: its speed
+ *  - M: metronome; C: chords; S: section labels
+ *  - , / .: transpose down / up a semitone
+ *
+ * Ignored while typing in a field or with a modifier held (so browser
+ * shortcuts keep working). Page-turner pedals send PageDown/PageUp or the
+ * arrow keys, which is why both are mapped.
+ */
+export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
+  // Latest handlers without re-binding the listener on every render.
+  const ref = useRef(handlers);
+  useEffect(() => {
+    ref.current = handlers;
+  });
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const h = ref.current;
+      if (
+        h.disabled ||
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      switch (event.key) {
+        case "ArrowRight":
+        case "PageDown":
+          if (h.onNext) {
+            event.preventDefault();
+            h.onNext();
+          }
+          break;
+        case "ArrowLeft":
+        case "PageUp":
+          if (h.onPrev) {
+            event.preventDefault();
+            h.onPrev();
+          }
+          break;
+        case " ":
+          event.preventDefault();
+          if (!h.fitToScreen) h.toggleAutoScroll();
+          break;
+        case "m":
+        case "M":
+          h.toggleMetronome();
+          break;
+        case "c":
+        case "C":
+          h.toggleChords();
+          break;
+        case "s":
+        case "S":
+          h.toggleSections();
+          break;
+        case ",":
+        case "<":
+          h.shiftTranspose(-1);
+          break;
+        case ".":
+        case ">":
+          h.shiftTranspose(1);
+          break;
+        case "+":
+        case "=":
+          h.stepScrollSpeed(1);
+          break;
+        case "-":
+          h.stepScrollSpeed(-1);
+          break;
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 }

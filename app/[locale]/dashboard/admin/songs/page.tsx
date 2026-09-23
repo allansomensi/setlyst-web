@@ -53,7 +53,7 @@ export default async function AdminSongsPage({
         }}
       />
 
-      <div className="bg-background rounded-md border">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>

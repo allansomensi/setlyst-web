@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Pencil, ListMusic, CalendarDays } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { useTranslations } from "next-intl";
+import { PinButton } from "@/components/content/pin-button";
 
 export function BandHeader({ band }: { band: BandWithMembership }) {
   const t = useTranslations("bands");
@@ -27,6 +28,7 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
         </Button>
 
         <BandAvatar
+          bandId={band.id}
           name={band.name}
           logoUrl={band.logo_url}
           className="h-14 w-14 shrink-0 text-lg"
@@ -54,16 +56,23 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+        <PinButton
+          type="band"
+          id={band.id}
+          name={band.name}
+          pinned={!!band.is_pinned}
+          variant="default"
+        />
         <Button variant="outline" asChild className="gap-2 px-2.5 sm:px-4">
           <Link href={`/dashboard/bands/${band.id}/setlists`}>
-            <ListMusic className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("viewSetlists")}</span>
+            <ListMusic className="h-4 w-4" aria-hidden />
+            <span className="sr-only sm:not-sr-only">{t("viewSetlists")}</span>
           </Link>
         </Button>
         <Button variant="outline" asChild className="gap-2 px-2.5 sm:px-4">
           <Link href={`/dashboard/bands/${band.id}/gigs`}>
-            <CalendarDays className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("viewGigs")}</span>
+            <CalendarDays className="h-4 w-4" aria-hidden />
+            <span className="sr-only sm:not-sr-only">{t("viewGigs")}</span>
           </Link>
         </Button>
         {canManage && (
@@ -72,8 +81,8 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
             onClick={() => setIsDialogOpen(true)}
             className="gap-2 px-2.5 sm:px-4"
           >
-            <Pencil className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("menu.edit")}</span>
+            <Pencil className="h-4 w-4" aria-hidden />
+            <span className="sr-only sm:not-sr-only">{t("menu.edit")}</span>
           </Button>
         )}
       </div>

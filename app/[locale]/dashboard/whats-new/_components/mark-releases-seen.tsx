@@ -2,18 +2,17 @@
 
 import { useEffect } from "react";
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
-import { LATEST_RELEASE_ID } from "@/lib/whats-new";
 
 /** Opening the page clears the "new" dot on every device. */
-export function MarkReleasesSeen() {
+export function MarkReleasesSeen({ latestId }: { latestId: string | null }) {
   const { settings, update } = useUiSettings();
   const lastSeen = settings.whatsNew.lastSeen;
 
   useEffect(() => {
-    if (LATEST_RELEASE_ID && lastSeen !== LATEST_RELEASE_ID) {
-      void update({ whatsNew: { lastSeen: LATEST_RELEASE_ID } });
+    if (latestId && lastSeen !== latestId) {
+      void update({ whatsNew: { lastSeen: latestId } });
     }
-  }, [lastSeen, update]);
+  }, [latestId, lastSeen, update]);
 
   return null;
 }

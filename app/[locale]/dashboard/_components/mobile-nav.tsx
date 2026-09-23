@@ -25,7 +25,7 @@ export function MobileNav({ user }: { user?: SidebarUser }) {
   const close = () => setIsOpen(false);
 
   return (
-    <div className="bg-background flex h-16 shrink-0 items-center justify-between border-b px-4 md:hidden">
+    <div className="bg-sidebar text-sidebar-foreground border-sidebar-border flex h-16 shrink-0 items-center justify-between border-b px-4 md:hidden">
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard"

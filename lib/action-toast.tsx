@@ -1,9 +1,10 @@
 "use client";
 
-import { toast } from "sonner";
-import { signOut } from "next-auth/react";
+import { toast } from "@/lib/toast";
+import { secureSignOut } from "@/lib/client-logout";
 import { Clock, Eye, KeyRound, LogOut } from "lucide-react";
 import type { ActionErrorCode } from "@/lib/action-guard";
+import { isNoChangeError } from "@/lib/api-errors";
 
 /** Base visible time for a rate-limit notice, before any Retry-After. */
 const RATE_LIMIT_MIN_DURATION_MS = 6000;
@@ -28,11 +29,19 @@ function localePrefix(): string {
  *   suspended or signed out everywhere. Sign out and go to the login page.
  * - **password change required** — go to the mandatory change screen.
  * - **read only** — the person is viewing as another user; nothing to fix.
+ * - **no changes** (`UNPROCESSABLE_ENTITY`) — nothing to save; an info
+ *   toast, see `isNoChangeError`.
  */
 export function toastActionError(result: object, message: string) {
   // Typed loosely on purpose: not every action returns a guardedAction
   // ActionResult (a few hand-roll `{ success, error }`), and those simply
   // never carry a `code`, so they fall through to a normal error toast.
+  // "Nothing changed" is not a failure: the form is already saved.
+  if (isNoChangeError(result)) {
+    toast.info(message, { id: "no-changes" });
+    return;
+  }
+
   const { code, retryAfterSeconds } = result as {
     code?: ActionErrorCode;
     retryAfterSeconds?: number;
@@ -56,7 +65,9 @@ export function toastActionError(result: object, message: string) {
         id: "session-revoked",
         icon: <LogOut className="h-4 w-4" />,
       });
-      void signOut({ callbackUrl: `${localePrefix()}/login?reason=session` });
+      void secureSignOut({
+        callbackUrl: `${localePrefix()}/login?reason=session`,
+      });
       return;
     case "password_change_required":
       toast.warning(message, {

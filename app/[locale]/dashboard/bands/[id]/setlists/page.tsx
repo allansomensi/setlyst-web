@@ -1,6 +1,7 @@
 import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
-import { BandWithMembership, Setlist, BAND_ROLE_LEVEL } from "@/types/api";
+import { canManageBandSetlists } from "@/lib/band-permissions";
+import { BandWithMembership, Setlist } from "@/types/api";
 import { SetlistsTable } from "@/app/[locale]/dashboard/setlists/_components/setlists-table";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/nav-link";
@@ -37,9 +38,7 @@ export default async function BandSetlistsPage({
   ]);
 
   const setlists = setlistsRes.data || [];
-  const canManage =
-    BAND_ROLE_LEVEL[band.my_role] >= BAND_ROLE_LEVEL.moderator ||
-    (band.my_role === "member" && band.members_can_manage_setlists);
+  const canManage = canManageBandSetlists(band);
 
   return (
     <div className="w-full space-y-6">

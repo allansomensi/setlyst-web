@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction, requireStaff } from "@/lib/action-guard";
 import type {
@@ -22,7 +22,7 @@ import type {
 const enc = encodeURIComponent;
 
 function revalidateAdmin(section: string) {
-  revalidatePath(`/[locale]/dashboard/admin/${section}`, "layout");
+  revalidateDashboard(`/admin/${section}`, "layout");
 }
 
 // ----------------------------------------------------------------- lookups

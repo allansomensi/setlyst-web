@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Song } from "@/types/api";
 import { LiveLyricsArea } from "@/components/live/live-lyrics-area";
 import { LiveHeader } from "@/components/live/live-header";
 import { LiveSettingsSheet } from "@/components/live/live-settings-sheet";
 import { LiveActiveControls } from "@/components/live/live-active-controls";
 import { useLiveDisplayPrefs } from "@/hooks/use-live-display-prefs";
-import { useLiveControls } from "@/hooks/use-live-controls";
+import {
+  useLiveControls,
+  useLiveKeyboardShortcuts,
+} from "@/hooks/use-live-controls";
 import { useTranslations } from "next-intl";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSongBundle } from "@/hooks/use-offline-song-bundle";
@@ -75,65 +78,18 @@ export function SongLiveModeViewer({
   });
   const { toggleAutoScroll, stepScrollSpeed } = controls;
 
-  // Keyboard shortcuts (space to toggle auto-scroll, +/- for its speed —
-  // no left/right since there's nothing to navigate between)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.metaKey ||
-        e.ctrlKey ||
-        e.altKey
-      )
-        return;
-      if (settingsOpen) return;
-
-      switch (e.key) {
-        case " ":
-          e.preventDefault();
-          if (!fitToScreen) toggleAutoScroll();
-          break;
-        case "m":
-        case "M":
-          toggleMetronome();
-          break;
-        case "c":
-        case "C":
-          toggleDisplay("showChords");
-          break;
-        case "s":
-        case "S":
-          toggleDisplay("showSections");
-          break;
-        case ",":
-        case "<":
-          shiftTranspose(-1);
-          break;
-        case ".":
-        case ">":
-          shiftTranspose(1);
-          break;
-        case "+":
-        case "=":
-          stepScrollSpeed(1);
-          break;
-        case "-":
-          stepScrollSpeed(-1);
-          break;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    toggleMetronome,
-    shiftTranspose,
-    fitToScreen,
+  // Same shortcuts as the setlist viewer, minus song navigation.
+  useLiveKeyboardShortcuts({
     toggleAutoScroll,
     stepScrollSpeed,
-    settingsOpen,
-    toggleDisplay,
-  ]);
+    toggleMetronome,
+    toggleChords: () => toggleDisplay("showChords"),
+    toggleSections: () => toggleDisplay("showSections"),
+    shiftTranspose,
+    fitToScreen,
+    // The settings sheet owns the keyboard while it's open.
+    disabled: settingsOpen,
+  });
 
   // Base: 1.5rem (~text-2xl). Scaled by zoomLevel.
   const baseFontSize = 1.5 * controls.zoomLevel;

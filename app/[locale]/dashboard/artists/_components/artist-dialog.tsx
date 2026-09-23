@@ -16,8 +16,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { onFormSubmit } from "@/lib/forms";
 
 interface ArtistDialogProps {
   artist?: Artist | null;
@@ -52,7 +53,7 @@ export function ArtistDialog({ artist, isOpen, onClose }: ArtistDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
-        <form action={handleAction} key={artist?.id || "new"}>
+        <form onSubmit={onFormSubmit(handleAction)} key={artist?.id || "new"}>
           <DialogHeader>
             <DialogTitle>
               {isEditing ? t("editTitle") : t("addTitle")}

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { signOut } from "next-auth/react";
+import { secureSignOut } from "@/lib/client-logout";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, Save } from "lucide-react";
+import { Info, Loader2, Save } from "lucide-react";
+import { Link } from "@/components/nav-link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -11,12 +13,39 @@ import { PasswordRequirements } from "@/components/auth/password-requirements";
 import { changeOwnPassword } from "@/lib/actions/password";
 import { isPasswordCompliant } from "@/lib/password-policy";
 import { toastActionError } from "@/lib/action-toast";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 interface ChangePasswordFormProps {
   username: string;
   /** Rendered next to the submit button (e.g. a Cancel button). */
   secondaryAction?: React.ReactNode;
+  /**
+   * `false` for accounts created with Google, which have no password to
+   * change yet: they get the way to set one (password recovery) instead.
+   */
+  passwordSet?: boolean;
+}
+
+/**
+ * Accounts without a password (created with Google) set their first one
+ * through password recovery, which proves they own the e-mail address.
+ */
+export function PasswordNotSetNotice({ username }: { username: string }) {
+  const t = useTranslations("changePassword");
+  return (
+    <Alert variant="info">
+      <Info />
+      <AlertDescription className="space-y-2">
+        <p>{t("notSet")}</p>
+        <Link
+          href={`/forgot-password?identifier=${encodeURIComponent(username)}`}
+          className="text-primary inline-block font-medium underline-offset-4 hover:underline"
+        >
+          {t("notSetAction")}
+        </Link>
+      </AlertDescription>
+    </Alert>
+  );
 }
 
 /**
@@ -28,6 +57,7 @@ interface ChangePasswordFormProps {
 export function ChangePasswordForm({
   username,
   secondaryAction,
+  passwordSet = true,
 }: ChangePasswordFormProps) {
   const t = useTranslations("changePassword");
   const tPassword = useTranslations("passwordPolicy");
@@ -37,6 +67,7 @@ export function ChangePasswordForm({
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notSet, setNotSet] = useState(!passwordSet);
 
   const compliant = isPasswordCompliant(next, username);
   const mismatch = confirm.length > 0 && confirm !== next;
@@ -56,6 +87,10 @@ export function ChangePasswordForm({
       });
 
       if (!result.success) {
+        if (result.apiCode === "PASSWORD_NOT_SET") {
+          setNotSet(true);
+          return;
+        }
         if (
           result.code === "session_revoked" ||
           result.code === "rate_limited"
@@ -68,11 +103,22 @@ export function ChangePasswordForm({
       }
 
       toast.success(t("success"));
-      await signOut({
+      await secureSignOut({
         callbackUrl: `/${locale}/login?reason=password_changed`,
       });
     });
   };
+
+  if (notSet) {
+    return (
+      <div className="space-y-4">
+        <PasswordNotSetNotice username={username} />
+        {secondaryAction && (
+          <div className="flex justify-end">{secondaryAction}</div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>

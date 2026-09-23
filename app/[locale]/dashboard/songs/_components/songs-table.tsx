@@ -34,6 +34,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { SongsExportMenu } from "./songs-export-menu";
+import { TagFilterBar } from "./tag-filter-bar";
 import {
   Dialog,
   DialogContent,
@@ -48,21 +51,25 @@ import {
   Pencil,
   Trash2,
   FileEdit,
-  Loader2,
-  Download,
   Tags,
+  FileDown,
+  FileMusic,
+  FileUp,
+  Play,
+  Eye,
 } from "lucide-react";
-import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
+import { toastMovedToTrash } from "@/components/content/trash-toast";
+import { PinButton } from "@/components/content/pin-button";
+import { EnergyMeter } from "@/components/content/energy";
+import { SongPdfDialog } from "@/components/songs/song-pdf-dialog";
+import { useSongChordProExport } from "@/components/songs/use-song-chordpro-export";
+import { ImportChordProDialog } from "./import-chordpro-dialog";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
-import { useSession } from "next-auth/react";
 
 const SEARCHABLE_KEYS = ["title", "artist_name", "genre", "tags_text"] as const;
-
-/** How many of the most used tags are offered as quick filters. */
-const TAG_FILTER_LIMIT = 12;
 
 interface SongsTableProps {
   initialSongs: Song[];
@@ -74,25 +81,30 @@ interface SongsTableProps {
    * account. See components/load-error-notice.tsx.
    */
   loadError?: boolean;
+  /** Plan features, resolved by the page (`hasFeature`). */
+  features?: { chordproImport: boolean; advancedPdf: boolean };
 }
 
 export function SongsTable({
   initialSongs,
   artists,
   loadError,
+  features = { chordproImport: true, advancedPdf: true },
 }: SongsTableProps) {
   const t = useTranslations("songs");
   const tCommon = useTranslations("common");
-  const { data: session } = useSession();
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | null>(null);
-  const [songToDelete, setSongToDelete] = useState<string | null>(null);
+  const [songToDelete, setSongToDelete] = useState<Song | null>(null);
+  const [pdfSong, setPdfSong] = useState<Song | null>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const { exportSong, pendingId: chordproPendingId } = useSongChordProExport();
+  const tTrash = useTranslations("trash");
 
-  const [isExporting, setIsExporting] = useState(false);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [managingTags, setManagingTags] = useState(false);
 
@@ -157,69 +169,34 @@ export function SongsTable({
 
   const songs = processedData;
 
+  const emptyMessage = search
+    ? t("emptySearch", { search })
+    : tagFilter
+      ? t("emptyTagFilter", { tag: tagFilter })
+      : t("empty");
+
   const handleOpenDialog = (song?: Song) => {
     setEditingSong(song ?? null);
     setIsDialogOpen(true);
   };
 
-  const handleDeleteClick = (id: string) => {
-    setSongToDelete(id);
-  };
-
   const confirmDelete = () => {
     if (!songToDelete) return;
+    const target = songToDelete;
     startTransition(async () => {
-      const result = await deleteSong(songToDelete);
+      const result = await deleteSong(target.id);
       if (!result.success) {
         toastActionError(result, result.error ?? t("dialog.deleteFailed"));
       } else {
-        toast.success(t("dialog.deleted"));
+        toastMovedToTrash("song", target.id, {
+          message: t("dialog.deleted"),
+          undoLabel: tTrash("undo"),
+          restored: t("dialog.restored"),
+          restoreFailed: tTrash("restoreFailed"),
+        });
       }
       setSongToDelete(null);
     });
-  };
-
-  const handleExportChordpro = async () => {
-    try {
-      setIsExporting(true);
-      const token = session?.user?.apiToken;
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
-
-      const response = await fetch(`${baseUrl}/songs/export/chordpro`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to export ChordPro");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-
-      const disposition = response.headers.get("content-disposition");
-      let filename = "setlyst-songs.cho";
-      if (disposition && disposition.includes("filename=")) {
-        filename = disposition.split("filename=")[1].replace(/"/g, "");
-      }
-
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success(t("exportSuccess"));
-    } catch (error) {
-      console.error(error);
-      toast.error(t("exportFailed"));
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   return (
@@ -232,35 +209,26 @@ export function SongsTable({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Export */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={isExporting}>
-                {isExporting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">{t("export")}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                onClick={handleExportChordpro}
-                className="cursor-pointer"
-              >
-                {t("exportChordpro")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SongsExportMenu />
+
+          <Button
+            variant="outline"
+            onClick={() => setIsImportOpen(true)}
+            {...offlineDisabled}
+          >
+            <FileUp className="h-4 w-4 sm:mr-2" aria-hidden />
+            <span className="sr-only sm:not-sr-only">
+              {t("importChordpro")}
+            </span>
+          </Button>
 
           <Button
             variant="outline"
             onClick={() => setManagingTags(true)}
             {...offlineDisabled}
           >
-            <Tags className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">{t("manageTags")}</span>
+            <Tags className="h-4 w-4 sm:mr-2" aria-hidden />
+            <span className="sr-only sm:not-sr-only">{t("manageTags")}</span>
           </Button>
 
           <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
@@ -278,55 +246,21 @@ export function SongsTable({
         className="max-w-sm"
       />
 
-      {tagsByUse.length > 0 && (
-        <div
-          className="flex flex-wrap items-center gap-1.5"
-          role="group"
-          aria-label={t("tagFilterLabel")}
-        >
-          <span className="text-muted-foreground mr-1 text-xs">
-            {t("tagFilterLabel")}
-          </span>
-          {tagsByUse.slice(0, TAG_FILTER_LIMIT).map((tag) => {
-            const active = tagFilter === tag;
-            return (
-              <button
-                key={tag}
-                type="button"
-                aria-pressed={active}
-                onClick={() => {
-                  setTagFilter(active ? null : tag);
-                  setCurrentPage(1);
-                }}
-                className="rounded-full focus-visible:ring-2 focus-visible:outline-none"
-              >
-                <TagChip
-                  tag={tag}
-                  className={
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-secondary/70"
-                  }
-                />
-              </button>
-            );
-          })}
-          {tagFilter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs"
-              onClick={() => setTagFilter(null)}
-            >
-              {t("clearTagFilter")}
-            </Button>
-          )}
-        </div>
-      )}
+      <TagFilterBar
+        tags={tagsByUse}
+        active={tagFilter}
+        onChange={(tag) => {
+          setTagFilter(tag);
+          setCurrentPage(1);
+        }}
+      />
 
       {/* Table */}
       <div
-        className={`bg-background rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
+        className={cn(
+          "bg-card rounded-md border",
+          isPending && "pointer-events-none opacity-60",
+        )}
       >
         <Table>
           <TableHeader>
@@ -365,19 +299,33 @@ export function SongsTable({
                 onSort={handleSort}
                 className="hidden sm:table-cell"
               />
+              <SortableColumnHeader
+                label={t("table.timeSignature")}
+                sortKey="time_signature"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                className="hidden xl:table-cell"
+              />
+              <SortableColumnHeader
+                label={t("table.energy")}
+                sortKey="energy"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                className="hidden md:table-cell"
+              />
               <TableHead className="text-right">{t("table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {songs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   {/* Only a failure the local copy couldn't cover. */}
                   {loadError && !isFromCache ? (
                     <LoadErrorNotice />
                   ) : (
                     <span className="text-muted-foreground">
-                      {search ? t("emptySearch", { search }) : t("empty")}
+                      {emptyMessage}
                     </span>
                   )}
                 </TableCell>
@@ -392,12 +340,18 @@ export function SongsTable({
                       (e.target as HTMLElement).closest("[data-no-row-click]")
                     )
                       return;
-                    router.push(`/dashboard/songs/${song.id}/live`);
+                    router.push(`/dashboard/songs/${song.id}`);
                   }}
                 >
                   <TableCell className="w-full max-w-0 font-medium">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="truncate">{song.title}</span>
+                      <Link
+                        href={`/dashboard/songs/${song.id}`}
+                        data-no-row-click
+                        className="focus-visible:ring-ring block min-w-0 truncate rounded-sm hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                      >
+                        {song.title}
+                      </Link>
                       <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span
@@ -458,36 +412,87 @@ export function SongsTable({
                   <TableCell className="hidden font-mono text-xs sm:table-cell">
                     {song.tempo ?? "—"}
                   </TableCell>
+                  <TableCell className="text-muted-foreground hidden font-mono text-xs xl:table-cell">
+                    {song.time_signature ?? "—"}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <EnergyMeter energy={song.energy} />
+                  </TableCell>
                   <TableCell className="text-right" data-no-row-click>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" data-no-row-click>
-                        <DropdownMenuItem
-                          onClick={() => handleOpenDialog(song)}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          {t("menu.editDetails")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/songs/${song.id}/lyrics`}>
-                            <FileEdit className="mr-2 h-4 w-4" />
-                            {t("menu.editLyrics")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteClick(song.id)}
-                          variant="destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {t("menu.delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-0.5">
+                      <PinButton
+                        type="song"
+                        id={song.id}
+                        name={song.title}
+                        pinned={!!song.is_pinned}
+                        className="hidden sm:inline-flex"
+                      />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" aria-hidden />
+                            <span className="sr-only">
+                              {tCommon("moreActionsFor", { name: song.title })}
+                            </span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" data-no-row-click>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/songs/${song.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              {t("menu.details")}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/songs/${song.id}/live`}>
+                              <Play className="mr-2 h-4 w-4" />
+                              {t("menu.liveMode")}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleOpenDialog(song)}
+                            disabled={offlineDisabled.disabled}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            {t("menu.editDetails")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/songs/${song.id}/lyrics`}>
+                              <FileEdit className="mr-2 h-4 w-4" />
+                              {t("menu.editLyrics")}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setPdfSong(song)}
+                            disabled={offlineDisabled.disabled}
+                          >
+                            <FileDown className="mr-2 h-4 w-4" />
+                            {t("menu.exportPdf")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => void exportSong(song.id, song.title)}
+                            disabled={
+                              offlineDisabled.disabled ||
+                              chordproPendingId === song.id
+                            }
+                          >
+                            <FileMusic className="mr-2 h-4 w-4" />
+                            {t("menu.exportChordpro")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setSongToDelete(song)}
+                            variant="destructive"
+                            disabled={offlineDisabled.disabled}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {t("menu.delete")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -529,14 +534,31 @@ export function SongsTable({
         tagSuggestions={tagsByUse}
       />
 
+      <SongPdfDialog
+        songId={pdfSong?.id ?? ""}
+        songTitle={pdfSong?.title ?? ""}
+        isOpen={!!pdfSong}
+        onClose={() => setPdfSong(null)}
+        canUseAdvanced={features.advancedPdf}
+      />
+
+      <ImportChordProDialog
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        artists={availableArtists}
+        allowed={features.chordproImport}
+      />
+
       <Dialog
         open={!!songToDelete}
         onOpenChange={(open) => !open && setSongToDelete(null)}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
-            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
+            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("dialog.deleteConfirm", { title: songToDelete?.title ?? "" })}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
@@ -551,7 +573,7 @@ export function SongsTable({
               onClick={confirmDelete}
               disabled={isPending}
             >
-              {tCommon("delete")}
+              {t("dialog.moveToTrash")}
             </Button>
           </DialogFooter>
         </DialogContent>

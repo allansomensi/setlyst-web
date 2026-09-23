@@ -2,9 +2,17 @@
 
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction, ActionResult } from "@/lib/action-guard";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 import { Gig, GigStatus } from "@/types/api";
+
+/** Gig lists and pages, and the home page's "next gigs". */
+function revalidateGigViews(bandId?: string | null) {
+  revalidateDashboard("/gigs", "layout");
+  revalidateDashboard("/tours", "layout");
+  revalidateDashboard("");
+  if (bandId) revalidateDashboard("/bands/[id]", "layout");
+}
 
 /**
  * `<input type="datetime-local">` yields "YYYY-MM-DDTHH:MM" (no seconds).
@@ -21,6 +29,7 @@ export async function createGig(data: {
   scheduled_at: string;
   band_id?: string;
   setlist_id?: string;
+  tour_id?: string;
   status?: GigStatus;
   notes?: string;
 }) {
@@ -48,41 +57,40 @@ export async function createGig(data: {
           scheduled_at: normalizeScheduledAt(data.scheduled_at),
           band_id: data.band_id || undefined,
           setlist_id: data.setlist_id || undefined,
+          tour_id: data.tour_id || undefined,
           status: data.status,
           notes,
         }),
       }),
-    () => {
-      revalidatePath("/dashboard/gigs");
-      if (data.band_id) revalidatePath(`/dashboard/bands/${data.band_id}/gigs`);
-    },
+    () => revalidateGigViews(data.band_id),
   );
+}
+
+/**
+ * Gig fields an update may change. For `location`, `setlist_id`, `notes`
+ * and `tour_id`, `null` (or an empty string) clears the value; leaving a
+ * field out keeps it unchanged.
+ */
+export interface UpdateGigInput {
+  venue?: string;
+  location?: string | null;
+  scheduled_at?: string;
+  setlist_id?: string | null;
+  tour_id?: string | null;
+  status?: GigStatus;
+  notes?: string | null;
 }
 
 export async function updateGig(
   id: string,
-  data: {
-    venue?: string;
-    location?: string;
-    scheduled_at?: string;
-    setlist_id?: string;
-    status?: GigStatus;
-    notes?: string;
-  },
+  data: UpdateGigInput,
   bandId?: string,
 ) {
   const t = await getTranslations("gigs.errors");
 
   if (!id) return { success: false, error: t("invalidId") };
 
-  const payload: {
-    venue?: string;
-    location?: string;
-    scheduled_at?: string;
-    setlist_id?: string;
-    status?: GigStatus;
-    notes?: string;
-  } = {};
+  const payload: UpdateGigInput = {};
 
   if (data.venue !== undefined) {
     const venue = data.venue.trim();
@@ -92,24 +100,27 @@ export async function updateGig(
     payload.venue = venue;
   }
 
-  if (data.location !== undefined) {
-    payload.location = data.location.trim() || undefined;
-  }
-
-  if (data.scheduled_at !== undefined && data.scheduled_at) {
+  if (data.scheduled_at) {
     payload.scheduled_at = normalizeScheduledAt(data.scheduled_at);
-  }
-
-  if (data.setlist_id !== undefined) {
-    payload.setlist_id = data.setlist_id;
   }
 
   if (data.status !== undefined) {
     payload.status = data.status;
   }
 
+  // Clearable fields: an empty value is sent as an explicit null, which
+  // the API reads as "remove it" (absent would mean "leave as is").
+  if (data.location !== undefined) {
+    payload.location = data.location?.trim() || null;
+  }
   if (data.notes !== undefined) {
-    payload.notes = data.notes.trim() || undefined;
+    payload.notes = data.notes?.trim() || null;
+  }
+  if (data.setlist_id !== undefined) {
+    payload.setlist_id = data.setlist_id || null;
+  }
+  if (data.tour_id !== undefined) {
+    payload.tour_id = data.tour_id || null;
   }
 
   return guardedAction(
@@ -118,14 +129,11 @@ export async function updateGig(
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
-    () => {
-      revalidatePath("/dashboard/gigs");
-      revalidatePath(`/dashboard/gigs/${id}`);
-      if (bandId) revalidatePath(`/dashboard/bands/${bandId}/gigs`);
-    },
+    () => revalidateGigViews(bandId),
   );
 }
 
+/** Moves the gig to the trash. */
 export async function deleteGig(id: string, bandId?: string) {
   const t = await getTranslations("gigs.errors");
 
@@ -133,10 +141,7 @@ export async function deleteGig(id: string, bandId?: string) {
 
   return guardedAction(
     () => fetchServerApi(`/gigs/${id}`, { method: "DELETE" }),
-    () => {
-      revalidatePath("/dashboard/gigs");
-      if (bandId) revalidatePath(`/dashboard/bands/${bandId}/gigs`);
-    },
+    () => revalidateGigViews(bandId),
   );
 }
 
@@ -147,7 +152,7 @@ export async function enableGigSharing(id: string): Promise<ActionResult<Gig>> {
 
   return guardedAction(
     () => fetchServerApi<Gig>(`/gigs/${id}/share`, { method: "POST" }),
-    () => revalidatePath(`/dashboard/gigs/${id}`),
+    () => revalidateDashboard("/gigs/[id]"),
   );
 }
 
@@ -160,6 +165,6 @@ export async function disableGigSharing(
 
   return guardedAction(
     () => fetchServerApi(`/gigs/${id}/share`, { method: "DELETE" }),
-    () => revalidatePath(`/dashboard/gigs/${id}`),
+    () => revalidateDashboard("/gigs/[id]"),
   );
 }

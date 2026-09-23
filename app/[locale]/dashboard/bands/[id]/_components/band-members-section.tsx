@@ -44,7 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/components/nav-link";
 import { LogOut, X, Pencil, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 
 const ASSIGNABLE_ROLES: BandRole[] = ["member", "moderator", "admin"];
@@ -132,7 +132,7 @@ export function BandMembersSection({
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 
-      <div className="bg-background rounded-md border">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -202,18 +202,14 @@ export function BandMembersSection({
                         }
                         disabled={isPending}
                       >
-                        <SelectTrigger className="w-36 capitalize">
+                        <SelectTrigger className="w-36">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {ASSIGNABLE_ROLES.filter(
                             (role) => BAND_ROLE_LEVEL[role] < myLevel,
                           ).map((role) => (
-                            <SelectItem
-                              key={role}
-                              value={role}
-                              className="capitalize"
-                            >
+                            <SelectItem key={role} value={role}>
                               {t(`roles.${role}`)}
                             </SelectItem>
                           ))}

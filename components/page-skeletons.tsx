@@ -73,7 +73,7 @@ export function TableSkeleton({
   columns?: number;
 }) {
   return (
-    <div className="bg-background overflow-hidden rounded-md border">
+    <div className="bg-card overflow-hidden rounded-md border">
       <div className="flex items-center gap-4 border-b px-4 py-3">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton

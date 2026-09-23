@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { Crown, MoreHorizontal, Plus, UserMinus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

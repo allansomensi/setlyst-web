@@ -20,6 +20,8 @@ export function LinkSetlistPrompt({
 }: LinkSetlistPromptProps) {
   const t = useTranslations("gigs");
   const [isOpen, setIsOpen] = useState(false);
+  // Bumped on every open so the dialog starts from the saved gig.
+  const [session, setSession] = useState(0);
 
   const hasOptions = gig.band_id
     ? (bands.find((b) => b.id === gig.band_id)?.setlists.length ?? 0) > 0
@@ -29,7 +31,14 @@ export function LinkSetlistPrompt({
     <>
       <p className="text-muted-foreground text-sm">{t("noSetlistLinked")}</p>
       {hasOptions ? (
-        <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSession((n) => n + 1);
+            setIsOpen(true);
+          }}
+        >
           <ListMusic className="mr-2 h-4 w-4" />
           {t("linkSetlistAction")}
         </Button>
@@ -40,6 +49,7 @@ export function LinkSetlistPrompt({
       )}
 
       <GigDialog
+        key={`${gig.id}:${session}`}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         gig={gig}

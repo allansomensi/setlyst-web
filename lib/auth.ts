@@ -1,7 +1,27 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, type User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 import { routing } from "@/i18n/routing";
+import {
+  getInternalApiHeaders,
+  headersFromRecord,
+} from "@/lib/server/internal-api";
+import { getSessionToken } from "@/lib/server/api-token";
+import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
+import { encodeSignInError, type SignInErrorCode } from "@/lib/sign-in-errors";
+import {
+  GOOGLE_2FA_COOKIE,
+  GOOGLE_INTENT_COOKIE,
+  GOOGLE_INTENT_MAX_AGE,
+  GOOGLE_SIGNUP_COOKIE,
+  googleTwoFactorMaxAge,
+  parseGoogleIntent,
+  serializeGoogleTwoFactor,
+  type GoogleIntent,
+} from "@/lib/auth-flow";
+import { LEGAL_VERSION } from "@/lib/legal";
 
 if (!process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET.length < 32) {
   throw new Error(
@@ -20,17 +40,39 @@ interface SetlystJwtPayload {
   imp?: string;
 }
 
+/** `LoginResponse` of the API (password, second factor and Google). */
+interface LoginResponseBody {
+  token: string;
+  is_first_login: boolean;
+  must_change_password?: boolean;
+  terms_accepted?: boolean;
+  email_verified?: boolean;
+  is_new_account?: boolean;
+}
+
+/** The part of `UserPublic` the session mirrors. */
+interface AccountFlags {
+  email_verified?: unknown;
+  terms_version?: unknown;
+  two_factor_enabled?: unknown;
+}
+
 /**
  * Sign-in failures are reported to the login page as a JSON-encoded
  * `Error` message (NextAuth forwards it as `signIn()`'s `error`), so the
- * page can show the exact reason — suspension end date included — in the
- * user's language. See `parseSignInError` in lib/sign-in-errors.ts.
+ * page can show the exact reason (suspension end date, lockout time) in
+ * the user's language, or continue with the second step of a two-factor
+ * sign-in. See `parseSignInError` in lib/sign-in-errors.ts.
+ *
+ * The message travels in the JSON answer of the credentials callback,
+ * never in a navigated URL, so a challenge token doesn't reach any
+ * access log.
  */
 function signInError(
-  code: string,
+  code: SignInErrorCode | string,
   meta?: Record<string, unknown> | null,
 ): Error {
-  return new Error(JSON.stringify({ code, meta: meta ?? null }));
+  return new Error(encodeSignInError(code as SignInErrorCode, meta));
 }
 
 const VALID_ROLES = ["user", "moderator", "admin"] as const;
@@ -58,21 +100,19 @@ function getApiBaseUrl(): string {
  * Reads the account's saved interface language straight after sign-in.
  *
  * This is what lets the app open in the right language on a device that
- * has never been used before — a freshly installed PWA, a new phone, a
- * cleared browser. Locale resolution otherwise has only the URL, the
+ * has never been used before (a freshly installed PWA, a new phone, a
+ * cleared browser). Locale resolution otherwise has only the URL, the
  * `NEXT_LOCALE` cookie and the `Accept-Language` header to go on, and on
- * a first launch the first two don't exist yet: the app would come up in
- * whatever language the *browser* is set to and ignore the account
- * preference entirely. Carrying the preference in the session token gives
- * `proxy.ts` something authoritative to redirect with (see
- * `resolvePreferredLocale` there).
+ * a first launch the first two don't exist yet. Carrying the preference
+ * in the session token gives `proxy.ts` something authoritative to
+ * redirect with (see `resolvePreferredLocale` there).
  *
  * Best-effort by design: preferences are cosmetic, so a slow or failing
- * call here must never turn a valid sign-in into a failed one. On failure
- * the app simply falls back to header/default detection, exactly as before.
+ * call here must never turn a valid sign-in into a failed one.
  */
 async function fetchPreferredLanguage(
   apiToken: string,
+  internalHeaders: Record<string, string>,
 ): Promise<string | null> {
   const apiUrl = getApiBaseUrl();
   if (!apiUrl) return null;
@@ -80,6 +120,7 @@ async function fetchPreferredLanguage(
   try {
     const res = await fetch(`${apiUrl}/users/me/preferences`, {
       headers: {
+        ...internalHeaders,
         Authorization: `Bearer ${apiToken}`,
         Accept: "application/json",
       },
@@ -98,6 +139,138 @@ async function fetchPreferredLanguage(
   }
 }
 
+/**
+ * The account flags the dashboard gates read (e-mail verified, current
+ * terms accepted, two-factor on), fresh from `GET /users/me`. Null when
+ * the lookup fails: the caller keeps what it had.
+ */
+async function fetchAccountFlags(apiToken: string): Promise<{
+  emailVerified: boolean;
+  termsAccepted: boolean;
+  twoFactorEnabled: boolean;
+} | null> {
+  const apiUrl = getApiBaseUrl();
+  if (!apiUrl) return null;
+  try {
+    const res = await fetch(`${apiUrl}/users/me`, {
+      headers: {
+        ...(await getInternalApiHeaders()),
+        Authorization: `Bearer ${apiToken}`,
+        Accept: "application/json",
+      },
+      redirect: "error",
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as AccountFlags;
+    return {
+      emailVerified: body.email_verified === true,
+      termsAccepted: body.terms_version === LEGAL_VERSION,
+      twoFactorEnabled: body.two_factor_enabled === true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** `{ code, meta }` of a failed API answer, with sensible fallbacks. */
+async function readApiFailure(
+  res: Response,
+): Promise<{ code: string; meta: Record<string, unknown> | null }> {
+  let code: string | null = null;
+  let meta: Record<string, unknown> | null = null;
+  try {
+    const body = (await res.json()) as { code?: unknown; meta?: unknown };
+    if (typeof body.code === "string") code = body.code;
+    if (body.meta && typeof body.meta === "object") {
+      meta = body.meta as Record<string, unknown>;
+    }
+  } catch {
+    // Not JSON (the per-IP rate limiter answers in plain text).
+  }
+
+  if (!code) {
+    if (res.status === 429) {
+      const retryAfter = Number(res.headers.get("retry-after"));
+      return {
+        code: "RATE_LIMITED",
+        meta:
+          Number.isFinite(retryAfter) && retryAfter > 0
+            ? { retry_after_seconds: retryAfter }
+            : null,
+      };
+    }
+    code = res.status >= 500 ? "SERVICE_UNAVAILABLE" : "INVALID_CREDENTIALS";
+  }
+  return { code, meta };
+}
+
+/**
+ * The next-auth user for a successful `LoginResponse`, after checking the
+ * token's claims. `twoFactor` records that this sign-in used a second
+ * factor (so the account has it enabled).
+ */
+async function userFromLogin(
+  body: unknown,
+  internalHeaders: Record<string, string>,
+  twoFactor: boolean,
+): Promise<NextAuthUser | null> {
+  if (
+    typeof body !== "object" ||
+    body === null ||
+    typeof (body as { token?: unknown }).token !== "string" ||
+    typeof (body as { is_first_login?: unknown }).is_first_login !== "boolean"
+  ) {
+    console.error("[auth] Unexpected login response format from API");
+    return null;
+  }
+
+  const login = body as LoginResponseBody;
+
+  let decoded: SetlystJwtPayload;
+  try {
+    decoded = jwtDecode<SetlystJwtPayload>(login.token);
+  } catch {
+    console.error("[auth] Failed to decode JWT");
+    return null;
+  }
+
+  if (!decoded.sub || !decoded.username || !decoded.exp) {
+    console.error("[auth] JWT missing required claims");
+    return null;
+  }
+
+  if (!isValidRole(decoded.role)) {
+    console.error("[auth] Invalid role in JWT:", decoded.role);
+    return null;
+  }
+
+  if (Date.now() >= decoded.exp * 1000) {
+    console.error("[auth] Received already-expired JWT");
+    return null;
+  }
+
+  const mustChangePassword = login.must_change_password === true;
+
+  return {
+    id: decoded.sub,
+    name: decoded.username,
+    role: decoded.role,
+    apiToken: login.token,
+    isFirstLogin: login.is_first_login,
+    mustChangePassword,
+    // Older API builds don't send the flags: assume the happy path
+    // rather than nagging everyone (the dashboard re-checks /users/me).
+    emailVerified: login.email_verified !== false,
+    termsAccepted: login.terms_accepted !== false,
+    twoFactorEnabled: twoFactor,
+    isNewAccount: login.is_new_account === true,
+    language: mustChangePassword
+      ? null
+      : await fetchPreferredLanguage(login.token, internalHeaders),
+  };
+}
+
 type SessionToken = import("next-auth/jwt").JWT;
 
 /**
@@ -105,7 +278,7 @@ type SessionToken = import("next-auth/jwt").JWT;
  * API (`POST /users/{id}/impersonate`, called from a server action).
  *
  * The token is accepted only if it names *this* session's user as its
- * impersonator and the API accepts it — so a client can't smuggle in an
+ * impersonator and the API accepts it, so a client can't smuggle in an
  * arbitrary token through `useSession().update()`. The staff member's own
  * token is kept aside and restored by `restoreImpersonator`.
  */
@@ -128,6 +301,7 @@ async function startImpersonation(
   try {
     const res = await fetch(`${apiUrl}/users/me`, {
       headers: {
+        ...(await getInternalApiHeaders()),
         Authorization: `Bearer ${impersonationToken}`,
         Accept: "application/json",
       },
@@ -147,6 +321,9 @@ async function startImpersonation(
       role: token.role,
       apiToken: token.apiToken,
       apiTokenExpires: token.apiTokenExpires,
+      emailVerified: token.emailVerified,
+      termsAccepted: token.termsAccepted,
+      twoFactorEnabled: token.twoFactorEnabled,
     },
     id: decoded.sub,
     name: decoded.username,
@@ -155,6 +332,10 @@ async function startImpersonation(
     apiTokenExpires: decoded.exp * 1000,
     mustChangePassword: false,
     isFirstLogin: false,
+    // Viewing as someone never shows *their* account prompts.
+    emailVerified: true,
+    termsAccepted: true,
+    twoFactorEnabled: undefined,
   };
 }
 
@@ -168,12 +349,216 @@ function restoreImpersonator(token: SessionToken): SessionToken {
     role: original.role,
     apiToken: original.apiToken,
     apiTokenExpires: original.apiTokenExpires,
+    emailVerified: original.emailVerified,
+    termsAccepted: original.termsAccepted,
+    twoFactorEnabled: original.twoFactorEnabled,
     impersonator: undefined,
     error:
       original.apiTokenExpires && Date.now() > original.apiTokenExpires
         ? "TokenExpired"
         : undefined,
   };
+}
+
+// ---------------------------------------------------------------------
+// Google sign-in
+// ---------------------------------------------------------------------
+
+/** Reads and clears the intent saved before leaving for Google. */
+async function takeGoogleIntent(): Promise<GoogleIntent | null> {
+  try {
+    const store = await cookies();
+    const raw = store.get(GOOGLE_INTENT_COOKIE)?.value;
+    if (raw) store.delete(GOOGLE_INTENT_COOKIE);
+    return parseGoogleIntent(raw, routing.locales, routing.defaultLocale);
+  } catch {
+    return null;
+  }
+}
+
+/** Login page URL reporting a failed Google sign-in (no secrets inside). */
+function googleErrorUrl(
+  locale: string,
+  code: string,
+  meta?: Record<string, unknown> | null,
+): string {
+  const params = new URLSearchParams({
+    google_error: encodeSignInError(code as SignInErrorCode, meta),
+  });
+  return `/${locale}/login?${params}`;
+}
+
+function settingsGoogleUrl(locale: string, status: string): string {
+  return `/${locale}/dashboard/settings?google=${status}#security`;
+}
+
+/**
+ * Exchanges the Google ID token with the API and decides where the
+ * browser goes next. Returns `true` after filling `user` with the Setlyst
+ * session (the same object reaches the `jwt` callback), or a path to
+ * redirect to without signing in.
+ */
+async function completeGoogleSignIn(
+  user: NextAuthUser,
+  idToken: string | undefined,
+): Promise<true | string> {
+  const intent = await takeGoogleIntent();
+  const locale = intent?.locale ?? routing.defaultLocale;
+  const linking = intent?.mode === "link";
+
+  if (!idToken) return googleErrorUrl(locale, "INVALID_GOOGLE_TOKEN");
+
+  // Linking happens while signed in: the result must be the same account,
+  // never a switch to another one.
+  const current = linking ? await getSessionToken() : null;
+  if (linking && (!current?.id || current.impersonator)) {
+    return settingsGoogleUrl(locale, "failed");
+  }
+
+  const apiUrl = getApiBaseUrl();
+  const internalHeaders = await getInternalApiHeaders();
+
+  let res: Response;
+  try {
+    res = await fetch(`${apiUrl}/auth/oauth/google`, {
+      method: "POST",
+      headers: { ...internalHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id_token: idToken,
+        referral_code: linking
+          ? undefined
+          : (intent?.referralCode ?? undefined),
+        // Never create an account from the settings page.
+        accept_terms: linking ? false : intent?.acceptTerms === true,
+        marketing_opt_in: linking ? false : intent?.marketingOptIn === true,
+        locale,
+      }),
+      redirect: "error",
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (err) {
+    console.error(
+      "[auth] Google sign-in request failed:",
+      (err as Error)?.name,
+    );
+    return linking
+      ? settingsGoogleUrl(locale, "failed")
+      : googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+  }
+
+  if (!res.ok) {
+    const { code, meta } = await readApiFailure(res);
+
+    if (code === "TERMS_NOT_ACCEPTED" && meta?.signup === true) {
+      if (linking) return settingsGoogleUrl(locale, "no_account");
+      // Kept server-side for the consent page (no e-mail in the URL).
+      try {
+        (await cookies()).set(
+          GOOGLE_SIGNUP_COOKIE,
+          JSON.stringify({
+            email: typeof meta.email === "string" ? meta.email : null,
+            name: typeof meta.name === "string" ? meta.name : null,
+          }),
+          {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+            maxAge: GOOGLE_INTENT_MAX_AGE,
+          },
+        );
+      } catch {
+        // The consent page still works without the name and e-mail.
+      }
+      const params = new URLSearchParams();
+      if (intent?.referralCode) params.set("ref", intent.referralCode);
+      if (intent?.callbackPath) params.set("callbackUrl", intent.callbackPath);
+      const query = params.size ? `?${params}` : "";
+      return `/${locale}/login/google-consent${query}`;
+    }
+
+    if (linking) {
+      return settingsGoogleUrl(
+        locale,
+        code === "EMAIL_TAKEN" ? "unverified" : "failed",
+      );
+    }
+    return googleErrorUrl(locale, code, meta);
+  }
+
+  const body: unknown = await res.json().catch(() => null);
+
+  if ((body as { two_factor_required?: unknown })?.two_factor_required) {
+    const challenge = body as {
+      challenge_token?: unknown;
+      challenge_expires_at?: unknown;
+    };
+    if (linking) {
+      // The account already proved itself when signing in; linking only
+      // needs the API's side effect (the identity is linked by now).
+      return settingsGoogleUrl(locale, "linked");
+    }
+    if (typeof challenge.challenge_token !== "string") {
+      return googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+    }
+    // Handed to the login page in an httpOnly cookie, never in the URL,
+    // so the token can't end up in access logs or analytics.
+    const expiresAt =
+      typeof challenge.challenge_expires_at === "string"
+        ? challenge.challenge_expires_at
+        : null;
+    try {
+      (await cookies()).set(
+        GOOGLE_2FA_COOKIE,
+        serializeGoogleTwoFactor({
+          token: challenge.challenge_token,
+          expiresAt,
+          callbackPath: intent?.callbackPath ?? null,
+        }),
+        {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          maxAge: googleTwoFactorMaxAge(expiresAt),
+        },
+      );
+    } catch {
+      return googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+    }
+    return `/${locale}/login?step=2fa`;
+  }
+
+  const account = await userFromLogin(body, internalHeaders, false);
+  if (!account) return googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+
+  if (linking) {
+    if (account.id !== current?.id) {
+      // Google belongs to another Setlyst account: stay signed in as is.
+      return settingsGoogleUrl(locale, "mismatch");
+    }
+  }
+
+  // The Google profile object becomes the Setlyst user (next-auth passes
+  // this very object to the `jwt` callback). Google's picture and e-mail
+  // are not kept in the session.
+  Object.assign(user, account, { email: null, image: null });
+  return true;
+}
+
+// ---------------------------------------------------------------------
+// Options
+// ---------------------------------------------------------------------
+
+function googleProviders() {
+  if (!isGoogleSignInEnabled()) return [];
+  return [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!.trim(),
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!.trim(),
+      authorization: { params: { prompt: "select_account" } },
+    }),
+  ];
 }
 
 export const authOptions: NextAuthOptions = {
@@ -184,15 +569,34 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
+        challengeToken: { label: "Challenge", type: "text" },
+        code: { label: "Code", type: "text" },
+        recoveryCode: { label: "Recovery code", type: "text" },
       },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null;
+      async authorize(credentials, req) {
+        const challengeToken = credentials?.challengeToken?.trim();
+        const secondStep = Boolean(challengeToken);
 
-        if (
-          credentials.username.length > 128 ||
-          credentials.password.length > 256
-        ) {
-          return null;
+        if (secondStep) {
+          const code = credentials?.code?.trim();
+          const recoveryCode = credentials?.recoveryCode?.trim();
+          if (
+            !challengeToken ||
+            challengeToken.length > 128 ||
+            (!code && !recoveryCode) ||
+            (code && !/^\d{6}$/.test(code)) ||
+            (recoveryCode && recoveryCode.length > 16)
+          ) {
+            throw signInError("INVALID_TWO_FACTOR_CODE");
+          }
+        } else {
+          if (!credentials?.username || !credentials?.password) return null;
+          if (
+            credentials.username.length > 254 ||
+            credentials.password.length > 256
+          ) {
+            return null;
+          }
         }
 
         const apiUrl = getApiBaseUrl();
@@ -202,94 +606,71 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Identifies the visitor to the API's rate limiter and lockout
+        // logic; without it every web login shares this server's address.
+        const internalHeaders = await getInternalApiHeaders(
+          headersFromRecord(req?.headers),
+        );
+
         try {
-          const res = await fetch(`${apiUrl}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              username: credentials.username,
-              password: credentials.password,
-            }),
-            redirect: "error",
-          });
+          const res = secondStep
+            ? await fetch(`${apiUrl}/auth/login/2fa`, {
+                method: "POST",
+                headers: {
+                  ...internalHeaders,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  challenge_token: challengeToken,
+                  code: credentials?.code?.trim() || undefined,
+                  recovery_code: credentials?.code?.trim()
+                    ? undefined
+                    : credentials?.recoveryCode?.trim() || undefined,
+                }),
+                redirect: "error",
+              })
+            : await fetch(`${apiUrl}/auth/login`, {
+                method: "POST",
+                headers: {
+                  ...internalHeaders,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  username: credentials!.username.trim(),
+                  password: credentials!.password,
+                }),
+                redirect: "error",
+              });
 
           if (!res.ok) {
-            if (res.status === 429) throw signInError("RATE_LIMITED");
-            let code =
-              res.status >= 500 ? "SERVICE_UNAVAILABLE" : "INVALID_CREDENTIALS";
-            let meta: Record<string, unknown> | null = null;
-            try {
-              const errorBody = (await res.json()) as {
-                code?: unknown;
-                meta?: unknown;
-              };
-              if (typeof errorBody.code === "string") code = errorBody.code;
-              if (errorBody.meta && typeof errorBody.meta === "object") {
-                meta = errorBody.meta as Record<string, unknown>;
-              }
-            } catch {
-              // Not JSON: keep the status-derived code.
-            }
+            const { code, meta } = await readApiFailure(res);
             throw signInError(code, meta);
           }
 
           const body: unknown = await res.json();
 
           if (
-            typeof body !== "object" ||
-            body === null ||
-            typeof (body as { token?: unknown }).token !== "string" ||
-            typeof (body as { is_first_login?: unknown }).is_first_login !==
-              "boolean"
+            !secondStep &&
+            (body as { two_factor_required?: unknown })?.two_factor_required ===
+              true
           ) {
-            console.error("[auth] Unexpected login response format from API");
-            return null;
+            const challenge = body as {
+              challenge_token?: unknown;
+              challenge_expires_at?: unknown;
+            };
+            if (typeof challenge.challenge_token !== "string") {
+              throw signInError("SERVICE_UNAVAILABLE");
+            }
+            throw signInError("TWO_FACTOR_REQUIRED", {
+              challenge_token: challenge.challenge_token,
+              challenge_expires_at:
+                typeof challenge.challenge_expires_at === "string"
+                  ? challenge.challenge_expires_at
+                  : null,
+            });
           }
 
-          const {
-            token,
-            is_first_login: isFirstLogin,
-            must_change_password: mustChangePassword,
-          } = body as {
-            token: string;
-            is_first_login: boolean;
-            must_change_password?: boolean;
-          };
-
-          let decoded: SetlystJwtPayload;
-          try {
-            decoded = jwtDecode<SetlystJwtPayload>(token);
-          } catch {
-            console.error("[auth] Failed to decode JWT");
-            return null;
-          }
-
-          if (!decoded.sub || !decoded.username || !decoded.exp) {
-            console.error("[auth] JWT missing required claims");
-            return null;
-          }
-
-          if (!isValidRole(decoded.role)) {
-            console.error("[auth] Invalid role in JWT:", decoded.role);
-            return null;
-          }
-
-          if (Date.now() >= decoded.exp * 1000) {
-            console.error("[auth] Received already-expired JWT");
-            return null;
-          }
-
-          return {
-            id: decoded.sub,
-            name: decoded.username,
-            role: decoded.role,
-            apiToken: token,
-            isFirstLogin,
-            mustChangePassword: mustChangePassword === true,
-            language: mustChangePassword
-              ? null
-              : await fetchPreferredLanguage(token),
-          };
+          return await userFromLogin(body, internalHeaders, secondStep);
         } catch (err) {
           // Our own, already-classified failures pass straight through.
           if (err instanceof Error && err.message.startsWith("{")) throw err;
@@ -301,17 +682,32 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    ...googleProviders(),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider !== "google") return true;
+      return completeGoogleSignIn(
+        user as NextAuthUser,
+        account.id_token ?? undefined,
+      );
+    },
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.email = null;
+        token.picture = null;
         token.role = user.role;
         token.apiToken = user.apiToken;
         token.isFirstLogin = user.isFirstLogin;
         token.mustChangePassword = user.mustChangePassword === true;
         token.language = user.language ?? undefined;
+        token.emailVerified = user.emailVerified !== false;
+        token.termsAccepted = user.termsAccepted !== false;
+        token.twoFactorEnabled = user.twoFactorEnabled === true;
         token.impersonator = undefined;
+        token.error = undefined;
 
         try {
           const decoded = jwtDecode<SetlystJwtPayload>(user.apiToken as string);
@@ -326,6 +722,7 @@ export const authOptions: NextAuthOptions = {
           language?: unknown;
           impersonationToken?: unknown;
           stopImpersonation?: unknown;
+          refreshAccount?: unknown;
         };
 
         // Keeps the token's copy of the language in step when it's changed
@@ -334,6 +731,22 @@ export const authOptions: NextAuthOptions = {
         // send the person back to the language they just moved away from.
         if (isSupportedLocale(update.language)) {
           token.language = update.language;
+        }
+
+        // After verifying the e-mail, accepting the terms or changing
+        // two-factor: the flags are re-read from the API, never taken from
+        // the client.
+        if (
+          update.refreshAccount === true &&
+          !token.impersonator &&
+          token.apiToken
+        ) {
+          const flags = await fetchAccountFlags(token.apiToken);
+          if (flags) {
+            token.emailVerified = flags.emailVerified;
+            token.termsAccepted = flags.termsAccepted;
+            token.twoFactorEnabled = flags.twoFactorEnabled;
+          }
         }
 
         if (
@@ -364,6 +777,9 @@ export const authOptions: NextAuthOptions = {
 
       return token;
     },
+    // The API token deliberately stays out of the session object: that is
+    // what `/api/auth/session` hands to the browser. Server code reads it
+    // from the encrypted JWT with `getApiToken()` (lib/server/api-token.ts).
     async session({ session, token }) {
       if (token.error === "TokenExpired") {
         session.error = "TokenExpired";
@@ -373,11 +789,15 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.name =
           (token.name as string | undefined) ?? session.user.name;
+        session.user.email = null;
+        session.user.image = null;
         session.user.role = token.role as ValidRole;
-        session.user.apiToken = token.apiToken as string;
         session.user.isFirstLogin = token.isFirstLogin;
         session.user.mustChangePassword = token.mustChangePassword === true;
         session.user.language = token.language;
+        session.user.emailVerified = token.emailVerified !== false;
+        session.user.termsAccepted = token.termsAccepted !== false;
+        session.user.twoFactorEnabled = token.twoFactorEnabled;
         session.user.impersonator = token.impersonator
           ? {
               id: token.impersonator.id,
@@ -396,6 +816,9 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    // OAuth failures (cancelled at Google, expired state...) land on the
+    // login page with `?error=`, which explains them.
+    error: "/login",
   },
   debug: false,
 };

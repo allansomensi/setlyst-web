@@ -9,7 +9,10 @@ import { LiveHeader } from "@/components/live/live-header";
 import { LiveSettingsSheet } from "@/components/live/live-settings-sheet";
 import { LiveActiveControls } from "@/components/live/live-active-controls";
 import { useLiveDisplayPrefs } from "@/hooks/use-live-display-prefs";
-import { useLiveControls } from "@/hooks/use-live-controls";
+import {
+  useLiveControls,
+  useLiveKeyboardShortcuts,
+} from "@/hooks/use-live-controls";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Hand } from "lucide-react";
 import { Link } from "@/components/nav-link";
@@ -42,6 +45,7 @@ export function LiveModeViewer({
   initialFontSize = 100,
 }: LiveModeViewerProps) {
   const t = useTranslations("liveMode");
+  const tRepertoire = useTranslations("setlists.repertoire");
   const isOnline = useOnlineStatus();
 
   // Prefer the on-device copy synced in the background (see
@@ -188,75 +192,19 @@ export function LiveModeViewer({
 
   // Keyboard shortcuts
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.metaKey ||
-        e.ctrlKey ||
-        e.altKey
-      )
-        return;
-      // The settings sheet owns the keyboard while it's open (its own
-      // buttons, Escape to close).
-      if (settingsOpen) return;
-
-      switch (e.key) {
-        case "ArrowRight":
-        case "PageDown":
-          handleNext();
-          break;
-        case "ArrowLeft":
-        case "PageUp":
-          handlePrev();
-          break;
-        case " ":
-          e.preventDefault();
-          if (!fitToScreen) toggleAutoScroll();
-          break;
-        case "m":
-        case "M":
-          toggleMetronome();
-          break;
-        case "c":
-        case "C":
-          toggleDisplay("showChords");
-          break;
-        case "s":
-        case "S":
-          toggleDisplay("showSections");
-          break;
-        case ",":
-        case "<":
-          shiftTranspose(-1);
-          break;
-        case ".":
-        case ">":
-          shiftTranspose(1);
-          break;
-        case "+":
-        case "=":
-          stepScrollSpeed(1);
-          break;
-        case "-":
-          stepScrollSpeed(-1);
-          break;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    handleNext,
-    handlePrev,
-    toggleMetronome,
-    shiftTranspose,
-    fitToScreen,
+  useLiveKeyboardShortcuts({
+    onNext: handleNext,
+    onPrev: handlePrev,
     toggleAutoScroll,
     stepScrollSpeed,
-    settingsOpen,
-    toggleDisplay,
-  ]);
+    toggleMetronome,
+    toggleChords: () => toggleDisplay("showChords"),
+    toggleSections: () => toggleDisplay("showSections"),
+    shiftTranspose,
+    fitToScreen,
+    // The settings sheet owns the keyboard while it's open.
+    disabled: settingsOpen,
+  });
 
   // Empty state
 
@@ -282,10 +230,13 @@ export function LiveModeViewer({
       <LiveHeader
         closeHref={`/dashboard/setlists/${setlist.id}`}
         title={currentSong.title}
-        subtitle={`${setlist.title} · ${t("songPosition", {
-          current: safeIndex + 1,
-          total: songs.length,
-        })}`}
+        subtitle={`${setlist.is_repertoire ? tRepertoire("name") : setlist.title} · ${t(
+          "songPosition",
+          {
+            current: safeIndex + 1,
+            total: songs.length,
+          },
+        )}`}
         isOnline={isOnline}
         tempo={currentSong.tempo}
         playedKey={transpose.key}
@@ -356,11 +307,10 @@ export function LiveModeViewer({
               size="lg"
               onClick={handlePrev}
               disabled={!canPrev}
-              aria-label={t("prev")}
               className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg"
             >
-              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
-              <span className="hidden sm:inline">{t("prev")}</span>
+              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
+              <span className="sr-only sm:not-sr-only">{t("prev")}</span>
             </Button>
           </div>
 
@@ -378,11 +328,10 @@ export function LiveModeViewer({
               size="lg"
               onClick={handleNext}
               disabled={!canNext}
-              aria-label={t("next")}
               className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg"
             >
-              <span className="hidden sm:inline">{t("next")}</span>
-              <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="sr-only sm:not-sr-only">{t("next")}</span>
+              <ChevronRight className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
             </Button>
           </div>
         </div>

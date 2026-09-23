@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { adminListQuery } from "@/lib/admin-list";
-import { formatApiDate, parseApiTimestamp } from "@/lib/dates";
+import { formatApiDate, formatApiDay, parseApiTimestamp } from "@/lib/dates";
 import { safeCallbackPath } from "@/lib/links";
+import { apiTokenOf } from "@/lib/session-api-token";
+import { isServiceWorkerEnabled } from "@/lib/offline/sw-enabled";
 import { parseSignInError } from "@/lib/sign-in-errors";
 import {
   assignableRoles,
@@ -10,11 +12,6 @@ import {
 } from "@/lib/staff-permissions";
 import { normalizeTag, normalizeTags, tagIssue } from "@/lib/tags";
 import { DEFAULT_UI_SETTINGS, normalizeUiSettings } from "@/lib/ui-settings";
-import {
-  hasUnseenRelease,
-  LATEST_RELEASE_ID,
-  RELEASE_NOTES,
-} from "@/lib/whats-new";
 
 describe("staff permissions", () => {
   const admin = { id: "a", role: "admin" as const };
@@ -109,6 +106,15 @@ describe("dates", () => {
     expect(formatApiDate(null, "en")).toBe("");
     expect(formatApiDate("nope", "en")).toBe("");
   });
+
+  it("reads plain days as UTC midnight and never shifts them", () => {
+    expect(parseApiTimestamp("2026-09-22").toISOString()).toBe(
+      "2026-09-22T00:00:00.000Z",
+    );
+    expect(formatApiDay("2026-09-01", "en")).toBe("September 1, 2026");
+    expect(formatApiDay("2026-09-01", "pt-BR", { day: "numeric" })).toBe("1");
+    expect(formatApiDay(undefined, "en")).toBe("");
+  });
 });
 
 describe("safeCallbackPath", () => {
@@ -118,6 +124,28 @@ describe("safeCallbackPath", () => {
     expect(safeCallbackPath("https://evil.example")).toBeNull();
     expect(safeCallbackPath("/\\evil.example")).toBeNull();
     expect(safeCallbackPath(null)).toBeNull();
+  });
+
+  it("refuses control characters and encoded slashes", () => {
+    expect(safeCallbackPath("/%09/example.com")).toBeNull();
+    expect(safeCallbackPath("/\t/example.com")).toBeNull();
+    expect(safeCallbackPath("/\n/example.com")).toBeNull();
+    expect(safeCallbackPath("/\u0085/example.com")).toBeNull();
+    expect(safeCallbackPath("/%C2%85/example.com")).toBeNull();
+    expect(safeCallbackPath("/%2F/example.com")).toBeNull();
+    expect(safeCallbackPath("/%2f%2fexample.com")).toBeNull();
+    expect(safeCallbackPath("/%5Cexample.com")).toBeNull();
+    expect(safeCallbackPath("/%252F/example.com")).toBeNull();
+    expect(safeCallbackPath("/%zz")).toBeNull();
+  });
+
+  it("keeps ordinary encoded paths and queries", () => {
+    expect(safeCallbackPath("/pt-BR/dashboard/songs?q=a%20b")).toBe(
+      "/pt-BR/dashboard/songs?q=a%20b",
+    );
+    expect(safeCallbackPath("/dashboard/songs?q=50%25")).toBe(
+      "/dashboard/songs?q=50%25",
+    );
   });
 });
 
@@ -153,21 +181,49 @@ describe("ui settings", () => {
   });
 });
 
-describe("release notes", () => {
-  it("have unique ids, newest first, with every locale filled", () => {
-    const ids = RELEASE_NOTES.map((r) => r.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    const dates = RELEASE_NOTES.map((r) => r.date);
-    expect([...dates].sort().reverse()).toEqual(dates);
-    for (const release of RELEASE_NOTES) {
-      for (const text of [release.title, ...release.items.map((i) => i.text)]) {
-        expect(text.en && text["pt-BR"] && text.es).toBeTruthy();
-      }
-    }
+describe("apiTokenOf", () => {
+  const now = 1_000_000;
+
+  it("returns a fresh token", () => {
+    expect(apiTokenOf({ apiToken: "a", apiTokenExpires: now + 1 }, now)).toBe(
+      "a",
+    );
+    expect(apiTokenOf({ apiToken: "a" }, now)).toBe("a");
   });
 
-  it("flags unseen releases", () => {
-    expect(hasUnseenRelease(null)).toBe(true);
-    expect(hasUnseenRelease(LATEST_RELEASE_ID)).toBe(false);
+  it("never falls back to the impersonator's token", () => {
+    const token = {
+      apiToken: "impersonated",
+      apiTokenExpires: now - 1,
+      impersonator: {
+        id: "s",
+        name: "staff",
+        role: "admin" as const,
+        apiToken: "staff",
+        apiTokenExpires: now + 60_000,
+      },
+    };
+    expect(apiTokenOf(token, now)).toBeNull();
+  });
+
+  it("is null for expired or missing sessions", () => {
+    expect(apiTokenOf(null, now)).toBeNull();
+    expect(
+      apiTokenOf({ apiToken: "a", error: "TokenExpired" }, now),
+    ).toBeNull();
+    expect(apiTokenOf({ apiToken: "a", apiTokenExpires: now }, now)).toBeNull();
+  });
+});
+
+describe("isServiceWorkerEnabled", () => {
+  it("runs in production, and in development only when asked", () => {
+    expect(isServiceWorkerEnabled({ nodeEnv: "production" })).toBe(true);
+    expect(isServiceWorkerEnabled({ nodeEnv: "development" })).toBe(false);
+    expect(
+      isServiceWorkerEnabled({ nodeEnv: "development", enableInDev: "true" }),
+    ).toBe(true);
+    expect(
+      isServiceWorkerEnabled({ nodeEnv: "development", enableInDev: "1" }),
+    ).toBe(false);
   });
 });

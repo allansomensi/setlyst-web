@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Ban, KeyRound } from "lucide-react";
+import { Ban, Flag, KeyRound } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/components/nav-link";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { PlatformRoleBadge } from "@/components/role-badge";
 import { QuotaUsageList } from "@/components/quota-usage-list";
@@ -21,12 +23,21 @@ import { redirect } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
 import { authOptions } from "@/lib/auth";
 import { formatApiDate, formatApiDateTime } from "@/lib/dates";
+import { pickLocalized } from "@/lib/localized";
+import { getPlanOptions } from "@/lib/staff-data";
 import { canManageUser, isStaffRole } from "@/lib/staff-permissions";
-import type { AdminUserOverview, QuotaLimits } from "@/types/api";
+import { moderationQueueHref } from "@/lib/moderation";
+import type {
+  AdminUserOverview,
+  QuotaLimits,
+  UserProfileView,
+} from "@/types/api";
+import type { AdminSubscriptionView } from "@/types/staff";
 import { getUserAuditTrail, getUsernameHistory } from "../actions";
 import { UserActionsMenu } from "../_components/user-actions-menu";
 import { DangerZone } from "./_components/danger-zone";
 import { QuotaEditor } from "./_components/quota-editor";
+import { SubscriptionCard } from "./_components/subscription-card";
 import { UserBandsSection } from "./_components/user-bands-section";
 
 type Params = Promise<{ locale: string; id: string }>;
@@ -87,13 +98,29 @@ export default async function UserDetailPage({ params }: { params: Params }) {
   const { user, usage, quota_settings: quotaSettings, bands } = overview;
   const manageable = canManageUser(actor, user);
 
-  const [history, auditTrail, quotaDefaults] = await Promise.all([
+  const [
+    history,
+    auditTrail,
+    quotaDefaults,
+    subscription,
+    profile,
+    planOptions,
+  ] = await Promise.all([
     getUsernameHistory(user.id),
     getUserAuditTrail(user.id),
     isAdmin
       ? fetchServerApi<QuotaLimits>("/admin/settings/quotas").catch(() => null)
       : Promise.resolve(null),
+    fetchServerApi<AdminSubscriptionView>(
+      `/admin/users/${encodeURIComponent(user.id)}/subscription`,
+    ).catch(() => null),
+    fetchServerApi<
+      UserProfileView & { admin_details: { open_flags?: number } | null }
+    >(`/users/${encodeURIComponent(user.id)}/profile`).catch(() => null),
+    getPlanOptions(),
   ]);
+  const openFlags = profile?.admin_details?.open_flags ?? null;
+  const tModeration = await getTranslations("moderation.userSummary");
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
 
@@ -289,6 +316,44 @@ export default async function UserDetailPage({ params }: { params: Params }) {
         </div>
 
         <div className="space-y-6 lg:col-span-2">
+          <SubscriptionCard
+            userId={user.id}
+            username={user.username}
+            view={subscription}
+            canManage={isAdmin}
+            plans={planOptions.map((p) => ({
+              code: p.code,
+              name: pickLocalized(p.name, locale) || p.code,
+            }))}
+          />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Flag className="text-muted-foreground size-4" aria-hidden />
+                {tModeration("title")}
+              </CardTitle>
+              <CardDescription>
+                {openFlags === null
+                  ? tModeration("unavailable")
+                  : openFlags > 0
+                    ? tModeration("open", { count: openFlags })
+                    : tModeration("none")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Button
+                asChild
+                size="sm"
+                variant={openFlags ? "default" : "outline"}
+              >
+                <Link href={moderationQueueHref(user.id)}>
+                  {tModeration("openQueue")}
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>{t("usage")}</CardTitle>

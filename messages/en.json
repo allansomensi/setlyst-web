@@ -13,8 +13,8 @@
     "confirm": "Confirm",
     "downloadQrCode": "Download QR Code",
     "moreActions": "More actions",
-    "loadErrorRetrying": "Couldn't load this — retrying automatically.",
-    "loadErrorOffline": "Couldn't load this while offline. It'll retry automatically once you're back online.",
+    "loadErrorRetrying": "Couldn't load this. Retrying automatically.",
+    "loadErrorOffline": "Couldn't load this while offline. It will try again as soon as you're back online.",
     "optional": "optional",
     "close": "Close",
     "copy": "Copy",
@@ -28,7 +28,10 @@
     "next": "Next",
     "pageOf": "Page {page} of {total}",
     "searchPlaceholder": "Search…",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "remove": "Remove",
+    "moreActionsFor": "More actions: {name}",
+    "copyManually": "Couldn't copy. Select the text and copy it manually."
   },
   "pagination": {
     "previous": "Previous",
@@ -45,7 +48,7 @@
   },
   "nav": {
     "home": "Home",
-    "analytics": "Analytics",
+    "analytics": "Statistics",
     "artists": "Artists",
     "songs": "Songs",
     "setlists": "Setlists",
@@ -72,76 +75,89 @@
     "wiki": "Documentation (wiki)",
     "status": "System status",
     "whatsNew": "What's new",
-    "whatsNewUnread": "What's new — there are updates you haven't seen",
-    "profile": "My account"
+    "whatsNewUnread": "What's new (there are updates you haven't seen)",
+    "profile": "My account",
+    "breadcrumb": "Breadcrumb"
   },
   "auth": {
     "login": {
-      "title": "Setlyst",
-      "subtitle": "Enter your credentials to access your account",
-      "username": "Username",
-      "usernamePlaceholder": "Enter your username",
+      "title": "Sign in to Setlyst",
+      "subtitle": "Access your repertoire, setlists and gigs.",
       "password": "Password",
       "passwordPlaceholder": "Enter your password",
-      "showPassword": "Show password",
-      "hidePassword": "Hide password",
-      "forgotPassword": "Forgot password?",
+      "forgotPassword": "Forgot my password",
       "submit": "Sign in",
-      "submitting": "Signing in...",
-      "noAccount": "Don't have an account?",
-      "signUp": "Sign up",
-      "invalidCredentials": "Invalid username or password.",
+      "submitting": "Signing in…",
+      "noAccount": "Don't have an account yet?",
+      "signUp": "Create account",
+      "invalidCredentials": "Incorrect username, email or password.",
       "connectionError": "Unable to reach the server. Please try again in a moment.",
-      "welcomeBack": "Welcome back!",
+      "welcomeBack": "Welcome back.",
       "rateLimited": "Too many sign-in attempts. Wait a moment and try again.",
       "notices": {
-        "registered": "Account created! Sign in to get started.",
+        "registered": "Account created. Sign in to get started.",
         "password_changed": "Password changed. Sign in with your new password.",
         "session": "Your session ended. Please sign in again.",
-        "expired": "Your session expired. Please sign in again."
+        "expired": "Your session expired. Please sign in again.",
+        "password_reset": "Password reset. Sign in with your new password.",
+        "signed_out_everywhere": "You signed out of all devices. Sign in again to continue."
+      },
+      "identifier": "Username or email",
+      "identifierPlaceholder": "your.username or you@example.com",
+      "divider": "or",
+      "rateLimitedWait": "Too many sign-in attempts. Try again in {wait}.",
+      "locked": "Too many unsuccessful attempts. For your security, this account is locked for {wait}. If you forgot your password, use password recovery.",
+      "lockedGeneric": "Too many unsuccessful attempts. For your security, this account is temporarily locked.",
+      "wait": {
+        "seconds": "{count, plural, one {# second} other {# seconds}}",
+        "minutes": "{count, plural, one {# minute} other {# minutes}}",
+        "hours": "{count, plural, one {# hour} other {# hours}}"
       }
     },
     "register": {
-      "title": "Create an Account",
-      "subtitle": "Enter your details below to create your account",
+      "title": "Create your account",
+      "subtitle": "Organize your repertoire and prepare your gigs.",
       "username": "Username",
       "usernamePlaceholder": "e.g. joao.silva",
       "email": "Email",
-      "emailPlaceholder": "john.doe@example.com",
-      "firstName": "First Name",
+      "emailPlaceholder": "you@example.com",
+      "firstName": "First name",
       "firstNamePlaceholder": "John",
-      "lastName": "Last Name",
+      "lastName": "Last name",
       "lastNamePlaceholder": "Doe",
       "password": "Password",
       "passwordPlaceholder": "Create a strong password",
-      "submit": "Sign up",
-      "submitting": "Creating account...",
+      "submit": "Create account",
+      "submitting": "Creating account…",
       "alreadyHaveAccount": "Already have an account?",
       "signIn": "Sign in",
-      "success": "Account created successfully!",
+      "success": "Account created. We sent a confirmation code to {email}.",
       "errors": {
-        "usernameLength": "Username must be between 3 and 128 characters.",
-        "passwordLength": "Password must be between 8 and 256 characters.",
-        "conflict": "Username or email is already in use.",
-        "validation": "Invalid registration data. Please check all fields.",
-        "generic": "Registration failed. Please verify your data and try again.",
-        "serverError": "Unable to reach the server. Please try again later.",
         "incomplete": "Please complete every required field correctly.",
-        "email": "Enter a valid email address or leave it empty.",
-        "rateLimited": "Too many attempts. Wait a moment and try again."
+        "email": "Enter a valid email address."
       },
       "confirmPassword": "Confirm password",
-      "consent": "I've read and agree to the <terms>Terms of Use</terms> and the <privacy>Privacy Policy</privacy>."
+      "emailHint": "We'll send a code to confirm the address.",
+      "optional": "(optional)",
+      "google": "Sign up with Google",
+      "divider": "or with email",
+      "referralToggle": "Have a referral code?",
+      "referral": "Referral code",
+      "referralPlaceholder": "e.g. K7M2QX9TPA",
+      "referralHint": "Whoever referred you receives credits once you confirm your email.",
+      "planChosen": "Chosen plan: {plan}.",
+      "planNote": "During the pre-release period, every feature is available. You'll be able to subscribe once online payments are available.",
+      "planNoteEnforced": "Your account starts with a trial period. Online payments will be available soon."
     }
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome back, {name}!",
+    "welcome": "Welcome back, {name}",
     "analytics": {
-      "description": "Access general analytics and overview stats"
+      "description": "Numbers about your repertoire, setlists and gigs"
     },
     "artists": {
-      "description": "Manage your band's artists"
+      "description": "The artists in your library"
     },
     "songs": {
       "description": "Add and organize your repertoire"
@@ -150,7 +166,7 @@
       "description": "Build and manage your setlists"
     },
     "gigs": {
-      "description": "Schedule shows and link them to a setlist"
+      "description": "Schedule gigs and link a setlist"
     },
     "users": {
       "description": "Manage users and permissions"
@@ -158,13 +174,16 @@
     "bands": {
       "description": "Manage the bands you're part of"
     },
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "tours": {
+      "description": "Seasons of gigs with dates and setlists"
+    }
   },
   "artists": {
     "title": "Artists",
-    "subtitle": "Manage your band's artists.",
+    "subtitle": "The artists in your personal library.",
     "addArtist": "Add Artist",
-    "searchPlaceholder": "Search artist...",
+    "searchPlaceholder": "Search artist…",
     "table": {
       "name": "Name",
       "registeredOn": "Registered on",
@@ -173,18 +192,20 @@
     "empty": "No artists registered. Start by adding one.",
     "emptySearch": "No artists found for \"{search}\".",
     "dialog": {
-      "addTitle": "Add New Artist",
+      "addTitle": "New artist",
       "editTitle": "Edit Artist",
       "addDescription": "Enter details for the new artist.",
       "editDescription": "Update artist details.",
-      "nameLabel": "Artist Name",
+      "nameLabel": "Artist name",
       "namePlaceholder": "e.g., John Mayer",
-      "created": "Artist created!",
-      "updated": "Artist updated!",
-      "saveFailed": "Failed to save artist",
-      "deleteConfirm": "Are you sure you want to delete this artist?",
-      "deleted": "Artist deleted successfully",
-      "deleteFailed": "Error deleting the artist"
+      "created": "Artist created.",
+      "updated": "Artist updated.",
+      "saveFailed": "Couldn't save the artist.",
+      "deleteConfirm": "The artist and their songs go to the trash. You can restore them together within 30 days.",
+      "deleted": "Artist moved to the trash.",
+      "deleteFailed": "Couldn't delete the artist.",
+      "deleteTitle": "Delete artist",
+      "restored": "Artist restored."
     },
     "errors": {
       "nameLength": "Artist name must be between 1 and 255 characters.",
@@ -193,13 +214,12 @@
   },
   "songs": {
     "title": "Songs",
-    "subtitle": "Manage your band's repertoire.",
+    "subtitle": "Your personal song library.",
     "addSong": "Add Song",
     "export": "Export",
     "exportChordpro": "ChordPro (.cho)",
-    "exportSuccess": "Songs exported successfully!",
-    "exportFailed": "Error exporting songs.",
-    "searchPlaceholder": "Search by title, genre, artist...",
+    "exportSuccess": "Songs exported.",
+    "searchPlaceholder": "Search by title, genre, artist…",
     "lyricsTag": "lyrics",
     "table": {
       "title": "Title",
@@ -207,7 +227,9 @@
       "key": "Key",
       "genre": "Genre",
       "bpm": "BPM",
-      "actions": "Actions"
+      "actions": "Actions",
+      "timeSignature": "Time",
+      "energy": "Energy"
     },
     "empty": "No songs registered. Start by adding one.",
     "emptySearch": "No songs found for \"{search}\".",
@@ -215,7 +237,7 @@
       "addTitle": "Add Song",
       "editTitle": "Edit Song",
       "addDescription": "Fill in the details. Lyrics can be added later.",
-      "editDescription": "Update the song data and metadata.",
+      "editDescription": "Update the song details.",
       "titleLabel": "Title",
       "titlePlaceholder": "e.g.: Neon",
       "artistLabel": "Artist",
@@ -228,46 +250,109 @@
       "durationLabel": "Duration",
       "durationPlaceholder": "03:30",
       "lyricsTitle": "Lyrics",
-      "lyricsLines": "{count} lines registered",
+      "lyricsLines": "{count, plural, one {# line registered} other {# lines registered}}",
       "noLyrics": "No lyrics registered",
       "editLyrics": "Edit lyrics",
-      "created": "Song created!",
+      "created": "Song created.",
       "addLyricsNow": "Would you like to add lyrics now?",
       "addLyricsAction": "Add lyrics",
-      "updated": "Song updated!",
-      "saveFailed": "Error saving the song",
-      "deleteConfirm": "Are you sure you want to delete this song?",
-      "deleted": "Song deleted successfully",
-      "deleteFailed": "Error deleting the song",
+      "updated": "Song updated.",
+      "saveFailed": "Couldn't save the song.",
+      "deleteConfirm": "“{title}” goes to the trash and leaves your setlists. You can restore it within 30 days.",
+      "deleted": "Song moved to the trash.",
+      "deleteFailed": "Couldn't delete the song.",
       "durationInvalid": "Enter a valid duration in mm:ss format (e.g. 03:30).",
-      "tagsLabel": "Tags"
+      "tagsLabel": "Tags",
+      "artistRequired": "Choose the song’s artist.",
+      "artistCreateFailed": "Couldn't create the artist.",
+      "artistCreated": "Artist “{name}” created.",
+      "newArtistLabel": "New artist",
+      "newArtistPlaceholder": "Artist name",
+      "newArtistAction": "New artist",
+      "createArtist": "Create",
+      "noArtistsYet": "You don't have any artists yet. Create the first one to add the song.",
+      "deleteTitle": "Delete song",
+      "moveToTrash": "Move to trash",
+      "restored": "Song restored.",
+      "titleRequired": "Enter the song title.",
+      "linksInvalid": "Check the highlighted links before saving.",
+      "tabs": {
+        "basic": "Basics",
+        "music": "Musical details",
+        "links": "Links",
+        "tags": "Tags"
+      },
+      "timeSignatureLabel": "Time signature",
+      "capoLabel": "Capo",
+      "tuningLabel": "Tuning",
+      "tuningPlaceholder": "e.g. Half step down",
+      "tuningHint": "Pick a suggestion or type your own (up to 40 characters).",
+      "energyLabel": "Energy",
+      "energyHint": "How the song feels on stage. Used in the setlist flow analysis.",
+      "notesLabel": "Performance notes",
+      "notesPlaceholder": "e.g. Intro with voice and guitar only. Second chorus goes up a half step.",
+      "charCount": "{count}/{max} characters",
+      "tagsHint": "Tags help you filter your repertoire (e.g. opener, ballad, encore)."
     },
     "menu": {
       "editDetails": "Edit details",
       "editLyrics": "Edit lyrics",
-      "delete": "Delete"
+      "delete": "Delete",
+      "details": "View details",
+      "liveMode": "Live Mode",
+      "exportPdf": "Export PDF",
+      "exportChordpro": "Export ChordPro"
     },
     "errors": {
       "titleLength": "Song title must be between 1 and 255 characters.",
       "artistRequired": "Artist is required.",
       "invalidId": "Invalid song ID."
     },
-    "tagFilterLabel": "Vibe:",
+    "tagFilterLabel": "Tags:",
     "clearTagFilter": "Clear",
     "filterByTag": "Show songs tagged “{tag}”",
-    "manageTags": "Tags"
+    "manageTags": "Tags",
+    "emptyTagFilter": "No songs tagged “{tag}”.",
+    "importChordpro": "Import ChordPro",
+    "capo": {
+      "none": "No capo",
+      "fret": "Fret {fret}"
+    },
+    "tuning": {
+      "suggestions": {
+        "standard": "Standard",
+        "halfStepDown": "Half step down",
+        "wholeStepDown": "Whole step down",
+        "dropD": "Drop D",
+        "dropC": "Drop C",
+        "openG": "Open G",
+        "openD": "Open D",
+        "dadgad": "DADGAD"
+      }
+    },
+    "energy": {
+      "notSet": "Not set",
+      "meterTitle": "Energy: {label}",
+      "levels": {
+        "veryLow": "Very low",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "veryHigh": "Very high"
+      }
+    }
   },
   "lyrics": {
     "editTitle": "Edit Lyrics",
     "save": "Save",
     "cancel": "Cancel",
-    "saving": "Saving...",
-    "saved": "Lyrics saved successfully!",
-    "saveFailed": "Error saving lyrics",
-    "loadFailed": "Error loading lyrics",
+    "saving": "Saving…",
+    "saved": "Lyrics saved.",
+    "saveFailed": "Couldn't save the lyrics.",
+    "loadFailed": "Couldn't load the lyrics.",
     "preview": "Preview",
     "noLyrics": "No lyrics registered.",
-    "stats": "{lines} lines · {chars} characters",
+    "stats": "{lines, plural, one {# line} other {# lines}} · {chars, plural, one {# character} other {# characters}}",
     "toolbar": {
       "bold": "Bold (Ctrl+B)",
       "italic": "Italic (Ctrl+I)",
@@ -313,22 +398,23 @@
       "adLib": "Ad lib",
       "spoken": "Spoken",
       "rap": "Rap",
-      "fadeOut": "Fade out"
+      "fadeOut": "Fade out",
+      "insertAction": "Insert"
     },
     "help": {
       "title": "ChordPro Format",
       "intro": "Setlyst reads ChordPro and also the formats most chord sites use.",
       "inlineChords": "Chords in brackets, right before the syllable they fall on.",
-      "sections": "A section on its own line — in English, Portuguese or Spanish, with or without brackets, numbers and repeats (\"Verse 2\", \"Refrão x2\").",
+      "sections": "A section on its own line, in English, Portuguese or Spanish, with or without brackets, numbers and repeats (\"Verse 2\", \"Chorus x2\").",
       "environments": "ChordPro sections: chorus, verse, bridge, and {sot}…{eot} for tabs.",
       "comment": "A note for the band, shown in the lyrics.",
       "formatting": "Bold, italic and underline.",
-      "pasteTip": "Tip: pasting a song with chords on the line above the lyrics just works — they're placed over the right syllables automatically."
+      "pasteTip": "Tip: when you paste a song with the chords on the line above the lyrics, they are placed over the right syllables automatically."
     },
-    "readOnlyOffline": "Offline — read only",
+    "readOnlyOffline": "Offline: read only",
     "loadFailedOffline": "These lyrics aren't saved on this device yet.",
     "commentPlaceholder": "note",
-    "placeholder": "[Verse 1]\n[Am]Type the [G]lyrics here — chords in brackets before the syllable\n\n[Chorus]\n[C]Or paste a song with the chords on the line above the lyrics",
+    "placeholder": "[Verse 1]\n[Am]Type the [G]lyrics here, with chords in brackets before the syllable\n\n[Chorus]\n[C]Or paste a song with the chords on the line above the lyrics",
     "noChanges": "No changes to save",
     "discardTitle": "Discard changes?",
     "discardDescription": "Your edits to these lyrics haven't been saved and will be lost.",
@@ -341,18 +427,18 @@
   },
   "setlists": {
     "title": "Setlists",
-    "subtitle": "Manage your setlists. Click one to edit the songs.",
+    "subtitle": "Your personal setlists. Open one to arrange its songs.",
     "addSetlist": "Add Setlist",
     "liveModeBtn": "Live Mode",
-    "analyticsBtn": "Analytics",
+    "analyticsBtn": "Statistics",
     "favorite": "Favorite",
     "unfavorite": "Remove from favorites",
-    "searchPlaceholder": "Search setlist...",
+    "searchPlaceholder": "Search setlist…",
     "totalDuration": "Total Duration",
     "analytics": {
-      "title": "Setlist Analytics",
+      "title": "Setlist statistics",
       "chartTitle": "Tempo progression",
-      "chartDescription": "BPM of each song in setlist order — see where the show dips and where it takes off.",
+      "chartDescription": "BPM of each song in setlist order. Shows where the set slows down and where it picks up.",
       "bpmAxisLabel": "BPM",
       "empty": "Add songs with a BPM set to see the chart.",
       "breakDefaultLabel": "Break",
@@ -368,8 +454,62 @@
         "high": "High (> 130 BPM)",
         "block": "Block",
         "break": "Break",
-        "hint": "Hover a point for details"
-      }
+        "hint": "Hover a point for details",
+        "blockLine": "Block start",
+        "breakLine": "Break"
+      },
+      "emptyReport": "Add songs to the setlist to see the flow analysis.",
+      "addSongs": "Open setlist",
+      "energyAxisLabel": "Energy",
+      "noBpm": "No BPM",
+      "flowTitle": "Show flow",
+      "flowDescription": "Tempo and energy of each song in running order. Dashed lines mark breaks; solid lines, blocks.",
+      "showTable": "Show as table",
+      "showCharts": "Show charts",
+      "tableCaption": "Setlist songs with key, BPM, energy and duration",
+      "bpmChartTitle": "Tempo (BPM)",
+      "bpmChartAria": "BPM chart for {count, plural, one {# song} other {# songs}}, from {min} to {max} BPM. Use the table for exact values.",
+      "energyChartTitle": "Energy (1 to 5)",
+      "energyChartAria": "Energy chart for {count, plural, one {# song} other {# songs}}. Use the table for exact values.",
+      "table": {
+        "title": "Song",
+        "key": "Key",
+        "bpm": "BPM",
+        "energy": "Energy",
+        "timeSignature": "Time signature",
+        "duration": "Duration"
+      },
+      "csv": {
+        "order": "Running order",
+        "insights": "Strengths and improvements",
+        "kind": "Type",
+        "message": "Note"
+      },
+      "kpi": {
+        "songs": "Songs",
+        "blocks": "{count, plural, one {in # block} other {in # blocks}}",
+        "duration": "Total length",
+        "breaks": "includes {minutes} min of breaks",
+        "energy": "Average energy",
+        "energyValue": "{value} of 5"
+      },
+      "keysTitle": "Keys through the set",
+      "keysNone": "No song has a key set.",
+      "keysSummary": "{changes, plural, =0 {No key changes} one {# key change} other {# key changes}}, {keys, plural, one {# distinct key} other {# distinct keys}}. Highlighted: songs where the key changes.",
+      "blocksTitle": "Length per block",
+      "blocksDescription": "Music time in each block, breaks not included.",
+      "blocksUnnamed": "Before the first block",
+      "blocksMissing": "{count, plural, one {# song without duration} other {# songs without duration}}",
+      "songCount": "{count, plural, one {# song} other {# songs}}",
+      "coverageTitle": "Data coverage",
+      "coverageDescription": "The analysis is only as good as the song data.",
+      "coverage": {
+        "energy": "Energy",
+        "tempo": "BPM",
+        "key": "Key",
+        "duration": "Duration"
+      },
+      "coverageFix": "Fill in data in the setlist"
     },
     "table": {
       "title": "Title",
@@ -389,15 +529,13 @@
       "showBlocks": "Show blocks",
       "showBreaks": "Show breaks",
       "export": "Export PDF",
-      "exporting": "Exporting...",
-      "exportSuccess": "PDF exported successfully!",
-      "exportFailed": "Failed to export PDF.",
+      "exporting": "Exporting…",
+      "exportSuccess": "PDF exported.",
       "language": "PDF language",
       "subtitle": "Subtitle",
       "subtitlePlaceholder": "e.g. Blue Note · Sat 9pm",
       "saveAsDefault": "Save as my default",
       "resetOptions": "Reset",
-      "rateLimited": "Too many exports in a row. Wait a moment and try again.",
       "defaultNotSaved": "The PDF was created, but the options couldn't be saved as default."
     },
     "empty": "No setlists registered.",
@@ -409,20 +547,26 @@
       "duplicate": "Duplicate"
     },
     "dialog": {
-      "addTitle": "Add New Setlist",
+      "addTitle": "New setlist",
       "editTitle": "Edit Setlist",
       "description": "Enter the setlist details below.",
       "titleLabel": "Title",
-      "titlePlaceholder": "e.g., Summer Tour 2026",
-      "descriptionLabel": "Description (Optional)",
-      "descriptionPlaceholder": "e.g., Main stage performance",
-      "created": "Setlist created!",
-      "updated": "Setlist updated!",
-      "saveFailed": "Failed to save setlist",
-      "deleteConfirm": "Are you sure you want to delete this setlist?",
-      "deleted": "Setlist deleted",
-      "duplicated": "Setlist duplicated!",
-      "copyTitle": "{title} (copy)"
+      "titlePlaceholder": "e.g. Summer tour 2026",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "e.g. Main stage performance",
+      "created": "Setlist created.",
+      "updated": "Setlist updated.",
+      "saveFailed": "Couldn't save the setlist.",
+      "deleteConfirm": "“{title}” goes to the trash and stops showing on gigs and on its public link. You can restore it within 30 days.",
+      "deleted": "Setlist moved to the trash.",
+      "duplicated": "Setlist duplicated.",
+      "copyTitle": "{title} (copy)",
+      "linksLabel": "Reference links",
+      "linksInvalid": "Check the highlighted links before saving.",
+      "deleteTitle": "Delete setlist",
+      "moveToTrash": "Move to trash",
+      "restored": "Setlist restored.",
+      "duplicatedSkipped": "Setlist duplicated. {count, plural, one {# band song was left out} other {# band songs were left out}}: band songs don't go into personal setlists."
     },
     "songs": {
       "title": "Songs in this Setlist",
@@ -440,8 +584,8 @@
         "duration": "Duration"
       },
       "removeConfirm": "Remove this song from the setlist?",
-      "removed": "Song removed",
-      "orderSaved": "Order saved successfully",
+      "removed": "Song removed from the setlist.",
+      "orderSaved": "Order saved.",
       "addDialog": {
         "title": "Add Song to Setlist",
         "description": "Select a song from your repertoire to add to this setlist.",
@@ -449,8 +593,33 @@
         "selectSong": "Select a song",
         "noMoreSongs": "No more songs available",
         "addButton": "Add Song",
-        "added": "Song added to setlist!",
-        "addFailed": "Failed to add song"
+        "added": "Song added to setlist.",
+        "addFailed": "Couldn't add the song.",
+        "suggestTitle": "Suggest a song to the band",
+        "suggestDescription": "You can't change this setlist, but you can suggest a song. The band votes and whoever manages setlists decides.",
+        "suggestLocked": "Song suggestions aren't included in your plan.",
+        "close": "Close",
+        "tabs": {
+          "repertoire": "Band repertoire",
+          "mine": "My songs"
+        },
+        "suggested": "Suggestion sent to the band.",
+        "suggestFailed": "Couldn't send the suggestion.",
+        "copyHint": "The band gets a copy of the song; editing your own version later doesn't change the band's.",
+        "suggestButton": "Send suggestion",
+        "noteLabel": "Note to the band",
+        "optional": "optional",
+        "notePlaceholder": "e.g. Works well right after the break.",
+        "searchRepertoire": "Search the repertoire",
+        "loading": "Loading…",
+        "repertoireNoMatch": "No repertoire song matches “{query}”.",
+        "repertoireEmpty": "The band repertoire is still empty. Add songs from My songs.",
+        "alreadyIn": "Already in the setlist",
+        "suggestNamed": "Suggest “{title}”",
+        "addNamed": "Add “{title}”",
+        "suggestShort": "Suggest",
+        "addShort": "Add",
+        "repertoireMore": "Showing {shown} of {total}. Refine the search to find others."
       },
       "addSection": "Add section",
       "addBlock": "Add block",
@@ -458,26 +627,30 @@
       "blockLabel": "Block",
       "breakDefaultLabel": "Break",
       "breakMinutes": "{count} min",
-      "blockAdded": "Block added",
-      "blockUpdated": "Block updated",
-      "breakAdded": "Break added",
-      "breakUpdated": "Break updated",
-      "markerDeleted": "Removed",
+      "blockAdded": "Block added.",
+      "blockUpdated": "Block updated.",
+      "breakAdded": "Break added.",
+      "breakUpdated": "Break updated.",
+      "markerDeleted": "Item removed.",
       "markerDeleteConfirm": "Remove this item from the setlist?",
       "addBlockTitle": "Add Block",
       "editBlockTitle": "Edit Block",
-      "blockDialogDescription": "Group songs under a named section, e.g. \"Ballads\" or \"Uptempo\".",
+      "blockDialogDescription": "Group songs under a heading, e.g. \"Ballads\" or \"Set 2\".",
       "blockNameLabel": "Block name",
-      "blockNamePlaceholder": "e.g., Ballads Block",
+      "blockNamePlaceholder": "e.g. Ballads",
       "addBreakTitle": "Add Break",
       "editBreakTitle": "Edit Break",
-      "breakDialogDescription": "A visual pause in the setlist — not a song.",
+      "breakDialogDescription": "A pause in the running order. It doesn't count as a song.",
       "breakLabelLabel": "Label (optional)",
       "breakDurationLabel": "Duration (minutes, optional)",
       "playFromHere": "Open Live Mode from this song",
       "removeSong": "Remove from setlist",
       "addBlockHint": "A named header that groups songs",
-      "addBreakHint": "A pause between songs, with optional duration"
+      "addBreakHint": "A pause between songs, with optional duration",
+      "removeTitle": "Remove song",
+      "playSong": "Open “{title}” in Live Mode",
+      "dragHandle": "Drag to reorder (or Space and arrow keys)",
+      "suggestSong": "Suggest a song"
     },
     "errors": {
       "titleLength": "Setlist title must be between 1 and 255 characters.",
@@ -497,23 +670,32 @@
       "linkLabel": "Public link",
       "copyLink": "Copy link",
       "qrCode": "Generate QR Code",
-      "linkCopied": "Link copied!",
+      "linkCopied": "Link copied.",
       "enableAction": "Generate public link",
       "enableHint": "The link can be disabled at any time.",
-      "enabled": "Public link generated!",
+      "enabled": "Public link generated.",
       "regenerateAction": "Generate new link",
       "regenerateHint": "Generating a new link immediately invalidates the previous one.",
       "disableAction": "Disable link",
       "disableConfirm": "Are you sure? The current link will stop working immediately for anyone who has it.",
-      "disabled": "Public link disabled"
+      "disabled": "Public link disabled."
     },
-    "songCount": "{count, plural, one {# song} other {# songs}}"
+    "songCount": "{count, plural, one {# song} other {# songs}}",
+    "editBtn": "Edit",
+    "linksTitle": "Links",
+    "repertoire": {
+      "name": "Repertoire",
+      "badge": "Repertoire",
+      "tooltip": "Collects every song of the band",
+      "explanation": "The repertoire collects every song of the band. Any song added to a band setlist lands here automatically, and you build new setlists from it.",
+      "editHint": "The repertoire can't be renamed. You can change its description and links."
+    }
   },
   "gigs": {
     "title": "Shows",
     "subtitle": "Manage your upcoming and past gigs.",
     "addGig": "Add Gig",
-    "searchPlaceholder": "Search gigs...",
+    "searchPlaceholder": "Search gigs…",
     "upcoming": "Upcoming",
     "past": "Past",
     "table": {
@@ -530,7 +712,7 @@
       "delete": "Delete"
     },
     "dialog": {
-      "addTitle": "Add New Gig",
+      "addTitle": "New gig",
       "editTitle": "Edit Gig",
       "description": "Enter the gig details below.",
       "venueLabel": "Venue",
@@ -550,11 +732,16 @@
       "noSetlistOption": "No setlist yet",
       "notesLabel": "Notes (optional)",
       "notesPlaceholder": "e.g., Load in at 7pm, contact promoter beforehand",
-      "created": "Gig created!",
-      "updated": "Gig updated!",
-      "saveFailed": "Failed to save gig",
-      "deleteConfirm": "Are you sure you want to delete this gig?",
-      "deleted": "Gig deleted"
+      "created": "Gig created.",
+      "updated": "Gig updated.",
+      "saveFailed": "Couldn't save the gig.",
+      "deleteConfirm": "The gig goes to the trash. You can restore it within 30 days.",
+      "deleted": "Gig moved to the trash.",
+      "deleteTitle": "Delete gig",
+      "restored": "Gig restored.",
+      "tourLabel": "Tour",
+      "noTourOption": "No tour",
+      "currentTour": "Current tour"
     },
     "errors": {
       "venueLength": "Venue must be between 1 and 255 characters.",
@@ -572,25 +759,27 @@
       "linkLabel": "Public link",
       "copyLink": "Copy link",
       "qrCode": "Generate QR Code",
-      "linkCopied": "Link copied!",
+      "linkCopied": "Link copied.",
       "enableAction": "Generate public link",
       "enableHint": "The link can be disabled at any time.",
-      "enabled": "Public link generated!",
+      "enabled": "Public link generated.",
       "regenerateAction": "Generate new link",
       "regenerateHint": "Generating a new link immediately invalidates the previous one.",
       "disableAction": "Disable link",
       "disableConfirm": "Are you sure? The current link will stop working immediately for anyone who has it.",
-      "disabled": "Public link disabled"
+      "disabled": "Public link disabled."
     },
     "setlistFor": "Setlist: {title}",
     "noSetlistLinked": "No setlist linked to this gig yet.",
     "linkSetlistAction": "Link a setlist",
-    "noSetlistsAvailable": "Create a setlist first to link it to this gig."
+    "noSetlistsAvailable": "Create a setlist first to link it to this gig.",
+    "tourFilter": "Showing the gigs of the tour “{name}”.",
+    "clearTourFilter": "Show all"
   },
   "liveMode": {
     "noSongs": "No songs in this setlist",
     "songPosition": "{current} of {total}",
-    "singleSongMode": "Live Mode — Single Song",
+    "singleSongMode": "Live Mode: single song",
     "back": "Back",
     "nextSong": "Next song",
     "endOfShow": "END OF SHOW",
@@ -631,20 +820,20 @@
     },
     "display": {
       "highContrast": "High contrast",
-      "highContrastHelp": "Black background, white lyrics and bright chords — easier to read under stage lights",
+      "highContrastHelp": "Black background, white lyrics and bright chords. Easier to read under stage lights.",
       "fitToScreen": "Compact mode",
-      "fitToScreenHelp": "Fits the whole song on one screen, in columns when there's room — no scrolling",
-      "fitOverflow": "Too long to fit on one screen at a readable size — scroll for the rest."
+      "fitToScreenHelp": "Fits the whole song on one screen, in columns when there's room, with no scrolling.",
+      "fitOverflow": "Too long to fit on one screen at a readable size. Scroll for the rest."
     },
     "fullscreen": "Fullscreen",
     "swipeHint": "Swipe to change songs",
     "sheet": {
-      "title": "Live settings",
+      "title": "Live Mode settings",
       "open": "Settings",
       "description": "Changes apply instantly and stay on this device.",
       "close": "Close settings",
       "autoScroll": "Auto-scroll",
-      "autoScrollFitHint": "Not needed in compact mode — the whole song is on screen",
+      "autoScrollFitHint": "Not needed in compact mode: the whole song is already on screen.",
       "metronome": "Metronome",
       "chords": "Chords",
       "text": "Text",
@@ -676,13 +865,13 @@
     "notSynced": "Not saved for offline use yet",
     "offlineBannerTitle": "You're offline.",
     "offlineBannerAvailable": "{count, plural, one {# item saved and available offline} other {# items saved and available offline}}",
-    "offlineBannerEmpty": "Nothing saved for offline use yet — connect once to sync your setlists and songs.",
+    "offlineBannerEmpty": "Nothing is saved for offline use yet. Connect once to sync your setlists and songs.",
     "downloadTitle": "Offline access",
-    "downloadDescription": "Download every setlist and song to this device, so they — and Live Mode — keep working with no signal.",
+    "downloadDescription": "Download every setlist and song to this device, so they and Live Mode keep working without a connection.",
     "downloadSetlistsCount": "{count, plural, one {# setlist offline} other {# setlists offline}}",
     "downloadSongsCount": "{count, plural, one {# song offline} other {# songs offline}}",
     "downloadBtn": "Download for offline use",
-    "downloadOfflineHint": "You're offline — connect to the internet to download the latest version.",
+    "downloadOfflineHint": "You're offline. Connect to the internet to download the latest version.",
     "downloadSummary": "{total, plural, one {# item} other {# items}} available offline · updated {time}",
     "downloadNeverSynced": "Nothing downloaded yet.",
     "downloadGigsCount": "{count, plural, one {# show offline} other {# shows offline}}",
@@ -690,14 +879,14 @@
     "progressLibrary": "Downloading your library…",
     "progressSetlists": "Saving setlists ({completed} of {total})…",
     "progressPages": "Saving pages for offline use…",
-    "readOnlyNotice": "You're offline — everything here is readable, but creating and editing need a connection.",
+    "readOnlyNotice": "You're offline. Everything can be read, but creating and editing need a connection.",
     "actionNeedsConnection": "Needs a connection"
   },
   "users": {
     "title": "Users",
     "subtitle": "Manage platform members.",
     "addUser": "Add User",
-    "searchPlaceholder": "Search by username, email...",
+    "searchPlaceholder": "Search by username, email…",
     "table": {
       "user": "User",
       "email": "Email",
@@ -707,13 +896,13 @@
     },
     "empty": "No users found.",
     "roles": {
-      "user": "user",
-      "moderator": "moderator",
-      "admin": "admin"
+      "user": "User",
+      "moderator": "Moderator",
+      "admin": "Administrator"
     },
     "statuses": {
-      "active": "active",
-      "inactive": "inactive"
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "dialog": {
       "addTitle": "Add New User",
@@ -723,7 +912,7 @@
       "usernameLabel": "Username",
       "usernameHistoryTitle": "Username history",
       "usernameHistoryEmpty": "This user has never changed their username.",
-      "usernameHistoryLoading": "Loading history...",
+      "usernameHistoryLoading": "Loading history…",
       "emailLabel": "Email",
       "passwordLabel": "Password",
       "firstNameLabel": "First Name",
@@ -732,13 +921,13 @@
       "statusLabel": "Status",
       "saveChanges": "Save Changes",
       "createUser": "Create User",
-      "created": "User created successfully!",
-      "updated": "User updated successfully!",
-      "createFailed": "Error creating user",
-      "updateFailed": "Error updating user",
+      "created": "User created.",
+      "updated": "User updated.",
+      "createFailed": "Couldn't create the user.",
+      "updateFailed": "Couldn't update the user.",
       "deleteConfirm": "Are you sure you want to delete this user?",
-      "deleted": "User deleted successfully",
-      "deleteFailed": "Error deleting the user"
+      "deleted": "User deleted.",
+      "deleteFailed": "Couldn't delete the user."
     },
     "passwordDialog": {
       "title": "Change Password",
@@ -746,9 +935,9 @@
       "newPassword": "New Password",
       "confirmPassword": "Confirm New Password",
       "update": "Update Password",
-      "success": "Password changed successfully!",
+      "success": "Password changed.",
       "mismatch": "Passwords do not match.",
-      "failed": "Error changing password"
+      "failed": "Couldn't change the password."
     },
     "menu": {
       "edit": "Edit",
@@ -757,79 +946,234 @@
     },
     "errors": {
       "unauthorized": "Unauthorized.",
-      "forbidden": "Forbidden. Insufficient permissions.",
-      "forbiddenAdmin": "Forbidden. Cannot assign admin role.",
+      "forbidden": "You don't have permission for this action.",
+      "forbiddenAdmin": "You can't assign the administrator role.",
       "invalidId": "Invalid user ID.",
       "usernameLength": "Username must be between 3 and 20 characters.",
       "passwordLength": "Password must be between 8 and 100 characters.",
-      "createFailed": "Failed to create user.",
-      "updateFailed": "Failed to update user.",
-      "deleteFailed": "Failed to delete user.",
-      "passwordFailed": "Failed to change password."
+      "createFailed": "Couldn't create the user.",
+      "updateFailed": "Couldn't update the user.",
+      "deleteFailed": "Couldn't delete the user.",
+      "passwordFailed": "Couldn't change the password."
     }
   },
   "userProfile": {
-    "joinedOn": "Joined on {date}",
-    "adminSectionTitle": "Admin details",
+    "joinedOn": "Member since {date}",
+    "adminSectionTitle": "Administrative information",
     "emailLabel": "Email",
-    "noEmail": "Not set",
+    "noEmail": "Not provided",
     "roleLabel": "Role",
     "statusLabel": "Status",
-    "usernameChangedLabel": "Username last changed on",
-    "manageInUsers": "Manage in the Users page"
+    "usernameChangedLabel": "Username changed on",
+    "manageInUsers": "Open in the users screen",
+    "back": "Back",
+    "editOwn": "Edit profile",
+    "selfNotice": "This is how other musicians see your profile.",
+    "instruments": "Instruments",
+    "bandsInCommon": "Bands in common",
+    "noBandsInCommon": "You don't share any band yet.",
+    "statusBanned": "Suspended",
+    "statuses": {
+      "active": "Active",
+      "inactive": "Deactivated"
+    },
+    "lastLoginLabel": "Last sign-in",
+    "openFlags": "Open attention points",
+    "report": {
+      "action": "Report profile",
+      "reported": "Report sent",
+      "title": "Report @{username}",
+      "description": "The moderation team will review the profile. The person reported doesn't learn who reported them.",
+      "reasonLabel": "Reason",
+      "reasons": {
+        "inappropriate_avatar": {
+          "label": "Inappropriate picture",
+          "hint": "Nudity, violence, hate or other improper content."
+        },
+        "offensive_username": {
+          "label": "Offensive name",
+          "hint": "Username or name with insults, discrimination or harassment."
+        },
+        "impersonation": {
+          "label": "Impersonation",
+          "hint": "The profile pretends to be another person or artist."
+        },
+        "spam": {
+          "label": "Spam",
+          "hint": "Abusive promotion or an account created to deceive."
+        },
+        "other": {
+          "label": "Other reason",
+          "hint": "Describe it in the details below."
+        }
+      },
+      "detailsLabel": "Details (optional)",
+      "detailsPlaceholder": "Tell us what happened, if you want.",
+      "privacy": "False or repeated reports may lead to restrictions on your account.",
+      "cancel": "Cancel",
+      "submit": "Send report",
+      "sent": "Report sent. Thank you for helping keep Setlyst safe.",
+      "alreadyReported": "You already reported this profile. Moderation is reviewing it."
+    }
   },
   "profile": {
-    "title": "Account Settings",
-    "subtitle": "Manage your public profile and account security preferences.",
-    "personalInfo": "Personal Information",
-    "editProfile": "Edit Profile",
-    "saveChanges": "Save Changes",
-    "saving": "Saving...",
-    "firstNameLabel": "First Name",
-    "lastNameLabel": "Last Name",
+    "title": "My profile",
+    "subtitle": "How other musicians see you on Setlyst.",
+    "personalInfo": "Personal information",
+    "saveChanges": "Save changes",
+    "saving": "Saving…",
+    "firstNameLabel": "First name",
+    "lastNameLabel": "Last name",
     "usernameLabel": "Username",
     "usernameTaken": "This username is already taken.",
-    "usernameAvailable": "Username available!",
-    "usernameCooldown": "You'll be able to change your username again on {date}.",
-    "emailLabel": "Email Address",
-    "joinedOn": "Joined on {date}",
-    "success": "Profile updated successfully",
-    "failed": "Failed to update profile",
-    "changePasswordTitle": "Change Password",
-    "changePasswordDescription": "Choose a strong password you don't use anywhere else.",
-    "currentPassword": "Current Password",
-    "newPassword": "New Password",
-    "confirmPassword": "Confirm New Password",
-    "updatePassword": "Update Password",
-    "passwordsDoNotMatch": "Passwords do not match.",
-    "passwordChanged": "Your password has been changed successfully!",
-    "security": "Security",
-    "securityDescription": "Manage your account's security.",
+    "usernameAvailable": "Username available.",
+    "usernameCooldown": "You can change your username again on {date}.",
+    "joinedOn": "Member since {date}",
+    "success": "Profile updated.",
+    "failed": "Couldn't update the profile.",
     "errors": {
-      "usernameLength": "Username must be between 1 and 128 characters.",
-      "missingFields": "Please fill in all required fields.",
-      "passwordTooShort": "Password must be at least 8 characters."
+      "usernameLength": "The username must be between 1 and 128 characters.",
+      "invalid": "Review the profile fields and try again."
     },
-    "passwordChangedOn": "Password last changed on {date}."
+    "personalInfoDescription": "Name, username and what appears on your public profile.",
+    "usernameHint": "After a change, you can only change it again after a few days.",
+    "bioLabel": "About you",
+    "bioPlaceholder": "e.g. guitarist and singer, I play pop and rock covers in bars around town.",
+    "counter": "{count}/{max}",
+    "locationLabel": "City",
+    "locationPlaceholder": "e.g. Caxias do Sul, Brazil",
+    "instrumentsLabel": "Instruments",
+    "instruments": {
+      "hint": "Up to 8 instruments. Press Enter or a comma to add.",
+      "placeholder": "e.g. guitar, vocals, keyboard",
+      "more": "Add another",
+      "full": "Limit of 8 instruments",
+      "remove": "Remove {instrument}"
+    },
+    "discard": "Discard",
+    "viewPublic": "View public profile",
+    "securityLink": "Password and security",
+    "securityLinkHint": "Password, two-step verification and Google",
+    "avatar": {
+      "title": "Profile picture",
+      "description": "Use the link of an image published on the internet.",
+      "preview": "Preview",
+      "label": "Image link",
+      "invalid": "Use an https link to a PNG, JPEG, WebP, GIF or AVIF image.",
+      "help": "https links to PNG, JPEG, WebP, GIF or AVIF images, up to 3 MB. SVG isn't accepted. The image is checked automatically and must follow the <guidelines>Community Guidelines</guidelines>.",
+      "save": "Save picture",
+      "remove": "Remove picture",
+      "saved": "Profile picture updated.",
+      "removed": "Profile picture removed."
+    },
+    "email": {
+      "title": "Email",
+      "description": "Used to recover access, for security notices and for the communications you choose. It doesn't appear on your profile.",
+      "verified": "Confirmed",
+      "unverified": "Not confirmed",
+      "unverifiedHint": "Confirm your email to receive notices and be able to recover access to your account.",
+      "none": "No email on file.",
+      "verify": "Confirm email",
+      "change": "Change email",
+      "add": "Add email"
+    }
   },
   "analytics": {
-    "title": "Analytics",
-    "subtitle": "An overview of everything relevant to your activity.",
+    "title": "Statistics",
+    "subtitle": "Figures about your repertoire, setlists and activity.",
     "activity": {
       "title": "Recent activity",
       "subtitle": "Daily counts over the selected period.",
-      "rangeDays": "{count} days",
+      "rangeDays": "{count, plural, one {# day} other {# days}}",
       "newUsers": "New users",
       "newSongs": "Songs added",
       "newSetlists": "Setlists created",
       "newBands": "Bands created",
       "mySongs": "My songs",
       "mySetlists": "My setlists",
-      "myGigs": "My gigs"
+      "myGigs": "My gigs",
+      "rangeLabel": "Period"
     },
     "overview": {
       "title": "Overview",
       "subtitle": "Totals and breakdowns of your repertoire."
+    },
+    "export": {
+      "button": "Export",
+      "pdf": "Report as PDF",
+      "png": "PNG image",
+      "csvGroup": "Tables as CSV",
+      "csvDone": "CSV exported.",
+      "pngDone": "Image exported.",
+      "pdfDone": "PDF exported.",
+      "failed": "Couldn't create the file. Try again.",
+      "locked": "Exporting statistics isn't included in your plan.",
+      "seePlans": "See plans",
+      "generatedOn": "Generated on {date}"
+    },
+    "kpi": {
+      "title": "Summary",
+      "songs": "Songs",
+      "artists": "Artists",
+      "setlists": "Setlists",
+      "upcomingGigs": "Upcoming gigs",
+      "repertoireTime": "Repertoire time",
+      "repertoireTimeHint": "sum of durations",
+      "averageBpm": "Average BPM",
+      "averageEnergy": "Average energy",
+      "energyValue": "{value} of 5"
+    },
+    "breakdowns": {
+      "title": "Your repertoire",
+      "subtitle": "How your personal songs are spread.",
+      "keys": "Keys",
+      "keysHint": "The 12 most used keys. {missing, plural, =0 {Every song has a key.} one {# song without a key.} other {# songs without a key.}}",
+      "bpm": "BPM ranges",
+      "bpmHint": "{missing, plural, =0 {Every song has a BPM.} one {# song without BPM.} other {# songs without BPM.}}",
+      "energy": "Energy distribution",
+      "energyHint": "{missing, plural, =0 {Every song has an energy level.} one {# song without energy.} other {# songs without energy.}}",
+      "genres": "Genres",
+      "artists": "Artists",
+      "topHint": "The 10 most frequent.",
+      "empty": "Not enough data yet."
+    },
+    "bpmRanges": {
+      "under70": "Up to 69",
+      "70to89": "70 to 89",
+      "90to109": "90 to 109",
+      "110to129": "110 to 129",
+      "130to149": "130 to 149",
+      "150plus": "150 or more"
+    },
+    "coverage": {
+      "title": "Data coverage",
+      "subtitle": "How much of the repertoire has each detail. The more complete, the better the analyses.",
+      "lyrics": "Lyrics",
+      "key": "Key",
+      "bpm": "BPM",
+      "energy": "Energy",
+      "duration": "Duration",
+      "timeSignature": "Time signature",
+      "links": "Links"
+    },
+    "platform": {
+      "title": "Platform",
+      "subtitle": "Totals across every account (staff only)."
+    },
+    "csv": {
+      "summary": "Summary",
+      "metric": "Metric",
+      "value": "Value",
+      "key": "Key",
+      "songs": "Songs",
+      "range": "Range",
+      "energy": "Energy",
+      "genre": "Genre",
+      "artist": "Artist",
+      "field": "Field",
+      "filled": "Filled",
+      "total": "Total",
+      "date": "Date"
     }
   },
   "metrics": {
@@ -838,22 +1182,22 @@
     "active": "Active",
     "inactive": "Inactive",
     "topGenres": {
-      "title": "Top Genres",
-      "description": "Your most played musical genres",
-      "globalTitle": "Popular Genres",
-      "globalDescription": "Top genres on the platform"
+      "title": "Most frequent genres",
+      "description": "The genres that appear most in your repertoire",
+      "globalTitle": "Genres on the platform",
+      "globalDescription": "The most frequent genres across all repertoires"
     },
     "topArtists": {
-      "title": "Top Artists",
-      "description": "Artists with the most registered songs"
+      "title": "Artists with the most songs",
+      "description": "How many songs by each artist are in your repertoire"
     },
     "repertoireHealth": {
-      "title": "Repertoire Health",
-      "description": "Metrics about the completeness of your songs",
+      "title": "Repertoire completeness",
+      "description": "How many songs already have lyrics, key and BPM",
       "withLyrics": "With Lyrics",
       "withoutLyrics": "Without Lyrics",
-      "withTonality": "With Key",
-      "withBpm": "With BPM (Tempo)"
+      "withTonality": "With key",
+      "withBpm": "With BPM"
     },
     "platformOverview": {
       "title": "Platform Overview",
@@ -875,8 +1219,8 @@
     "overview": "Overview"
   },
   "settings": {
-    "title": "Preferences",
-    "description": "Manage your application settings and preferences.",
+    "title": "Settings",
+    "description": "App preferences, account security, communications and subscription.",
     "generalTitle": "General",
     "generalDescription": "Language and appearance of the application.",
     "language": "Language",
@@ -884,42 +1228,40 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
-    "liveModeFontSize": "Live Mode Font Size",
-    "liveModeFontSizeHelp": "Base font size for the Live Mode teleprompter (50% to 300%).",
+    "liveModeFontSize": "Font size (Live Mode)",
+    "liveModeFontSizeHelp": "Base text size in Live Mode, from 50% to 300%.",
     "save": "Save preferences",
-    "saveSuccess": "Preferences updated successfully!",
-    "backupTitle": "Data Backup",
+    "saveSuccess": "Preferences saved.",
+    "backupTitle": "Data backup",
     "backupDescription": "Export your complete repertoire or restore it from a previous backup file (.json).",
-    "backupExportBtn": "Export Backup",
-    "backupImportBtn": "Import Backup",
-    "backupExportSuccess": "Backup exported successfully!",
-    "backupImportSuccess": "Backup imported successfully!",
-    "backupImportSuccessTitle": "Backup imported successfully!",
-    "backupImportResultDescription": "The following items were added or updated in your profile:",
+    "backupExportBtn": "Export backup",
+    "backupImportBtn": "Import backup",
+    "backupExportSuccess": "Backup exported.",
+    "backupImportSuccess": "Backup imported.",
+    "backupImportSuccessTitle": "Backup imported",
+    "backupImportResultDescription": "Items added or updated in your account:",
     "backupInvalidFile": "Invalid or corrupted backup file.",
-    "backupExportActionTitle": "Export Data",
-    "backupExportActionDesc": "Download a secure copy of your entire repertoire.",
+    "backupExportActionTitle": "Export data",
+    "backupExportActionDesc": "Download a copy of your whole repertoire as a JSON file.",
     "backupImportActionDesc": "Restore songs, artists, setlists and gigs from a backup.",
-    "backupDropzoneTitle": "Click to upload or drag and drop",
-    "backupDropzoneDesc": "JSON backup files only",
+    "backupDropzoneTitle": "Choose the file or drop it here",
+    "backupDropzoneDesc": "Setlyst backup in JSON, up to 10 MB",
     "backupArtists": "Artists",
     "backupSongs": "Songs",
     "backupSetlists": "Setlists",
     "backupGigs": "Gigs",
-    "sectionsNav": "Settings sections",
     "sections": {
-      "general": "General",
-      "display": "Live Mode & lists",
-      "pdf": "PDF",
-      "usage": "Usage & limits",
       "security": "Security",
-      "offline": "Offline",
-      "backup": "Backup",
-      "help": "Help & legal"
+      "help": "Help and terms",
+      "navLabel": "Settings sections",
+      "preferences": "Preferences",
+      "communications": "Communications",
+      "subscription": "Subscription",
+      "data": "Data and account"
     },
     "display": {
       "title": "Live Mode & lists",
-      "description": "How Live Mode opens and how long lists are — on every device you use. Changes save automatically.",
+      "description": "How Live Mode opens and how many rows lists show, on every device you use. Changes are saved automatically.",
       "saved": "Saved.",
       "live": {
         "showChords": "Show chords",
@@ -938,7 +1280,7 @@
         }
       },
       "pageSize": "Rows per page in lists",
-      "pageSizeOption": "{count} rows",
+      "pageSizeOption": "{count, plural, one {# row} other {# rows}}",
       "deviceFollows": "This device follows these defaults.",
       "deviceOverride": "This device has its own Live Mode or list choices (made with the quick toggles), which take precedence here.",
       "resetDevice": "Use account defaults here",
@@ -950,19 +1292,7 @@
       "saved": "PDF defaults saved.",
       "restore": "Restore Setlyst defaults"
     },
-    "usage": {
-      "title": "Usage & limits",
-      "description": "How much of your space you're using. Need more? Ask an administrator.",
-      "unavailable": "Usage couldn't be loaded right now."
-    },
-    "security": {
-      "title": "Security",
-      "description": "Change your password. Doing so signs you out on every device.",
-      "changePassword": "Change password"
-    },
     "help": {
-      "title": "Help & legal",
-      "description": "Guides, what changed, service status and the legal texts.",
       "wiki": "User guide (wiki)",
       "wikiHint": "How to use every feature",
       "whatsNew": "What's new",
@@ -970,11 +1300,26 @@
       "status": "Service status",
       "statusHint": "Is everything running?",
       "support": "Contact support"
+    },
+    "backupTooLarge": "The file is larger than {size} MB. Use a backup exported by Setlyst.",
+    "backupImportFailed": "Couldn't import the backup. Try again.",
+    "backupConfirmTitle": "Import this backup?",
+    "backupConfirmDescription": "The songs, artists, setlists and gigs in the file will be added to your account. Items with the same name are updated with the data from the file.",
+    "backupFileSize": "{size} MB",
+    "backupImporting": "Importing…",
+    "backupConfirmAction": "Import",
+    "sectionDescriptions": {
+      "preferences": "Language, theme, Live Mode, PDF and offline use.",
+      "security": "Password, two-step verification and sign-in methods.",
+      "communications": "Choose what you receive by email and in the app.",
+      "subscription": "Plan, usage, credits and referrals.",
+      "data": "Backup of your repertoire and account deletion.",
+      "help": "Guides, what's new, service status and legal documents."
     }
   },
   "error": {
-    "title": "Oops! Something went wrong.",
-    "production": "We couldn't load the requested information. Please try again.",
+    "title": "Something went wrong.",
+    "production": "We couldn't load this information. Try again.",
     "reference": "Reference:",
     "tryAgain": "Try again"
   },
@@ -984,10 +1329,10 @@
     "addBand": "New Band",
     "favorite": "Favorite",
     "unfavorite": "Remove from favorites",
-    "searchPlaceholder": "Search band...",
+    "searchPlaceholder": "Search band…",
     "empty": "You're not part of any band yet.",
     "emptySearch": "No bands found for \"{search}\".",
-    "memberCount": "{count} member(s)",
+    "memberCount": "{count, plural, one {# member} other {# members}}",
     "viewSetlists": "View Setlists",
     "bandSetlistsTitle": "Band Setlists",
     "viewGigs": "View Gigs",
@@ -1003,17 +1348,17 @@
       "editTitle": "Edit Band",
       "description": "Fill in the band's details below.",
       "nameLabel": "Name",
-      "namePlaceholder": "e.g., The Wanderers",
-      "descriptionLabel": "Description (Optional)",
-      "descriptionPlaceholder": "e.g., Classic rock cover band",
-      "created": "Band created!",
-      "updated": "Band updated!",
-      "saveFailed": "Failed to save the band",
+      "namePlaceholder": "e.g. The Weekend Band",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "e.g. Classic rock covers",
+      "created": "Band created.",
+      "updated": "Band updated.",
+      "saveFailed": "Couldn't save the band.",
       "deleteConfirm": "Are you sure you want to delete \"{name}\"? All of the band's setlists will also be deleted.",
-      "deleted": "Band deleted",
+      "deleted": "Band deleted.",
       "leaveTitle": "Leave band",
       "leaveConfirm": "Are you sure you want to leave \"{name}\"?",
-      "left": "You left the band"
+      "left": "You left the band."
     },
     "roles": {
       "owner": "Owner",
@@ -1029,9 +1374,9 @@
         "role": "Role",
         "actions": "Actions"
       },
-      "roleUpdated": "Role updated",
-      "removed": "Member removed",
-      "left": "You left the band",
+      "roleUpdated": "Role updated.",
+      "removed": "Member removed.",
+      "left": "You left the band.",
       "leave": "Leave band",
       "remove": "Remove",
       "leaveTitle": "Leave band",
@@ -1042,9 +1387,9 @@
       "editTitleDescription": "A free-text label just for identification (e.g. Guitarist, Bassist, Vocalist). Doesn't change any permission.",
       "titleLabel": "Title",
       "titlePlaceholder": "e.g., Guitarist",
-      "titleUpdated": "Title updated",
+      "titleUpdated": "Title updated.",
       "roles": {
-        "owner": "Administrator",
+        "owner": "Owner",
         "admin": "Admin",
         "moderator": "Moderator",
         "member": "Member"
@@ -1067,7 +1412,7 @@
         "member": "Member",
         "moderator": "Moderator",
         "admin": "Admin",
-        "owner": "Administrator"
+        "owner": "Owner"
       },
       "status": {
         "active": "Active",
@@ -1085,12 +1430,13 @@
       },
       "maxUsesLabel": "Use limit (optional)",
       "maxUsesPlaceholder": "Unlimited",
-      "created": "Invite created!",
-      "revoked": "Invite revoked",
+      "created": "Invite created.",
+      "revoked": "Invite revoked.",
       "revoke": "Revoke",
       "revokeConfirm": "Are you sure you want to revoke this invite? Already-shared links will stop working.",
       "copyLink": "Copy link",
-      "linkCopied": "Link copied!"
+      "linkCopied": "Link copied.",
+      "copyLinkManually": "Couldn't copy. Copy the link below manually."
     },
     "permissions": {
       "title": "Permissions",
@@ -1111,28 +1457,28 @@
         "export_pdf": "Export the band's setlists to PDF."
       },
       "save": "Save permissions",
-      "saved": "Permissions updated!",
-      "saveFailed": "Failed to update permissions"
+      "saved": "Permissions updated.",
+      "saveFailed": "Couldn't update the permissions."
     },
     "danger": {
       "title": "Danger Zone",
       "subtitle": "Irreversible actions related to this band.",
-      "transferTitle": "Transfer administration",
-      "transferDescription": "Make another member the administrator of this band.",
+      "transferTitle": "Transfer the band",
+      "transferDescription": "Make another member the owner of this band.",
       "transferAction": "Transfer",
-      "transferConfirm": "Choose the band's new administrator. You will become an admin.",
-      "newOwnerLabel": "New administrator",
-      "transferred": "Administration transferred successfully",
+      "transferConfirm": "Choose the band's new owner. You will become an admin.",
+      "newOwnerLabel": "New owner",
+      "transferred": "Band transferred.",
       "leaveTitle": "Leave band",
       "leaveDescription": "You'll lose access to this band's setlists and settings.",
       "leaveAction": "Leave",
       "leaveConfirm": "Are you sure you want to leave \"{name}\"?",
-      "left": "You left the band",
+      "left": "You left the band.",
       "deleteTitle": "Delete band",
       "deleteDescription": "Permanently deletes the band, its members, invites, and setlists.",
       "deleteAction": "Delete band",
       "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
-      "deleted": "Band deleted"
+      "deleted": "Band deleted."
     },
     "acceptInvite": {
       "title": "Band invite",
@@ -1144,31 +1490,125 @@
       "nameLength": "Band name must be between 2 and 60 characters.",
       "invalidId": "Invalid ID.",
       "invalidInviteCode": "Invalid invite code."
+    },
+    "page": {
+      "tabsLabel": "Band sections",
+      "tabs": {
+        "overview": "Overview",
+        "setlists": "Setlists",
+        "suggestions": "Suggestions",
+        "gigs": "Gigs",
+        "members": "Members",
+        "settings": "Settings"
+      },
+      "stats": {
+        "members": "Members",
+        "repertoire": "Songs in repertoire",
+        "setlists": "Setlists",
+        "gigs": "Confirmed gigs",
+        "suggestions": "Suggestions open"
+      },
+      "repertoireSongs": "{count, plural, one {song} other {songs}}",
+      "openRepertoire": "Open repertoire",
+      "setlistsTitle": "Band setlists",
+      "setlistsDescription": "The repertoire comes first, then the gig setlists.",
+      "manageSetlists": "Manage setlists",
+      "noSetlists": "No setlists yet.",
+      "songCount": "{count, plural, one {# song} other {# songs}}",
+      "nextGigs": "Next gigs",
+      "gigsTitle": "Band gigs",
+      "gigsDescription": "Upcoming gigs, by date.",
+      "allGigs": "All gigs",
+      "noUpcomingGigs": "No gigs scheduled.",
+      "toursDescription": "The band's tours, newest first.",
+      "noTours": "The band has no tours yet.",
+      "suggestionSettingsTitle": "Song suggestions",
+      "suggestionSettingsDescription": "Choose whether a suggestion is accepted automatically once it has enough votes.",
+      "autoAcceptLabel": "Accept automatically by votes",
+      "autoAcceptVotes": "Up votes needed",
+      "autoAcceptHint": "With {votes, plural, one {# up vote} other {# up votes}} (and more up than down), the song goes into the setlist without waiting for a moderator.",
+      "autoAcceptInvalid": "Enter a number from 1 to 100.",
+      "thresholdSaved": "Setting saved.",
+      "saveSettings": "Save"
     }
   },
   "notifications": {
     "title": "Notifications",
-    "unreadCount": "{count, plural, one {# unread notification} other {# unread notifications}}",
+    "unreadCount": "{count, plural, =0 {No unread notifications} one {# unread notification} other {# unread notifications}}",
     "markAllRead": "Mark all read",
     "empty": "You're all caught up.",
-    "loading": "Loading notifications...",
+    "loading": "Loading notifications…",
     "bandRoleChanged": "Your role in {band} changed to {role}.",
     "bandMemberRemoved": "You were removed from {band}.",
     "platformRoleChanged": "Your account role changed to {role}.",
     "bandMemberAdded": "An administrator added you to {band} as {role}.",
     "shareLinkRevoked": "A moderator took down the public link of \"{title}\".",
-    "shareLinkRevokedWithReason": "A moderator took down the public link of \"{title}\": {reason}"
+    "shareLinkRevokedWithReason": "A moderator took down the public link of \"{title}\": {reason}",
+    "footer": {
+      "announcements": "Announcements",
+      "preferences": "Notification preferences"
+    },
+    "plans": {
+      "basic": "Basic",
+      "intermediate": "Intermediate",
+      "pro": "Pro",
+      "unknown": "your plan"
+    },
+    "unknown": "You have a new notification.",
+    "announcement": "New announcement: {title}",
+    "releasePublished": "Setlyst {version} is available. See what's new.",
+    "bandSuggestionCreated": "{user} suggested \"{song}\" for {band}.",
+    "bandSuggestionResolved": {
+      "accepted": "Your suggestion \"{song}\" was accepted in {band}.",
+      "rejected": "Your suggestion \"{song}\" was not accepted in {band}.",
+      "withdrawn": "The suggestion \"{song}\" was withdrawn in {band}.",
+      "other": "The suggestion \"{song}\" was updated in {band}."
+    },
+    "moderationAction": {
+      "avatar_removed": "Your profile picture was removed because it doesn't follow the community guidelines.",
+      "band_logo_removed": "The logo of {band} was removed because it doesn't follow the community guidelines.",
+      "username_reset": "Your username was reset because it doesn't follow the community guidelines. Choose a new one in your profile.",
+      "other": "Moderation made a change to your account."
+    },
+    "subscriptionChanged": {
+      "plan_granted": "You received the {plan} plan.",
+      "plan_grantedUntil": "You received the {plan} plan, valid until {date}.",
+      "extended": "Your {plan} plan was extended.",
+      "extendedUntil": "Your {plan} plan was extended until {date}.",
+      "trial_started": "Your {plan} trial has started.",
+      "trial_extended": "Your {plan} trial was extended.",
+      "revoked": "Your {plan} plan was ended.",
+      "expired": "Your {plan} plan has expired.",
+      "other": "Your subscription was updated."
+    },
+    "trialEnding": "Your {plan} trial ends on {date}.",
+    "creditsGranted": {
+      "admin_adjustment": "You received {amount, plural, one {# credit} other {# credits}}.",
+      "promo_code": "You received {amount, plural, one {# credit} other {# credits}} from a promo code.",
+      "referral_referrer": "You received {amount, plural, one {# credit} other {# credits}} for a referral.",
+      "referral_referred": "You received {amount, plural, one {# welcome credit} other {# welcome credits}} for joining through a referral.",
+      "other": "You received {amount, plural, one {# credit} other {# credits}}."
+    },
+    "creditsDebited": "{amount, plural, one {# credit was} other {# credits were}} deducted from your account.",
+    "securityAlert": {
+      "password_changed": "Your password was changed. If this wasn't you, reset your password now.",
+      "email_changed": "Your account e-mail was changed. If this wasn't you, contact support.",
+      "two_factor_enabled": "Two-step verification was turned on for your account.",
+      "two_factor_disabled": "Two-step verification was turned off for your account.",
+      "recovery_codes_regenerated": "New recovery codes were generated for your account.",
+      "other": "There was a security change on your account."
+    }
   },
   "rateLimit": {
-    "message": "Too many requests right now. Wait a moment and try again.",
-    "messageWithWait": "Too many requests right now. Try again in {seconds, plural, one {# second} other {# seconds}}."
+    "message": "Too many actions in a short time. Wait a moment and try again.",
+    "messageWithWait": "Too many actions in a short time. Try again in {seconds, plural, one {# second} other {# seconds}}."
   },
   "about": {
     "title": "About",
-    "tagline": "Your repertoire, setlists and gigs — ready for the stage.",
+    "tagline": "Lyrics, chords, setlists and gigs, ready for the stage.",
     "license": "MIT License",
-    "projectDescription": "Setlyst is a musician's companion for the stage. Keep the lyrics of your own repertoire — with chords if you want them — build setlists, organise your gigs, and perform with a Live Mode designed to be read from a mic stand: live transposition, metronome, auto-scroll, compact mode and full offline support.",
-    "openSource": "Solo or with your band, everything you need to step on stage lives in one place. Setlyst is open source — a Next.js web app and a Rust API, built in the open by musicians, for musicians.",
+    "projectDescription": "Setlyst organizes the repertoire of musicians who play live. Store lyrics with chords, build setlists, plan your gigs and use Live Mode on stage, with transposition, a metronome, auto-scroll, compact mode and offline support.",
+    "openSource": "It works for solo musicians and for bands. The code is open source: a Next.js web app and a Rust API, published on GitHub.",
     "repositories": "Repositories",
     "repo": {
       "web": "Web app and PWA",
@@ -1181,7 +1621,7 @@
     "deployedBuild": "Running build:",
     "author": "Author",
     "authorRole": "Guitarist, guitar teacher and software developer",
-    "authorBio": "Setlyst is designed and built by a working guitarist who also writes software — so every feature is shaped by what's actually needed on stage.",
+    "authorBio": "Setlyst is built by a working guitarist who is also a software developer. Its features come from real needs on stage and in rehearsal.",
     "contributeTitle": "Found a bug or have an idea?",
     "contributeDescription": "Issues and pull requests are welcome.",
     "reportIssue": "Open an issue",
@@ -1198,7 +1638,9 @@
     "downloadPdf": "Download PDF",
     "noSongs": "This setlist has no songs yet.",
     "readOnlyNotice": "Read-only view of a setlist shared via Setlyst.",
-    "madeWith": "Made with Setlyst"
+    "madeWith": "Made with Setlyst",
+    "gigNoSetlist": "No setlist has been linked to this gig yet.",
+    "gigReadOnlyNotice": "Read-only view of a gig shared via Setlyst."
   },
   "apiErrors": {
     "generic": "Something went wrong. Please try again.",
@@ -1213,7 +1655,7 @@
     "WEAK_PASSWORD": "This password doesn't meet the security requirements.",
     "PASSWORD_REUSED": "The new password must be different from the current one.",
     "WRONG_PASSWORD": "The current password is incorrect.",
-    "IMPERSONATION_READ_ONLY": "You're viewing as another user — changes are disabled.",
+    "IMPERSONATION_READ_ONLY": "You're viewing as another user. Changes are disabled.",
     "QUOTA_EXCEEDED": "You've reached the limit of {limit} {resource}. Remove something or ask an administrator for more room.",
     "INSUFFICIENT_ROLE": "Your role doesn't allow this action on this account.",
     "CANNOT_TARGET_SELF": "You can't do this to your own account.",
@@ -1227,7 +1669,7 @@
     "ALREADY_EXISTS": "Something with these details already exists. Try a different name.",
     "NOT_FOUND": "This item no longer exists or you don't have access to it.",
     "FORBIDDEN": "You don't have permission to do this.",
-    "UNPROCESSABLE_ENTITY": "Nothing changed — there was nothing to save.",
+    "UNPROCESSABLE_ENTITY": "No changes to save.",
     "resources": {
       "songs": "songs",
       "artists": "artists",
@@ -1241,7 +1683,11 @@
       "band_gigs": "shows in this band",
       "band_songs": "songs in this band",
       "setlist_items": "items in this setlist",
-      "generic": "items"
+      "generic": "items",
+      "tours": "tours",
+      "band_tours": "tours in this band",
+      "band_notes": "reminders in this band",
+      "pins": "pinned items"
     },
     "passwordIssues": {
       "too_short": "At least 8 characters.",
@@ -1252,7 +1698,100 @@
       "missing_symbol": "Add a symbol (e.g. ! @ # -).",
       "contains_username": "Don't include your username.",
       "too_common": "This password is too common."
+    },
+    "rejected": "Couldn't complete this action. Check the details and try again.",
+    "ACCOUNT_LOCKED": "Too many sign-in attempts. The account is temporarily locked.",
+    "ACCOUNT_LOCKED_UNTIL": "Too many sign-in attempts. The account is locked until {date}.",
+    "PASSWORD_NOT_SET": "This account doesn't have a password yet. Use password recovery to set one.",
+    "TOO_MANY_ATTEMPTS": "Too many attempts.",
+    "INVALID_TWO_FACTOR_CODE": "Invalid verification code.",
+    "TWO_FACTOR_ALREADY_ENABLED": "Two-step verification is already on.",
+    "TWO_FACTOR_NOT_ENABLED": "Two-step verification is not on.",
+    "INVALID_CODE": "Invalid code.",
+    "INVALID_CODE_ATTEMPTS": "{count, plural, =0 {Invalid code. No attempts left; request a new code.} one {Invalid code. # attempt left.} other {Invalid code. # attempts left.}}",
+    "CODE_EXPIRED": "This code has expired. Request a new one.",
+    "EMAIL_NOT_VERIFIED": "Verify your email to continue.",
+    "EMAIL_TAKEN": "This email is already used by another account.",
+    "EMAIL_REQUIRED": "Enter an email address.",
+    "EMAIL_ALREADY_VERIFIED": "This email is already verified.",
+    "GOOGLE_SIGNIN_DISABLED": "Sign-in with Google is not available right now.",
+    "INVALID_GOOGLE_TOKEN": "Couldn't confirm the Google sign-in. Try again.",
+    "TERMS_NOT_ACCEPTED": "To continue, accept the Terms of Use and the Privacy Policy.",
+    "INVALID_IMAGE_URL": "Use the https address of a PNG, JPEG, WebP, GIF or AVIF image.",
+    "FEATURE_NOT_IN_PLAN": "This feature is not included in your plan.",
+    "FEATURE_NOT_IN_PLAN_NAMED": "{feature} is not included in your plan.",
+    "availableFrom": "Available on the {plan} plan.",
+    "PLAN_NOT_FOUND": "This plan doesn't exist.",
+    "PROMO_CODE_INVALID": "Invalid promo code.",
+    "PROMO_CODE_EXPIRED": "This promo code has expired.",
+    "PROMO_CODE_EXHAUSTED": "This promo code has reached its usage limit.",
+    "PROMO_CODE_ALREADY_REDEEMED": "You've already used this promo code.",
+    "PROMO_CODE_NOT_ELIGIBLE": "Your account doesn't meet this promo code's conditions.",
+    "INSUFFICIENT_CREDITS": "Not enough credits.",
+    "INSUFFICIENT_CREDITS_DETAIL": "Not enough credits: you have {balance} and need {required}.",
+    "REWARD_NOT_FOUND": "This reward is no longer available.",
+    "INVALID_LINK": "Link not accepted. Use an https link from YouTube, Spotify, Google Drive, Apple Music, Deezer, SoundCloud, Dropbox or OneDrive.",
+    "REPERTOIRE_PROTECTED": "The band's repertoire can't be deleted or renamed.",
+    "SONG_ALREADY_IN_SETLIST": "This song is already in this setlist.",
+    "SUGGESTION_CLOSED": "This suggestion is already closed.",
+    "NOT_IN_TRASH": "This item is no longer in the trash.",
+    "RESTORE_CONFLICT": "Couldn't restore: an item with the same name already exists.",
+    "RESTORE_CONFLICT_TYPED": "Couldn't restore: {type} with the same name already exists.",
+    "CHORDPRO_INVALID": "Couldn't read this ChordPro file.",
+    "CHORDPRO_TOO_LARGE": "The ChordPro file is too large (64 KB maximum).",
+    "atLine": "(line {line})",
+    "PAYLOAD_TOO_LARGE": "What you sent is too large.",
+    "SERVICE_BUSY": "The server is busy right now.",
+    "NOT_DISMISSIBLE": "This notice has to stay visible.",
+    "ANNOUNCEMENT_LOCKED": "This announcement is already published and can't be changed this way.",
+    "FLAG_ALREADY_RESOLVED": "This attention point was already resolved by another staff member. Refresh the list.",
+    "TWO_FACTOR_UNAVAILABLE": "Two-factor authentication for this account can't be verified right now. Please contact support.",
+    "VALIDATION_ERROR": "Some of the details are not valid. Check the form and try again.",
+    "BAD_REQUEST": "The request couldn't be processed. Check the details and try again.",
+    "wait": {
+      "seconds": "Try again in {seconds, plural, one {# second} other {# seconds}}.",
+      "minutes": "Try again in {minutes, plural, one {# minute} other {# minutes}}."
+    },
+    "features": {
+      "create_bands": "Creating bands",
+      "tours": "Tours",
+      "analytics_export": "Statistics export",
+      "advanced_pdf": "Advanced PDF options",
+      "chordpro_import": "ChordPro import",
+      "song_suggestions": "Song suggestions",
+      "public_sharing": "Public sharing",
+      "offline_mode": "Offline use",
+      "priority_support": "Priority support"
+    },
+    "plans": {
+      "basic": "Basic",
+      "intermediate": "Intermediate",
+      "pro": "Pro"
+    },
+    "trashTypes": {
+      "song": "a song",
+      "artist": "an artist",
+      "setlist": "a setlist",
+      "gig": "a gig",
+      "tour": "a tour"
+    },
+    "chordproReasons": {
+      "line_too_long": "A line is too long.",
+      "too_many_lines": "The file has too many lines.",
+      "multiple_songs": "The file has more than one song; import one at a time.",
+      "missing_title": "The file doesn't have the song's title.",
+      "invalid_characters": "The file contains invalid characters."
     }
+  },
+  "downloads": {
+    "failed": "Couldn't download the file. Try again.",
+    "network": "Can't reach the server. Check your connection and try again.",
+    "forbidden": "You don't have permission to download this file.",
+    "notFound": "This item no longer exists or you no longer have access to it.",
+    "busy": "The server is busy generating other files. Try again in a moment.",
+    "rateLimited": "Too many exports in a row. Wait a little and try again.",
+    "rateLimitedWait": "Too many exports in a row. Try again in {seconds, plural, one {# second} other {# seconds}}.",
+    "unauthorized": "Your session has ended. Sign in again."
   },
   "passwordPolicy": {
     "show": "Show password",
@@ -1297,7 +1836,7 @@
     "setlists": "Setlists",
     "gigs": "Shows",
     "bands": "Bands",
-    "analytics": "Analytics",
+    "analytics": "Statistics",
     "profile": "My profile",
     "invite": "Band invite",
     "liveSong": "{name} · Live",
@@ -1306,7 +1845,7 @@
     "userProfile": "@{name}",
     "setlist": "{name}",
     "liveSetlist": "{name} · Live",
-    "setlistAnalytics": "{name} · Analytics",
+    "setlistAnalytics": "{name} · Statistics",
     "band": "{name}",
     "bandGigs": "{name} · Shows",
     "bandSetlists": "{name} · Setlists"
@@ -1324,24 +1863,43 @@
   },
   "changePassword": {
     "requiredTitle": "Set a new password",
-    "requiredDescription": "Before continuing, @{username} needs a new password — either an administrator issued a temporary one, or the current one no longer meets our security requirements.",
+    "requiredDescription": "Before continuing, @{username} needs a new password. An administrator set a temporary one, or the current one no longer meets our security requirements.",
     "current": "Current password",
     "new": "New password",
     "confirm": "Confirm new password",
     "same": "Choose a password different from the current one.",
     "signOutNotice": "For your security, you'll be signed out of every device and asked to sign in again with the new password.",
     "submit": "Change password",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "success": "Password changed. Please sign in again.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "notSet": "Your account was created with Google and doesn't have a password yet. To set one, use password recovery: we'll send a code to your email.",
+    "notSetAction": "Set a password"
   },
   "forgotPassword": {
-    "title": "Forgot your password?",
-    "description": "We'll get you back in. Here's how account recovery works on Setlyst.",
-    "stepContact": "Contact a platform administrator or moderator — or write to <link>{email}</link> — from the email on your account, and tell us your username.",
-    "stepTemporary": "After confirming it's you, they'll set a temporary password. At your next sign-in you'll be asked to choose a new one.",
-    "safety": "Setlyst staff will never ask for your current password.",
-    "back": "Back to sign in"
+    "title": "Recover access",
+    "description": "Enter your username or email. We'll send a code to the account's email address.",
+    "back": "Back to sign in",
+    "identifier": "Username or email",
+    "identifierPlaceholder": "your.username or you@example.com",
+    "sendCode": "Send code",
+    "resendIn": "Resend in {time}",
+    "noEmail": "Your account has no email, or you no longer have access to it? Write to <link>{email}</link> from an address we can associate with you.",
+    "resetTitle": "Enter the code and your new password",
+    "resetDescription": "If an account exists for {identifier} with an email address, we sent a 6-digit code. It's valid for 15 minutes.",
+    "codeLabel": "Code received by email",
+    "codeHint": "Didn't arrive? Check your spam folder.",
+    "resent": "We sent a new code.",
+    "resend": "Resend code",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "signOutNotice": "For your security, every open session of the account will be signed out.",
+    "saving": "Saving…",
+    "submitReset": "Set new password",
+    "changeIdentifier": "Use another username or email",
+    "doneTitle": "Password reset",
+    "doneDescription": "All set. Sign in with your new password.",
+    "goToLogin": "Go to sign in"
   },
   "impersonation": {
     "banner": "Viewing Setlyst as <strong>@{username}</strong> (read-only). Signed in as @{staff}.",
@@ -1372,10 +1930,34 @@
       },
       "security": {
         "short": "Security & data"
+      },
+      "cookies": {
+        "short": "Cookies"
+      },
+      "subscription": {
+        "short": "Subscription"
+      },
+      "guidelines": {
+        "short": "Community Guidelines"
+      },
+      "copyright": {
+        "short": "Copyright"
       }
     },
     "backToApp": "Back to Setlyst",
-    "updated": "Last updated {date}"
+    "updated": "Last updated {date}",
+    "documentsHeading": "Documents",
+    "effective": "In force since {date}",
+    "version": "Version {version}",
+    "print": "Print",
+    "toc": "On this page",
+    "languageNote": "If the versions of this document in other languages differ, the Portuguese (Brazil) version prevails.",
+    "consent": {
+      "terms": "I have read and accept the <terms>Terms of Use</terms> and the <privacy>Privacy Policy</privacy>.",
+      "marketing": "I want to receive Setlyst news and offers by e-mail. I can unsubscribe at any time.",
+      "required": "To continue, accept the Terms of Use and the Privacy Policy.",
+      "newTab": "(opens in a new tab)"
+    }
   },
   "staff": {
     "status": {
@@ -1428,7 +2010,7 @@
       "password": "Temporary password",
       "copyPassword": "Copy password",
       "requireChange": "Require a new password at first sign-in",
-      "requireChangeHint": "Recommended — only the person will know their final password.",
+      "requireChangeHint": "Recommended: only the person will know their final password.",
       "email": "Email",
       "firstName": "First name",
       "lastName": "Last name",
@@ -1465,7 +2047,7 @@
       "newPassword": "Temporary password",
       "copy": "Copy password",
       "requireChange": "Require a new password at next sign-in",
-      "requireChangeHint": "Recommended — you shouldn't know anyone's permanent password.",
+      "requireChangeHint": "Recommended: staff shouldn't know anyone's permanent password.",
       "shareSafely": "Share it privately (never in a group chat) and ask them to sign in soon.",
       "confirm": "Set password",
       "done": "Temporary password set for @{username}."
@@ -1482,7 +2064,7 @@
       "unban": "Lift suspension",
       "deactivate": "Deactivate",
       "activate": "Reactivate",
-      "isYou": "This is your account — manage it from your profile.",
+      "isYou": "This is your account. Manage it from your profile.",
       "outranked": "Your role can't manage this account.",
       "roleChanged": "@{username} is now {role}.",
       "deactivated": "@{username} was deactivated.",
@@ -1505,7 +2087,7 @@
       "confirmSessionsTitle": "Sign @{username} out everywhere?",
       "confirmSessions": "Useful if a device was lost or the account may be compromised. Their password doesn't change.",
       "confirmImpersonateTitle": "View Setlyst as @{username}?",
-      "confirmImpersonate": "You'll see exactly what they see, read-only — nothing can be changed. This is recorded in the audit log. Use \"Back to my account\" in the banner to return."
+      "confirmImpersonate": "You'll see exactly what they see, read-only: nothing can be changed. This is recorded in the audit log. Use \"Back to my account\" in the banner to return."
     },
     "userDetail": {
       "bannedUntil": "Suspended until {date}",
@@ -1556,7 +2138,7 @@
     },
     "quotaEditor": {
       "unlimited": "Unlimited account",
-      "unlimitedHint": "Ignores every limit. Use sparingly — the server is small.",
+      "unlimitedHint": "Ignores every limit. Use it only when it is really needed.",
       "defaultPlaceholder": "Default: {value}",
       "invalid": "Limits must be whole numbers from 0 to {max}.",
       "resetToDefaults": "Use platform defaults",
@@ -1610,11 +2192,44 @@
         "setlist_deleted": "Setlist deleted",
         "share_revoked": "Public link taken down",
         "share_unlocked": "Sharing allowed again",
-        "settings_quota_defaults_updated": "Default limits changed"
+        "settings_quota_defaults_updated": "Default limits changed",
+        "user_self_deleted": "Deleted own account",
+        "user_email_changed": "E-mail changed",
+        "user_two_factor_enabled": "Two-step verification on",
+        "user_two_factor_disabled": "Two-step verification off",
+        "user_password_recovered": "Password recovered",
+        "user_login_locked": "Sign-in temporarily locked",
+        "user_terms_accepted": "Terms accepted",
+        "user_subscription_granted": "Plan granted",
+        "user_subscription_revoked": "Subscription ended",
+        "user_credits_adjusted": "Credits adjusted",
+        "billing_settings_updated": "Billing settings changed",
+        "billing_plan_updated": "Plan edited",
+        "billing_trials_granted": "Trials granted",
+        "promo_created": "Promo code created",
+        "promo_updated": "Promo code edited",
+        "promotion_created": "Promotion created",
+        "promotion_updated": "Promotion edited",
+        "promotion_deleted": "Promotion deleted",
+        "announcement_created": "Announcement created",
+        "announcement_updated": "Announcement edited",
+        "announcement_published": "Announcement published",
+        "announcement_archived": "Announcement archived",
+        "announcement_deleted": "Announcement deleted",
+        "release_note_created": "Release note created",
+        "release_note_updated": "Release note edited",
+        "release_note_published": "Release note published",
+        "release_note_unpublished": "Release note unpublished",
+        "release_note_deleted": "Release note deleted",
+        "moderation_dismissed": "Attention point dismissed",
+        "moderation_avatar_removed": "Profile picture removed",
+        "moderation_band_logo_removed": "Band logo removed",
+        "moderation_username_reset": "Username reset",
+        "moderation_rescan": "Moderation rescan"
       }
     },
     "lists": {
-      "total": "{count, plural, one {# result} other {# results}}",
+      "total": "{count, plural, =0 {No results} one {# result} other {# results}}",
       "filteredBy": "Filtered by",
       "clearFilter": "Remove filter {label}"
     },
@@ -1630,7 +2245,7 @@
         "updated": "Last modified"
       },
       "empty": "No bands found.",
-      "contentSummary": "{songs} songs · {setlists} setlists · {gigs} shows"
+      "contentSummary": "{songs, plural, one {# song} other {# songs}} · {setlists, plural, one {# setlist} other {# setlists}} · {gigs, plural, one {# show} other {# shows}}"
     },
     "bandDetail": {
       "meta": "{members, plural, one {# member} other {# members}} · created {created}",
@@ -1675,7 +2290,7 @@
     "bandDanger": {
       "title": "Danger zone",
       "subtitle": "Delete this band",
-      "advice": "Consider removing members or changing the owner instead — deleting can't be undone.",
+      "advice": "Consider removing members or changing the owner instead. Deleting can't be undone.",
       "consequenceContent": "Every band song, setlist and show is deleted.",
       "consequenceMembers": "Members lose access immediately.",
       "irreversible": "This can't be undone.",
@@ -1811,13 +2426,19 @@
         "song": "Songs",
         "setlist": "Setlists",
         "share": "Public links",
-        "settings": "Platform settings"
+        "settings": "Platform settings",
+        "moderation": "Moderation",
+        "announcement": "Announcements",
+        "release_note": "What's new",
+        "billing": "Billing",
+        "promo": "Promo codes",
+        "promotion": "Promotions"
       },
       "empty": "Nothing recorded for these filters."
     },
     "limits": {
       "title": "Limits",
-      "description": "Default allowance for every account. The server is small — keep these realistic.",
+      "description": "Default allowance for every account. Set values that match real use.",
       "howItWorks": "These apply to everyone unless an account has its own limits (set on the user's page). Lowering a limit never deletes anything: people just can't add more until they're under it.",
       "readOnly": "Only admins can change platform limits.",
       "groups": {
@@ -1829,6 +2450,31 @@
       "lowerTitle": "Lower limits for everyone?",
       "lowerDescription": "You're lowering: {resources}. Accounts already above a new limit keep their data but can't add more.",
       "lowerConfirm": "Save limits"
+    },
+    "nav": {
+      "groups": {
+        "people": "Users and moderation",
+        "communication": "Communication",
+        "subscriptions": "Subscriptions",
+        "content": "Content",
+        "platform": "Platform"
+      },
+      "items": {
+        "users": "Users",
+        "moderation": "Attention points",
+        "audit": "Audit",
+        "announcements": "Announcements",
+        "releaseNotes": "What's new",
+        "billing": "Plans and billing",
+        "promoCodes": "Promo codes",
+        "promotions": "Promotions",
+        "bands": "Bands",
+        "songs": "Songs",
+        "setlists": "Setlists",
+        "links": "Public links",
+        "limits": "Limits"
+      },
+      "openFlags": "{count, plural, =0 {No open points} one {# open point} other {# open points}}"
     }
   },
   "quotas": {
@@ -1851,7 +2497,11 @@
       "band_setlists": "Setlists per band",
       "band_gigs": "Shows per band",
       "band_songs": "Songs per band",
-      "setlist_items": "Items per setlist"
+      "setlist_items": "Items per setlist",
+      "tours": "Tours",
+      "band_tours": "Tours per band",
+      "band_notes": "Reminders per band",
+      "pins": "Pinned items"
     }
   },
   "tags": {
@@ -1970,7 +2620,8 @@
       "improved": "Improved",
       "fixed": "Fixed",
       "security": "Security"
-    }
+    },
+    "unavailable": "We couldn't load the release notes right now. Try again in a few minutes."
   },
   "status": {
     "title": "Service status",
@@ -2018,5 +2669,2009 @@
     "description": "The public link was taken down and a new one can't be created for now. Everything else keeps working normally.",
     "reason": "Reason: {reason}",
     "contact": "Questions? Write to {email}."
+  },
+  "site": {
+    "nav": {
+      "features": "Features",
+      "pricing": "Plans",
+      "changelog": "What's new"
+    },
+    "mainNav": "Main navigation",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "dashboard": "Go to dashboard",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "skipToContent": "Skip to content",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "backToSite": "Setlyst home page",
+    "footer": {
+      "tagline": "Repertoire, setlists and Live Mode for musicians and bands who play live.",
+      "product": "Product",
+      "legal": "Legal",
+      "support": "Support",
+      "docs": "Documentation",
+      "status": "System status",
+      "copyright": "© {year} Setlyst",
+      "madeIn": "Made in Caxias do Sul, Brazil"
+    }
+  },
+  "landing": {
+    "hero": {
+      "badgePreRelease": "Pre-release: every feature available free of charge",
+      "badgeTrial": "30 days of Pro free, no card required",
+      "title": "Lyrics, chords and setlists ready for the stage",
+      "description": "Organise your repertoire, build setlists with BPM and energy analysis and play in Live Mode, with a metronome and key transposition. On your own or with your band, online or offline.",
+      "ctaPrimary": "Create a free account",
+      "ctaSecondary": "See plans",
+      "ctaDashboard": "Go to dashboard",
+      "points": {
+        "noCard": "No credit card",
+        "offline": "Works offline",
+        "languages": "Portuguese, English and Spanish"
+      }
+    },
+    "mock": {
+      "prev": "Previous",
+      "next": "Next",
+      "offline": "Offline",
+      "key": "Key",
+      "capo": "Capo",
+      "chorus": "Chorus",
+      "transpose": "Key",
+      "nextSong": "Next",
+      "lyrics": {
+        "l1": "[G]Down the dirt road till the [D/F#]evening falls",
+        "l2": "[Em]The radio plays [C]our old song",
+        "l3": "[G]Dust on the wind-[D]shield, city calls",
+        "l4": "[C]Lights come on and [D]sing along"
+      },
+      "setlistTitle": "Saturday show",
+      "setlistMeta": "Harbour Bar · 7 songs · 1 break",
+      "break": "Break · {minutes} min",
+      "energy": "Energy",
+      "bpm": "BPM",
+      "insightStrength": "Strong ending: energy builds to a peak in the last third.",
+      "insightImprove": "The second set opens with low energy on Noite Clara.",
+      "bandMeta": "{members, plural, one {# member} other {# members}} · 3 upcoming gigs",
+      "repertoire": "Band repertoire",
+      "songsCount": "{count, plural, one {# song} other {# songs}}",
+      "suggestion": "Suggestion being voted on",
+      "suggestedBy": "Suggested by {name}",
+      "autoAccept": "{votes} of {needed, plural, one {# vote} other {# votes}} to accept automatically",
+      "roleOwner": "Owner",
+      "roleAdmin": "Admin",
+      "roleMember": "Member",
+      "roleOwnerCan": "Manages everything",
+      "roleAdminCan": "Edits setlists and gigs",
+      "roleMemberCan": "Views and suggests",
+      "reminderTitle": "Pinned reminder",
+      "reminderBody": "Rehearsal on Thursday at 7 pm. Run the opener in A.",
+      "liveSettings": "Live Mode settings",
+      "metronome": "Metronome",
+      "transposeTitle": "Key",
+      "capoHint": "Play the G shapes with a capo on the 2nd fret.",
+      "highContrast": "High contrast",
+      "compact": "Compact mode"
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "From rehearsal to the last encore",
+      "description": "Tools for people who read lyrics from a stand, keep the tempo and agree on the repertoire with their band."
+    },
+    "showcase": {
+      "live": {
+        "label": "Live Mode",
+        "title": "Easy to read on the stand, even under stage lights",
+        "description": "Full-screen lyrics and chords, with auto-scroll, high contrast and a compact mode that fits the whole song on one screen.",
+        "b1": "Metronome with each song's saved BPM, tap tempo and an audible click",
+        "b2": "Key transposition with a capo suggestion",
+        "b3": "Change songs with a swipe or a keyboard shortcut"
+      },
+      "setlists": {
+        "label": "Setlists",
+        "title": "Setlists with energy and BPM analysis",
+        "description": "Drag songs into your running order, with sets and breaks. Setlyst draws the energy and tempo curve and points out strengths and what could be better.",
+        "b1": "Total length calculated from each song",
+        "b2": "Warnings for energy drops, tiring stretches and BPM jumps",
+        "b3": "Key, time signature, capo and tuning stored per song"
+      },
+      "bands": {
+        "label": "Bands",
+        "title": "A repertoire shared with your band",
+        "description": "Each band has a common repertoire, plus setlists, gigs and tours every member can see. Roles and permissions set who can edit what.",
+        "b1": "Invitations by link, with an expiry date",
+        "b2": "Song suggestions voted on by the members",
+        "b3": "Pinned reminders for rehearsals and arrangements"
+      }
+    },
+    "grid": {
+      "suggestions": {
+        "title": "Suggestions and votes",
+        "description": "Members suggest songs for the repertoire and vote. The band decides how many votes accept a suggestion automatically."
+      },
+      "tours": {
+        "title": "Tours and gigs",
+        "description": "Record the venue, date and setlist of each gig and group them into tours, with counts of confirmed and completed gigs."
+      },
+      "export": {
+        "title": "PDF and ChordPro",
+        "description": "Create PDFs of a setlist or a single song, with chords over the lyrics in one or two columns. Import and export ChordPro files."
+      },
+      "offline": {
+        "title": "Works offline",
+        "description": "Install Setlyst on your phone, tablet or computer. Your repertoire is stored on the device and changes sync when the connection returns."
+      },
+      "sharing": {
+        "title": "Public links",
+        "description": "Share a setlist or gig details with sound engineers and promoters, without them needing an account. Revoke the link at any time."
+      },
+      "security": {
+        "title": "A protected account",
+        "description": "Two-step verification, e-mail notices for every sensitive change and control over your data, with export and account deletion."
+      }
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "Three steps to the stage",
+      "s1": {
+        "title": "Add your repertoire",
+        "description": "Type lyrics and chords or import ChordPro files. Record the key, BPM, energy and notes of each song."
+      },
+      "s2": {
+        "title": "Build the setlist",
+        "description": "Drag songs into the show's order, add breaks and check the energy, tempo and length analysis."
+      },
+      "s3": {
+        "title": "Play in Live Mode",
+        "description": "Open the setlist on your phone or tablet, with the metronome and transposition at hand. Without internet, it is still there."
+      }
+    },
+    "plans": {
+      "eyebrow": "Plans",
+      "title": "A plan for every stage of your career",
+      "description": "From solo musicians to bands with a busy calendar. Plans differ in limits and band features, not in Live Mode.",
+      "from": "<strong>{price}</strong> per month",
+      "free": "Free",
+      "cta": "Compare plans"
+    },
+    "faq": {
+      "eyebrow": "Frequently asked questions",
+      "title": "Questions and answers",
+      "price": {
+        "q": "How much does Setlyst cost?",
+        "aPreRelease": "During the pre-release period, every feature is available free of charge. When billing starts, you will be notified at least 30 days in advance and can choose between the Basic, Intermediate and Pro plans.",
+        "aEnforced": "Every new account starts with 30 free days of the Pro plan, with no card required. After that, you choose between the Basic, Intermediate and Pro plans, billed monthly or yearly, and can cancel at any time."
+      },
+      "offline": {
+        "q": "Do I need internet during the show?",
+        "a": "No. Installed as an app, Setlyst keeps your repertoire on the device and Live Mode works without a connection. Changes made offline are sent when the network returns."
+      },
+      "bands": {
+        "q": "Can I use it with my band?",
+        "a": "Yes. Create a band, invite the members by link and set each one's role. The band's repertoire, setlists, gigs and tours are available to everyone, according to their permissions."
+      },
+      "content": {
+        "q": "Does Setlyst provide lyrics and chords?",
+        "a": "No. You add your own repertoire, by typing or importing ChordPro files. Other artists' lyrics and chords are protected by copyright; keeping them for rehearsal and performance is the responsibility of whoever adds them."
+      },
+      "devices": {
+        "q": "Which devices does it work on?",
+        "a": "Any current browser on a phone, tablet or computer. You can also install Setlyst as an app from the browser on Android, iOS, Windows, macOS and Linux."
+      },
+      "data": {
+        "q": "What happens to my data?",
+        "a": "Your data is used only to provide the service, in line with Brazil's LGPD. You can export all your content at any time and delete your account in the settings. Details in the Privacy Policy."
+      }
+    },
+    "finalCta": {
+      "title": "Prepare your next show in Setlyst",
+      "description": "Create your account, add a few songs and open your first setlist in Live Mode."
+    }
+  },
+  "pricing": {
+    "eyebrow": "Plans and pricing",
+    "title": "Choose a plan by the size of your repertoire",
+    "description": "Every plan includes Live Mode, offline use and PDF export. Change plans or cancel whenever you like.",
+    "plansLabel": "Available plans",
+    "intervalLabel": "Billing period",
+    "interval": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "saveUpTo": "up to {percent}% less",
+    "recommended": "Recommended",
+    "promotion": {
+      "off": "{percent}% off",
+      "until": "until {date}"
+    },
+    "free": "Free",
+    "originalPrice": "Original price:",
+    "per": {
+      "monthly": "/month",
+      "yearly": "/year"
+    },
+    "equivalentMonthly": "Equivalent to {amount} per month",
+    "savePercent": "{percent}% less than monthly",
+    "billedMonthly": "Billed monthly",
+    "cta": "Choose {plan}",
+    "ctaGeneric": "Create account",
+    "unlimited": "Unlimited",
+    "card": {
+      "songs": "{unlimited, select, true {Unlimited songs} other {{count, plural, one {# song} other {# songs}}}}",
+      "setlists": "{unlimited, select, true {Unlimited setlists} other {{count, plural, one {# setlist} other {# setlists}}}}",
+      "bandsOwned": "{unlimited, select, true {Unlimited bands of your own} other {{count, plural, one {Up to # band of your own} other {Up to # bands of your own}}}}",
+      "bandMemberships": "{unlimited, select, true {Member of any number of bands} other {{count, plural, one {Member of up to # band} other {Member of up to # bands}}}}"
+    },
+    "features": {
+      "create_bands": "Create bands",
+      "tours": "Tours",
+      "analytics_export": "Export statistics",
+      "advanced_pdf": "Advanced PDF options",
+      "chordpro_import": "ChordPro import",
+      "song_suggestions": "Song suggestions in bands",
+      "public_sharing": "Public links",
+      "offline_mode": "Offline use",
+      "priority_support": "Priority support"
+    },
+    "limits": {
+      "songs": "Songs",
+      "artists": "Artists",
+      "setlists": "Setlists",
+      "setlist_items": "Items per setlist",
+      "gigs": "Gigs",
+      "tours": "Tours",
+      "tags": "Tags",
+      "bands_owned": "Bands of your own",
+      "band_memberships": "Bands you belong to",
+      "band_members": "Members per band",
+      "band_songs": "Songs per band",
+      "band_setlists": "Setlists per band",
+      "band_gigs": "Gigs per band",
+      "band_tours": "Tours per band"
+    },
+    "included": "Included",
+    "notIncluded": "Not included",
+    "resource": "Feature",
+    "compareTitle": "Compare plans",
+    "compareDescription": "Usage limits and features of each plan. Band limits apply to the bands you create.",
+    "limitsGroup": "Limits",
+    "featuresGroup": "Features",
+    "preReleaseNote": "During the pre-release period, every feature is available free of charge.",
+    "trialNote": "30 days of the Pro plan free, no card required.",
+    "unavailable": "The plans could not be loaded right now. Please try again in a few minutes.",
+    "pricesNote": "Prices in Brazilian reais (BRL). Cancel at any time, with no fee.",
+    "faqTitle": "Questions about plans and billing",
+    "faq": {
+      "free": {
+        "q": "Do I have to pay to use it now?",
+        "aPreRelease": "No. During the pre-release period, every feature is available free of charge. We will give at least 30 days' notice before billing starts, and no plan is ever taken out without your confirmation.",
+        "aEnforced": "Every new account gets 30 free days of the Pro plan, with no card required. After that, you choose a plan to keep the paid features."
+      },
+      "trialEnd": {
+        "q": "What happens when the trial ends?",
+        "a": "Nothing is charged automatically. Your content stays saved and available to view and export, and your features become those of an account without a plan until you choose one."
+      },
+      "cancel": {
+        "q": "Can I cancel at any time?",
+        "a": "Yes, in your account settings, with no fee. The plan stays active until the end of the period already paid and is not renewed. Details in the <subscription>Subscription Terms</subscription>."
+      },
+      "withdrawal": {
+        "q": "How does the right of withdrawal work?",
+        "a": "Under article 49 of the Brazilian Consumer Protection Code, you can withdraw within 7 days of subscribing and get a full refund of what you paid, even if you have already used the plan."
+      },
+      "limits": {
+        "q": "What if I go over my plan's limits?",
+        "a": "Nothing is deleted. You keep access to everything, but you cannot create new items of that type until you are within the limit or move to a larger plan."
+      },
+      "credits": {
+        "q": "What are credits and promo codes?",
+        "a": "Credits can be exchanged for plan days, and promo codes grant days, credits or discounts. None of them has a cash value or can be transferred to another account."
+      },
+      "referral": {
+        "q": "How does the referral programme work?",
+        "a": "Share your referral link. When someone creates an account and confirms their e-mail address, both accounts receive credits. There is a monthly limit of rewarded referrals; the full rules are in the <subscription>Subscription Terms</subscription>."
+      }
+    }
+  },
+  "releaseNotes": {
+    "eyebrow": "Changelog",
+    "title": "What's new",
+    "description": "What changed in each Setlyst version: new features, improvements, fixes and security updates.",
+    "released": "Released on {date}",
+    "edited": "Edited on {date}",
+    "latest": "Latest",
+    "version": "Version {version}",
+    "kinds": {
+      "new": "New",
+      "improved": "Improved",
+      "fixed": "Fixed",
+      "security": "Security"
+    },
+    "empty": "No release notes published yet.",
+    "unavailable": "The release notes could not be loaded right now. Please try again in a few minutes."
+  },
+  "unsubscribe": {
+    "title": "Unsubscribe",
+    "confirmDescription": "You will stop receiving {category} e-mails at this address. Notifications inside Setlyst stay on.",
+    "securityNote": "Account security notices are still sent, as they protect your access.",
+    "confirm": "Unsubscribe",
+    "manage": "Manage preferences",
+    "successTitle": "Unsubscribed",
+    "successDescription": "You will no longer receive {category} e-mails. To receive them again, adjust your communication preferences in the settings.",
+    "invalidTitle": "Invalid link",
+    "invalidDescription": "This unsubscribe link is not valid or is incomplete. Sign in to adjust your communication preferences.",
+    "unavailableTitle": "Service unavailable",
+    "unavailableDescription": "The link could not be checked right now. Please try again in a few minutes.",
+    "error": "We could not unsubscribe you right now. Please try again in a few minutes.",
+    "backHome": "Go to the home page",
+    "categories": {
+      "security": "security",
+      "account": "account notice",
+      "bands": "band activity",
+      "announcements": "Setlyst announcement",
+      "product_updates": "product update",
+      "marketing": "offers and promotions",
+      "generic": "this type of"
+    }
+  },
+  "seo": {
+    "landingTitle": "Setlyst: lyrics, chords and setlists for playing live",
+    "landingDescription": "Organise your repertoire, build setlists with BPM and energy analysis and play in Live Mode with a metronome, key transposition and offline use. For musicians and bands.",
+    "pricingTitle": "Plans and pricing",
+    "pricingDescription": "Compare Setlyst's Basic, Intermediate and Pro plans: limits, band features, tours and export. Prices in Brazilian reais, cancel at any time.",
+    "changelogTitle": "What's new",
+    "changelogDescription": "Setlyst's version history with new features, improvements, fixes and security updates.",
+    "unsubscribeTitle": "Unsubscribe from e-mails"
+  },
+  "twoFactor": {
+    "loginTitle": "Two-step verification",
+    "loginDescription": "Enter the 6-digit code from your authenticator app.",
+    "recoveryDescription": "Enter one of the recovery codes you saved when you turned on verification. Each code works only once.",
+    "codeLabel": "Verification code",
+    "recoveryLabel": "Recovery code",
+    "useRecovery": "Use a recovery code",
+    "useApp": "Use the app code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "back": "Back",
+    "invalid": "Incorrect code. Check the app and try again.",
+    "invalidAttempts": "{count, plural, one {Incorrect code. # attempt left.} other {Incorrect code. # attempts left.}}",
+    "attemptsExhausted": "Too many incorrect codes. Sign in again with your password.",
+    "expired": "The time to enter the code ran out. Please sign in again.",
+    "title": "Two-step verification",
+    "statusOn": "On",
+    "statusOff": "Off",
+    "description": "Besides your password, signing in asks for a code from your authenticator app (Google Authenticator, Microsoft Authenticator, 1Password, Authy and others).",
+    "enabledSince": "Turned on on {date}.",
+    "recoveryRemaining": "{count, plural, =0 {No recovery codes left.} one {# recovery code left.} other {# recovery codes left.}}",
+    "recoveryLow": "Generate new codes so you don't lose access if you're without your phone.",
+    "regenerate": "Generate new recovery codes",
+    "disable": "Turn off",
+    "enable": "Turn on two-step verification",
+    "setup": {
+      "stepOf": "Step {step} of {total}",
+      "passwordTitle": "Confirm it's you",
+      "passwordDescription": "For your security, confirm your password before setting up two-step verification.",
+      "scanTitle": "Add Setlyst to your app",
+      "scanDescription": "Use an authenticator app on your phone to scan the QR code.",
+      "verifyTitle": "Enter the app code",
+      "verifyDescription": "Enter the 6-digit code shown in the app to finish.",
+      "codesTitle": "Save your recovery codes",
+      "codesDescription": "Two-step verification is on. These codes let you sign in if you lose access to the app.",
+      "password": "Current password",
+      "noPassword": "Your account signs in with Google and has no password. You can continue.",
+      "appsHint": "You'll need an authenticator app installed on your phone.",
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "qrLabel": "QR code for the authenticator app",
+      "scan1": "Open your authenticator app.",
+      "scan2": "Tap add account and choose to scan a QR code.",
+      "scan3": "Point the camera at the code beside these steps.",
+      "manual": "Can't scan the QR code? Enter this key",
+      "copy": "Copy",
+      "manualHint": "Choose the time-based type (TOTP) if the app asks.",
+      "copyFailed": "Couldn't copy. Select the key and copy it manually.",
+      "next": "I've added it",
+      "codeLabel": "App code",
+      "back": "Back",
+      "activate": "Turn on",
+      "finish": "Done",
+      "expired": "The setup time ran out. Please start again.",
+      "invalid": "Incorrect code. Check that your phone's clock is correct and try again.",
+      "enabled": "Two-step verification turned on."
+    },
+    "codes": {
+      "explanation": "Each code works only once. Keep them somewhere safe, such as a password manager. They won't be shown again.",
+      "listLabel": "Recovery codes",
+      "copy": "Copy codes",
+      "copied": "Codes copied.",
+      "copyFailed": "Couldn't copy. Select the codes and copy them manually.",
+      "download": "Download .txt",
+      "acknowledge": "I've saved my recovery codes somewhere safe.",
+      "fileHeader": "Setlyst: recovery codes for @{username}",
+      "fileNote": "Each code works only once. Keep this file somewhere safe.",
+      "fileGenerated": "Generated on {date}"
+    },
+    "disableDialog": {
+      "title": "Turn off two-step verification?",
+      "description": "Your account will be protected by your password only. To confirm, enter your password and a code.",
+      "password": "Current password",
+      "code": "App code or recovery code",
+      "codeHint": "6 digits from the app or a recovery code (XXXX-XXXX).",
+      "cancel": "Cancel",
+      "confirm": "Turn off",
+      "done": "Two-step verification turned off."
+    },
+    "regenerateDialog": {
+      "title": "Generate new recovery codes",
+      "description": "Your current codes will stop working. To confirm, enter the app code.",
+      "newDescription": "These are your new codes. The previous ones no longer work.",
+      "code": "App code",
+      "cancel": "Cancel",
+      "confirm": "Generate codes",
+      "finish": "Done",
+      "done": "New recovery codes generated."
+    }
+  },
+  "googleAuth": {
+    "continue": "Continue with Google",
+    "unavailable": "Sign-in with Google isn't available right now.",
+    "failed": "We couldn't complete the sign-in with Google. Please try again.",
+    "emailTaken": "An account with this email already exists. Sign in with your username and password, confirm your email, then link Google in Settings, under Security.",
+    "consentMetaTitle": "Sign up with Google",
+    "consentTitle": "Create your account with Google",
+    "consentDescription": "There's no Setlyst account for this Google account yet. To create one, accept the terms below.",
+    "consentPointUsername": "Your username is created from your email and can be changed later in your profile.",
+    "consentPointPassword": "The account signs in with Google. If you want, set a password later through password recovery.",
+    "consentSubmit": "Accept and continue with Google",
+    "consentCancel": "Back to sign in"
+  },
+  "emailVerification": {
+    "title": "Confirm email",
+    "intro": "We'll send a 6-digit code to {email}. It's valid for 15 minutes.",
+    "codeSent": "Enter the code sent to {email}.",
+    "codeLabel": "Confirmation code",
+    "codeHint": "Didn't arrive? Check your spam folder.",
+    "resend": "Resend code",
+    "resendIn": "Resend in {time}",
+    "send": "Send code",
+    "sent": "Code sent to {email}.",
+    "haveCode": "I already have a code",
+    "confirm": "Confirm",
+    "verified": "Email confirmed.",
+    "banner": {
+      "label": "Email confirmation",
+      "title": "Confirm your email.",
+      "description": "This way you receive security notices and can recover access to your account ({email}).",
+      "noEmailTitle": "Your account has no email.",
+      "noEmailDescription": "Add one to recover access to your account and receive security notices.",
+      "verify": "Verify now",
+      "addEmail": "Add email",
+      "dismiss": "Hide notice"
+    }
+  },
+  "account": {
+    "emailChange": {
+      "title": "Change email",
+      "addTitle": "Add email",
+      "description": "We'll send a code to the new address. The change only applies after you enter the code.",
+      "codeSent": "Enter the code sent to {email}.",
+      "current": "Current email:",
+      "newEmail": "New email",
+      "newEmailPlaceholder": "you@example.com",
+      "same": "This is already your account's email.",
+      "password": "Current password",
+      "passwordHint": "We confirm your password before sending the code.",
+      "cancel": "Cancel",
+      "sendCode": "Send code",
+      "back": "Back",
+      "confirm": "Confirm change",
+      "resent": "We sent a new code to {email}.",
+      "success": "Email changed to {email}."
+    },
+    "delete": {
+      "title": "Delete my account",
+      "description": "Permanently removes your account and your personal data from Setlyst.",
+      "consequenceContent": "Your personal songs, artists, setlists, gigs and tours are deleted.",
+      "consequenceBands": "Bands you own are handed over to their longest-standing member. Bands with no other members are deleted.",
+      "consequenceBilling": "Credits, referrals and your current plan are lost.",
+      "consequenceIrreversible": "This can't be undone. We'll send a confirmation to your email.",
+      "backupHint": "Before continuing, you can export a backup above.",
+      "action": "Delete my account",
+      "dialogTitle": "Permanently delete your account?",
+      "dialogDescription": "This action can't be undone.",
+      "typeUsername": "To confirm, type your username: <strong>{username}</strong>",
+      "password": "Current password",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently",
+      "deleted": "Account deleted."
+    }
+  },
+  "terms": {
+    "gate": {
+      "title": "We've updated our terms",
+      "description": "The Terms of Use and the Privacy Policy were updated on {date}. To keep using Setlyst, please read and accept the new version.",
+      "readTerms": "Read the <link>Terms of Use</link>.",
+      "readPrivacy": "Read the <link>Privacy Policy</link>.",
+      "checkbox": "I've read and accept the Terms of Use and the Privacy Policy.",
+      "signOut": "Sign out",
+      "accept": "Accept and continue",
+      "accepted": "Terms accepted."
+    }
+  },
+  "security": {
+    "unavailable": "We couldn't load your security information right now. Reload the page in a moment.",
+    "readOnly": "You're viewing another user's account. Security options can only be changed by the account holder.",
+    "password": {
+      "title": "Password",
+      "description": "Changing your password signs you out on every device.",
+      "descriptionNotSet": "Your account signs in with Google and doesn't have a password yet.",
+      "changedOn": "Last changed on {date}.",
+      "neverChanged": "Never changed yet.",
+      "change": "Change password",
+      "dialogDescription": "Choose a strong password you don't use anywhere else."
+    },
+    "google": {
+      "title": "Google account",
+      "linked": "Linked",
+      "notLinked": "Not linked",
+      "descriptionLinked": "You can sign in to Setlyst with this Google account.",
+      "descriptionNotLinked": "Link it to sign in with one click. Use a Google account with the same, already confirmed, email as this account.",
+      "account": "Account",
+      "noEmail": "No email",
+      "since": "Linked on",
+      "lastUsed": "Last used",
+      "never": "Never",
+      "link": "Link Google account",
+      "unlink": "Unlink",
+      "unlinkTitle": "Unlink the Google account?",
+      "unlinkDescription": "You'll no longer sign in with Google and will use only your username or email and password.",
+      "unlinked": "Google account unlinked.",
+      "status": {
+        "linked": "Google account linked.",
+        "mismatch": "This Google account belongs to another Setlyst account. Nothing changed in yours.",
+        "no_account": "We couldn't link it: this Google account's email is different from this account's email. Change the account's email or use another Google account.",
+        "unverified": "We couldn't link it: confirm this account's email before linking Google.",
+        "failed": "We couldn't link the Google account. Please try again."
+      }
+    },
+    "activity": {
+      "title": "Account activity",
+      "description": "Recent access information.",
+      "lastLogin": "Last sign-in",
+      "passwordChanged": "Password changed on",
+      "never": "Never",
+      "noPassword": "No password set"
+    },
+    "sessions": {
+      "title": "Sign out of all devices",
+      "description": "Ends your session on every device where you are signed in, including this one. Use it if you lost a phone or signed in on someone else's computer.",
+      "action": "Sign out of all devices",
+      "confirmTitle": "Sign out of all devices?",
+      "confirmDescription": "Every session will end, including this one. You will need to sign in again on each device.",
+      "confirm": "Sign out of all"
+    }
+  },
+  "communication": {
+    "unavailable": "We couldn't load your communication preferences right now. Reload the page in a moment.",
+    "title": "Messages by category",
+    "description": "Changes are saved automatically.",
+    "saved": "Preference saved.",
+    "emailUnverified": "Your email isn't confirmed yet. Until then, we don't send messages by email.",
+    "emailMissing": "Your account has no email. Add one in your profile to receive messages by email.",
+    "category": "Category",
+    "email": "Email",
+    "inApp": "In app",
+    "optional": "(optional)",
+    "locked": "Always on",
+    "switchLabel": "{category}: {channel}",
+    "securityNote": "Security messages (password change, two-step verification, email change) are always sent, to protect your account.",
+    "categories": {
+      "security": {
+        "label": "Security",
+        "description": "Alerts about your password, two-step verification and sign-ins."
+      },
+      "account": {
+        "label": "Account and subscription",
+        "description": "Plan changes, credits, trial period and moderation actions."
+      },
+      "bands": {
+        "label": "Bands",
+        "description": "Invitations, song suggestions and activity in your bands."
+      },
+      "announcements": {
+        "label": "Announcements",
+        "description": "Important notices from the Setlyst team."
+      },
+      "product_updates": {
+        "label": "What's new",
+        "description": "New Setlyst versions and features."
+      },
+      "marketing": {
+        "label": "Offers and tips",
+        "description": "Promotions and content about Setlyst. You can unsubscribe at any time."
+      }
+    }
+  },
+  "billing": {
+    "unavailable": "We couldn't load your subscription right now. Reload the page in a moment.",
+    "preRelease": "During the pre-release period, every feature is available.",
+    "paymentsSoon": "Online payments will be available soon.",
+    "seePlans": "See plans",
+    "plans": {
+      "basic": "Basic",
+      "intermediate": "Intermediate",
+      "pro": "Pro"
+    },
+    "plan": {
+      "title": "Current plan",
+      "description": "Your plan, the current period and the included features.",
+      "none": "No plan",
+      "noneHint": "Your account has no active plan. Paid features stay unavailable until you choose a plan.",
+      "preRelease": "Pre-release",
+      "started": "Started",
+      "trialEnds": "Trial ends on",
+      "renewsOn": "Valid until",
+      "endsOn": "Ends on",
+      "ended": "Ended on",
+      "openEnded": "No end date",
+      "source": "Source",
+      "features": "Features",
+      "included": "included",
+      "notIncluded": "not included"
+    },
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Payment pending",
+      "canceled": "Canceled",
+      "expired": "Expired"
+    },
+    "source": {
+      "trial": "Trial period",
+      "admin": "Granted by the team",
+      "promo_code": "Promo code",
+      "credits": "Credits",
+      "referral": "Referral",
+      "payment": "Payment"
+    },
+    "history": {
+      "title": "History",
+      "kinds": {
+        "trial_started": "{plan} trial started",
+        "trial_extended": "Trial period extended",
+        "plan_granted": "{plan} plan granted",
+        "extended": "{plan} plan extended",
+        "revoked": "{plan} plan ended",
+        "other": "Subscription updated"
+      }
+    },
+    "usage": {
+      "title": "Usage and limits",
+      "description": "How much of your space you're using.",
+      "descriptionPlan": "How much of your space you're using, according to your plan's limits.",
+      "unavailable": "We couldn't load your usage right now."
+    },
+    "promo": {
+      "title": "Redeem a promo code",
+      "description": "Promo codes can grant plan days, credits or discounts.",
+      "label": "Promo code",
+      "placeholder": "Enter the code",
+      "submit": "Redeem",
+      "success": "Code redeemed.",
+      "granted": {
+        "plan_grant": "{days, plural, one {# day} other {# days}} of the {plan} plan added to your account.",
+        "trial_extension": "Trial period extended by {days, plural, one {# day} other {# days}}.",
+        "credits": "{credits, plural, one {# credit} other {# credits}} added to your account.",
+        "discount": "A {percent}% discount was saved for your next payment.",
+        "generic": "Code applied to your account."
+      }
+    },
+    "credits": {
+      "title": "Credits",
+      "description": "Earn credits through referrals and promo codes and exchange them for plan days. Credits have no cash value.",
+      "balanceLabel": "{count, plural, one {credit available} other {credits available}}",
+      "rewards": "Exchange credits",
+      "rewardName": "{days, plural, one {# day} other {# days}} of the {plan} plan",
+      "cost": "{count, plural, one {# credit} other {# credits}}",
+      "missing": "{count} short",
+      "redeem": "Exchange",
+      "confirmTitle": "Exchange credits?",
+      "confirmDescription": "{cost, plural, one {# credit} other {# credits}} will be used to add {days, plural, one {# day} other {# days}} of the {plan} plan to your account.",
+      "confirmAction": "Exchange credits",
+      "redeemed": "{days, plural, one {# day} other {# days}} of the {plan} plan added.",
+      "historyTitle": "Statement",
+      "empty": "No credit activity yet.",
+      "date": "Date",
+      "reason": "Description",
+      "amount": "Credits",
+      "reasons": {
+        "referral_referrer": "Referral rewarded",
+        "referral_referred": "Bonus for joining with a referral",
+        "promo_code": "Promo code",
+        "reward_redemption": "Exchanged for plan days",
+        "admin_adjustment": "Adjustment by the team",
+        "other": "Transaction"
+      },
+      "loadMore": "Load more"
+    },
+    "referral": {
+      "title": "Referrals",
+      "description": "Share your link. When someone creates an account and confirms their email, you both receive credits.",
+      "linkLabel": "Your referral link",
+      "codeLabel": "Code:",
+      "noCode": "Your referral code isn't available yet.",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "copyFailed": "Couldn't copy. Select the link and copy it manually.",
+      "share": "Share",
+      "shareTitle": "Setlyst",
+      "shareText": "Organize your repertoire and prepare your gigs with Setlyst. Create your account with my link:",
+      "rewarded": "Rewarded",
+      "pending": "Awaiting confirmation",
+      "listTitle": "People you referred",
+      "empty": "Nobody has signed up with your link yet.",
+      "user": "User",
+      "status": "Status",
+      "joined": "Signed up",
+      "rewardedAt": "Rewarded",
+      "statuses": {
+        "pending": "Pending",
+        "rewarded": "Rewarded",
+        "rejected": "Not eligible"
+      },
+      "loadMore": "Load more"
+    }
+  },
+  "announcements": {
+    "pageTitle": "Announcements",
+    "pageDescription": "Messages from the Setlyst team about the platform, maintenance and changes to your account.",
+    "untitled": "Untitled",
+    "emptyBody": "(no text)",
+    "levels": {
+      "info": "Information",
+      "success": "Good news",
+      "warning": "Attention",
+      "critical": "Critical"
+    },
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "active": "Active",
+      "ended": "Ended",
+      "archived": "Archived"
+    },
+    "queue": "{index} of {total}",
+    "ackHint": "This announcement asks you to confirm you have read it.",
+    "acknowledge": "I have read and agree",
+    "gotIt": "Got it",
+    "continue": "Continue",
+    "opensInNewTab": "(opens in a new tab)",
+    "dismissBanner": "Dismiss announcement",
+    "bannersLabel": "Announcements",
+    "modalDescription": "Announcement from the Setlyst team",
+    "acknowledged": "Reading confirmed.",
+    "emptyTitle": "No announcements yet",
+    "emptyDescription": "When the team publishes a message for you, it shows up here.",
+    "filterLabel": "Filter announcements",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "pending": "Awaiting confirmation"
+    },
+    "filterEmpty": {
+      "all": "No announcements.",
+      "unread": "You've read every announcement.",
+      "pending": "No announcement is waiting for your confirmation."
+    },
+    "new": "New",
+    "ended": "Ended",
+    "until": "until",
+    "acknowledgedOn": "Reading confirmed on",
+    "dismissedState": "Dismissed",
+    "pendingState": "Waiting for your confirmation",
+    "admin": {
+      "title": "Announcements",
+      "description": "Messages shown as a modal, a top banner, a notification or an e-mail to a chosen audience.",
+      "new": "New announcement",
+      "emptyTitle": "No announcements here",
+      "emptyDescription": "Create an announcement for maintenance windows, changes to the terms or important news.",
+      "requiresAck": "Needs confirmation",
+      "channels": {
+        "modal": "Modal on entry",
+        "banner": "Top banner",
+        "notification": "Notification",
+        "email": "E-mail"
+      },
+      "startsOnPublish": "On publish",
+      "noEnd": "no end",
+      "updatedBy": "Edited by @{username}",
+      "stats": {
+        "targeted": "Reach",
+        "seen": "Seen",
+        "dismissed": "Dismissed",
+        "acknowledged": "Confirmed"
+      },
+      "statusFilter": "Filter by status",
+      "allStatuses": "All"
+    },
+    "editor": {
+      "back": "Announcements",
+      "newTitle": "New announcement",
+      "editTitle": "Edit announcement",
+      "unsaved": "Unsaved changes",
+      "lastEditedBy": "Last edited by @{username}.",
+      "delete": "Delete",
+      "archive": "Archive",
+      "saveDraft": "Save draft",
+      "save": "Save changes",
+      "publish": "Publish",
+      "fixErrors": "Check the highlighted fields before continuing.",
+      "saveFailed": "The announcement couldn't be saved.",
+      "saved": "Announcement saved.",
+      "published": "Announcement published.",
+      "archived": "Announcement archived.",
+      "deleted": "Announcement deleted.",
+      "issues": {
+        "titleLength": "The title needs 3 to 120 characters.",
+        "bodyLength": "The text needs 1 to 5000 characters.",
+        "ctaIncomplete": "The button needs both a label and a link.",
+        "ctaLabelLength": "The button label can have up to 40 characters.",
+        "ctaUrl": "Use an app path starting with / or an https:// address.",
+        "noChannel": "Choose at least one channel.",
+        "windowOrder": "The end must be after the start."
+      },
+      "locked": {
+        "titleClosed": "This announcement can no longer be edited",
+        "titleActive": "Active announcement: limited editing",
+        "closed": "Ended and archived announcements are kept as a record. To communicate something new, create another announcement.",
+        "active": "While the announcement is active you can only change the title, the text, the button, the end of the window and where it shows (modal and banner). Level, audience, start, notification, e-mail and behavior are locked."
+      },
+      "content": {
+        "title": "Content",
+        "description": "Plain text. Line breaks are kept; links and formatting are not interpreted.",
+        "titleField": "Title",
+        "body": "Text",
+        "bodyHint": "Be direct: what changes, when, and what people need to do.",
+        "level": "Level",
+        "levelHints": {
+          "info": "General messages, nothing urgent.",
+          "success": "Something that got better or was fixed.",
+          "warning": "Something that needs attention, such as scheduled maintenance.",
+          "critical": "Service notice. The e-mail goes to every verified address in the audience, even people who turned announcement e-mails off."
+        },
+        "ctaLabel": "Button label",
+        "ctaLabelPlaceholder": "See details",
+        "ctaUrl": "Button link",
+        "ctaHint": "Optional. App paths (/dashboard/...) open inside Setlyst; https:// addresses open in a new tab."
+      },
+      "channels": {
+        "title": "Channels",
+        "description": "Where the announcement shows up.",
+        "modal": "Modal on entry",
+        "modalHint": "Shown once when the dashboard opens, one announcement at a time.",
+        "banner": "Top banner",
+        "bannerHint": "Stays above the dashboard content while the announcement is active.",
+        "notification": "Notification",
+        "notificationHint": "Shows in the bell. Respects each person's preferences.",
+        "email": "E-mail",
+        "emailHint": "Sent to people with a verified e-mail who accept announcement e-mails.",
+        "emailCriticalHint": "Critical level: sent to every verified e-mail in the audience."
+      },
+      "behavior": {
+        "title": "Behavior",
+        "description": "How people can interact with the announcement.",
+        "requiresAck": "Requires reading confirmation",
+        "requiresAckHint": "The modal only closes with \"I have read and agree\". Turns on the modal automatically.",
+        "dismissible": "Can be dismissed",
+        "dismissibleHint": "Lets people close the modal and the banner for good.",
+        "dismissibleAckHint": "Announcements that require confirmation can't be dismissed."
+      },
+      "audience": {
+        "title": "Audience",
+        "description": "Nothing selected in a group means everyone in that group.",
+        "roles": "Roles",
+        "plans": "Plans",
+        "locales": "Languages",
+        "trial": "On a trial",
+        "none": "No subscription",
+        "roleNames": {
+          "user": "Users",
+          "moderator": "Moderators",
+          "admin": "Admins"
+        },
+        "everyRole": "Every role.",
+        "everyPlan": "Everyone, with or without a subscription.",
+        "everyLocale": "Every language.",
+        "counting": "Counting the reach…",
+        "countUnavailable": "The reach can't be counted right now.",
+        "count": "{count, plural, =0 {No account matches} one {# account matches} other {# accounts match}} this audience right now."
+      },
+      "schedule": {
+        "title": "Schedule",
+        "description": "Times in your time zone ({timeZone}). Stored in UTC.",
+        "start": "Start",
+        "startHint": "Empty: starts as soon as it is published.",
+        "end": "End",
+        "endHint": "Empty: stays active until archived."
+      },
+      "preview": {
+        "title": "Preview",
+        "noChannels": "No channel chosen",
+        "modal": "Modal",
+        "banner": "Banner",
+        "notification": "Notification",
+        "channelOff": "This channel is off for this announcement.",
+        "notificationsTitle": "Notifications"
+      },
+      "confirmPublish": {
+        "title": "Publish this announcement?",
+        "audience": "{count, plural, =0 {No account matches the audience right now.} one {# account matches the audience right now.} other {# accounts match the audience right now.}}",
+        "audienceUnknown": "The reach couldn't be counted.",
+        "channels": "Channels: {channels}.",
+        "scheduled": "It will show from the scheduled start. Notifications and e-mails go out then.",
+        "immediate": "It shows right away. Notifications and e-mails go out next."
+      },
+      "confirmArchive": {
+        "title": "Archive this announcement?",
+        "description": "It stops showing and leaves people's announcement history. Its statistics stay available here."
+      },
+      "confirmDelete": {
+        "title": "Delete this draft?",
+        "description": "The draft will be deleted permanently."
+      },
+      "leave": {
+        "title": "Leave without saving?",
+        "description": "Your changes to this announcement will be lost.",
+        "confirm": "Leave without saving"
+      }
+    }
+  },
+  "moderation": {
+    "title": "Attention points",
+    "description": "Profile pictures, usernames and band logos flagged automatically or reported.",
+    "scope": "Moderation covers only images (profile pictures and band logos) and usernames. Lyrics, chords and setlists don't go through here. To suspend an account, open the user page.",
+    "tabsLabel": "Status",
+    "tabs": {
+      "open": "Open",
+      "actioned": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "typeFilter": "Type",
+    "types": {
+      "all": "All types",
+      "avatar": "Profile picture",
+      "username": "Username",
+      "band_logo": "Band logo",
+      "profile": "Profile"
+    },
+    "empty": {
+      "open": {
+        "title": "Nothing to review",
+        "description": "There are no open attention points with this filter."
+      },
+      "actioned": {
+        "title": "No resolved points",
+        "description": "Points where an action was taken show up here."
+      },
+      "dismissed": {
+        "title": "No dismissed points",
+        "description": "Points dismissed without action show up here."
+      }
+    },
+    "rescan": {
+      "button": "Rescan everything",
+      "title": "Rescan every account?",
+      "description": "Every username, profile picture and band logo goes through the automatic checks again. This may take a moment.",
+      "confirm": "Rescan",
+      "done": "{count, plural, =0 {No new attention points found.} one {# new attention point found.} other {# new attention points found.}}",
+      "doneNone": "Rescan finished. No new points."
+    },
+    "card": {
+      "imageUnavailable": "The image couldn't be loaded",
+      "imageRemoved": "Image already removed",
+      "imageAlt": "Flagged image of @{username}",
+      "hideImage": "Hide image",
+      "showImage": "Show image",
+      "currentChanged": "Current value (changed after the flag)",
+      "currentSame": "Current value (unchanged)",
+      "currentRemoved": "Current value",
+      "none": "Removed",
+      "banned": "Suspended",
+      "band": "Band: {band}",
+      "score": "Score {score}%",
+      "scoreLabel": "Detection score",
+      "flaggedValue": "Flagged value",
+      "reportedBy": "Reported by @{username}",
+      "unknownUser": "deleted account",
+      "automatic": "Automatic detection",
+      "resolvedBy": "{resolution} by @{username} on",
+      "outranked": "Only admins can act on staff accounts."
+    },
+    "reasons": {
+      "hate_term": "Hate speech",
+      "sexual_term": "Sexual term",
+      "offensive_term": "Offensive term",
+      "blocked_domain": "Blocked site",
+      "suspicious_url": "Suspicious address",
+      "nsfw_image": "Nudity or sexual content",
+      "violent_image": "Violence",
+      "safe_search": "Automatic classification",
+      "user_report": "Report",
+      "inappropriate_avatar": "Inappropriate picture",
+      "offensive_username": "Offensive name",
+      "impersonation": "Impersonation",
+      "spam": "Spam",
+      "other": "Other reason"
+    },
+    "resolutions": {
+      "dismissed": "Dismissed",
+      "avatar_removed": "Picture removed",
+      "band_logo_removed": "Logo removed",
+      "username_reset": "Username reset"
+    },
+    "actions": {
+      "dismiss": "Dismiss",
+      "remove_avatar": "Remove picture",
+      "remove_band_logo": "Remove logo",
+      "reset_username": "Reset username",
+      "openUser": "Open user"
+    },
+    "resolved": {
+      "dismiss": "Point dismissed.",
+      "remove_avatar": "Picture removed.",
+      "remove_band_logo": "Logo removed.",
+      "reset_username": "Username reset."
+    },
+    "confirm": {
+      "dismiss": {
+        "title": "Dismiss this point?",
+        "description": "Nothing changes on @{username}'s account. The point leaves the queue."
+      },
+      "remove_avatar": {
+        "title": "Remove the profile picture?",
+        "description": "The picture of @{username} will be removed. They can choose another one."
+      },
+      "remove_band_logo": {
+        "title": "Remove the band logo?",
+        "description": "The logo of {band} will be removed. The band's admins can choose another one."
+      },
+      "reset_username": {
+        "title": "Reset the username?",
+        "description": "@{username} gets a random name (user-xxxxxx) and can choose a new one right away."
+      }
+    },
+    "dialog": {
+      "note": "Note",
+      "notePlaceholder": "Reason for the decision",
+      "noteVisible": "The note is sent with the notification.",
+      "noteInternal": "The note stays in the moderation record only.",
+      "notify": "Notify the user",
+      "resetHint": "The old name stays in the account's username history."
+    },
+    "userSummary": {
+      "title": "Moderation",
+      "unavailable": "The attention points couldn't be loaded.",
+      "open": "{count, plural, =0 {No open attention points about this account.} one {# open attention point about this account.} other {# open attention points about this account.}}",
+      "none": "No open attention points about this account.",
+      "openQueue": "View this account's attention points"
+    },
+    "statusLabels": {
+      "actioned": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "userFilter": {
+      "label": "Account: {username}",
+      "unknown": "Filtered by one account",
+      "clear": "Clear account filter"
+    }
+  },
+  "releaseNotesAdmin": {
+    "title": "What's new",
+    "description": "Release notes shown on the What's new page and the public changelog.",
+    "new": "New release",
+    "readOnly": "You can read the release notes. Only admins edit and publish them.",
+    "empty": "No release notes yet.",
+    "untitled": "Untitled",
+    "releasedOn": "Released on {date}",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "updatedBy": "Edited by @{username} on",
+    "statusPublished": "Published",
+    "statusDraft": "Draft",
+    "edited": "Edited",
+    "back": "What's new",
+    "newTitle": "New release",
+    "editTitle": "Release {version}",
+    "unsaved": "Unsaved changes",
+    "editedInfo": "Edited after publication. Last change on",
+    "lastSaved": "Last change on",
+    "byUser": "by @{username}",
+    "delete": "Delete",
+    "unpublish": "Unpublish",
+    "saveChanges": "Save changes",
+    "saveDraft": "Save draft",
+    "publish": "Publish",
+    "publishedEditHint": "This release is already published. Changes show right away and the release gets an \"Edited on\" mark.",
+    "fixErrors": "Check the highlighted fields before continuing.",
+    "saveFailed": "The release note couldn't be saved.",
+    "saved": "Release note saved.",
+    "published": "Release published.",
+    "publishedNotified": "Release published. Users will be notified.",
+    "unpublished": "Release moved back to draft.",
+    "deleted": "Release note deleted.",
+    "issues": {
+      "version": "Use the format 1.2.3 or 1.2.3-beta.1.",
+      "date": "Enter the release date.",
+      "required": "Required in this language.",
+      "tooShort": "Use at least 3 characters.",
+      "tooLong": "Use at most {max} characters.",
+      "noItems": "Add at least one item.",
+      "tooManyItems": "A release can have up to 40 items."
+    },
+    "release": {
+      "title": "Release",
+      "version": "Version number",
+      "versionHint": "Format 1.2.3 (or 1.2.3-beta.1).",
+      "date": "Release date"
+    },
+    "texts": {
+      "title": "Texts",
+      "description": "Title and items in each language. The kind and order of items apply to every language.",
+      "hasErrors": "(has errors)",
+      "required": "Required.",
+      "optional": "Optional. Empty texts use the English version.",
+      "releaseTitle": "Title"
+    },
+    "items": {
+      "title": "Items ({count} of {max})",
+      "kind": "Kind",
+      "moveUp": "Move item {index} up",
+      "moveDown": "Move item {index} down",
+      "remove": "Remove item {index}",
+      "text": "Text of item {index}",
+      "placeholder": "What changed, in one or two sentences.",
+      "add": "Add item"
+    },
+    "preview": {
+      "title": "Preview",
+      "locale": "In {locale}"
+    },
+    "confirmPublish": {
+      "title": "Publish release {version}?",
+      "description": "It shows on the What's new page and the public changelog.",
+      "notify": "Notify users",
+      "notifyHint": "Sends an in-app notification to everyone and an e-mail to people who accept product update e-mails. Only on the first publication."
+    },
+    "confirmUnpublish": {
+      "title": "Unpublish this release?",
+      "description": "It leaves the What's new page and the changelog and goes back to draft."
+    },
+    "confirmDelete": {
+      "title": "Delete this release note?",
+      "description": "The draft will be deleted permanently.",
+      "descriptionPublished": "The release leaves the What's new page and the changelog and is deleted permanently."
+    },
+    "leave": {
+      "title": "Leave without saving?",
+      "description": "Your changes to this release note will be lost.",
+      "confirm": "Leave without saving"
+    }
+  },
+  "billingAdmin": {
+    "title": "Plans and billing",
+    "description": "Subscription status, plans, trial, referrals and rewards.",
+    "readOnly": "You can read the overview. Only admins change plans and billing settings.",
+    "overview": {
+      "title": "Overview",
+      "enforcement": "Billing",
+      "enforcedOn": "On",
+      "enforcedOff": "Off",
+      "enforcedOnHint": "Features and limits follow each account's plan.",
+      "enforcedOffHint": "Pre-release: every feature is available.",
+      "withoutSubscription": "Accounts without a subscription",
+      "credits": "Credits issued",
+      "creditsSpent": "{count, plural, one {# spent} other {# spent}}",
+      "redemptions": "Codes redeemed (30 days)",
+      "referrals": "{count, plural, one {# referral rewarded} other {# referrals rewarded}}",
+      "byStatus": "Subscriptions by status",
+      "byPlan": "Subscriptions by plan",
+      "noSubscriptions": "No subscriptions yet."
+    },
+    "subscriptionStatus": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Payment due",
+      "canceled": "Canceled",
+      "expired": "Expired"
+    },
+    "plans": {
+      "title": "Plans",
+      "new": "New plan",
+      "highlighted": "Highlighted",
+      "public": "Public",
+      "hidden": "Hidden",
+      "perMonth": "per month",
+      "yearly": "{price} per year",
+      "featureCount": "{count, plural, =0 {No extra features} one {# feature} other {# features}}",
+      "edit": "Edit plan",
+      "view": "View plan"
+    },
+    "settings": {
+      "title": "Billing settings",
+      "description": "They apply to every account.",
+      "saved": "Settings saved.",
+      "invalid": "Check the highlighted values.",
+      "reset": "Undo changes",
+      "save": "Save settings",
+      "enforce": {
+        "label": "Enforce plans",
+        "onHint": "Features and limits follow each account's plan.",
+        "offHint": "Every feature is available to every account.",
+        "word": "CONFIRM",
+        "confirmOnTitle": "Turn billing on?",
+        "confirmOffTitle": "Turn billing off?",
+        "confirmOnLead": "This change affects every account immediately.",
+        "confirmOffLead": "Every account gets every feature back.",
+        "consequences": {
+          "on1": "Accounts without a subscription lose paid features and follow the default limits.",
+          "on2": "New accounts start a trial of the configured plan.",
+          "on3": "Trial-ending reminders and expirations start being processed.",
+          "on4": "Consider granting a trial to accounts without a subscription first.",
+          "off1": "Every feature and the default limits become available to every account.",
+          "off2": "Subscriptions and credits stay on record but no longer make a difference.",
+          "off3": "Trial-ending reminders and expirations stop being processed."
+        },
+        "confirmOn": "Turn billing on",
+        "confirmOff": "Turn billing off",
+        "typeToConfirm": "Type {word} to confirm"
+      },
+      "trial": {
+        "title": "Trial",
+        "days": "Trial days",
+        "daysHint": "0 turns the trial off for new accounts.",
+        "plan": "Trial plan"
+      },
+      "referral": {
+        "title": "Referrals",
+        "enabled": "On",
+        "referrer": "Credits for the referrer",
+        "referred": "Credits for the referred person",
+        "maxPerMonth": "Maximum rewarded per month",
+        "hint": "The reward is given when the referred person verifies their e-mail."
+      },
+      "rewards": {
+        "title": "Rewards",
+        "description": "What users can exchange credits for.",
+        "empty": "No rewards set up.",
+        "id": "Identifier",
+        "plan": "Plan",
+        "days": "Days",
+        "cost": "Cost",
+        "remove": "Remove reward {id}",
+        "add": "Add reward",
+        "issues": {
+          "id": "Enter an identifier of up to 40 characters.",
+          "duplicate": "Duplicate identifier.",
+          "plan": "Choose a plan.",
+          "days": "Days between 1 and 3650.",
+          "cost": "Cost between 1 and 100000 credits."
+        }
+      }
+    },
+    "grantTrials": {
+      "title": "Grant a trial",
+      "description": "Starts a {plan} trial for every account without a subscription. Useful when turning billing on.",
+      "eligible": "{count, plural, =0 {No accounts without a subscription.} one {# account without a subscription.} other {# accounts without a subscription.}}",
+      "days": "Trial days",
+      "button": "Grant to accounts without a subscription",
+      "confirmTitle": "Grant a trial?",
+      "confirmDescription": "{count, plural, one {# account} other {# accounts}} without a subscription {count, plural, one {gets} other {get}} {days, plural, one {# day} other {# days}} of the {plan} plan. People are notified.",
+      "confirm": "Grant",
+      "done": "{count, plural, =0 {No account needed a trial.} one {Trial granted to # account.} other {Trial granted to # accounts.}}"
+    },
+    "planEditor": {
+      "back": "Plans and billing",
+      "newTitle": "New plan",
+      "editTitle": "Plan {name}",
+      "unsaved": "Unsaved changes",
+      "description": "Changes apply immediately to everyone on the plan.",
+      "save": "Save plan",
+      "saved": "Plan saved.",
+      "invalid": "Check the highlighted fields.",
+      "identity": {
+        "title": "Name and description",
+        "description": "Shown on the pricing page and in account settings.",
+        "code": "Code",
+        "codeHint": "2 to 32 lower-case letters, digits and _. Can't be changed later.",
+        "hasErrors": "(has errors)",
+        "required": "Name required in this language.",
+        "optional": "Optional. Empty fields use the English version.",
+        "name": "Name",
+        "planDescription": "Description"
+      },
+      "pricing": {
+        "title": "Price",
+        "description": "Amounts in the plan's currency, with a decimal comma or point.",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "currency": "Currency",
+        "cents": "{cents} cents",
+        "invalidAmount": "Invalid amount"
+      },
+      "display": {
+        "public": "Public",
+        "publicHint": "Shown on the pricing page.",
+        "highlighted": "Highlighted",
+        "highlightedHint": "Stands out on the pricing page.",
+        "order": "Order",
+        "orderHint": "Lower shows first."
+      },
+      "features": {
+        "title": "Features",
+        "description": "What this plan unlocks while billing is on."
+      },
+      "limits": {
+        "title": "Limits",
+        "description": "Maximum amounts while billing is on.",
+        "hint": "Per-user limits still apply on top of these."
+      },
+      "leave": {
+        "title": "Leave without saving?",
+        "description": "Your changes to this plan will be lost.",
+        "confirm": "Leave without saving"
+      },
+      "readOnly": "Read only. Only admins can change plans."
+    },
+    "promoCodes": {
+      "title": "Promo codes",
+      "description": "Codes that give plan time, a longer trial, credits or a discount.",
+      "search": "Search by code",
+      "new": "New code",
+      "emptyTitle": "No codes",
+      "emptyDescription": "Create a code for campaigns, partnerships or to make up for a problem.",
+      "createTitle": "New promo code",
+      "createDescription": "The value fields change with the kind.",
+      "saveFailed": "The code couldn't be saved.",
+      "created": "Code {code} created.",
+      "cancel": "Cancel",
+      "create": "Create code",
+      "save": "Save",
+      "fields": {
+        "code": "Code",
+        "codePlaceholder": "Generated automatically if left empty",
+        "generate": "Generate",
+        "codeHint": "4 to 32 letters, digits, - or _.",
+        "description": "Internal description",
+        "descriptionPlaceholder": "E.g. music school partnership",
+        "kind": "Kind",
+        "plan": "Plan",
+        "days": "Days",
+        "credits": "Credits",
+        "discount": "Discount (%)",
+        "maxRedemptions": "Redemption limit",
+        "unlimited": "No limit",
+        "startsAt": "Valid from",
+        "startsHint": "Empty: from now on.",
+        "expiresAt": "Valid until",
+        "expiresHint": "Empty: no expiry date.",
+        "windowError": "The end must be after the start.",
+        "newUsersOnly": "New accounts only",
+        "newUsersOnlyHint": "Only accounts created after the start date can redeem it.",
+        "maxHint": "{count, plural, =0 {Not redeemed yet.} one {Redeemed # time already. The limit can't be lower.} other {Redeemed # times already. The limit can't be lower.}}"
+      },
+      "kinds": {
+        "plan_grant": "Plan time",
+        "trial_extension": "Longer trial",
+        "credits": "Credits",
+        "discount": "Discount"
+      },
+      "kindHints": {
+        "plan_grant": "Gives days of a plan. If the person already has the same plan, it is extended.",
+        "trial_extension": "Adds days to the trial. Without a subscription, starts a trial of the configured plan.",
+        "credits": "Adds credits to the account balance.",
+        "discount": "Stores a discount for the next payment."
+      },
+      "editTitle": "Edit {code}",
+      "editDescription": "The kind and value can't change after creation.",
+      "updated": "Code updated.",
+      "redemptionsTitle": "Redemptions of {code}",
+      "redemptionsDescription": "{count, plural, =0 {No redemptions.} one {# redemption.} other {# redemptions.}}",
+      "redemptionsFailed": "The redemptions couldn't be loaded.",
+      "loading": "Loading…",
+      "redemptionsEmpty": "Nobody has redeemed this code yet.",
+      "values": {
+        "plan_grant": "{plan} for {days, plural, one {# day} other {# days}}",
+        "trial_extension": "+{days, plural, one {# day} other {# days}} of trial",
+        "credits": "{credits, plural, one {# credit} other {# credits}}",
+        "discount": "{percent}% off"
+      },
+      "disabled": "Code turned off.",
+      "enabled": "Code turned back on.",
+      "columns": {
+        "code": "Code",
+        "benefit": "Benefit",
+        "usage": "Usage",
+        "status": "Status",
+        "window": "Validity",
+        "actions": "Actions"
+      },
+      "copied": "Code copied.",
+      "copy": "Copy {code}",
+      "newUsersOnly": "new accounts only",
+      "usageOf": "{used} of {max}",
+      "usageUnlimited": "{used} (no limit)",
+      "status": {
+        "active": "Active",
+        "scheduled": "Scheduled",
+        "expired": "Expired",
+        "exhausted": "Used up",
+        "disabled": "Off"
+      },
+      "fromCreation": "Since creation",
+      "noExpiry": "no expiry",
+      "actionsFor": "Actions for {code}",
+      "edit": "Edit",
+      "redemptions": "See redemptions",
+      "enable": "Turn on",
+      "disable": "Turn off",
+      "enableTitle": "Turn {code} back on?",
+      "disableTitle": "Turn {code} off?",
+      "enableDescription": "The code can be redeemed again, within its validity and limit.",
+      "disableDescription": "Nobody can redeem the code anymore. People who already redeemed it keep the benefit."
+    },
+    "promotions": {
+      "title": "Promotions",
+      "description": "Time-limited discounts shown on the pricing page.",
+      "new": "New promotion",
+      "emptyTitle": "No promotions",
+      "emptyDescription": "Create a promotion to highlight a discount on the pricing page.",
+      "editTitle": "Edit promotion",
+      "createTitle": "New promotion",
+      "dialogDescription": "When more than one promotion is active for a plan, the biggest discount wins.",
+      "updated": "Promotion saved.",
+      "created": "Promotion created.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "create": "Create promotion",
+      "allPlans": "All plans",
+      "activated": "Promotion turned on.",
+      "deactivated": "Promotion turned off.",
+      "deleted": "Promotion deleted.",
+      "edit": "Edit",
+      "deleteNamed": "Delete {name}",
+      "deleteTitle": "Delete {name}?",
+      "deleteDescription": "The promotion leaves the pricing page and is deleted permanently.",
+      "delete": "Delete",
+      "fields": {
+        "name": "Internal name",
+        "namePlaceholder": "E.g. Back to school",
+        "nameHint": "Only the team sees it.",
+        "headline": "Headline",
+        "headlinePlaceholder": "E.g. 20% off the yearly plan",
+        "headlineHint": "Shown on the pricing page. Empty languages use the English version.",
+        "plan": "Plan",
+        "percent": "Discount (%)",
+        "startsAt": "Start",
+        "endsAt": "End",
+        "windowError": "Enter the start and the end, with the end after the start.",
+        "active": "Active",
+        "activeHint": "Inactive promotions don't show, even within their window."
+      },
+      "status": {
+        "running": "Running",
+        "scheduled": "Scheduled",
+        "ended": "Ended",
+        "inactive": "Inactive"
+      }
+    },
+    "userSubscription": {
+      "title": "Subscription",
+      "description": "Plan, credits and billing history of the account.",
+      "unavailable": "The subscription couldn't be loaded.",
+      "noSubscription": "No subscription",
+      "source": "Source",
+      "startedAt": "Started",
+      "periodEnd": "Valid until",
+      "noEnd": "No end date",
+      "trialEnds": "Trial ends",
+      "cancelAtPeriodEnd": "Will be canceled at the end of the period.",
+      "credits": "Credits",
+      "grantButton": "Grant plan",
+      "creditsButton": "Adjust credits",
+      "revokeButton": "End subscription",
+      "history": "History",
+      "historyEmpty": "No subscription events.",
+      "by": "by @{username}",
+      "revoked": "Subscription ended.",
+      "revokeTitle": "End the subscription?",
+      "revokeDescription": "The {plan} plan of @{username} expires now. They are notified.",
+      "sources": {
+        "trial": "Trial",
+        "admin": "Granted by the team",
+        "promo_code": "Promo code",
+        "credits": "Credits",
+        "referral": "Referral",
+        "payment": "Payment"
+      },
+      "events": {
+        "plan_granted": "Plan granted",
+        "extended": "Period extended",
+        "trial_started": "Trial started",
+        "trial_extended": "Trial extended",
+        "revoked": "Subscription ended",
+        "expired": "Subscription expired"
+      },
+      "grantTitle": "Grant plan",
+      "grantDescription": "Complimentary for @{username}. If they already have the same plan, it is extended.",
+      "plan": "Plan",
+      "duration": "Duration",
+      "forDays": "For",
+      "days": "Days",
+      "daysUnit": "days",
+      "openEnded": "No end date",
+      "durationHint": "No end date keeps the plan until it is ended manually.",
+      "note": "Note",
+      "notePlaceholder": "Reason for the grant (kept in the history)",
+      "cancel": "Cancel",
+      "grant": "Grant",
+      "granted": "Plan granted.",
+      "creditsTitle": "Adjust credits",
+      "creditsDescription": "Current balance: {balance}. Use a negative amount to deduct.",
+      "amount": "Amount",
+      "newBalance": "New balance: {balance}",
+      "amountHint": "A whole number other than zero, between -100000 and 100000.",
+      "reason": "Reason",
+      "reasonPlaceholder": "E.g. make-up for yesterday's outage",
+      "reasonHint": "Required. Kept in the credit history.",
+      "apply": "Apply",
+      "creditsAdjusted": "Credits adjusted."
+    }
+  },
+  "links": {
+    "hint": "Up to 5 links from YouTube, Spotify, Google Drive, Apple Music, Deezer, SoundCloud, Dropbox or OneDrive (https).",
+    "empty": "No links yet.",
+    "urlLabel": "Link {position} address",
+    "labelLabel": "Link {position} name",
+    "urlPlaceholder": "https://youtu.be/…",
+    "labelPlaceholder": "Name (optional), e.g. Live version",
+    "detected": "{provider} link",
+    "issues": {
+      "empty": "Enter the link address.",
+      "too_long": "Links can have at most 500 characters.",
+      "not_https": "Use a full address starting with https://.",
+      "not_allowed": "This site isn't accepted. Use YouTube, Spotify, Google Drive, Apple Music, Deezer, SoundCloud, Dropbox or OneDrive.",
+      "duplicate": "This link is already in the list.",
+      "label_too_long": "The name can have at most 60 characters."
+    },
+    "remove": "Remove link {position}",
+    "moveUp": "Move link {position} up",
+    "moveDown": "Move link {position} down",
+    "add": "Add link",
+    "count": "{count} of {max}",
+    "openIn": "Open {label} ({provider}) in a new tab",
+    "title": "Links"
+  },
+  "songExport": {
+    "upgrade": {
+      "message": "This feature isn't included in your plan.",
+      "link": "See plans"
+    },
+    "pdf": {
+      "title": "Export song PDF",
+      "description": "Choose what to print for “{title}”.",
+      "headerSection": "Header",
+      "layoutSection": "Lyrics and page",
+      "advancedSection": "Advanced options",
+      "advancedLocked": "Two columns, custom margins and PDFs without the watermark come with plans that include advanced PDF.",
+      "toggles": {
+        "show_artist": "Artist",
+        "show_key": "Key",
+        "show_capo": "Capo",
+        "show_bpm": "BPM",
+        "show_time_signature": "Time signature",
+        "show_tuning": "Tuning",
+        "show_notes": "Performance notes"
+      },
+      "language": "PDF language",
+      "reset": "Reset",
+      "export": "Export PDF",
+      "exporting": "Exporting…",
+      "success": "PDF exported."
+    },
+    "chordpro": {
+      "success": "ChordPro file exported."
+    }
+  },
+  "pins": {
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "pinNamed": "Pin “{name}” to home",
+    "unpinNamed": "Unpin “{name}” from home",
+    "pinned": "Pinned to home.",
+    "unpinned": "Removed from pinned.",
+    "failed": "Couldn't update your pinned items.",
+    "title": "Pinned",
+    "limit": "{count} of {max}",
+    "empty": "Nothing pinned yet. Use the pin icon on setlists, songs, bands, gigs and tours to bring them here (up to 12).",
+    "types": {
+      "setlist": "Setlist",
+      "band": "Band",
+      "song": "Song",
+      "tour": "Tour",
+      "gig": "Gig"
+    },
+    "dragHandle": "Drag “{title}” to reorder",
+    "moveUp": "Move “{title}” earlier",
+    "moveDown": "Move “{title}” later",
+    "reorderFailed": "Couldn't save the order."
+  },
+  "trash": {
+    "undo": "Undo",
+    "restoreFailed": "Couldn't restore.",
+    "navLabel": "Trash",
+    "title": "Trash",
+    "retention": "Deleted items stay here for 30 days. After that, they are deleted for good.",
+    "scopes": "Trash bins",
+    "personal": "Personal",
+    "typeFilter": "Type",
+    "allTypes": "All types",
+    "types": {
+      "song": "Song",
+      "artist": "Artist",
+      "setlist": "Setlist",
+      "gig": "Gig",
+      "tour": "Tour"
+    },
+    "count": "{count, plural, =0 {No items} one {# item} other {# items}}",
+    "batch": "+ {count, plural, one {# song} other {# songs}}",
+    "deletedBy": "Deleted by @{user} on",
+    "deletedByUnknown": "Deleted on",
+    "purgeOn": "deleted for good on",
+    "restore": "Restore",
+    "restoreNamed": "Restore “{title}”",
+    "restored": "“{title}” restored.",
+    "deleteForever": "Delete for good",
+    "deleteNamed": "Delete “{title}” for good",
+    "deleteTitle": "Delete for good?",
+    "deleteConfirm": "“{title}” will be deleted forever. This can't be undone.",
+    "deleteBatch": "The {count, plural, one {# song} other {# songs}} deleted with it will be erased too.",
+    "deletedForever": "“{title}” deleted for good.",
+    "deleteFailed": "Couldn't delete.",
+    "empty": "Empty trash",
+    "emptyConfirmTitle": "Empty the trash?",
+    "emptyConfirm": "{count, plural, one {# item in the {scope} trash will be} other {All # items in the {scope} trash will be}} deleted forever. This can't be undone.",
+    "emptyConfirmAll": "Every item in the {scope} trash, of every type, will be deleted forever. This can't be undone.",
+    "emptyButton": "Delete {count, plural, one {# item} other {# items}}",
+    "emptied": "Trash emptied: {count, plural, one {# item deleted} other {# items deleted}}.",
+    "emptyFailed": "Couldn't empty the trash.",
+    "emptyTitle": "The {scope} trash is empty.",
+    "emptyFiltered": "No items of this type in the trash.",
+    "emptyHint": "Deleted songs, artists, setlists, gigs and tours show up here and can be restored for 30 days.",
+    "scopePersonal": "personal",
+    "scopeBand": "band {name}"
+  },
+  "songDetail": {
+    "unknownArtist": "Unknown artist",
+    "tags": "Tags",
+    "offlineNotice": "You're offline. This page needs the internet; the lyrics are still available in Live Mode.",
+    "notInformed": "Not set",
+    "created": "Added on",
+    "actions": {
+      "liveMode": "Live Mode",
+      "edit": "Edit",
+      "editLyrics": "Edit lyrics",
+      "export": "Export",
+      "exportPdf": "Export PDF",
+      "exportChordpro": "Export ChordPro",
+      "delete": "Delete"
+    },
+    "facts": {
+      "title": "Song details",
+      "key": "Key",
+      "bpm": "BPM",
+      "timeSignature": "Time signature",
+      "capo": "Capo",
+      "tuning": "Tuning",
+      "duration": "Duration",
+      "energy": "Energy",
+      "genre": "Genre"
+    },
+    "lyrics": {
+      "title": "Lyrics and chords",
+      "empty": "This song has no lyrics yet.",
+      "add": "Add lyrics"
+    },
+    "links": {
+      "title": "Links",
+      "empty": "No links. Add recordings or reference files in Edit."
+    },
+    "notes": {
+      "title": "Performance notes",
+      "empty": "No stage notes."
+    },
+    "setlists": {
+      "title": "In setlists",
+      "empty": "This song is not in any setlist yet.",
+      "loadError": "Could not load the setlists for this song.",
+      "position": "Position {position}"
+    }
+  },
+  "chordproImport": {
+    "title": "Import ChordPro",
+    "description": "Create a song from a ChordPro file. You review the result before saving.",
+    "locked": "ChordPro import isn't included in your plan.",
+    "tabs": {
+      "file": "File",
+      "paste": "Paste text"
+    },
+    "dropTitle": "Drag the file here or choose it from your device",
+    "dropHint": ".cho, .chordpro, .chopro, .crd, .pro or .txt, up to {max} KB",
+    "chooseFile": "Choose file",
+    "reading": "Reading {name}…",
+    "pasteLabel": "ChordPro content",
+    "pasteHint": "Paste the full text of one song, with the '{title}' and '{artist}' directives if it has them.",
+    "previewButton": "Preview",
+    "previewFailed": "Couldn't read the file.",
+    "importFailed": "Couldn't import the song.",
+    "artistRequired": "Choose the artist or enter a new one.",
+    "titleRequired": "Enter the song title.",
+    "imported": "Song “{title}” imported.",
+    "openSong": "Open song",
+    "back": "Choose another",
+    "confirm": "Import song",
+    "fileIssues": {
+      "type": "Format not accepted. Use .cho, .chordpro, .chopro, .crd, .pro or .txt.",
+      "size": "The file is larger than {max} KB. Send one song per file.",
+      "empty": "The file is empty.",
+      "unreadable": "Couldn't read the file as text."
+    },
+    "preview": {
+      "title": "Review import",
+      "description": "Nothing has been saved yet. Adjust the title and artist, then confirm.",
+      "songTitle": "Title",
+      "artist": "Artist",
+      "selectArtist": "Select the artist",
+      "newArtist": "New artist…",
+      "newArtistName": "New artist name",
+      "key": "Key",
+      "bpm": "BPM",
+      "timeSignature": "Time",
+      "capo": "Capo",
+      "noCapo": "None",
+      "capoFret": "Fret {fret}",
+      "duration": "Duration",
+      "lyrics": "Lyrics",
+      "noLyrics": "The file has no lyrics."
+    },
+    "warnings": {
+      "title": "{count, plural, one {# adjustment while reading} other {# adjustments while reading}}",
+      "line": "Line {line}",
+      "codes": {
+        "album_dropped": "The album ({detail}) was ignored: Setlyst doesn't store albums.",
+        "artist_truncated": "The artist name was shortened to 255 characters.",
+        "title_truncated": "The title was shortened to 255 characters.",
+        "braces_removed": "Stray braces were removed.",
+        "directive_dropped": "The {detail} directive isn't used and was ignored.",
+        "duplicate_directive": "The {detail} directive appears more than once; the first one was kept.",
+        "invalid_capo": "Invalid capo ({detail}): use 0 to 11.",
+        "invalid_chord": "Unrecognized chord ({detail}) was removed.",
+        "invalid_duration": "Invalid duration ({detail}): use m:ss.",
+        "invalid_key": "Key not recognized ({detail}).",
+        "invalid_tempo": "Invalid BPM ({detail}): use a number from 1 to 500.",
+        "invalid_time": "Time signature not accepted ({detail}).",
+        "unbalanced_bracket": "An unmatched bracket was removed.",
+        "too_many_warnings": "There are more adjustments that weren't listed.",
+        "other": "A part was adjusted while reading."
+      }
+    },
+    "errors": {
+      "empty": "The content is empty.",
+      "tooLarge": "The content is larger than 64 KB."
+    }
+  },
+  "insights": {
+    "strengths": "Strengths",
+    "improvements": "Points to improve",
+    "noStrengths": "No strengths to highlight yet. Fill in energy and BPM for a complete analysis.",
+    "noImprovements": "Nothing to adjust: this setlist flows well.",
+    "range": {
+      "single": "Song {n} ({title})",
+      "span": "Songs {from} to {to} ({fromTitle} to {toTitle})"
+    },
+    "codes": {
+      "low_energy_stretch": "{range}: {count} slow, low-energy songs in a row. Consider placing a livelier song in between.",
+      "tiring_stretch": "{range}: {count} fast, high-energy songs in a row. It can tire the band and the audience; consider a break or a breather song.",
+      "weak_opener": "The opener, {title}, has low energy. A stronger first song helps win the audience from the start.",
+      "weak_closer": "The closer, {title}, has low energy. A stronger last song leaves a better impression, unless a quiet ending is intentional.",
+      "bpm_jump": "{range}: the tempo goes from {from} to {to} BPM ({delta} BPM apart) with no break or block in between. Consider a transition song or a clear count-in.",
+      "same_key_run": "{range}: {count} songs in a row in {key}. Changing key keeps the stretch from sounding repetitive.",
+      "long_set_without_break": "{range}: about {minutes} minutes of music without a break. Past 60 minutes, a break helps voices and the audience.",
+      "missing_data": "{missing} of {total, plural, one {# song} other {# songs}} ({percent}%) {missing, plural, one {has} other {have}} no energy or BPM. Fill them in for a more accurate analysis.",
+      "strong_opener": "Strong opener: {title} starts the show with high energy.",
+      "strong_closer": "Strong closer: {title} ends the show with high energy.",
+      "good_arc": "Good energy arc: the set builds up and peaks in the last third, at {title} (song {n}).",
+      "key_variety": "Good key variety: {count} different keys through the set.",
+      "tempo_variety": "Varied tempos, from {min} to {max} BPM.",
+      "smooth_transitions": "Smooth transitions: no abrupt tempo change between neighbouring songs.",
+      "complete_data": "Complete data: all {total} songs have energy and BPM."
+    }
+  },
+  "tours": {
+    "navLabel": "Tours",
+    "title": "Tours",
+    "subtitle": "Group the gigs of a season and follow each tour's dates, setlists and progress.",
+    "newTour": "New tour",
+    "locked": "Tours aren't included in your plan.",
+    "filterLabel": "Show",
+    "filterAll": "All tours",
+    "filterPersonal": "Personal",
+    "emptyTitle": "No tours yet.",
+    "emptyHint": "Create a tour with its start and end dates, then add its gigs.",
+    "groups": {
+      "current": "In progress",
+      "upcoming": "Upcoming",
+      "past": "Finished"
+    },
+    "phase": {
+      "current": "In progress",
+      "upcoming": "Upcoming",
+      "past": "Finished"
+    },
+    "gigCount": "{count, plural, =0 {No gigs} one {# gig} other {# gigs}}",
+    "nextGig": "Next gig: {date}",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "stats": {
+      "total": "Gigs",
+      "confirmed": "Confirmed",
+      "completed": "Played",
+      "cancelled": "Cancelled",
+      "duration": "Setlist time"
+    },
+    "gigsTitle": "Tour gigs",
+    "addGig": "Add gig",
+    "linkGig": "Link existing gig",
+    "noLinkable": "There are no gigs without a tour to link.",
+    "noGigs": "This tour has no gigs yet.",
+    "noGigsHint": "Add a new gig or link one you already have.",
+    "noSetlist": "No setlist linked.",
+    "setlistSummary": "{count, plural, one {# song} other {# songs}}",
+    "unlink": "Remove from tour",
+    "unlinkNamed": "Remove {venue} from the tour",
+    "gigLinked": "Gig linked to the tour.",
+    "gigUnlinked": "Gig removed from the tour.",
+    "linkFailed": "Couldn't update the gig.",
+    "linkTitle": "Link an existing gig",
+    "linkDescription": "Pick a gig without a tour from the same scope (personal or the same band).",
+    "linkLabel": "Gig",
+    "linkPlaceholder": "Select a gig",
+    "linkButton": "Link",
+    "deleteTitle": "Delete tour",
+    "deleteConfirm": "The tour “{name}” goes to the trash. Its gigs stay, without a tour. You can restore it within 30 days.",
+    "moveToTrash": "Move to trash",
+    "deleted": "Tour moved to the trash.",
+    "restored": "Tour restored.",
+    "deleteFailed": "Couldn't delete the tour.",
+    "dialog": {
+      "addTitle": "New tour",
+      "editTitle": "Edit tour",
+      "description": "Name the tour and set its dates.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Northeast Tour 2026",
+      "startLabel": "Start",
+      "endLabel": "End",
+      "datesInvalid": "The end date can't be before the start date.",
+      "bandLabel": "Band",
+      "personalOption": "Personal (no band)",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "e.g. Logistics, lodging, production contacts",
+      "created": "Tour created.",
+      "updated": "Tour updated.",
+      "saveFailed": "Couldn't save the tour."
+    },
+    "errors": {
+      "nameLength": "The tour name must have 1 to 120 characters.",
+      "descriptionLength": "The description can have at most 2000 characters.",
+      "dates": "Enter valid dates; the end can't be before the start."
+    }
+  },
+  "suggestions": {
+    "title": "Suggestions up for a vote",
+    "description": "Members suggest songs, the band votes and whoever manages setlists decides.",
+    "descriptionAuto": "Members suggest songs and the band votes. With {votes, plural, one {# up vote} other {# up votes}}, the song goes in automatically.",
+    "locked": "Song suggestions aren't included in your plan.",
+    "filterLabel": "Filter suggestions",
+    "filters": {
+      "open": "Open",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn",
+      "all": "All"
+    },
+    "status": {
+      "open": "Open",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "suggest": "Suggest a song",
+    "loading": "Loading…",
+    "emptyOpen": "No suggestions open. Suggest a song for the band to consider.",
+    "empty": "No suggestions with this status.",
+    "forSetlist": "For: {setlist}",
+    "by": "Suggested by @{user}",
+    "byUnknown": "Suggested by a deleted account",
+    "resolvedBy": "Decided by @{user}.",
+    "resolvedByVotes": "Accepted by the band's votes.",
+    "votesFor": "Votes on “{title}”",
+    "voteUp": "Vote up ({count})",
+    "voteDown": "Vote down ({count})",
+    "voteFailed": "Couldn't record the vote.",
+    "autoAccepted": "“{title}” reached the votes needed and went into the setlist.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "withdraw": "Withdraw",
+    "withdrawn": "Suggestion withdrawn.",
+    "accepted": "Suggestion accepted. The song is in the setlist.",
+    "rejected": "Suggestion rejected.",
+    "acceptTitle": "Accept suggestion",
+    "rejectTitle": "Reject suggestion",
+    "acceptDescription": "“{title}” will be copied into the band and added to the setlist and the repertoire.",
+    "rejectDescription": "“{title}” won't be added. Whoever suggested it gets notified.",
+    "resolutionNote": "Note (optional)",
+    "suggestTitle": "Suggest a song",
+    "suggestDescription": "Pick one of your songs or a band song, and the target setlist.",
+    "songLabel": "Song",
+    "songPlaceholder": "Select a song",
+    "mySongs": "My songs",
+    "bandSongs": "Band repertoire",
+    "setlistLabel": "Target setlist",
+    "noteLabel": "Note to the band (optional)",
+    "notePlaceholder": "e.g. Good to open the second block.",
+    "send": "Send suggestion",
+    "created": "Suggestion sent to the band.",
+    "createFailed": "Couldn't send the suggestion."
+  },
+  "bandNotes": {
+    "title": "Reminders",
+    "description": "Notes for the whole band: rehearsals, gear, agreements. Pinned ones come first.",
+    "add": "New reminder",
+    "empty": "No reminders yet. Write down what the band needs to remember.",
+    "pinned": "Pinned",
+    "due": "Due",
+    "overdue": "Overdue",
+    "edit": "Edit reminder",
+    "delete": "Delete reminder",
+    "deleteTitle": "Delete reminder?",
+    "deleteConfirm": "The reminder will be deleted for the whole band.",
+    "deleted": "Reminder deleted.",
+    "unknownAuthor": "Deleted account",
+    "cancel": "Cancel",
+    "save": "Save",
+    "addTitle": "New reminder",
+    "editTitle": "Edit reminder",
+    "dialogDescription": "Every band member sees reminders.",
+    "contentLabel": "Text",
+    "contentPlaceholder": "e.g. Bring a spare jack cable to Saturday's gig.",
+    "contentRequired": "Write the reminder text.",
+    "count": "{count}/{max} characters",
+    "colorLabel": "Colour",
+    "colors": {
+      "default": "Neutral",
+      "yellow": "Yellow",
+      "green": "Green",
+      "blue": "Blue",
+      "red": "Red",
+      "purple": "Purple"
+    },
+    "dueLabel": "Due (optional)",
+    "pinLabel": "Pin to the top",
+    "created": "Reminder created.",
+    "updated": "Reminder updated.",
+    "saveFailed": "Couldn't save the reminder."
   }
 }

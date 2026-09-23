@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
 import { toastActionError } from "@/lib/action-toast";
-import { QUOTA_RESOURCES, type QuotaResource } from "@/lib/api-errors";
+import { LIMITABLE_QUOTA_RESOURCES } from "@/lib/api-errors";
+import type { QuotaResource } from "@/types/api";
 import type { QuotaLimits } from "@/types/api";
 import { updateQuotaDefaults } from "../../actions";
 
@@ -26,6 +27,7 @@ const GROUPS: { key: "account" | "container"; resources: QuotaResource[] }[] = [
       "tags",
       "bands_owned",
       "band_memberships",
+      "tours",
     ],
   },
   {
@@ -35,6 +37,7 @@ const GROUPS: { key: "account" | "container"; resources: QuotaResource[] }[] = [
       "band_songs",
       "band_setlists",
       "band_gigs",
+      "band_tours",
       "setlist_items",
     ],
   },
@@ -54,23 +57,25 @@ export function DefaultLimitsForm({
   const [draft, setDraft] = useState<Record<QuotaResource, string>>(
     () =>
       Object.fromEntries(
-        QUOTA_RESOURCES.map((r) => [r, String(initial[r])]),
+        LIMITABLE_QUOTA_RESOURCES.map((r) => [r, String(initial[r])]),
       ) as Record<QuotaResource, string>,
   );
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const parsed = Object.fromEntries(
-    QUOTA_RESOURCES.map((r) => [r, Number(draft[r])]),
+    LIMITABLE_QUOTA_RESOURCES.map((r) => [r, Number(draft[r])]),
   ) as QuotaLimits;
-  const invalid = QUOTA_RESOURCES.filter(
+  const invalid = LIMITABLE_QUOTA_RESOURCES.filter(
     (r) =>
       draft[r].trim() === "" ||
       !Number.isInteger(parsed[r]) ||
       parsed[r] < 0 ||
       parsed[r] > MAX_LIMIT,
   );
-  const changed = QUOTA_RESOURCES.filter((r) => parsed[r] !== saved[r]);
+  const changed = LIMITABLE_QUOTA_RESOURCES.filter(
+    (r) => parsed[r] !== saved[r],
+  );
   const lowered = changed.filter((r) => parsed[r] < saved[r]);
 
   const save = () => {

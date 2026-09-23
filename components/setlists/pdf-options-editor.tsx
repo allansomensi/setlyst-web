@@ -26,7 +26,7 @@ import {
 type Preset = keyof typeof PDF_PRESETS;
 const PRESETS = Object.keys(PDF_PRESETS) as Preset[];
 
-function ToggleRow({
+export function ToggleRow({
   label,
   hint,
   checked,
@@ -61,7 +61,7 @@ function ToggleRow({
   );
 }
 
-function Choice<T extends string | number>({
+export function Choice<T extends string | number>({
   label,
   value,
   options,

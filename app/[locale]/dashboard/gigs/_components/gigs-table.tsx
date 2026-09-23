@@ -4,7 +4,9 @@ import { useMemo, useState, useTransition } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { Gig, GigStatus, Setlist } from "@/types/api";
 import { deleteGig } from "../actions";
-import { GigDialog, BandOption } from "./gigs-dialog";
+import { GigDialog, BandOption, TourOption } from "./gigs-dialog";
+import { PinButton } from "@/components/content/pin-button";
+import { Route, X } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { useOfflineGigs } from "@/hooks/use-offline-library";
@@ -44,9 +46,11 @@ import {
   Guitar,
   Calendar,
 } from "lucide-react";
-import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
+import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { cn } from "@/lib/utils";
+import { formatWallClock, parseWallClock, wallClockNow } from "@/lib/dates";
+import { useMounted } from "@/hooks/use-mounted";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 
@@ -70,6 +74,10 @@ interface GigsTableProps {
    * account. See components/load-error-notice.tsx.
    */
   loadError?: boolean;
+  /** Tours offered in the gig dialog. */
+  tours?: TourOption[];
+  /** Only gigs of this tour (`?tour_id=`), with a way to clear it. */
+  tourFilter?: { id: string; name: string } | null;
 }
 
 const STATUS_VARIANT: Record<
@@ -88,17 +96,23 @@ export function GigsTable({
   bands,
   fixedBandId,
   loadError,
+  tours = [],
+  tourFilter = null,
 }: GigsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
+  const tTrash = useTranslations("trash");
   const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGig, setEditingGig] = useState<Gig | null>(null);
+  // Part of the dialog's key: every open starts from the gig's saved
+  // values (or a blank form), never from a previous gig's state.
+  const [dialogSession, setDialogSession] = useState(0);
   const [gigToDelete, setGigToDelete] = useState<Gig | null>(null);
 
   // See hooks/use-offline-records.ts: with no connection, or when this
@@ -110,39 +124,43 @@ export function GigsTable({
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return availableGigs;
-    return availableGigs.filter((gig) => {
+    const inTour = tourFilter
+      ? availableGigs.filter((gig) => gig.tour_id === tourFilter.id)
+      : availableGigs;
+    if (!q) return inTour;
+    return inTour.filter((gig) => {
       const bandName = gig.band_id ? bandsById[gig.band_id]?.name : "";
       return (
         gig.venue.toLowerCase().includes(q) ||
         (gig.notes ?? "").toLowerCase().includes(q) ||
-        (bandName ?? "").toLowerCase().includes(q)
+        (bandName ?? "").toLowerCase().includes(q) ||
+        (gig.tour_name ?? "").toLowerCase().includes(q)
       );
     });
-  }, [availableGigs, search, bandsById]);
+  }, [availableGigs, search, bandsById, tourFilter]);
 
-  const [now] = useState(() => Date.now());
+  // "Upcoming" depends on the viewer's clock, which the server doesn't
+  // share: split only after mount (before that, one list in date order).
+  const mounted = useMounted();
+  const [clientNow] = useState(() =>
+    typeof window === "undefined" ? 0 : wallClockNow(),
+  );
+  const now = mounted ? clientNow : null;
 
   const { upcoming, past } = useMemo(() => {
+    const at = (gig: Gig) => parseWallClock(gig.scheduled_at).getTime();
     const upcoming = filtered
-      .filter((g) => new Date(g.scheduled_at).getTime() >= now)
-      .sort(
-        (a, b) =>
-          new Date(a.scheduled_at).getTime() -
-          new Date(b.scheduled_at).getTime(),
-      );
+      .filter((g) => now === null || at(g) >= now)
+      .sort((a, b) => at(a) - at(b));
     const past = filtered
-      .filter((g) => new Date(g.scheduled_at).getTime() < now)
-      .sort(
-        (a, b) =>
-          new Date(b.scheduled_at).getTime() -
-          new Date(a.scheduled_at).getTime(),
-      );
+      .filter((g) => now !== null && at(g) < now)
+      .sort((a, b) => at(b) - at(a));
     return { upcoming, past };
   }, [filtered, now]);
 
   const handleOpenDialog = (gig?: Gig) => {
     setEditingGig(gig ?? null);
+    setDialogSession((n) => n + 1);
     setIsDialogOpen(true);
   };
 
@@ -154,7 +172,12 @@ export function GigsTable({
         gigToDelete.band_id ?? undefined,
       );
       if (result.success) {
-        toast.success(t("dialog.deleted"));
+        toastMovedToTrash("gig", gigToDelete.id, {
+          message: t("dialog.deleted"),
+          undoLabel: tTrash("undo"),
+          restored: t("dialog.restored"),
+          restoreFailed: tTrash("restoreFailed"),
+        });
       } else {
         toastActionError(result, result.error);
       }
@@ -162,11 +185,7 @@ export function GigsTable({
     });
   };
 
-  const formatDateTime = (value: string) =>
-    new Date(value).toLocaleString(locale, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+  const formatDateTime = (value: string) => formatWallClock(value, locale);
 
   const renderRow = (gig: Gig) => {
     const bandInfo = gig.band_id ? bandsById[gig.band_id] : undefined;
@@ -185,9 +204,13 @@ export function GigsTable({
         <TableCell>
           <div className="flex items-center gap-2">
             <MapPin className="text-muted-foreground h-4 w-4 shrink-0" />
-            <span className="font-medium group-hover:underline">
+            <Link
+              href={`/dashboard/gigs/${gig.id}`}
+              data-no-row-click
+              className="focus-visible:ring-ring rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            >
               {gig.venue}
-            </span>
+            </Link>
             {isBandGig && (
               <Badge
                 variant="outline"
@@ -196,6 +219,21 @@ export function GigsTable({
               >
                 <Guitar className="h-3 w-3" />
                 {bandInfo?.name ?? t("bandGig")}
+              </Badge>
+            )}
+            {gig.tour_id && gig.tour_name && (
+              <Badge
+                variant="secondary"
+                className="gap-1 text-xs font-normal"
+                asChild
+              >
+                <Link
+                  href={`/dashboard/tours/${gig.tour_id}`}
+                  data-no-row-click
+                >
+                  <Route className="h-3 w-3" aria-hidden />
+                  {gig.tour_name}
+                </Link>
               </Badge>
             )}
             <ChevronRight className="text-muted-foreground h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -210,49 +248,59 @@ export function GigsTable({
           </Badge>
         </TableCell>
         <TableCell className="text-right" data-no-row-click>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" data-no-row-click>
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboard/gigs/${gig.id}`}>
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {t("menu.viewDetails")}
-                </Link>
-              </DropdownMenuItem>
-              {canManage && (
-                <>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenDialog(gig);
-                    }}
-                  >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    {t("menu.edit")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setGigToDelete(gig);
-                    }}
-                    variant="destructive"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {t("menu.delete")}
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center justify-end gap-0.5">
+            <PinButton
+              type="gig"
+              id={gig.id}
+              name={gig.venue}
+              pinned={!!gig.is_pinned}
+              className="hidden sm:inline-flex"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={tCommon("moreActionsFor", { name: gig.venue })}
+                >
+                  <MoreHorizontal className="h-4 w-4" aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" data-no-row-click>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/gigs/${gig.id}`}>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {t("menu.viewDetails")}
+                  </Link>
+                </DropdownMenuItem>
+                {canManage && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDialog(gig);
+                      }}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      {t("menu.edit")}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGigToDelete(gig);
+                      }}
+                      variant="destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {t("menu.delete")}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </TableCell>
       </TableRow>
     );
@@ -272,6 +320,24 @@ export function GigsTable({
         </Button>
       </div>
 
+      {tourFilter && (
+        <div className="bg-primary/5 border-primary/30 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+          <Route className="text-primary h-4 w-4" aria-hidden />
+          <span>{t("tourFilter", { name: tourFilter.name })}</span>
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="ml-auto h-7 gap-1"
+          >
+            <Link href="/dashboard/gigs">
+              <X className="h-3.5 w-3.5" aria-hidden />
+              {t("clearTourFilter")}
+            </Link>
+          </Button>
+        </div>
+      )}
+
       <SearchInput
         value={search}
         onChange={setSearch}
@@ -281,7 +347,7 @@ export function GigsTable({
 
       <div
         className={cn(
-          "bg-background rounded-md border",
+          "bg-card rounded-md border",
           isPending && "pointer-events-none opacity-60",
         )}
       >
@@ -311,7 +377,7 @@ export function GigsTable({
               </TableRow>
             ) : (
               <>
-                {upcoming.length > 0 && (
+                {upcoming.length > 0 && now !== null && (
                   <TableRow className="hover:bg-transparent">
                     <TableCell
                       colSpan={4}
@@ -351,6 +417,7 @@ export function GigsTable({
       </p>
 
       <GigDialog
+        key={`${editingGig?.id ?? "new"}:${dialogSession}`}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         gig={editingGig}
@@ -360,6 +427,8 @@ export function GigsTable({
           fixedBandId ??
           (editingGig ? (editingGig.band_id ?? undefined) : undefined)
         }
+        tours={tours}
+        initialTourId={tourFilter?.id}
       />
 
       <Dialog
@@ -368,7 +437,7 @@ export function GigsTable({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
+            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
             <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
