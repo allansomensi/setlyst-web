@@ -145,7 +145,7 @@ export function OfflineSection() {
           <p className="text-muted-foreground text-xs">
             {t("downloadSummary", {
               total: totalCached,
-              time: format.relativeTime(new Date(lastSyncedAt)),
+              time: format.relativeTime(new Date(lastSyncedAt), new Date()),
             })}
           </p>
         )}

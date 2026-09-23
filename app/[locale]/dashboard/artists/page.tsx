@@ -1,6 +1,11 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { fetchAllServerPages } from "@/lib/api-server";
 import { Artist } from "@/types/api";
 import { ArtistsTable } from "./_components/artists-table";
+
+export async function generateMetadata() {
+  return staticTitle("artists");
+}
 
 export default async function ArtistsPage() {
   const response = await fetchAllServerPages<Artist>("/artists");

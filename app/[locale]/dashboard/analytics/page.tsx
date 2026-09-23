@@ -1,8 +1,13 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { getTranslations } from "next-intl/server";
 import { getDashboardMetrics, getTimeseriesMetrics } from "../actions";
 import { AnalyticsDashboard } from "./_components/analytics-dashboard";
 
 const DEFAULT_DAYS = 30;
+
+export async function generateMetadata() {
+  return staticTitle("analytics");
+}
 
 export default async function AnalyticsPage() {
   const t = await getTranslations("analytics");

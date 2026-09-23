@@ -39,6 +39,12 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 - ✅ **Backup & Restore** — Export and import a full snapshot of your data.
 - ✅ **Responsive Design** — Optimized for desktops, tablets, and mobile phones.
 - ✅ **Multi-language** — Full support for English, Portuguese, and Spanish (i18n).
+- ✅ **Tags** — Tag songs by vibe ("ballad", "opener"…), filter by tag and manage your tag vocabulary.
+- ✅ **Customizable PDF** — Presets, compact and two-column layouts, text size, paper, margins, songbook with chords above the lyrics, optional watermark; save your favourite setup as the default.
+- ✅ **Synced preferences** — Live Mode, list and PDF defaults follow you to every device.
+- ✅ **Staff console** — Admins and moderators manage users (suspend, deactivate, temporary passwords, per-user limits, "view as"), bands, songs, setlists and public links, with a full audit log.
+- ✅ **Strong account security** — Enforced password policy, username rules, instant sign-out on password change or suspension.
+- ✅ **What's new, status page and legal texts** — Built in, in every language.
 
 ---
 
@@ -76,7 +82,10 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
    ```bash
    NEXT_PUBLIC_API_URL=your_api_url
    NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your_secret
+   NEXTAUTH_SECRET=your_secret_of_at_least_32_characters
+   # Optional
+   NEXT_PUBLIC_WIKI_URL=https://github.com/allansomensi/setlyst-web/wiki
+   NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
    ```
 
 4. **Run the development server**
@@ -86,6 +95,16 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
    ```
 
 The application will be available at `http://localhost:3000`.
+
+5. **Checks**
+
+   ```bash
+   npm run typecheck   # TypeScript
+   npm run lint        # ESLint + Prettier
+   npm test            # Unit tests (Vitest)
+   ```
+
+> The legal texts (`lib/legal-content.ts`) describe how Setlyst stores and protects data. Review them for your jurisdiction (LGPD, GDPR…) before going to production. Release notes shown on the "What's new" page live in `lib/whats-new.ts`.
 
 ---
 

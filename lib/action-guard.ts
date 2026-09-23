@@ -1,9 +1,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ApiError } from "@/lib/api-server";
-import { getTranslations } from "next-intl/server";
+import { describeApiError } from "@/lib/api-errors";
+import { getLocale, getTranslations } from "next-intl/server";
 
-export type ActionErrorCode = "rate_limited";
+export type ActionErrorCode =
+  "rate_limited" | "password_change_required" | "session_revoked" | "read_only";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T }
@@ -12,25 +14,25 @@ export type ActionResult<T = void> =
       error: string;
       /**
        * Set when the failure needs different handling from an ordinary
-       * error — right now only rate limiting, where the right move is to
-       * wait rather than fix anything. See lib/action-toast.tsx.
+       * error — waiting (rate limiting), re-authenticating, or leaving a
+       * read-only session. See lib/action-toast.tsx.
        */
       code?: ActionErrorCode;
+      /** The API's own error code, for callers that react to specifics. */
+      apiCode?: string;
+      /** Structured context from the API (e.g. password issues). */
+      meta?: Record<string, unknown>;
       /** Seconds until retrying makes sense, when the backend said so. */
       retryAfterSeconds?: number;
     };
 
-const GENERIC_ERROR = "An unexpected error occurred. Please try again.";
+export type ActionFailure = Extract<ActionResult, { success: false }>;
 
 /**
- * A rate-limited request gets its own, translated message: the English
- * string the API layer puts on the error is fine for logs, but this one
- * is read by the person, in their language, and has to tell them to wait
- * — and for how long, when the backend said.
+ * A rate-limited request gets its own, translated message: it has to tell
+ * the person to wait — and for how long, when the backend said.
  */
-async function toRateLimitedResult(
-  error: ApiError,
-): Promise<Extract<ActionResult, { success: false }>> {
+async function toRateLimitedResult(error: ApiError): Promise<ActionFailure> {
   const t = await getTranslations("rateLimit");
   const retryAfterSeconds =
     error.retryAfterMs != null
@@ -48,58 +50,86 @@ async function toRateLimitedResult(
   };
 }
 
+const SPECIAL_CODES: Record<string, ActionErrorCode> = {
+  PASSWORD_CHANGE_REQUIRED: "password_change_required",
+  SESSION_REVOKED: "session_revoked",
+  IMPERSONATION_READ_ONLY: "read_only",
+};
+
 /**
- * Turns a thrown error into something safe to show a user.
+ * Turns a thrown error into something safe — and readable — to show a
+ * user.
  *
- * A 4xx from the backend is a message *about the request* — "that title is
- * already taken", "you don't have permission" — and is worth surfacing
- * verbatim, since it's the only thing that tells the person what to do
- * differently. Anything else is not: a 5xx body can carry a database
- * error, a panic message or a stack trace, and every one of these strings
- * ends up rendered in a toast. Those collapse to a generic message, with
- * the real one kept in the server logs where it's actually useful.
+ * Known API error codes get a message in the user's language (see
+ * lib/api-errors.ts). Other 4xx responses are messages *about the
+ * request* and are surfaced as the API worded them. Anything else — a 5xx
+ * body can carry a database error or a stack trace — collapses to a
+ * generic message, with the real one kept in the server logs.
  */
-function toClientMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    if (error.status >= 400 && error.status < 500) {
-      return error.message || GENERIC_ERROR;
-    }
-    console.error(
-      "[guardedAction] Upstream error:",
-      error.status,
-      error.message,
-    );
-    return GENERIC_ERROR;
+async function toFailure(
+  error: unknown,
+  fallback?: string,
+): Promise<ActionFailure> {
+  const tGeneric = await getTranslations("apiErrors");
+  const generic = fallback ?? tGeneric("generic");
+
+  if (!(error instanceof ApiError)) {
+    console.error("[guardedAction] Unhandled error:", error);
+    return { success: false, error: generic };
   }
 
-  console.error("[guardedAction] Unhandled error:", error);
-  return GENERIC_ERROR;
+  if (error.status === 429) return toRateLimitedResult(error);
+
+  const base = {
+    success: false as const,
+    apiCode: error.code ?? undefined,
+    meta: error.meta ?? undefined,
+    code: error.code ? SPECIAL_CODES[error.code] : undefined,
+  };
+
+  const translated = describeApiError(
+    error.code,
+    error.meta,
+    (key, values) => tGeneric(key, values),
+    await getLocale(),
+  );
+  if (translated) return { ...base, error: translated };
+
+  if (error.status === 401) {
+    return {
+      ...base,
+      code: "session_revoked",
+      error: tGeneric("SESSION_REVOKED"),
+    };
+  }
+
+  if (error.status >= 400 && error.status < 500) {
+    return { ...base, error: error.message || generic };
+  }
+
+  if (error.status === 503 || error.status === 504) {
+    return { ...base, error: tGeneric("unavailable") };
+  }
+
+  console.error("[guardedAction] Upstream error:", error.status, error.message);
+  return { ...base, error: generic };
 }
 
 /**
- * The failure half of guardedAction, for the few actions that do their own
- * session/permission checks and so can't use it directly: gives them the
- * same rate-limit handling and the same "don't leak 5xx bodies" rule.
- * `fallback` replaces the generic message for non-4xx failures.
+ * The failure half of guardedAction, for actions that do their own
+ * session/permission checks and so can't use it directly. `fallback`
+ * replaces the generic message for unexpected failures.
  */
 export async function toActionFailure(
   error: unknown,
   fallback?: string,
-): Promise<Extract<ActionResult, { success: false }>> {
-  if (error instanceof ApiError && error.status === 429) {
-    return toRateLimitedResult(error);
-  }
-  const message = toClientMessage(error);
-  return {
-    success: false,
-    error: message === GENERIC_ERROR && fallback ? fallback : message,
-  };
+): Promise<ActionFailure> {
+  return toFailure(error, fallback);
 }
 
 /**
  * Wraps a Server Action with authentication and error handling.
- * Throws if the user is not authenticated or the session is expired.
- * Returns a typed ActionResult to avoid leaking stack traces to clients.
+ * Returns a typed ActionResult so stack traces never reach clients.
  */
 export async function guardedAction<T>(
   fn: () => Promise<T>,
@@ -108,7 +138,12 @@ export async function guardedAction<T>(
   const session = await getServerSession(authOptions);
 
   if (!session || session.error === "TokenExpired") {
-    return { success: false, error: "Unauthorized. Please sign in again." };
+    const t = await getTranslations("apiErrors");
+    return {
+      success: false,
+      code: "session_revoked",
+      error: t("SESSION_REVOKED"),
+    };
   }
 
   try {
@@ -116,10 +151,7 @@ export async function guardedAction<T>(
     revalidateFn?.();
     return { success: true, data: result };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 429) {
-      return toRateLimitedResult(error);
-    }
-    return { success: false, error: toClientMessage(error) };
+    return toFailure(error);
   }
 }
 
@@ -134,5 +166,15 @@ export async function requireSession() {
     throw new Error("Unauthorized");
   }
 
+  return session;
+}
+
+/** Like requireSession, but also requires a staff role. */
+export async function requireStaff(adminOnly = false) {
+  const session = await requireSession();
+  const role = session.user.role;
+  if (role !== "admin" && (adminOnly || role !== "moderator")) {
+    throw new ApiError(403, "Forbidden", null, "FORBIDDEN");
+  }
   return session;
 }

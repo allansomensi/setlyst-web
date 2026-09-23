@@ -14,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
 import {
@@ -29,8 +28,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PlatformRoleBadge } from "@/components/role-badge";
+import { UsernameHint } from "@/components/auth/username-hint";
+import { isValidUsername } from "@/lib/username-policy";
 
-type AvailabilityStatus = "idle" | "checking" | "available" | "unavailable";
+type AvailabilityStatus =
+  "idle" | "checking" | "available" | "unavailable" | "invalid";
 
 interface ProfileFormProps {
   user: User;
@@ -69,8 +72,15 @@ export function ProfileForm({
 
     // No point checking: unchanged, too short, or already blocked by
     // cooldown (the field is disabled in that case anyway).
-    if (trimmed === user.username || trimmed.length < 3 || inCooldown) {
+    if (trimmed === user.username || inCooldown) {
       setAvailability("idle");
+      return;
+    }
+
+    // Rules are checked locally first (lib/username-policy.ts); only a
+    // well-formed name is worth asking the API about.
+    if (!isValidUsername(trimmed)) {
+      setAvailability("invalid");
       return;
     }
 
@@ -93,6 +103,7 @@ export function ProfileForm({
       toast.error(t("usernameTaken"));
       return;
     }
+    if (availability === "invalid") return;
 
     const payload = {
       username: formData.get("username") as string,
@@ -123,9 +134,7 @@ export function ProfileForm({
               <UserIcon className="text-muted-foreground h-16 w-16" />
             </div>
             <div className="text-center">
-              <Badge variant="secondary" className="capitalize">
-                {user.role}
-              </Badge>
+              <PlatformRoleBadge role={user.role} />
             </div>
           </div>
 
@@ -207,7 +216,8 @@ export function ProfileForm({
                     className={cn(
                       "pl-9",
                       availability === "available" && "border-green-500 pr-9",
-                      availability === "unavailable" &&
+                      (availability === "unavailable" ||
+                        availability === "invalid") &&
                         "border-destructive pr-9",
                       !isEditing &&
                         "bg-muted/50 cursor-default border-transparent",
@@ -224,6 +234,9 @@ export function ProfileForm({
                     <AlertCircle className="text-destructive absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
                   )}
                 </div>
+                {isEditing && availability === "invalid" && (
+                  <UsernameHint username={username.trim()} />
+                )}
                 {isEditing && availability === "unavailable" && (
                   <p className="text-destructive text-xs">
                     {t("usernameTaken")}
@@ -265,7 +278,12 @@ export function ProfileForm({
               <CardFooter className="bg-muted/30 flex justify-end rounded-b-lg border-t pt-6">
                 <Button
                   type="submit"
-                  disabled={isPending || availability === "unavailable"}
+                  disabled={
+                    isPending ||
+                    availability === "unavailable" ||
+                    availability === "invalid" ||
+                    availability === "checking"
+                  }
                 >
                   {isPending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -7,8 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import { fetchServerApi } from "@/lib/api-server";
-import { UserPreferences } from "@/types/api";
+import { getMyPreferences } from "@/lib/server-data";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -37,9 +36,7 @@ export default async function LocaleLayout({
 
   if (isAuthenticated) {
     try {
-      const preferences = await fetchServerApi<UserPreferences>(
-        "/users/me/preferences",
-      );
+      const preferences = await getMyPreferences();
       userTheme =
         (preferences?.theme as "light" | "dark" | "system") || "system";
     } catch {

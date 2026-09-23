@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Check, ShieldAlert, UserMinus, Users } from "lucide-react";
+import {
+  Bell,
+  Check,
+  Link2Off,
+  ShieldAlert,
+  UserMinus,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 import { useSession } from "next-auth/react";
 import { Link } from "@/components/nav-link";
@@ -15,13 +23,16 @@ import { Separator } from "@/components/ui/separator";
 import { useApi } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type {
+  BandMemberAddedData,
   BandMemberRemovedData,
   BandRoleChangedData,
   Notification,
   PaginatedResponse,
   PlatformRoleChangedData,
+  ShareLinkRevokedData,
   UnreadCountResponse,
 } from "@/types/api";
+import { parseApiTimestamp } from "@/lib/dates";
 
 /** How often the unread badge is refreshed while the popover is closed. */
 const POLL_INTERVAL_MS = 30_000;
@@ -30,12 +41,14 @@ const TYPE_ICON: Record<Notification["type"], typeof Bell> = {
   band_role_changed: ShieldAlert,
   band_member_removed: UserMinus,
   platform_role_changed: Users,
+  band_member_added: UserPlus,
+  share_link_revoked: Link2Off,
 };
 
 export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
   const t = useTranslations("notifications");
   const tBandRoles = useTranslations("bands.roles");
-  const tPlatformRoles = useTranslations("users.roles");
+  const tPlatformRoles = useTranslations("roles");
   const format = useFormatter();
   const { fetchApi } = useApi();
   const { status: sessionStatus } = useSession();
@@ -180,6 +193,22 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
           role: tPlatformRoles(data.new_role),
         });
       }
+      case "band_member_added": {
+        const data = notification.data as BandMemberAddedData;
+        return t("bandMemberAdded", {
+          band: data.band_name,
+          role: tBandRoles(data.role),
+        });
+      }
+      case "share_link_revoked": {
+        const data = notification.data as ShareLinkRevokedData;
+        return data.reason
+          ? t("shareLinkRevokedWithReason", {
+              title: data.title,
+              reason: data.reason,
+            })
+          : t("shareLinkRevoked", { title: data.title });
+      }
       default:
         return "";
     }
@@ -193,6 +222,16 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
       }
       case "band_member_removed":
         return "/dashboard/bands";
+      case "band_member_added": {
+        const data = notification.data as BandMemberAddedData;
+        return `/dashboard/bands/${data.band_id}`;
+      }
+      case "share_link_revoked": {
+        const data = notification.data as ShareLinkRevokedData;
+        return data.kind === "gig"
+          ? `/dashboard/gigs/${data.target_id}`
+          : `/dashboard/setlists/${data.target_id}`;
+      }
       default:
         return null;
     }
@@ -285,7 +324,12 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
                     {renderMessage(notification)}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {format.relativeTime(new Date(notification.created_at))}
+                    {/* An explicit "now" — without it next-intl warns
+                        (ENVIRONMENT_FALLBACK) on every render. */}
+                    {format.relativeTime(
+                      parseApiTimestamp(notification.created_at),
+                      new Date(),
+                    )}
                   </p>
                 </div>
                 {isUnread && (

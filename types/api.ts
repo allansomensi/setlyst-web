@@ -185,6 +185,10 @@ export interface Artist {
   name: string;
   user_id: string;
   band_id: string | null;
+  /** Songs by this artist in the caller's library. */
+  song_count?: number;
+  updated_by?: string | null;
+  updated_by_username?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -206,8 +210,19 @@ export interface Song {
   tonality?: Tonality | null;
   genre?: Genre | null;
   duration?: number | null;
+  /** Normalized (lowercase) tags, alphabetically sorted. */
+  tags: string[];
+  /** Who last changed the song (null if never edited or account deleted). */
+  updated_by?: string | null;
+  updated_by_username?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** One tag of the caller's vocabulary, with how many songs use it. */
+export interface TagCount {
+  tag: string;
+  song_count: number;
 }
 
 /**
@@ -228,8 +243,13 @@ export interface CreateSongPayload {
   tonality?: Tonality | null;
   genre?: Genre | null;
   duration?: number | null;
+  tags?: string[];
 }
 
+/**
+ * Nullable fields: omit to leave unchanged, send `null` to clear.
+ * `tags`, when present, replaces the whole tag set.
+ */
 export interface UpdateSongPayload {
   title?: string;
   artist_id?: string;
@@ -238,6 +258,7 @@ export interface UpdateSongPayload {
   tonality?: Tonality | null;
   genre?: Genre | null;
   duration?: number | null;
+  tags?: string[];
 }
 
 export interface Setlist {
@@ -250,6 +271,14 @@ export interface Setlist {
   total_duration: number;
   /** Whether the current user has favorited this setlist. */
   is_favorite: boolean;
+  /** Set when staff took the public link down. */
+  share_locked_at?: string | null;
+  share_lock_reason?: string | null;
+  /** Songs in the running order (blocks and breaks excluded). */
+  song_count?: number;
+  owner_username?: string | null;
+  updated_by?: string | null;
+  updated_by_username?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -347,12 +376,26 @@ export interface User {
   status: UserStatus;
   /** When the username was last changed — `null` if never changed. */
   username_changed_at: string | null;
+  must_change_password: boolean;
+  password_changed_at: string | null;
+  last_login_at: string | null;
+  /** A suspension is in effect right now (computed by the API). */
+  is_banned: boolean;
+  banned_at: string | null;
+  /** `null` while `is_banned` means a permanent suspension. */
+  banned_until: string | null;
+  ban_reason: string | null;
+  banned_by_username: string | null;
+  created_by_username: string | null;
+  updated_by_username: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface UsernameAvailability {
   available: boolean;
+  /** Why the name can't be used, when it's invalid or reserved. */
+  reason?: string | null;
 }
 
 export interface UsernameHistoryEntry {
@@ -365,6 +408,9 @@ export interface UserProfileAdminDetails {
   role: UserRole;
   status: UserStatus;
   username_changed_at: string | null;
+  is_banned: boolean;
+  banned_until: string | null;
+  last_login_at: string | null;
 }
 
 /** Another user's profile, as returned by GET /users/{id}/profile. */
@@ -384,18 +430,20 @@ export interface CreateUserPayload {
   email?: string | null;
   first_name?: string | null;
   last_name?: string | null;
-  role?: "user" | "moderator" | "admin";
-  status?: "active" | "inactive";
+  role?: UserRole;
+  status?: UserStatus;
+  /** Force a new password at first sign-in (API default: true). */
+  require_password_change?: boolean;
 }
 
+/** Staff edit. Empty strings clear optional text fields. */
 export interface UpdateUserPayload {
   username?: string;
-  email?: string | null;
-  password?: string;
-  first_name?: string | null;
-  last_name?: string | null;
-  role?: "user" | "moderator" | "admin";
-  status?: "active" | "inactive";
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  role?: UserRole;
+  status?: UserStatus;
 }
 
 export type UserTheme = "light" | "dark" | "system";
@@ -406,6 +454,8 @@ export interface UserPreferences {
   language: string;
   theme: UserTheme;
   live_mode_font_size: number;
+  /** Client-owned settings blob — see lib/ui-settings.ts. */
+  ui_settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -414,12 +464,20 @@ export interface UpdatePreferencesPayload {
   language?: string;
   theme?: UserTheme;
   live_mode_font_size?: number;
+  /** Shallow-merged; a `null` section removes it. */
+  ui_settings?: Record<string, unknown>;
 }
 
+export type ServiceHealth = "operational" | "degraded" | "down";
+
 export interface DatabaseStatus {
-  version: string;
-  max_connections: number;
-  opened_connections: number;
+  status: ServiceHealth;
+  version: string | null;
+  latency_ms: number | null;
+  max_connections: number | null;
+  opened_connections: number | null;
+  pool_size: number;
+  pool_idle: number;
 }
 
 export interface DependenciesStatus {
@@ -427,7 +485,10 @@ export interface DependenciesStatus {
 }
 
 export interface ApiStatus {
+  status: ServiceHealth;
   updated_at: string;
+  version: string;
+  uptime_seconds: number;
   dependencies: DependenciesStatus;
 }
 
@@ -566,7 +627,10 @@ export interface Band {
   description: string | null;
   logo_url: string | null;
   members_can_manage_setlists: boolean;
-  created_by: string;
+  /** `null` once the creator's account is deleted. */
+  created_by: string | null;
+  updated_by?: string | null;
+  updated_by_username?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -583,9 +647,10 @@ export interface CreateBandPayload {
   description?: string;
 }
 
+/** Nullable fields: omit to keep, `null` to clear. */
 export interface UpdateBandPayload {
   name?: string;
-  description?: string;
+  description?: string | null;
   logo_url?: string | null;
   members_can_manage_setlists?: boolean;
 }
@@ -659,6 +724,10 @@ export interface Gig {
   status: GigStatus;
   notes: string | null;
   share_token: string | null;
+  share_locked_at?: string | null;
+  share_lock_reason?: string | null;
+  updated_by?: string | null;
+  updated_by_username?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -682,13 +751,14 @@ export interface CreateGigPayload {
   notes?: string;
 }
 
+/** Nullable fields: omit to keep, `null` to clear. */
 export interface UpdateGigPayload {
   venue?: string;
-  location?: string;
+  location?: string | null;
   scheduled_at?: string;
-  setlist_id?: string;
+  setlist_id?: string | null;
   status?: GigStatus;
-  notes?: string;
+  notes?: string | null;
 }
 
 // ---------------------------------------------------------------------
@@ -696,7 +766,11 @@ export interface UpdateGigPayload {
 // ---------------------------------------------------------------------
 
 export type NotificationType =
-  "band_role_changed" | "band_member_removed" | "platform_role_changed";
+  | "band_role_changed"
+  | "band_member_removed"
+  | "platform_role_changed"
+  | "band_member_added"
+  | "share_link_revoked";
 
 export interface BandRoleChangedData {
   band_id: string;
@@ -718,15 +792,204 @@ export interface PlatformRoleChangedData {
   actor_id: string;
 }
 
+export interface BandMemberAddedData {
+  band_id: string;
+  band_name: string;
+  role: BandRole;
+  actor_id: string;
+}
+
+export interface ShareLinkRevokedData {
+  kind: "setlist" | "gig";
+  target_id: string;
+  title: string;
+  reason: string | null;
+  actor_id: string;
+}
+
 export interface Notification {
   id: string;
   user_id: string;
   type: NotificationType;
-  data: BandRoleChangedData | BandMemberRemovedData | PlatformRoleChangedData;
+  data:
+    | BandRoleChangedData
+    | BandMemberRemovedData
+    | PlatformRoleChangedData
+    | BandMemberAddedData
+    | ShareLinkRevokedData;
   read_at: string | null;
   created_at: string;
 }
 
 export interface UnreadCountResponse {
   unread_count: number;
+}
+
+// ---------------------------------------------------------------------
+// Quotas
+// ---------------------------------------------------------------------
+
+export type QuotaResource =
+  | "songs"
+  | "artists"
+  | "setlists"
+  | "gigs"
+  | "tags"
+  | "bands_owned"
+  | "band_memberships"
+  | "band_members"
+  | "band_setlists"
+  | "band_gigs"
+  | "band_songs"
+  | "setlist_items";
+
+export type QuotaLimits = Record<QuotaResource, number>;
+export type QuotaOverrides = Partial<Record<QuotaResource, number | null>>;
+
+export interface QuotaUsageItem {
+  resource: QuotaResource;
+  /** `null` for per-band / per-setlist limits. */
+  used: number | null;
+  /** `null` when the account is unlimited. */
+  limit: number | null;
+  overridden: boolean;
+}
+
+export interface QuotaReport {
+  unlimited: boolean;
+  items: QuotaUsageItem[];
+}
+
+export interface UserQuotaSettings {
+  overrides: QuotaOverrides;
+  unlimited: boolean;
+  updated_at: string | null;
+  updated_by_username: string | null;
+}
+
+// ---------------------------------------------------------------------
+// Staff console
+// ---------------------------------------------------------------------
+
+export interface ImpersonationResponse {
+  token: string;
+  expires_at: string;
+  user_id: string;
+  username: string;
+}
+
+export interface AdminUserBand {
+  band_id: string;
+  band_name: string;
+  role: BandRole;
+  joined_at: string;
+}
+
+export interface AdminUserOverview {
+  user: User;
+  usage: QuotaReport;
+  quota_settings: UserQuotaSettings;
+  bands: AdminUserBand[];
+}
+
+export interface AdminBandSummary {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  members_can_manage_setlists: boolean;
+  created_by: string | null;
+  owner_id: string | null;
+  owner_username: string | null;
+  member_count: number;
+  setlist_count: number;
+  song_count: number;
+  gig_count: number;
+  updated_by_username: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminBandDetail {
+  band: AdminBandSummary;
+  members: BandMember[];
+}
+
+export interface AdminSongSummary {
+  id: string;
+  title: string;
+  artist_id: string;
+  artist_name: string;
+  user_id: string;
+  owner_username: string | null;
+  band_id: string | null;
+  band_name: string | null;
+  tonality: Tonality | null;
+  tempo: number | null;
+  genre: Genre | null;
+  duration: number | null;
+  has_lyrics: boolean;
+  tags: string[];
+  setlist_count: number;
+  updated_by_username: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminSongDetail {
+  song: SetlistSong;
+  summary: AdminSongSummary;
+}
+
+export interface AdminSetlistSummary {
+  id: string;
+  title: string;
+  description: string | null;
+  user_id: string;
+  owner_username: string | null;
+  band_id: string | null;
+  band_name: string | null;
+  song_count: number;
+  total_duration: number;
+  share_token: string | null;
+  share_locked_at: string | null;
+  share_lock_reason: string | null;
+  updated_by_username: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminSetlistDetail {
+  setlist: AdminSetlistSummary;
+  items: SetlistItem[];
+}
+
+export interface SharedLink {
+  kind: "setlist" | "gig";
+  id: string;
+  title: string;
+  owner_id: string;
+  owner_username: string | null;
+  band_id: string | null;
+  band_name: string | null;
+  share_token: string | null;
+  share_locked_at: string | null;
+  share_lock_reason: string | null;
+  share_locked_by_username: string | null;
+  updated_at: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actor_id: string | null;
+  actor_username: string | null;
+  impersonator_id: string | null;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  target_label: string | null;
+  metadata: Record<string, unknown>;
+  ip_address: string | null;
+  created_at: string;
 }

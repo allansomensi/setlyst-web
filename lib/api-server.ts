@@ -23,6 +23,13 @@ export class ApiError extends Error {
      * retry instead of just "later".
      */
     public retryAfterMs: number | null = null,
+    /**
+     * The API's stable error code (`QUOTA_EXCEEDED`, `WEAK_PASSWORD`...),
+     * translated for display by lib/api-errors.ts.
+     */
+    public code: string | null = null,
+    /** Structured context for `code` (limit reached, password issues...). */
+    public meta: Record<string, unknown> | null = null,
   ) {
     super(message);
     this.name = "ApiError";
@@ -153,15 +160,16 @@ export async function fetchServerApi<T>(
         continue;
       }
 
-      let message: string;
+      let message = `API error: ${res.status}`;
+      let code: string | null = null;
+      let meta: Record<string, unknown> | null = null;
       try {
         const body = await res.json();
-        message =
-          typeof body?.message === "string"
-            ? body.message
-            : `API error: ${res.status}`;
+        if (typeof body?.message === "string") message = body.message;
+        if (typeof body?.code === "string") code = body.code;
+        if (body?.meta && typeof body.meta === "object") meta = body.meta;
       } catch {
-        message = `API error: ${res.status}`;
+        // Non-JSON error body: keep the generic message.
       }
 
       let retryAfterMs: number | null = null;
@@ -170,11 +178,11 @@ export async function fetchServerApi<T>(
         retryAfterMs = parseRetryAfterMs(res.headers.get("retry-after"));
       }
 
-      if (res.status === 401) {
+      if (res.status === 401 && code !== "WRONG_PASSWORD") {
         message = "Unauthorized. Please sign in again.";
       }
 
-      throw new ApiError(res.status, message, retryAfterMs);
+      throw new ApiError(res.status, message, retryAfterMs, code, meta);
     }
 
     if (res.status === 204) return {} as T;

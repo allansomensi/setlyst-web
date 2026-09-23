@@ -1,7 +1,12 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { fetchAllServerPages } from "@/lib/api-server";
 import { Song, Artist } from "@/types/api";
 import { SongsTable } from "./_components/songs-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
+
+export async function generateMetadata() {
+  return staticTitle("songs");
+}
 
 export default async function SongsPage() {
   // Independent sources — one failing (a transient rate limit, timeout)

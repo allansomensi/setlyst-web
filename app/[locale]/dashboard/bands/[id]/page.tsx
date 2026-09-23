@@ -1,3 +1,4 @@
+import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, ApiError } from "@/lib/api-server";
 import {
   BandWithMembership,
@@ -16,6 +17,20 @@ import { BandMembersSection } from "./_components/band-members-section";
 import { BandInvitesSection } from "./_components/band-invites-section";
 import { BandPermissionsSection } from "./_components/band-permissions-section";
 import { BandDangerZone } from "./_components/band-danger-zone";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<BandWithMembership>(
+    `/bands/${id}`,
+    (b) => b.name,
+    "band",
+    "bands",
+  );
+}
 
 export default async function BandDetailPage({
   params,

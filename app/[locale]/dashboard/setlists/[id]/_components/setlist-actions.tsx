@@ -12,6 +12,7 @@ interface SetlistActionsProps {
   setlistId: string;
   setlistTitle: string;
   shareToken: string | null;
+  shareLock?: { reason: string | null } | null;
 }
 
 /**
@@ -26,6 +27,7 @@ export function SetlistActions({
   setlistId,
   setlistTitle,
   shareToken,
+  shareLock,
 }: SetlistActionsProps) {
   const t = useTranslations("setlists");
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
@@ -85,6 +87,7 @@ export function SetlistActions({
       <ShareSetlistDialog
         setlistId={setlistId}
         shareToken={shareToken}
+        shareLock={shareLock}
         isOpen={isShareDialogOpen}
         onClose={() => setIsShareDialogOpen(false)}
       />

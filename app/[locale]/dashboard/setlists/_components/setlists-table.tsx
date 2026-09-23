@@ -59,6 +59,7 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 import { OfflineIndicator } from "@/components/offline-indicator";
+import { parseApiTimestamp } from "@/lib/dates";
 
 const SEARCHABLE_KEYS = ["title", "description"] as const;
 
@@ -325,7 +326,9 @@ export function SetlistsTable({
                       {setlist.description ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
-                      {new Date(setlist.created_at).toLocaleDateString(locale)}
+                      {parseApiTimestamp(setlist.created_at).toLocaleDateString(
+                        locale,
+                      )}
                     </TableCell>
                     <TableCell className="text-right" data-no-row-click>
                       <DropdownMenu>

@@ -1,5 +1,6 @@
 "use client";
 
+import { AuditStamp } from "@/components/audit-stamp";
 import { useState } from "react";
 import { BandWithMembership } from "@/types/api";
 import { BandAvatar } from "@/components/bands/band-avatar";
@@ -44,6 +45,11 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
           <p className="text-muted-foreground mt-1 text-sm">
             {t("memberCount", { count: band.member_count })}
           </p>
+          <AuditStamp
+            updatedAt={band.updated_at}
+            updatedBy={band.updated_by_username}
+            className="mt-1"
+          />
         </div>
       </div>
 

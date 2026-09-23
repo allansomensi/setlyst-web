@@ -1,8 +1,28 @@
+import type { Metadata } from "next";
 import { fetchServerApi } from "@/lib/api-server";
 import { apiPath } from "@/lib/api-endpoint";
 import { PublicGig } from "@/types/api";
 import { notFound } from "next/navigation";
 import { PublicGigView } from "./_components/public-gig-view";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  try {
+    const gig = await fetchServerApi<PublicGig>(apiPath`/public/gigs/${token}`);
+    return {
+      title: gig.venue,
+      // A share link is meant for the people it's sent to, not for search.
+      robots: { index: false, follow: false },
+      openGraph: { title: gig.venue },
+    };
+  } catch {
+    return { robots: { index: false, follow: false } };
+  }
+}
 
 /**
  * The public, read-only view of a shared gig.

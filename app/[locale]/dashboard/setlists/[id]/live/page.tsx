@@ -1,6 +1,21 @@
+import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { Setlist, SetlistSong, UserPreferences } from "@/types/api";
 import { LiveModeViewer } from "./_components/live-mode-viewer";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<Setlist>(
+    `/setlists/${id}`,
+    (s) => s.title,
+    "liveSetlist",
+    "setlists",
+  );
+}
 
 export default async function SetlistLivePage({
   params,

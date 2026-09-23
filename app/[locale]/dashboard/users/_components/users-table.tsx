@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { User } from "@/types/api";
-import { deleteUser } from "../actions";
-import { UserDialog } from "./user-dialog";
-import { PasswordDialog } from "./password-dialog";
-import { SearchInput } from "@/components/ui/search-input";
-import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
-import { useTableControls } from "@/hooks/use-table-controls";
-import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { SearchInput } from "@/components/ui/search-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import {
   Table,
   TableBody,
@@ -19,24 +21,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { MoreHorizontal, Pencil, Plus, Trash2, KeyRound } from "lucide-react";
-import { toast } from "sonner";
-import { toastActionError } from "@/lib/action-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { PlatformRoleBadge } from "@/components/role-badge";
+import { UserStatusBadges } from "@/components/staff/user-status-badges";
+import { useTableControls } from "@/hooks/use-table-controls";
+import { Link } from "@/i18n/routing";
+import { formatApiDate } from "@/lib/dates";
+import type { StaffActor } from "@/lib/staff-permissions";
+import type { User, UserRole } from "@/types/api";
+import { UserActionsMenu } from "./user-actions-menu";
+import { UserFormDialog } from "./user-form-dialog";
 
 const SEARCHABLE_KEYS = [
   "username",
@@ -45,203 +39,232 @@ const SEARCHABLE_KEYS = [
   "last_name",
 ] as const;
 
-interface UsersTableProps {
-  initialUsers: User[];
-  currentUserRole?: User["role"];
+type StateFilter = "all" | "active" | "inactive" | "banned" | "mustChange";
+type RoleFilter = "all" | UserRole;
+
+function matchesState(user: User, filter: StateFilter): boolean {
+  switch (filter) {
+    case "active":
+      return user.status === "active" && !user.is_banned;
+    case "inactive":
+      return user.status === "inactive";
+    case "banned":
+      return user.is_banned;
+    case "mustChange":
+      return user.must_change_password;
+    default:
+      return true;
+  }
 }
 
-export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
-  const t = useTranslations("users");
-  const tCommon = useTranslations("common");
+interface UsersTableProps {
+  initialUsers: User[];
+  actor: StaffActor;
+}
 
-  const [isPending, startTransition] = useTransition();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+export function UsersTable({ initialUsers, actor }: UsersTableProps) {
+  const t = useTranslations("staff.users");
+  const locale = useLocale();
+  const [creating, setCreating] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  const [stateFilter, setStateFilter] = useState<StateFilter>("all");
 
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [passwordTargetUser, setPasswordTargetUser] = useState<User | null>(
-    null,
+  const filtered = useMemo(
+    () =>
+      initialUsers.filter(
+        (user) =>
+          (roleFilter === "all" || user.role === roleFilter) &&
+          matchesState(user, stateFilter),
+      ),
+    [initialUsers, roleFilter, stateFilter],
   );
-
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   const {
     search,
     setSearch,
     sortConfig,
     handleSort,
-    processedData,
+    processedData: users,
     currentPage,
     totalPages,
     setCurrentPage,
     pageSize,
     setPageSize,
     totalItems,
-  } = useTableControls(initialUsers, SEARCHABLE_KEYS);
+  } = useTableControls(filtered, SEARCHABLE_KEYS);
 
-  const users = processedData;
-
-  const handleOpenDialog = (user?: User) => {
-    setEditingUser(user ?? null);
-    setIsDialogOpen(true);
-  };
-
-  const handleOpenPasswordDialog = (user: User) => {
-    setPasswordTargetUser(user);
-    setIsPasswordDialogOpen(true);
-  };
-
-  const handleDeleteClick = (id: string) => {
-    setUserToDelete(id);
-  };
-
-  const confirmDelete = () => {
-    if (!userToDelete) return;
-    startTransition(async () => {
-      const result = await deleteUser(userToDelete);
-      if (!result.success) {
-        toastActionError(result, result.error ?? t("dialog.deleteFailed"));
-      } else {
-        toast.success(t("dialog.deleted"));
-      }
-      setUserToDelete(null);
-    });
-  };
+  const counts = useMemo(
+    () => ({
+      banned: initialUsers.filter((u) => u.is_banned).length,
+      inactive: initialUsers.filter((u) => u.status === "inactive").length,
+    }),
+    [initialUsers],
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
+          <p className="text-muted-foreground">
+            {t("subtitle", {
+              total: initialUsers.length,
+              banned: counts.banned,
+              inactive: counts.inactive,
+            })}
+          </p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
+        <Button onClick={() => setCreating(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          {t("addUser")}
+          {t("add")}
         </Button>
       </div>
 
-      <SearchInput
-        value={search}
-        onChange={setSearch}
-        placeholder={t("searchPlaceholder")}
-        className="max-w-sm"
-      />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder={t("searchPlaceholder")}
+          className="sm:max-w-sm"
+        />
+        <div className="flex gap-2">
+          <Select
+            value={roleFilter}
+            onValueChange={(v) => {
+              setRoleFilter(v as RoleFilter);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-40" aria-label={t("filterRole")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(["all", "user", "moderator", "admin"] as const).map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`roleFilter.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={stateFilter}
+            onValueChange={(v) => {
+              setStateFilter(v as StateFilter);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-44" aria-label={t("filterState")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(
+                ["all", "active", "inactive", "banned", "mustChange"] as const
+              ).map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`stateFilter.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-      <div
-        className={`bg-background rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
-      >
+      <div className="bg-background rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <SortableColumnHeader
-                label={t("table.user")}
+                label={t("columns.user")}
                 sortKey="username"
                 sortConfig={sortConfig}
                 onSort={handleSort}
               />
               <SortableColumnHeader
-                label={t("table.email")}
-                sortKey="email"
-                sortConfig={sortConfig}
-                onSort={handleSort}
-                className="hidden md:table-cell"
-              />
-              <SortableColumnHeader
-                label={t("table.role")}
+                label={t("columns.role")}
                 sortKey="role"
                 sortConfig={sortConfig}
                 onSort={handleSort}
               />
+              <TableHead>{t("columns.status")}</TableHead>
               <SortableColumnHeader
-                label={t("table.status")}
-                sortKey="status"
+                label={t("columns.lastLogin")}
+                sortKey="last_login_at"
                 sortConfig={sortConfig}
                 onSort={handleSort}
+                className="hidden lg:table-cell"
               />
-              <TableHead className="text-right">{t("table.actions")}</TableHead>
+              <SortableColumnHeader
+                label={t("columns.created")}
+                sortKey="created_at"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                className="hidden xl:table-cell"
+              />
+              <TableHead className="w-12 text-right">
+                <span className="sr-only">{t("columns.actions")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-muted-foreground h-24 text-center"
                 >
                   {t("empty")}
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{user.username}</span>
-                      <span className="text-muted-foreground text-xs md:hidden">
-                        {user.email}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {user.email}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        user.role === "admin"
-                          ? "destructive"
-                          : user.role === "moderator"
-                            ? "outline"
-                            : "secondary"
-                      }
-                      className="capitalize"
-                    >
-                      {t(`roles.${user.role}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        user.status === "active" ? "outline" : "destructive"
-                      }
-                      className="capitalize"
-                    >
-                      {t(`statuses.${user.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleOpenDialog(user)}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          {t("menu.edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleOpenPasswordDialog(user)}
-                        >
-                          <KeyRound className="mr-2 h-4 w-4" />
-                          {t("menu.changePassword")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteClick(user.id)}
-                          variant="destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {t("menu.delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+              users.map((user) => {
+                const fullName = [user.first_name, user.last_name]
+                  .filter(Boolean)
+                  .join(" ");
+                return (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <Link
+                        href={`/dashboard/users/${user.id}`}
+                        className="group flex flex-col"
+                      >
+                        <span className="font-medium group-hover:underline">
+                          {user.username}
+                          {user.id === actor.id && (
+                            <span className="text-muted-foreground ml-1.5 text-xs font-normal">
+                              ({t("you")})
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-muted-foreground truncate text-xs">
+                          {[fullName, user.email].filter(Boolean).join(" · ") ||
+                            "—"}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <PlatformRoleBadge role={user.role} />
+                    </TableCell>
+                    <TableCell>
+                      <UserStatusBadges user={user} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
+                      {user.last_login_at
+                        ? formatApiDate(user.last_login_at, locale)
+                        : t("neverSignedIn")}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-sm xl:table-cell">
+                      {formatApiDate(user.created_at, locale)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <UserActionsMenu
+                        user={user}
+                        actor={actor}
+                        showDetailsLink
+                      />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -249,59 +272,19 @@ export function UsersTable({ initialUsers, currentUserRole }: UsersTableProps) {
 
       <TablePagination
         currentPage={currentPage}
-
         totalPages={totalPages}
-
         setCurrentPage={setCurrentPage}
-
         totalItems={totalItems}
-
         pageSize={pageSize}
-
         setPageSize={setPageSize}
-
         search={search}
       />
 
-      <UserDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        user={editingUser}
-        canViewHistory={currentUserRole === "admin"}
+      <UserFormDialog
+        open={creating}
+        onOpenChange={setCreating}
+        actorRole={actor.role}
       />
-      <PasswordDialog
-        isOpen={isPasswordDialogOpen}
-        onClose={() => setIsPasswordDialogOpen(false)}
-        user={passwordTargetUser}
-      />
-
-      <Dialog
-        open={!!userToDelete}
-        onOpenChange={(open) => !open && setUserToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
-            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setUserToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {tCommon("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

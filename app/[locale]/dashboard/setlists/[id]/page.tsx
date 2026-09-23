@@ -1,4 +1,11 @@
-import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { AuditStamp } from "@/components/audit-stamp";
+import { entityTitle } from "@/lib/page-metadata";
+import { notFound } from "next/navigation";
+import {
+  ApiError,
+  fetchAllServerPages,
+  fetchServerApi,
+} from "@/lib/api-server";
 import { Setlist, Song, SetlistSong, SetlistItem, Artist } from "@/types/api";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
@@ -9,6 +16,20 @@ import { SetlistOfflineStatus } from "./_components/setlist-offline-status";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { formatDuration } from "@/lib/utils";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<Setlist>(
+    `/setlists/${id}`,
+    (s) => s.title,
+    "setlist",
+    "setlists",
+  );
+}
 
 export default async function SetlistDetailsPage({
   params,
@@ -26,7 +47,17 @@ export default async function SetlistDetailsPage({
       fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
       fetchAllServerPages<Song>("/songs"),
       fetchAllServerPages<Artist>("/artists"),
-    ]);
+    ]).catch((error) => {
+      // A deleted setlist, or one the person can't see (anymore), is a
+      // "not found" — not an unexpected error screen.
+      if (
+        error instanceof ApiError &&
+        (error.status === 404 || error.status === 403 || error.status === 400)
+      ) {
+        notFound();
+      }
+      throw error;
+    });
 
   const setlistSongs = setlistSongsRes.data || [];
   const allSongs = allSongsRes.data || [];
@@ -57,6 +88,11 @@ export default async function SetlistDetailsPage({
                 {setlist.description}
               </p>
             )}
+            <AuditStamp
+              updatedAt={setlist.updated_at}
+              updatedBy={setlist.updated_by_username}
+              className="mt-1"
+            />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
                 <Clock className="text-primary h-4 w-4" />
@@ -80,6 +116,11 @@ export default async function SetlistDetailsPage({
           setlistId={setlist.id}
           setlistTitle={setlist.title}
           shareToken={setlist.share_token}
+          shareLock={
+            setlist.share_locked_at
+              ? { reason: setlist.share_lock_reason ?? null }
+              : null
+          }
         />
       </div>
 

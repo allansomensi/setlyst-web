@@ -1,3 +1,4 @@
+import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { BandWithMembership, Gig, Setlist, BAND_ROLE_LEVEL } from "@/types/api";
 import { GigsTable } from "@/app/[locale]/dashboard/gigs/_components/gigs-table";
@@ -7,6 +8,20 @@ import { Link } from "@/components/nav-link";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<BandWithMembership>(
+    `/bands/${id}`,
+    (b) => b.name,
+    "bandGigs",
+    "bands",
+  );
+}
 
 export default async function BandGigsPage({
   params,

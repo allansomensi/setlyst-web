@@ -1,3 +1,4 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi } from "@/lib/api-server";
 import { User } from "@/types/api";
 import { ProfileForm } from "./_components/profile-form";
@@ -5,6 +6,11 @@ import { ChangePasswordSection } from "./_components/change-password-section";
 import { Separator } from "@/components/ui/separator";
 import { getTranslations, getLocale } from "next-intl/server";
 import { getUsernameCooldownInfo } from "@/lib/utils";
+import { parseApiTimestamp } from "@/lib/dates";
+
+export async function generateMetadata() {
+  return staticTitle("profile");
+}
 
 export default async function ProfilePage() {
   const user = await fetchServerApi<User>("/users/me");
@@ -15,7 +21,7 @@ export default async function ProfilePage() {
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(user.created_at));
+  }).format(parseApiTimestamp(user.created_at));
 
   const { inCooldown, cooldownDate } = getUsernameCooldownInfo(
     user.username_changed_at,
@@ -40,7 +46,18 @@ export default async function ProfilePage() {
 
       <Separator />
 
-      <ChangePasswordSection />
+      <ChangePasswordSection
+        username={user.username}
+        passwordChangedLabel={
+          user.password_changed_at
+            ? t("passwordChangedOn", {
+                date: new Intl.DateTimeFormat(locale, {
+                  dateStyle: "medium",
+                }).format(parseApiTimestamp(user.password_changed_at)),
+              })
+            : null
+        }
+      />
     </div>
   );
 }

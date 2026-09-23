@@ -1,3 +1,4 @@
+import { entityTitle } from "@/lib/page-metadata";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -15,6 +16,21 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { getTranslations, getLocale } from "next-intl/server";
+import { parseApiTimestamp } from "@/lib/dates";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<UserProfileView>(
+    `/users/${id}/profile`,
+    (p) => p.username,
+    "userProfile",
+    "profile",
+  );
+}
 
 export default async function UserProfilePage({
   params,
@@ -42,7 +58,7 @@ export default async function UserProfilePage({
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(profile.created_at));
+  }).format(parseApiTimestamp(profile.created_at));
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4">
@@ -112,7 +128,9 @@ export default async function UserProfilePage({
                   {new Intl.DateTimeFormat(locale, {
                     dateStyle: "medium",
                   }).format(
-                    new Date(profile.admin_details.username_changed_at),
+                    parseApiTimestamp(
+                      profile.admin_details.username_changed_at,
+                    ),
                   )}
                 </span>
               </div>

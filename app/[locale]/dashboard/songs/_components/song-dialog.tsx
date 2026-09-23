@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useEffect, useRef, useTransition, useState } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import {
   Song,
@@ -27,6 +27,7 @@ import {
 import { Loader2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
+import { TagInput } from "@/components/tags/tag-input";
 import {
   formatDuration,
   parseDurationToSeconds,
@@ -39,6 +40,45 @@ interface SongDialogProps {
   artists: Artist[];
   isOpen: boolean;
   onClose: () => void;
+  /** Tags already used in the library, offered as suggestions. */
+  tagSuggestions?: string[];
+}
+
+/** Tag field state, remounted with the form (see DurationField). */
+function TagsField({
+  initialValue,
+  suggestions,
+  disabled,
+  onChange,
+}: {
+  initialValue: string[];
+  suggestions: string[];
+  disabled: boolean;
+  onChange: (tags: string[]) => void;
+}) {
+  const t = useTranslations("songs.dialog");
+  const [tags, setTags] = useState(initialValue);
+  // Each mount (dialog opened, or switched to another song) starts from
+  // this song's own tags, never from what was typed for a previous one.
+  useEffect(() => {
+    onChange(initialValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="song-tags">{t("tagsLabel")}</Label>
+      <TagInput
+        id="song-tags"
+        value={tags}
+        onChange={(next) => {
+          setTags(next);
+          onChange(next);
+        }}
+        suggestions={suggestions}
+        disabled={disabled}
+      />
+    </div>
+  );
 }
 
 // Owns the duration field's value and validity itself, rather than lifting
@@ -84,6 +124,7 @@ export function SongDialog({
   artists,
   isOpen,
   onClose,
+  tagSuggestions = [],
 }: SongDialogProps) {
   const router = useAppRouter();
   const t = useTranslations("songs.dialog");
@@ -91,6 +132,9 @@ export function SongDialog({
 
   const [isPending, startTransition] = useTransition();
   const isEditing = !!song;
+  // Written by TagsField; read on submit. A ref keeps the
+  // form uncontrolled like the rest of the fields.
+  const tagsRef = useRef<string[] | null>(null);
 
   const handleAction = (formData: FormData) => {
     const tempoStr = formData.get("tempo") as string;
@@ -108,6 +152,7 @@ export function SongDialog({
       tonality: (formData.get("tonality") as Tonality) || null,
       genre: (formData.get("genre") as Genre) || null,
       duration: durationStr ? parseDurationToSeconds(durationStr) : null,
+      tags: tagsRef.current ?? song?.tags ?? [],
     };
 
     startTransition(async () => {
@@ -256,6 +301,15 @@ export function SongDialog({
                 disabled={isPending}
               />
             </div>
+
+            <TagsField
+              initialValue={song?.tags ?? []}
+              suggestions={tagSuggestions}
+              disabled={isPending}
+              onChange={(tags) => {
+                tagsRef.current = tags;
+              }}
+            />
 
             {/* Lyrics info for editing */}
             {isEditing && (

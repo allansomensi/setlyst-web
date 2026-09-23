@@ -1,3 +1,5 @@
+import { AuditStamp } from "@/components/audit-stamp";
+import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import {
   Gig,
@@ -37,6 +39,15 @@ const STATUS_VARIANT: Record<
   cancelled: "destructive",
   completed: "secondary",
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<Gig>(`/gigs/${id}`, (g) => g.venue, "gig", "gigs");
+}
 
 export default async function GigDetailsPage({
   params,
@@ -169,6 +180,11 @@ export default async function GigDetailsPage({
                 <p>{gig.notes}</p>
               </div>
             )}
+            <AuditStamp
+              updatedAt={gig.updated_at}
+              updatedBy={gig.updated_by_username}
+              className="mt-2"
+            />
           </div>
         </div>
 

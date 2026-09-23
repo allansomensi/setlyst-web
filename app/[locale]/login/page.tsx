@@ -1,152 +1,20 @@
-"use client";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { LoginForm } from "./_components/login-form";
 
-import { signIn, getSession } from "next-auth/react";
-import { useActionState, useState } from "react";
-import { useRouter } from "@/i18n/routing";
-import { Link } from "@/components/nav-link";
-import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { AppLogo } from "@/components/app-logo";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { toast } from "sonner";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return { title: t("login") };
+}
 
-export default function LoginPage() {
-  const t = useTranslations("auth.login");
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [error, loginAction, isPending] = useActionState(
-    async (_previousState: string | null, formData: FormData) => {
-      const username = formData.get("username") as string;
-      const password = formData.get("password") as string;
-
-      try {
-        const result = await signIn("credentials", {
-          username,
-          password,
-          redirect: false,
-        });
-
-        if (result?.error) {
-          return t("invalidCredentials");
-        }
-
-        const session = await getSession();
-        if (session?.user?.isFirstLogin === false) {
-          toast.success(t("welcomeBack"));
-        }
-        router.push("/dashboard");
-        router.refresh();
-        return null;
-      } catch {
-        return t("connectionError");
-      }
-    },
-    null,
-  );
-
+export default async function LoginPage() {
   return (
-    <div className="bg-muted/40 flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="items-center text-center">
-          <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
-          <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
-          <CardDescription>{t("subtitle")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={loginAction} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">{t("username")}</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder={t("usernamePlaceholder")}
-                required
-                disabled={isPending}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("password")}</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-muted-foreground text-sm hover:underline"
-                >
-                  {t("forgotPassword")}
-                </Link>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={t("passwordPlaceholder")}
-                  required
-                  disabled={isPending}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                  aria-label={
-                    showPassword ? t("hidePassword") : t("showPassword")
-                  }
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <p
-                role="alert"
-                className="text-destructive text-center text-sm font-medium"
-              >
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("submitting")}
-                </>
-              ) : (
-                t("submit")
-              )}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t py-4">
-          <p className="text-muted-foreground text-sm">
-            {t("noAccount")}{" "}
-            <Link
-              href="/register"
-              className="text-primary font-medium hover:underline"
-            >
-              {t("signUp")}
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+    <AuthShell>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

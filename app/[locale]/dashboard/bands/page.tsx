@@ -1,7 +1,12 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi } from "@/lib/api-server";
 import { BandWithMembership } from "@/types/api";
 import { BandsGrid } from "./_components/bands-grid";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
+
+export async function generateMetadata() {
+  return staticTitle("bands");
+}
 
 export default async function BandsPage() {
   const bandsResult = await fetchOrFailed(

@@ -36,7 +36,7 @@ export function SetlistOfflineStatus({ setlistId }: { setlistId: string }) {
   const detail =
     isSynced && lastSyncedAt
       ? tOffline("syncedAt", {
-          time: format.relativeTime(new Date(lastSyncedAt)),
+          time: format.relativeTime(new Date(lastSyncedAt), new Date()),
         })
       : hasFailed && lastError
         ? `${label}: ${lastError}`

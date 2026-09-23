@@ -3,7 +3,7 @@
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction } from "@/lib/action-guard";
 import { revalidatePath } from "next/cache";
-import { CreateSongPayload, UpdateSongPayload } from "@/types/api";
+import { CreateSongPayload, TagCount, UpdateSongPayload } from "@/types/api";
 import { getTranslations } from "next-intl/server";
 
 export async function createSong(data: CreateSongPayload) {
@@ -76,5 +76,31 @@ export async function deleteSong(id: string) {
   return guardedAction(
     () => fetchServerApi(`/songs/${id}`, { method: "DELETE" }),
     () => revalidatePath("/dashboard/songs"),
+  );
+}
+
+export async function listSongTags() {
+  return guardedAction(() => fetchServerApi<TagCount[]>("/songs/tags"));
+}
+
+/** Renames a tag on every personal song; renaming onto an existing tag merges them. */
+export async function renameSongTag(tag: string, newTag: string) {
+  return guardedAction(
+    () =>
+      fetchServerApi<unknown>(`/songs/tags/${encodeURIComponent(tag)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ new_name: newTag }),
+      }),
+    () => revalidatePath("/[locale]/dashboard/songs", "page"),
+  );
+}
+
+export async function deleteSongTag(tag: string) {
+  return guardedAction(
+    () =>
+      fetchServerApi<unknown>(`/songs/tags/${encodeURIComponent(tag)}`, {
+        method: "DELETE",
+      }),
+    () => revalidatePath("/[locale]/dashboard/songs", "page"),
   );
 }

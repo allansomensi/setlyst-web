@@ -1,7 +1,12 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { Setlist, BandWithMembership, BAND_ROLE_LEVEL } from "@/types/api";
 import { SetlistsTable } from "./_components/setlists-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
+
+export async function generateMetadata() {
+  return staticTitle("setlists");
+}
 
 export default async function SetlistsPage() {
   // Personal setlists and the band list are independent sources — each

@@ -16,6 +16,9 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** The API's stable error code — see lib/api-errors.ts. */
+    public code: string | null = null,
+    public meta: Record<string, unknown> | null = null,
   ) {
     super(message);
     this.name = "ApiError";
@@ -119,9 +122,13 @@ export function useApi() {
           }
 
           let message = `API error: ${res.status}`;
+          let code: string | null = null;
+          let meta: Record<string, unknown> | null = null;
           try {
             const body = await res.json();
             if (typeof body?.message === "string") message = body.message;
+            if (typeof body?.code === "string") code = body.code;
+            if (body?.meta && typeof body.meta === "object") meta = body.meta;
           } catch {
             // ignore parse errors
           }
@@ -130,7 +137,7 @@ export function useApi() {
             message = "Too many requests. Please wait a moment and try again.";
           }
 
-          throw new ApiError(res.status, message);
+          throw new ApiError(res.status, message, code, meta);
         }
 
         if (res.status === 204) return {} as T;

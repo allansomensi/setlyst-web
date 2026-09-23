@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, FileDown, Languages } from "lucide-react";
+import { FileDown, Languages, Loader2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -21,18 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { LOCALE_NAMES, isAppLocale, type AppLocale } from "@/i18n/locales";
-
-const OPTION_KEYS = [
-  ["show_title", "showTitle"],
-  ["show_total_duration", "showTotalDuration"],
-  ["show_key", "showKey"],
-  ["show_bpm", "showBpm"],
-  ["show_blocks", "showBlocks"],
-  ["show_breaks", "showBreaks"],
-] as const;
-
-type OptionKey = (typeof OPTION_KEYS)[number][0];
+import {
+  DEFAULT_PDF_OPTIONS,
+  MAX_SUBTITLE_LENGTH,
+  pdfOptionsToQuery,
+  type PdfExportOptions,
+} from "@/lib/pdf-export-options";
+import { PdfOptionsEditor } from "./pdf-options-editor";
 
 interface ExportPdfDialogProps {
   /** The export endpoint, without query string. */
@@ -45,59 +44,62 @@ interface ExportPdfDialogProps {
 }
 
 /**
- * PDF export options — shared by the dashboard and the public share page,
- * which differ only in the endpoint and whether a token is sent.
+ * PDF export — shared by the dashboard and the public share page, which
+ * differ only in the endpoint and whether a token is sent (and so whether
+ * the options can be saved as the account's default).
  *
  * The printed language is chosen here rather than inferred from the UI:
  * a band sheet often goes to a sound engineer or a venue that doesn't
- * read the language the app happens to be set to. It defaults to the
- * current UI language.
+ * read the language the app happens to be set to.
  */
-export function ExportPdfDialog({
+export function ExportPdfDialog(props: ExportPdfDialogProps) {
+  return (
+    <Dialog
+      open={props.isOpen}
+      onOpenChange={(open) => !open && props.onClose()}
+    >
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        {/* Remounted on every open, so it starts from the saved defaults. */}
+        {props.isOpen && <ExportForm {...props} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ExportForm({
   endpoint,
   authToken,
   setlistTitle,
-  isOpen,
   onClose,
 }: ExportPdfDialogProps) {
   const t = useTranslations("setlists.exportPdf");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const { settings, update } = useUiSettings();
+  const canSaveDefault = Boolean(authToken);
 
   const [isPending, startTransition] = useTransition();
+  const [options, setOptions] = useState<PdfExportOptions>(settings.pdf);
   const [language, setLanguage] = useState<AppLocale>(
     isAppLocale(locale) ? locale : "en",
   );
-  const [options, setOptions] = useState<Record<OptionKey, boolean>>({
-    show_title: true,
-    show_total_duration: true,
-    show_key: true,
-    show_bpm: true,
-    show_blocks: true,
-    show_breaks: true,
-  });
-
-  const toggleOption = (key: OptionKey) => {
-    setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  const [subtitle, setSubtitle] = useState("");
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   const handleExport = () => {
     startTransition(async () => {
       try {
-        const params = new URLSearchParams({
-          ...Object.fromEntries(
-            Object.entries(options).map(([k, v]) => [k, String(v)]),
-          ),
-          lang: language,
-        });
-
-        const response = await fetch(`${endpoint}?${params}`, {
+        const query = pdfOptionsToQuery(options, { lang: language, subtitle });
+        const response = await fetch(`${endpoint}?${query}`, {
           method: "GET",
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         });
 
         if (!response.ok) {
-          throw new Error(`Export failed: ${response.status}`);
+          toast.error(
+            response.status === 429 ? t("rateLimited") : t("exportFailed"),
+          );
+          return;
         }
 
         const blob = await response.blob();
@@ -114,6 +116,11 @@ export function ExportPdfDialog({
         // Revoking in the same tick can cancel the download in Safari.
         window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
+        if (saveAsDefault && canSaveDefault) {
+          const saved = await update({ pdf: options });
+          if (!saved.success) toast.error(t("defaultNotSaved"));
+        }
+
         toast.success(t("exportSuccess"));
         onClose();
       } catch (error) {
@@ -124,29 +131,27 @@ export function ExportPdfDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
-        </DialogHeader>
+    <>
+      <DialogHeader>
+        <DialogTitle>{t("title")}</DialogTitle>
+        <DialogDescription>{t("description")}</DialogDescription>
+      </DialogHeader>
 
-        <div className="space-y-2 py-1">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
           <Label
             htmlFor="pdf-language"
-            className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium"
+            className="text-muted-foreground flex items-center gap-1.5 text-xs"
           >
             <Languages className="h-3.5 w-3.5" />
             {t("language")}
           </Label>
           <Select
             value={language}
-            onValueChange={(value) => {
-              if (isAppLocale(value)) setLanguage(value);
-            }}
+            onValueChange={(value) => isAppLocale(value) && setLanguage(value)}
             disabled={isPending}
           >
-            <SelectTrigger id="pdf-language" className="h-10 w-full">
+            <SelectTrigger id="pdf-language" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -158,26 +163,55 @@ export function ExportPdfDialog({
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="pdf-subtitle"
+            className="text-muted-foreground text-xs"
+          >
+            {t("subtitle")}
+          </Label>
+          <Input
+            id="pdf-subtitle"
+            value={subtitle}
+            onChange={(e) =>
+              setSubtitle(e.target.value.slice(0, MAX_SUBTITLE_LENGTH))
+            }
+            placeholder={t("subtitlePlaceholder")}
+            disabled={isPending}
+          />
+        </div>
+      </div>
 
-        <div className="space-y-2">
-          {OPTION_KEYS.map(([key, labelKey]) => (
-            <label
-              key={key}
-              className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 transition-colors"
-            >
-              <span className="text-sm">{t(labelKey)}</span>
-              <input
-                type="checkbox"
-                className="accent-primary h-4 w-4"
-                checked={options[key]}
-                onChange={() => toggleOption(key)}
+      <PdfOptionsEditor
+        value={options}
+        onChange={setOptions}
+        disabled={isPending}
+      />
+
+      <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          {canSaveDefault && (
+            <label className="flex items-center gap-2 text-sm">
+              <Switch
+                checked={saveAsDefault}
+                onCheckedChange={setSaveAsDefault}
                 disabled={isPending}
               />
+              {t("saveAsDefault")}
             </label>
-          ))}
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setOptions(DEFAULT_PDF_OPTIONS)}
+            disabled={isPending}
+          >
+            <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+            {t("resetOptions")}
+          </Button>
         </div>
-
-        <DialogFooter>
+        <div className="flex gap-2">
           <Button
             type="button"
             variant="outline"
@@ -194,9 +228,9 @@ export function ExportPdfDialog({
             )}
             {isPending ? t("exporting") : t("export")}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </DialogFooter>
+    </>
   );
 }
 

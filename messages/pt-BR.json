@@ -14,7 +14,21 @@
     "downloadQrCode": "Baixar QR code",
     "moreActions": "Mais ações",
     "loadErrorRetrying": "Não foi possível carregar — tentando novamente automaticamente.",
-    "loadErrorOffline": "Não foi possível carregar enquanto está offline. Vai tentar de novo automaticamente assim que a conexão voltar."
+    "loadErrorOffline": "Não foi possível carregar enquanto está offline. Vai tentar de novo automaticamente assim que a conexão voltar.",
+    "optional": "opcional",
+    "close": "Fechar",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "back": "Voltar",
+    "reset": "Restaurar",
+    "loading": "Carregando…",
+    "all": "Todos",
+    "none": "Nenhum",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "pageOf": "Página {page} de {total}",
+    "searchPlaceholder": "Buscar…",
+    "clearSearch": "Limpar busca"
   },
   "pagination": {
     "previous": "Anterior",
@@ -45,7 +59,21 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu",
     "collapseSidebar": "Recolher barra lateral",
-    "expandSidebar": "Expandir barra lateral"
+    "expandSidebar": "Expandir barra lateral",
+    "staffSection": "Administração",
+    "adminUsers": "Usuários",
+    "adminBands": "Todas as bandas",
+    "adminSongs": "Todas as músicas",
+    "adminSetlists": "Todos os setlists",
+    "adminLinks": "Links públicos",
+    "adminAudit": "Auditoria",
+    "adminLimits": "Limites",
+    "help": "Ajuda e informações",
+    "wiki": "Documentação (wiki)",
+    "status": "Status do sistema",
+    "whatsNew": "Novidades",
+    "whatsNewUnread": "Novidades — há atualizações que você ainda não viu",
+    "profile": "Minha conta"
   },
   "auth": {
     "login": {
@@ -63,14 +91,21 @@
       "noAccount": "Não tem uma conta?",
       "signUp": "Cadastre-se",
       "invalidCredentials": "Usuário ou senha inválidos.",
-      "connectionError": "Não foi possível conectar ao servidor.",
-      "welcomeBack": "Bem-vindo de volta!"
+      "connectionError": "Não foi possível conectar ao servidor. Tente novamente em instantes.",
+      "welcomeBack": "Bem-vindo de volta!",
+      "rateLimited": "Muitas tentativas de login. Aguarde um momento e tente novamente.",
+      "notices": {
+        "registered": "Conta criada! Entre para começar.",
+        "password_changed": "Senha alterada. Entre com a sua nova senha.",
+        "session": "Sua sessão foi encerrada. Entre novamente.",
+        "expired": "Sua sessão expirou. Entre novamente."
+      }
     },
     "register": {
       "title": "Criar uma conta",
       "subtitle": "Preencha os dados abaixo para criar sua conta",
       "username": "Usuário",
-      "usernamePlaceholder": "Escolha um nome de usuário",
+      "usernamePlaceholder": "ex.: joao.silva",
       "email": "E-mail",
       "emailPlaceholder": "joao.silva@exemplo.com",
       "firstName": "Nome",
@@ -78,7 +113,7 @@
       "lastName": "Sobrenome",
       "lastNamePlaceholder": "Silva",
       "password": "Senha",
-      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "passwordPlaceholder": "Crie uma senha forte",
       "submit": "Cadastrar",
       "submitting": "Criando conta...",
       "alreadyHaveAccount": "Já tem uma conta?",
@@ -90,8 +125,13 @@
         "conflict": "Usuário ou e-mail já está em uso.",
         "validation": "Dados de cadastro inválidos. Verifique todos os campos.",
         "generic": "Falha no cadastro. Verifique seus dados e tente novamente.",
-        "serverError": "Não foi possível conectar ao servidor. Tente novamente mais tarde."
-      }
+        "serverError": "Não foi possível conectar ao servidor. Tente novamente mais tarde.",
+        "incomplete": "Preencha corretamente todos os campos obrigatórios.",
+        "email": "Informe um e-mail válido ou deixe em branco.",
+        "rateLimited": "Muitas tentativas. Aguarde um momento e tente novamente."
+      },
+      "confirmPassword": "Confirme a senha",
+      "consent": "Li e concordo com os <terms>Termos de Uso</terms> e a <privacy>Política de Privacidade</privacy>."
     }
   },
   "dashboard": {
@@ -199,7 +239,8 @@
       "deleteConfirm": "Tem certeza que deseja excluir esta música?",
       "deleted": "Música excluída com sucesso",
       "deleteFailed": "Erro ao excluir a música",
-      "durationInvalid": "Informe uma duração válida no formato mm:ss (ex.: 03:30)."
+      "durationInvalid": "Informe uma duração válida no formato mm:ss (ex.: 03:30).",
+      "tagsLabel": "Tags"
     },
     "menu": {
       "editDetails": "Editar dados",
@@ -210,7 +251,11 @@
       "titleLength": "O título da música deve ter entre 1 e 255 caracteres.",
       "artistRequired": "O artista é obrigatório.",
       "invalidId": "ID da música inválido."
-    }
+    },
+    "tagFilterLabel": "Vibe:",
+    "clearTagFilter": "Limpar",
+    "filterByTag": "Mostrar músicas com a tag “{tag}”",
+    "manageTags": "Tags"
   },
   "lyrics": {
     "editTitle": "Editar letra",
@@ -347,7 +392,13 @@
       "exporting": "Exportando...",
       "exportSuccess": "PDF exportado com sucesso!",
       "exportFailed": "Erro ao exportar o PDF.",
-      "language": "Idioma do PDF"
+      "language": "Idioma do PDF",
+      "subtitle": "Subtítulo",
+      "subtitlePlaceholder": "ex.: Bar do Zé · Sáb 21h",
+      "saveAsDefault": "Salvar como meu padrão",
+      "resetOptions": "Restaurar",
+      "rateLimited": "Muitas exportações seguidas. Aguarde um pouco e tente de novo.",
+      "defaultNotSaved": "O PDF foi gerado, mas as opções não puderam ser salvas como padrão."
     },
     "empty": "Nenhuma setlist cadastrada.",
     "emptySearch": "Nenhuma setlist encontrada para \"{search}\".",
@@ -745,7 +796,7 @@
     "success": "Perfil atualizado com sucesso",
     "failed": "Falha ao atualizar perfil",
     "changePasswordTitle": "Alterar senha",
-    "changePasswordDescription": "Mantenha sua conta segura usando uma senha forte.",
+    "changePasswordDescription": "Escolha uma senha forte que você não use em nenhum outro lugar.",
     "currentPassword": "Senha atual",
     "newPassword": "Nova senha",
     "confirmPassword": "Confirmar nova senha",
@@ -758,7 +809,8 @@
       "usernameLength": "O nome de usuário deve ter entre 1 e 128 caracteres.",
       "missingFields": "Preencha todos os campos obrigatórios.",
       "passwordTooShort": "A senha deve ter pelo menos 8 caracteres."
-    }
+    },
+    "passwordChangedOn": "Senha alterada pela última vez em {date}."
   },
   "analytics": {
     "title": "Analytics",
@@ -853,7 +905,72 @@
     "backupArtists": "Artistas",
     "backupSongs": "Músicas",
     "backupSetlists": "Setlists",
-    "backupGigs": "Shows"
+    "backupGigs": "Shows",
+    "sectionsNav": "Seções das configurações",
+    "sections": {
+      "general": "Geral",
+      "display": "Modo Ao Vivo e listas",
+      "pdf": "PDF",
+      "usage": "Uso e limites",
+      "security": "Segurança",
+      "offline": "Offline",
+      "backup": "Backup",
+      "help": "Ajuda e termos"
+    },
+    "display": {
+      "title": "Modo Ao Vivo e listas",
+      "description": "Como o Modo Ao Vivo abre e o tamanho das listas — em todos os seus aparelhos. As mudanças são salvas automaticamente.",
+      "saved": "Salvo.",
+      "live": {
+        "showChords": "Mostrar acordes",
+        "showChordsHint": "Acordes sobre a letra. Desligado mostra só a letra.",
+        "showSections": "Mostrar seções",
+        "showSectionsHint": "Títulos de Verso, Refrão, Ponte…",
+        "fitToScreen": "Caber a música na tela",
+        "fitToScreenHint": "Visual compacto: a música inteira sem rolar.",
+        "highContrast": "Contraste de palco",
+        "highContrastHint": "Preto e branco puros, acordes destacados.",
+        "fontFamily": "Fonte do Modo Ao Vivo",
+        "fonts": {
+          "sans": "Sem serifa",
+          "serif": "Com serifa",
+          "mono": "Monoespaçada"
+        }
+      },
+      "pageSize": "Linhas por página nas listas",
+      "pageSizeOption": "{count} linhas",
+      "deviceFollows": "Este aparelho segue estes padrões.",
+      "deviceOverride": "Este aparelho tem escolhas próprias do Modo Ao Vivo ou das listas (feitas nos atalhos rápidos), que têm prioridade aqui.",
+      "resetDevice": "Usar padrões da conta aqui",
+      "deviceReset": "Este aparelho agora segue os padrões da conta."
+    },
+    "pdf": {
+      "title": "Padrões da exportação em PDF",
+      "description": "Toda exportação começa com estas opções. Você ainda pode ajustar cada uma antes de baixar.",
+      "saved": "Padrões de PDF salvos.",
+      "restore": "Restaurar padrões do Setlyst"
+    },
+    "usage": {
+      "title": "Uso e limites",
+      "description": "Quanto do seu espaço você está usando. Precisa de mais? Fale com um administrador.",
+      "unavailable": "Não foi possível carregar o uso agora."
+    },
+    "security": {
+      "title": "Segurança",
+      "description": "Altere sua senha. Isso desconecta você de todos os aparelhos.",
+      "changePassword": "Alterar senha"
+    },
+    "help": {
+      "title": "Ajuda e termos",
+      "description": "Guias, novidades, status do serviço e textos legais.",
+      "wiki": "Guia do usuário (wiki)",
+      "wikiHint": "Como usar cada recurso",
+      "whatsNew": "Novidades",
+      "whatsNewHint": "Mudanças recentes no Setlyst",
+      "status": "Status do serviço",
+      "statusHint": "Está tudo funcionando?",
+      "support": "Falar com o suporte"
+    }
   },
   "error": {
     "title": "Ops! Algo deu errado.",
@@ -899,8 +1016,8 @@
       "left": "Você saiu da banda"
     },
     "roles": {
-      "owner": "Administrador",
-      "admin": "Admin",
+      "owner": "Dono(a)",
+      "admin": "Administrador(a)",
       "moderator": "Moderador",
       "member": "Membro"
     },
@@ -1037,7 +1154,10 @@
     "loading": "Carregando notificações...",
     "bandRoleChanged": "Seu cargo em {band} mudou para {role}.",
     "bandMemberRemoved": "Você foi removido de {band}.",
-    "platformRoleChanged": "Seu cargo na plataforma mudou para {role}."
+    "platformRoleChanged": "Seu cargo na plataforma mudou para {role}.",
+    "bandMemberAdded": "Um administrador adicionou você à banda {band} como {role}.",
+    "shareLinkRevoked": "Um moderador desativou o link público de \"{title}\".",
+    "shareLinkRevokedWithReason": "Um moderador desativou o link público de \"{title}\": {reason}"
   },
   "rateLimit": {
     "message": "Muitas requisições no momento. Aguarde um instante e tente de novo.",
@@ -1064,7 +1184,13 @@
     "authorBio": "O Setlyst é pensado e desenvolvido por um guitarrista na ativa que também programa — por isso cada recurso nasce do que realmente faz falta no palco.",
     "contributeTitle": "Encontrou um bug ou tem uma ideia?",
     "contributeDescription": "Issues e pull requests são bem-vindos.",
-    "reportIssue": "Abrir uma issue"
+    "reportIssue": "Abrir uma issue",
+    "links": {
+      "wiki": "Guia do usuário",
+      "whatsNew": "Novidades",
+      "status": "Status do serviço",
+      "legal": "Privacidade e termos"
+    }
   },
   "publicPage": {
     "language": "Idioma",
@@ -1073,5 +1199,824 @@
     "noSongs": "Esta setlist ainda não tem músicas.",
     "readOnlyNotice": "Visualização somente leitura de uma setlist compartilhada pelo Setlyst.",
     "madeWith": "Feito com Setlyst"
+  },
+  "apiErrors": {
+    "generic": "Algo deu errado. Tente novamente.",
+    "unavailable": "O servidor não está respondendo agora. Tente novamente em instantes.",
+    "reason": "Motivo: {reason}",
+    "INVALID_CREDENTIALS": "Usuário ou senha incorretos.",
+    "ACCOUNT_BANNED_UNTIL": "Esta conta está suspensa até {date}.",
+    "ACCOUNT_BANNED_PERMANENT": "Esta conta foi suspensa permanentemente.",
+    "ACCOUNT_DEACTIVATED": "Esta conta está desativada. Fale com um administrador para reativá-la.",
+    "SESSION_REVOKED": "Sua sessão foi encerrada. Entre novamente.",
+    "PASSWORD_CHANGE_REQUIRED": "Você precisa definir uma nova senha antes de continuar.",
+    "WEAK_PASSWORD": "Esta senha não atende aos requisitos de segurança.",
+    "PASSWORD_REUSED": "A nova senha precisa ser diferente da atual.",
+    "WRONG_PASSWORD": "A senha atual está incorreta.",
+    "IMPERSONATION_READ_ONLY": "Você está vendo como outro usuário — alterações estão desativadas.",
+    "QUOTA_EXCEEDED": "Você atingiu o limite de {limit} {resource}. Remova algo ou peça mais espaço a um administrador.",
+    "INSUFFICIENT_ROLE": "Seu papel não permite esta ação nesta conta.",
+    "CANNOT_TARGET_SELF": "Você não pode fazer isso com a sua própria conta.",
+    "LAST_ADMIN": "A plataforma precisa manter pelo menos um administrador ativo.",
+    "SHARE_LOCKED": "O compartilhamento público deste item foi desativado por um moderador.",
+    "USERNAME_COOLDOWN": "Você poderá alterar seu nome de usuário novamente em {date}.",
+    "USERNAME_COOLDOWN_GENERIC": "Você alterou seu nome de usuário recentemente. Tente mais tarde.",
+    "USERNAME_TAKEN": "Este nome de usuário já está em uso.",
+    "INVITE_INVALID": "Este convite é inválido, expirou ou já foi usado.",
+    "ALREADY_MEMBER": "Este usuário já é membro da banda.",
+    "ALREADY_EXISTS": "Já existe um item com esses dados. Tente outro nome.",
+    "NOT_FOUND": "Este item não existe mais ou você não tem acesso a ele.",
+    "FORBIDDEN": "Você não tem permissão para fazer isso.",
+    "UNPROCESSABLE_ENTITY": "Nada mudou — não havia nada para salvar.",
+    "resources": {
+      "songs": "músicas",
+      "artists": "artistas",
+      "setlists": "setlists",
+      "gigs": "shows",
+      "tags": "tags",
+      "bands_owned": "bandas próprias",
+      "band_memberships": "participações em bandas",
+      "band_members": "membros nesta banda",
+      "band_setlists": "setlists nesta banda",
+      "band_gigs": "shows nesta banda",
+      "band_songs": "músicas nesta banda",
+      "setlist_items": "itens neste setlist",
+      "generic": "itens"
+    },
+    "passwordIssues": {
+      "too_short": "Pelo menos 8 caracteres.",
+      "too_long": "No máximo 128 caracteres.",
+      "missing_lowercase": "Inclua uma letra minúscula.",
+      "missing_uppercase": "Inclua uma letra maiúscula.",
+      "missing_digit": "Inclua um número.",
+      "missing_symbol": "Inclua um símbolo (ex.: ! @ # -).",
+      "contains_username": "Não use seu nome de usuário na senha.",
+      "too_common": "Esta senha é comum demais."
+    }
+  },
+  "passwordPolicy": {
+    "show": "Mostrar senha",
+    "hide": "Ocultar senha",
+    "title": "Sua senha precisa ter",
+    "rules": {
+      "length": "De 8 a 128 caracteres",
+      "lowercase": "Uma letra minúscula",
+      "uppercase": "Uma letra maiúscula",
+      "digit": "Um número",
+      "symbol": "Um símbolo (! @ # - …)",
+      "noUsername": "Não contém seu nome de usuário",
+      "notCommon": "Não é uma senha comum"
+    },
+    "strength": {
+      "0": "",
+      "1": "Fraca",
+      "2": "Quase lá",
+      "3": "Boa",
+      "4": "Forte"
+    },
+    "mismatch": "As senhas não coincidem.",
+    "notCompliant": "A senha ainda não atende a todos os requisitos.",
+    "generate": "Gerar uma senha forte",
+    "copied": "Senha copiada para a área de transferência."
+  },
+  "metadata": {
+    "login": "Entrar",
+    "register": "Criar conta",
+    "forgotPassword": "Esqueci a senha",
+    "changePassword": "Definir nova senha",
+    "users": "Usuários",
+    "adminBands": "Bandas · Equipe",
+    "adminSongs": "Músicas · Equipe",
+    "adminSetlists": "Setlists · Equipe",
+    "adminLinks": "Links públicos",
+    "adminAudit": "Auditoria",
+    "adminLimits": "Limites",
+    "dashboard": "Início",
+    "songs": "Músicas",
+    "artists": "Artistas",
+    "setlists": "Setlists",
+    "gigs": "Shows",
+    "bands": "Bandas",
+    "analytics": "Análises",
+    "profile": "Meu perfil",
+    "invite": "Convite de banda",
+    "liveSong": "{name} · Ao vivo",
+    "editLyrics": "{name} · Letra",
+    "gig": "{name}",
+    "userProfile": "@{name}",
+    "setlist": "{name}",
+    "liveSetlist": "{name} · Ao vivo",
+    "setlistAnalytics": "{name} · Análises",
+    "band": "{name}",
+    "bandGigs": "{name} · Shows",
+    "bandSetlists": "{name} · Setlists"
+  },
+  "usernamePolicy": {
+    "rules": "3 a 20 caracteres: letras, números, pontos, hífens ou underlines. Deve começar com uma letra.",
+    "issues": {
+      "length": "Use entre 3 e 20 caracteres.",
+      "characters": "Apenas letras sem acento, números, pontos, hífens e underlines.",
+      "start": "Deve começar com uma letra.",
+      "end": "Deve terminar com uma letra ou número.",
+      "consecutive": "Não use dois caracteres especiais seguidos.",
+      "reserved": "Este nome é reservado. Escolha outro."
+    }
+  },
+  "changePassword": {
+    "requiredTitle": "Defina uma nova senha",
+    "requiredDescription": "Antes de continuar, @{username} precisa de uma nova senha — um administrador definiu uma senha temporária, ou a atual não atende mais aos nossos requisitos de segurança.",
+    "current": "Senha atual",
+    "new": "Nova senha",
+    "confirm": "Confirme a nova senha",
+    "same": "Escolha uma senha diferente da atual.",
+    "signOutNotice": "Por segurança, você será desconectado de todos os dispositivos e precisará entrar novamente com a nova senha.",
+    "submit": "Alterar senha",
+    "saving": "Salvando...",
+    "success": "Senha alterada. Entre novamente.",
+    "signOut": "Sair"
+  },
+  "forgotPassword": {
+    "title": "Esqueceu sua senha?",
+    "description": "Vamos te ajudar a voltar. Veja como funciona a recuperação de conta no Setlyst.",
+    "stepContact": "Fale com um administrador ou moderador da plataforma — ou escreva para <link>{email}</link> — a partir do e-mail da sua conta, informando seu nome de usuário.",
+    "stepTemporary": "Após confirmar que é você, será definida uma senha temporária. No próximo login você deverá escolher uma nova.",
+    "safety": "A equipe do Setlyst nunca vai pedir sua senha atual.",
+    "back": "Voltar para o login"
+  },
+  "impersonation": {
+    "banner": "Vendo o Setlyst como <strong>@{username}</strong> (somente leitura). Conectado como @{staff}.",
+    "stop": "Voltar para minha conta",
+    "started": "Agora vendo como @{username}. Alterações estão desativadas.",
+    "stopped": "De volta à sua conta.",
+    "failed": "Não foi possível trocar de conta. Tente novamente.",
+    "action": "Ver como este usuário",
+    "confirmTitle": "Ver o Setlyst como @{username}?",
+    "confirmDescription": "Você verá exatamente o que este usuário vê, em modo somente leitura, por até uma hora. Isso fica registrado no log de auditoria.",
+    "confirm": "Começar"
+  },
+  "roles": {
+    "user": "Usuário",
+    "moderator": "Moderador",
+    "admin": "Administrador"
+  },
+  "legal": {
+    "title": "Documentos legais",
+    "wiki": "Documentação",
+    "status": "Status",
+    "documents": {
+      "terms": {
+        "short": "Termos de Uso"
+      },
+      "privacy": {
+        "short": "Privacidade"
+      },
+      "security": {
+        "short": "Segurança e dados"
+      }
+    },
+    "backToApp": "Voltar ao Setlyst",
+    "updated": "Atualizado em {date}"
+  },
+  "staff": {
+    "status": {
+      "active": "Ativa",
+      "inactive": "Desativada",
+      "bannedUntil": "Suspensa até {date}",
+      "bannedPermanent": "Suspensa",
+      "bannedHint": "Esta conta não pode entrar até o fim da suspensão.",
+      "mustChange": "Troca de senha pendente",
+      "mustChangeHint": "Precisará definir uma nova senha no próximo acesso."
+    },
+    "users": {
+      "title": "Usuários",
+      "subtitle": "{total, plural, one {# conta} other {# contas}} · {banned} suspensas · {inactive} desativadas",
+      "add": "Novo usuário",
+      "searchPlaceholder": "Buscar por usuário, nome ou e-mail…",
+      "filterRole": "Filtrar por papel",
+      "filterState": "Filtrar por situação",
+      "roleFilter": {
+        "all": "Todos os papéis",
+        "user": "Usuários",
+        "moderator": "Moderadores",
+        "admin": "Administradores"
+      },
+      "stateFilter": {
+        "all": "Qualquer situação",
+        "active": "Ativas",
+        "inactive": "Desativadas",
+        "banned": "Suspensas",
+        "mustChange": "Troca de senha pendente"
+      },
+      "columns": {
+        "user": "Usuário",
+        "role": "Papel",
+        "status": "Situação",
+        "lastLogin": "Último acesso",
+        "created": "Criada em",
+        "actions": "Ações"
+      },
+      "empty": "Nenhuma conta corresponde a esses filtros.",
+      "you": "você",
+      "neverSignedIn": "Nunca"
+    },
+    "userForm": {
+      "createTitle": "Novo usuário",
+      "editTitle": "Editar usuário",
+      "createDescription": "Crie a conta e envie a senha temporária para a pessoa de forma segura.",
+      "editDescription": "Dados do perfil e situação. Papel, suspensão e senha têm ações próprias no menu.",
+      "username": "Nome de usuário",
+      "password": "Senha temporária",
+      "copyPassword": "Copiar senha",
+      "requireChange": "Exigir nova senha no primeiro acesso",
+      "requireChangeHint": "Recomendado — só a própria pessoa saberá a senha definitiva.",
+      "email": "E-mail",
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "role": "Papel",
+      "status": "Situação",
+      "statusActive": "Ativa",
+      "statusInactive": "Desativada",
+      "create": "Criar usuário",
+      "created": "Usuário criado.",
+      "updated": "Alterações salvas."
+    },
+    "ban": {
+      "title": "Suspender @{username}",
+      "description": "A pessoa será desconectada de todos os dispositivos na hora e não poderá entrar até o fim da suspensão. Nada é excluído.",
+      "duration": "Duração",
+      "durations": {
+        "1": "1 hora",
+        "24": "24 horas",
+        "72": "3 dias",
+        "168": "7 dias",
+        "720": "30 dias",
+        "2160": "90 dias",
+        "0": "Até ser removida manualmente"
+      },
+      "reason": "Motivo",
+      "reasonPlaceholder": "ex.: Spam repetido em setlists públicos",
+      "reasonHint": "Mostrado à pessoa ao tentar entrar",
+      "confirm": "Suspender conta",
+      "done": "@{username} foi suspenso(a)."
+    },
+    "resetPassword": {
+      "title": "Definir senha temporária para @{username}",
+      "description": "Todas as sessões desta conta serão encerradas.",
+      "newPassword": "Senha temporária",
+      "copy": "Copiar senha",
+      "requireChange": "Exigir nova senha no próximo acesso",
+      "requireChangeHint": "Recomendado — você não deve conhecer a senha definitiva de ninguém.",
+      "shareSafely": "Envie em particular (nunca em grupos) e peça que a pessoa entre logo.",
+      "confirm": "Definir senha",
+      "done": "Senha temporária definida para @{username}."
+    },
+    "actions": {
+      "menu": "Ações",
+      "openDetails": "Abrir detalhes",
+      "edit": "Editar perfil",
+      "impersonate": "Ver como este usuário",
+      "changeRole": "Alterar papel",
+      "resetPassword": "Definir senha temporária",
+      "revokeSessions": "Desconectar de todos os dispositivos",
+      "ban": "Suspender…",
+      "unban": "Remover suspensão",
+      "deactivate": "Desativar",
+      "activate": "Reativar",
+      "isYou": "Esta é a sua conta — gerencie pelo seu perfil.",
+      "outranked": "Seu papel não permite gerenciar esta conta.",
+      "roleChanged": "@{username} agora é {role}.",
+      "deactivated": "@{username} foi desativado(a).",
+      "activated": "@{username} foi reativado(a).",
+      "unbanned": "Suspensão de @{username} removida.",
+      "sessionsRevoked": "@{username} foi desconectado(a) de todos os dispositivos.",
+      "confirmRoleTitle": "Tornar esta conta {role}?",
+      "confirmRole": {
+        "user": "@{username} perde todas as permissões de equipe e volta a ser uma conta comum.",
+        "moderator": "@{username} poderá revisar todo o conteúdo, gerenciar e suspender usuários comuns e derrubar links públicos.",
+        "admin": "@{username} terá controle total da plataforma, incluindo equipe, limites e dados de todos."
+      },
+      "confirmRoleButton": "Alterar papel",
+      "confirmDeactivateTitle": "Desativar @{username}?",
+      "confirmDeactivate": "A pessoa é desconectada e não poderá entrar até ser reativada. Músicas, setlists e participações em bandas são mantidos.",
+      "confirmActivateTitle": "Reativar @{username}?",
+      "confirmActivate": "A pessoa poderá entrar novamente.",
+      "confirmUnbanTitle": "Remover a suspensão de @{username}?",
+      "confirmUnban": "A pessoa poderá entrar imediatamente.",
+      "confirmSessionsTitle": "Desconectar @{username} de todos os dispositivos?",
+      "confirmSessions": "Útil se um aparelho foi perdido ou a conta pode estar comprometida. A senha não muda.",
+      "confirmImpersonateTitle": "Ver o Setlyst como @{username}?",
+      "confirmImpersonate": "Você verá exatamente o que a pessoa vê, somente leitura — nada pode ser alterado. Isso fica registrado na auditoria. Use \"Voltar para minha conta\" no aviso para retornar."
+    },
+    "userDetail": {
+      "bannedUntil": "Suspensa até {date}",
+      "bannedPermanent": "Suspensa até remoção manual",
+      "bannedBy": "Por @{username} em {date}.",
+      "reason": "Motivo: {reason}",
+      "mustChangeTitle": "Aguardando nova senha",
+      "mustChangeDescription": "Esta pessoa precisa definir uma nova senha no próximo acesso antes de usar o Setlyst.",
+      "account": "Conta",
+      "email": "E-mail",
+      "name": "Nome",
+      "created": "Criada",
+      "createdBy": "{date} por @{username}",
+      "selfRegistered": "{date} (cadastro próprio)",
+      "lastLogin": "Último acesso",
+      "never": "Nunca",
+      "passwordChanged": "Última troca de senha",
+      "usernameChanged": "Última troca de usuário",
+      "lastModified": "Última alteração",
+      "modifiedBy": "{date} por @{username}",
+      "id": "ID da conta",
+      "activity": "Atividade da equipe",
+      "activityDescription": "Ações administrativas recentes nesta conta.",
+      "noActivity": "Nenhuma ação administrativa registrada ainda.",
+      "usernameHistory": "Histórico de nomes de usuário",
+      "usernameHistoryEmpty": "Esta conta nunca mudou o nome de usuário.",
+      "usage": "Uso",
+      "usageDescription": "Quanto esta conta está usando do seu limite.",
+      "limits": "Limites",
+      "limitsDescription": "Substitua os padrões da plataforma só para esta conta.",
+      "bands": "Bandas"
+    },
+    "userBands": {
+      "empty": "Não participa de nenhuma banda.",
+      "joined": "Entrou em {date}",
+      "add": "Adicionar a uma banda",
+      "addTitle": "Adicionar @{username} a uma banda",
+      "addDescription": "A pessoa é adicionada na hora (sem convite) e recebe uma notificação.",
+      "addConfirm": "Adicionar à banda",
+      "searchBands": "Buscar bandas…",
+      "role": "Papel na banda",
+      "bandHint": "Dono @{owner} · {members, plural, one {# membro} other {# membros}}",
+      "alreadyMember": "Já é membro",
+      "added": "@{username} foi adicionado(a) a {band}."
+    },
+    "picker": {
+      "empty": "Nada encontrado."
+    },
+    "quotaEditor": {
+      "unlimited": "Conta ilimitada",
+      "unlimitedHint": "Ignora todos os limites. Use com moderação — o servidor é pequeno.",
+      "defaultPlaceholder": "Padrão: {value}",
+      "invalid": "Os limites devem ser números inteiros de 0 a {max}.",
+      "resetToDefaults": "Usar padrões da plataforma",
+      "saved": "Limites atualizados.",
+      "lastChangedBy": "Alterado por último por @{username}"
+    },
+    "danger": {
+      "title": "Zona de perigo",
+      "subtitle": "Exclusão permanente",
+      "preferDeactivate": "Em quase todos os casos, desativar ou suspender a conta é a melhor escolha: é imediato, reversível e mantém o histórico.",
+      "consequencePersonal": "Músicas, artistas, setlists e shows pessoais são excluídos.",
+      "consequenceBands": "Bandas das quais é dono(a) passam ao membro mais antigo; conteúdo de banda criado por ela fica com a banda.",
+      "consequenceIrreversible": "Isso não pode ser desfeito.",
+      "delete": "Excluir conta permanentemente…",
+      "confirmTitle": "Excluir @{username} permanentemente?",
+      "confirmDescription": "Isso remove a conta e seus dados pessoais para sempre.",
+      "typeToConfirm": "Digite {username} para confirmar",
+      "confirmButton": "Excluir permanentemente",
+      "deleted": "@{username} foi excluído(a) permanentemente."
+    },
+    "audit": {
+      "by": "por @{actor}",
+      "system": "sistema",
+      "impersonated": "ver como",
+      "impersonatedHint": "Registrado durante uma sessão \"ver como\".",
+      "actions": {
+        "user_registered": "Cadastrou-se",
+        "user_created": "Conta criada",
+        "user_updated": "Perfil editado",
+        "user_role_changed": "Papel alterado",
+        "user_activated": "Reativada",
+        "user_deactivated": "Desativada",
+        "user_banned": "Suspensa",
+        "user_unbanned": "Suspensão removida",
+        "user_deleted": "Conta excluída",
+        "user_password_changed": "Senha alterada",
+        "user_password_reset": "Senha temporária definida",
+        "user_sessions_revoked": "Desconectada de tudo",
+        "user_quotas_updated": "Limites alterados",
+        "user_impersonated": "Visualizada como",
+        "user_login_failed": "Falha de acesso",
+        "band_updated": "Banda editada",
+        "band_deleted": "Banda excluída",
+        "band_member_added": "Membro adicionado",
+        "band_member_removed": "Membro removido",
+        "band_member_role_changed": "Papel de membro alterado",
+        "band_ownership_transferred": "Propriedade transferida",
+        "song_updated": "Música editada",
+        "song_deleted": "Música excluída",
+        "setlist_updated": "Setlist editado",
+        "setlist_deleted": "Setlist excluído",
+        "share_revoked": "Link público derrubado",
+        "share_unlocked": "Compartilhamento liberado",
+        "settings_quota_defaults_updated": "Limites padrão alterados"
+      }
+    },
+    "lists": {
+      "total": "{count, plural, one {# resultado} other {# resultados}}",
+      "filteredBy": "Filtrado por",
+      "clearFilter": "Remover filtro {label}"
+    },
+    "bands": {
+      "title": "Bandas",
+      "description": "Todas as bandas da plataforma. Abra uma para gerenciar membros ou dados.",
+      "search": "Buscar por banda ou slug…",
+      "columns": {
+        "band": "Banda",
+        "owner": "Dono(a)",
+        "members": "Membros",
+        "content": "Conteúdo",
+        "updated": "Última alteração"
+      },
+      "empty": "Nenhuma banda encontrada.",
+      "contentSummary": "{songs} músicas · {setlists} setlists · {gigs} shows"
+    },
+    "bandDetail": {
+      "meta": "{members, plural, one {# membro} other {# membros}} · criada em {created}",
+      "lastModified": "Alterada em {date} por @{username}",
+      "songs": "{count, plural, one {# música} other {# músicas}}",
+      "setlists": "{count, plural, one {# setlist} other {# setlists}}",
+      "members": "Membros",
+      "membersDescription": "Adicione pessoas diretamente, altere papéis ou passe a banda para outra pessoa.",
+      "readOnly": "Apenas administradores podem alterar bandas.",
+      "details": "Dados",
+      "name": "Nome",
+      "description": "Descrição",
+      "logo": "URL do logo",
+      "logoInvalid": "Use um endereço https://.",
+      "membersManageSetlists": "Membros podem gerenciar setlists",
+      "membersManageSetlistsHint": "Desligado, apenas administradores e moderadores da banda podem.",
+      "saved": "Banda atualizada."
+    },
+    "bandMembers": {
+      "joined": "entrou em {date}",
+      "add": "Adicionar membro",
+      "addTitle": "Adicionar membro",
+      "addDescription": "A pessoa entra na hora, sem convite, e recebe uma notificação.",
+      "searchUsers": "Buscar usuários…",
+      "role": "Papel na banda",
+      "alreadyMember": "Já é membro",
+      "unavailable": "Conta desativada ou suspensa",
+      "changeRole": "Alterar papel",
+      "transfer": "Tornar dono(a)",
+      "remove": "Remover da banda",
+      "confirmRoleTitle": "Alterar o papel de {username}?",
+      "confirmRole": "A pessoa passará a ser {role} nesta banda e será notificada.",
+      "confirmRemoveTitle": "Remover {username} da banda?",
+      "confirmRemove": "A pessoa perde acesso às músicas, setlists e shows da banda. O que criou fica com a banda.",
+      "confirmTransferTitle": "Tornar {username} dono(a)?",
+      "confirmTransfer": "O dono atual passa a ser administrador da banda.",
+      "roleChanged": "{username} agora é {role}.",
+      "removed": "{username} foi removido(a) da banda.",
+      "transferred": "{username} agora é dono(a).",
+      "added": "{username} foi adicionado(a)."
+    },
+    "bandDanger": {
+      "title": "Zona de perigo",
+      "subtitle": "Excluir esta banda",
+      "advice": "Considere remover membros ou trocar o dono — excluir não pode ser desfeito.",
+      "consequenceContent": "Todas as músicas, setlists e shows da banda são excluídos.",
+      "consequenceMembers": "Os membros perdem o acesso imediatamente.",
+      "irreversible": "Isso não pode ser desfeito.",
+      "delete": "Excluir banda permanentemente…",
+      "confirmTitle": "Excluir {name}?",
+      "confirmDescription": "A banda e todo o seu conteúdo serão removidos para sempre.",
+      "confirmButton": "Excluir permanentemente",
+      "deleted": "{name} foi excluída."
+    },
+    "songs": {
+      "title": "Músicas",
+      "description": "Todas as músicas de todos os repertórios, alterações mais recentes primeiro.",
+      "search": "Buscar por título, artista ou dono…",
+      "filterUser": "Um usuário",
+      "filterBand": "Uma banda",
+      "columns": {
+        "song": "Música",
+        "owner": "Dono(a)",
+        "details": "Detalhes",
+        "tags": "Tags",
+        "updated": "Última alteração"
+      },
+      "empty": "Nenhuma música encontrada.",
+      "noLyrics": "sem letra",
+      "inSetlists": "{count, plural, =0 {em nenhum setlist} one {em # setlist} other {em # setlists}}"
+    },
+    "songDetail": {
+      "owner": "Dono(a): <owner></owner>",
+      "lastModified": "Alterada em {date} por @{username}",
+      "key": "Tom",
+      "bpm": "BPM",
+      "genre": "Gênero",
+      "duration": "Duração",
+      "tags": "Tags",
+      "title": "Título",
+      "lyrics": "Letra e cifra",
+      "inSetlists": "{count, plural, =0 {Em nenhum setlist} one {Em # setlist} other {Em # setlists}}",
+      "editTitle": "Editar música",
+      "editDescription": "Você está editando a música de outra pessoa. O dono verá você como último editor.",
+      "saved": "Música atualizada.",
+      "delete": "Excluir música",
+      "deleteTitle": "Excluir “{title}”?",
+      "deleteDescription": "Ela é removida do repertório do dono e de todos os setlists que a usam. Isso não pode ser desfeito.",
+      "deleted": "“{title}” foi excluída."
+    },
+    "setlists": {
+      "title": "Setlists",
+      "description": "Todos os setlists da plataforma e a situação do link público.",
+      "search": "Buscar por título ou dono…",
+      "filterUser": "Um usuário",
+      "filterBand": "Uma banda",
+      "columns": {
+        "setlist": "Setlist",
+        "owner": "Dono(a)",
+        "songs": "Músicas",
+        "link": "Link público",
+        "updated": "Última alteração"
+      },
+      "empty": "Nenhum setlist encontrado."
+    },
+    "setlistDetail": {
+      "summary": "{songs, plural, one {# música} other {# músicas}} · {duration}",
+      "lastModified": "Alterado em {date} por @{username}",
+      "publicLink": "Link público",
+      "publicDescription": "Qualquer pessoa com o link pode ver este setlist.",
+      "privateDescription": "Não compartilhado. Você ainda pode bloquear para o dono não compartilhar.",
+      "lockedDescription": "Derrubado pela equipe em {date}. O dono não pode compartilhar até ser liberado.",
+      "lockReason": "Motivo informado ao dono",
+      "runningOrder": "Ordem das músicas",
+      "empty": "Este setlist está vazio.",
+      "break": "Intervalo",
+      "editTitle": "Editar setlist",
+      "editDescription": "Título e descrição. O dono verá você como último editor.",
+      "title": "Título",
+      "description": "Descrição",
+      "saved": "Setlist atualizado.",
+      "delete": "Excluir setlist",
+      "deleteTitle": "Excluir “{title}”?",
+      "deleteDescription": "O setlist e o link público são removidos. As músicas são mantidas. Isso não pode ser desfeito.",
+      "deleted": "“{title}” foi excluído."
+    },
+    "share": {
+      "public": "Público",
+      "private": "Privado",
+      "locked": "Derrubado",
+      "revoke": "Derrubar link",
+      "lock": "Bloquear compartilhamento",
+      "unlock": "Liberar compartilhamento",
+      "revokeTitle": "Derrubar o link público de “{title}”?",
+      "revokeDescription": "O link para de funcionar na hora e o dono não pode criar outro até a equipe liberar. O dono é notificado. Nada é excluído.",
+      "unlockTitle": "Liberar “{title}” para compartilhar de novo?",
+      "unlockDescription": "O dono poderá criar um novo link público. O antigo continua desativado.",
+      "reason": "Motivo (mostrado ao dono)",
+      "reasonPlaceholder": "ex.: Material protegido compartilhado publicamente",
+      "reasonHint": "Opcional, mas ajuda o dono a entender o que corrigir.",
+      "revoked": "Link público de “{title}” derrubado.",
+      "unlocked": "“{title}” pode ser compartilhado novamente.",
+      "filterLabel": "Filtrar por link",
+      "filterAll": "Qualquer situação de link",
+      "filterPublic": "Públicos",
+      "filterNotPublic": "Não públicos"
+    },
+    "links": {
+      "title": "Links públicos",
+      "description": "Tudo que está acessível sem conta, mais os links derrubados pela equipe.",
+      "search": "Buscar por título ou dono…",
+      "filterAll": "Todos",
+      "filterActive": "Ativos",
+      "filterLocked": "Derrubados",
+      "columns": {
+        "item": "Item",
+        "owner": "Dono(a)",
+        "status": "Situação",
+        "updated": "Última alteração",
+        "actions": "Ações"
+      },
+      "empty": "Nenhum link público no momento.",
+      "kinds": {
+        "setlist": "Setlist",
+        "gig": "Show"
+      },
+      "lockedBy": "por @{username} em {date}"
+    },
+    "auditPage": {
+      "title": "Auditoria",
+      "description": "Toda ação administrativa, quem fez e quando.",
+      "search": "Buscar por usuário ou item…",
+      "category": "Categoria",
+      "categories": {
+        "all": "Todas as ações",
+        "user": "Contas",
+        "band": "Bandas",
+        "song": "Músicas",
+        "setlist": "Setlists",
+        "share": "Links públicos",
+        "settings": "Configurações da plataforma"
+      },
+      "empty": "Nada registrado para esses filtros."
+    },
+    "limits": {
+      "title": "Limites",
+      "description": "Limite padrão para todas as contas. O servidor é pequeno — mantenha valores realistas.",
+      "howItWorks": "Valem para todos, exceto contas com limites próprios (definidos na página do usuário). Reduzir um limite nunca exclui nada: a pessoa só não pode adicionar mais até ficar abaixo dele.",
+      "readOnly": "Apenas administradores podem alterar os limites da plataforma.",
+      "groups": {
+        "account": "Por conta",
+        "container": "Por banda / por setlist"
+      },
+      "invalid": "Cada limite deve ser um número inteiro de 0 a {max}.",
+      "saved": "Limites padrão atualizados.",
+      "lowerTitle": "Reduzir limites para todos?",
+      "lowerDescription": "Você está reduzindo: {resources}. Contas acima do novo limite mantêm os dados, mas não podem adicionar mais.",
+      "lowerConfirm": "Salvar limites"
+    }
+  },
+  "quotas": {
+    "custom": "personalizado",
+    "unlimited": "Ilimitado",
+    "unlimitedAccount": "Esta conta não tem limites.",
+    "usedOf": "{used} de {limit}",
+    "usedUnlimited": "{used} · ilimitado",
+    "perContainer": "até {limit}",
+    "perContainerTitle": "Por banda / por setlist",
+    "resources": {
+      "songs": "Músicas",
+      "artists": "Artistas",
+      "setlists": "Setlists",
+      "gigs": "Shows",
+      "tags": "Tags diferentes",
+      "bands_owned": "Bandas próprias",
+      "band_memberships": "Participações em bandas",
+      "band_members": "Membros por banda",
+      "band_setlists": "Setlists por banda",
+      "band_gigs": "Shows por banda",
+      "band_songs": "Músicas por banda",
+      "setlist_items": "Itens por setlist"
+    }
+  },
+  "tags": {
+    "placeholder": "ex.: balada, abertura, romântica",
+    "hint": "Enter ou vírgula para adicionar · {count}/{max}",
+    "full": "Até {max} tags",
+    "remove": "Remover tag {tag}",
+    "suggestions": "Tags que você já usa",
+    "issues": {
+      "too_long": "Tags podem ter no máximo {max} caracteres.",
+      "characters": "Use apenas letras, números, espaços e - _ & '."
+    },
+    "manage": {
+      "title": "Suas tags",
+      "description": "Renomeie uma tag em todas as músicas de uma vez (renomear para uma tag existente junta as duas) ou remova-a.",
+      "empty": "Você ainda não adicionou tags a nenhuma música.",
+      "songs": "{count, plural, one {# música} other {# músicas}}",
+      "newName": "Novo nome",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "rename": "Renomear {tag}",
+      "removeTag": "Remover {tag}",
+      "remove": "Remover",
+      "confirmDelete": "Remover de {count, plural, one {# música} other {# músicas}}?",
+      "renamed": "“{from}” agora é “{to}”.",
+      "deleted": "Tag “{tag}” removida."
+    }
+  },
+  "pdfOptions": {
+    "presets": {
+      "title": "Começar de",
+      "stage": {
+        "name": "Palco",
+        "hint": "Títulos grandes, tom e BPM"
+      },
+      "compact": {
+        "name": "Compacto",
+        "hint": "Duas colunas, uma página"
+      },
+      "songbook": {
+        "name": "Songbook",
+        "hint": "Letras com cifras"
+      },
+      "large": {
+        "name": "Letra grande",
+        "hint": "Legível de longe"
+      }
+    },
+    "tabs": {
+      "content": "Conteúdo",
+      "lyrics": "Letras",
+      "layout": "Layout"
+    },
+    "toggles": {
+      "show_title": "Título do setlist",
+      "show_description": "Descrição",
+      "show_band_name": "Nome da banda",
+      "show_date": "Data da exportação",
+      "show_total_duration": "Duração total",
+      "show_numbers": "Numeração",
+      "show_artist": "Artista",
+      "show_key": "Tom",
+      "show_bpm": "BPM",
+      "show_song_duration": "Duração da música",
+      "show_tags": "Tags",
+      "show_blocks": "Blocos",
+      "show_breaks": "Intervalos",
+      "include_lyrics": "Incluir letras",
+      "page_break_per_song": "Cada música em uma página",
+      "compact": "Compacto",
+      "uppercase_titles": "Títulos em maiúsculas",
+      "page_numbers": "Números de página",
+      "watermark": "Marca d'água do Setlyst"
+    },
+    "hints": {
+      "include_lyrics": "Transforma a ordem das músicas em um songbook completo.",
+      "compact": "Espaçamento menor para caber mais por página.",
+      "watermark": "Uma marca suave do Setlyst e o rodapé “Feito com Setlyst”."
+    },
+    "chords": {
+      "label": "Acordes",
+      "above": "Sobre a letra",
+      "inline": "Na linha [C]",
+      "hide": "Ocultos"
+    },
+    "fontScale": "Tamanho do texto",
+    "columns": {
+      "label": "Colunas",
+      "1": "Uma coluna",
+      "2": "Duas colunas"
+    },
+    "margins": {
+      "label": "Margens",
+      "narrow": "Estreitas",
+      "normal": "Normais",
+      "wide": "Largas"
+    },
+    "paper": "Papel",
+    "papers": {
+      "a4": "A4",
+      "letter": "Carta",
+      "legal": "Ofício"
+    },
+    "orientation": {
+      "label": "Orientação",
+      "portrait": "Retrato",
+      "landscape": "Paisagem"
+    }
+  },
+  "whatsNew": {
+    "title": "Novidades",
+    "description": "Melhorias recentes no Setlyst. Os passo a passo estão no <wiki>guia do usuário</wiki>.",
+    "latest": "Mais recente",
+    "kinds": {
+      "new": "Novo",
+      "improved": "Melhoria",
+      "fixed": "Correção",
+      "security": "Segurança"
+    }
+  },
+  "status": {
+    "title": "Status do serviço",
+    "description": "Saúde em tempo real da API e do banco de dados do Setlyst.",
+    "refresh": "Atualizar",
+    "refreshing": "Verificando…",
+    "overall": {
+      "operational": "Todos os sistemas operando",
+      "degraded": "Desempenho reduzido",
+      "down": "Serviço indisponível"
+    },
+    "overallHint": {
+      "operational": "Tudo está funcionando normalmente.",
+      "degraded": "O Setlyst funciona, mas pode estar mais lento que o normal.",
+      "down": "Alguns recursos estão indisponíveis. Músicas salvas para uso offline continuam funcionando no Modo Ao Vivo."
+    },
+    "servicesTitle": "Componentes",
+    "services": {
+      "api": "API",
+      "database": "Banco de dados"
+    },
+    "health": {
+      "operational": "Operando",
+      "degraded": "Lento",
+      "down": "Indisponível"
+    },
+    "details": {
+      "version": "v{version}",
+      "uptime": "no ar há {uptime}",
+      "unreachable": "Sem resposta",
+      "latency": "resposta em {ms} ms",
+      "noLatency": "Sem resposta",
+      "unknown": "Desconhecido"
+    },
+    "connections": "Conexões com o banco",
+    "checkedAt": "Verificado em {date} · atualiza a cada {seconds}s",
+    "backToApp": "Voltar ao Setlyst"
+  },
+  "audit": {
+    "modified": "Alterado em {date}",
+    "modifiedBy": "Alterado em {date} por @{username}"
+  },
+  "shareLock": {
+    "title": "Compartilhamento público desativado por um moderador",
+    "description": "O link público foi derrubado e não é possível criar outro por enquanto. Todo o resto continua funcionando normalmente.",
+    "reason": "Motivo: {reason}",
+    "contact": "Dúvidas? Escreva para {email}."
   }
 }

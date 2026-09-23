@@ -14,7 +14,21 @@
     "downloadQrCode": "Download QR Code",
     "moreActions": "More actions",
     "loadErrorRetrying": "Couldn't load this — retrying automatically.",
-    "loadErrorOffline": "Couldn't load this while offline. It'll retry automatically once you're back online."
+    "loadErrorOffline": "Couldn't load this while offline. It'll retry automatically once you're back online.",
+    "optional": "optional",
+    "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied",
+    "back": "Back",
+    "reset": "Reset",
+    "loading": "Loading…",
+    "all": "All",
+    "none": "None",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}",
+    "searchPlaceholder": "Search…",
+    "clearSearch": "Clear search"
   },
   "pagination": {
     "previous": "Previous",
@@ -45,7 +59,21 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "collapseSidebar": "Collapse sidebar",
-    "expandSidebar": "Expand sidebar"
+    "expandSidebar": "Expand sidebar",
+    "staffSection": "Administration",
+    "adminUsers": "Users",
+    "adminBands": "All bands",
+    "adminSongs": "All songs",
+    "adminSetlists": "All setlists",
+    "adminLinks": "Public links",
+    "adminAudit": "Audit log",
+    "adminLimits": "Limits",
+    "help": "Help & information",
+    "wiki": "Documentation (wiki)",
+    "status": "System status",
+    "whatsNew": "What's new",
+    "whatsNewUnread": "What's new — there are updates you haven't seen",
+    "profile": "My account"
   },
   "auth": {
     "login": {
@@ -63,14 +91,21 @@
       "noAccount": "Don't have an account?",
       "signUp": "Sign up",
       "invalidCredentials": "Invalid username or password.",
-      "connectionError": "Unable to reach the server.",
-      "welcomeBack": "Welcome back!"
+      "connectionError": "Unable to reach the server. Please try again in a moment.",
+      "welcomeBack": "Welcome back!",
+      "rateLimited": "Too many sign-in attempts. Wait a moment and try again.",
+      "notices": {
+        "registered": "Account created! Sign in to get started.",
+        "password_changed": "Password changed. Sign in with your new password.",
+        "session": "Your session ended. Please sign in again.",
+        "expired": "Your session expired. Please sign in again."
+      }
     },
     "register": {
       "title": "Create an Account",
       "subtitle": "Enter your details below to create your account",
       "username": "Username",
-      "usernamePlaceholder": "Choose a username",
+      "usernamePlaceholder": "e.g. joao.silva",
       "email": "Email",
       "emailPlaceholder": "john.doe@example.com",
       "firstName": "First Name",
@@ -78,7 +113,7 @@
       "lastName": "Last Name",
       "lastNamePlaceholder": "Doe",
       "password": "Password",
-      "passwordPlaceholder": "At least 8 characters",
+      "passwordPlaceholder": "Create a strong password",
       "submit": "Sign up",
       "submitting": "Creating account...",
       "alreadyHaveAccount": "Already have an account?",
@@ -90,8 +125,13 @@
         "conflict": "Username or email is already in use.",
         "validation": "Invalid registration data. Please check all fields.",
         "generic": "Registration failed. Please verify your data and try again.",
-        "serverError": "Unable to reach the server. Please try again later."
-      }
+        "serverError": "Unable to reach the server. Please try again later.",
+        "incomplete": "Please complete every required field correctly.",
+        "email": "Enter a valid email address or leave it empty.",
+        "rateLimited": "Too many attempts. Wait a moment and try again."
+      },
+      "confirmPassword": "Confirm password",
+      "consent": "I've read and agree to the <terms>Terms of Use</terms> and the <privacy>Privacy Policy</privacy>."
     }
   },
   "dashboard": {
@@ -199,7 +239,8 @@
       "deleteConfirm": "Are you sure you want to delete this song?",
       "deleted": "Song deleted successfully",
       "deleteFailed": "Error deleting the song",
-      "durationInvalid": "Enter a valid duration in mm:ss format (e.g. 03:30)."
+      "durationInvalid": "Enter a valid duration in mm:ss format (e.g. 03:30).",
+      "tagsLabel": "Tags"
     },
     "menu": {
       "editDetails": "Edit details",
@@ -210,7 +251,11 @@
       "titleLength": "Song title must be between 1 and 255 characters.",
       "artistRequired": "Artist is required.",
       "invalidId": "Invalid song ID."
-    }
+    },
+    "tagFilterLabel": "Vibe:",
+    "clearTagFilter": "Clear",
+    "filterByTag": "Show songs tagged “{tag}”",
+    "manageTags": "Tags"
   },
   "lyrics": {
     "editTitle": "Edit Lyrics",
@@ -347,7 +392,13 @@
       "exporting": "Exporting...",
       "exportSuccess": "PDF exported successfully!",
       "exportFailed": "Failed to export PDF.",
-      "language": "PDF language"
+      "language": "PDF language",
+      "subtitle": "Subtitle",
+      "subtitlePlaceholder": "e.g. Blue Note · Sat 9pm",
+      "saveAsDefault": "Save as my default",
+      "resetOptions": "Reset",
+      "rateLimited": "Too many exports in a row. Wait a moment and try again.",
+      "defaultNotSaved": "The PDF was created, but the options couldn't be saved as default."
     },
     "empty": "No setlists registered.",
     "emptySearch": "No setlists found for \"{search}\".",
@@ -745,7 +796,7 @@
     "success": "Profile updated successfully",
     "failed": "Failed to update profile",
     "changePasswordTitle": "Change Password",
-    "changePasswordDescription": "Keep your account secure using a strong password.",
+    "changePasswordDescription": "Choose a strong password you don't use anywhere else.",
     "currentPassword": "Current Password",
     "newPassword": "New Password",
     "confirmPassword": "Confirm New Password",
@@ -758,7 +809,8 @@
       "usernameLength": "Username must be between 1 and 128 characters.",
       "missingFields": "Please fill in all required fields.",
       "passwordTooShort": "Password must be at least 8 characters."
-    }
+    },
+    "passwordChangedOn": "Password last changed on {date}."
   },
   "analytics": {
     "title": "Analytics",
@@ -853,7 +905,72 @@
     "backupArtists": "Artists",
     "backupSongs": "Songs",
     "backupSetlists": "Setlists",
-    "backupGigs": "Gigs"
+    "backupGigs": "Gigs",
+    "sectionsNav": "Settings sections",
+    "sections": {
+      "general": "General",
+      "display": "Live Mode & lists",
+      "pdf": "PDF",
+      "usage": "Usage & limits",
+      "security": "Security",
+      "offline": "Offline",
+      "backup": "Backup",
+      "help": "Help & legal"
+    },
+    "display": {
+      "title": "Live Mode & lists",
+      "description": "How Live Mode opens and how long lists are — on every device you use. Changes save automatically.",
+      "saved": "Saved.",
+      "live": {
+        "showChords": "Show chords",
+        "showChordsHint": "Chords above the lyrics. Off shows lyrics only.",
+        "showSections": "Show sections",
+        "showSectionsHint": "Verse, Chorus, Bridge… headings.",
+        "fitToScreen": "Fit song to screen",
+        "fitToScreenHint": "Compact view: the whole song without scrolling.",
+        "highContrast": "Stage contrast",
+        "highContrastHint": "Pure black and white, bright chords.",
+        "fontFamily": "Live Mode font",
+        "fonts": {
+          "sans": "Sans serif",
+          "serif": "Serif",
+          "mono": "Monospaced"
+        }
+      },
+      "pageSize": "Rows per page in lists",
+      "pageSizeOption": "{count} rows",
+      "deviceFollows": "This device follows these defaults.",
+      "deviceOverride": "This device has its own Live Mode or list choices (made with the quick toggles), which take precedence here.",
+      "resetDevice": "Use account defaults here",
+      "deviceReset": "This device now follows your account defaults."
+    },
+    "pdf": {
+      "title": "PDF export defaults",
+      "description": "Every export starts from these options. You can still adjust each export before downloading.",
+      "saved": "PDF defaults saved.",
+      "restore": "Restore Setlyst defaults"
+    },
+    "usage": {
+      "title": "Usage & limits",
+      "description": "How much of your space you're using. Need more? Ask an administrator.",
+      "unavailable": "Usage couldn't be loaded right now."
+    },
+    "security": {
+      "title": "Security",
+      "description": "Change your password. Doing so signs you out on every device.",
+      "changePassword": "Change password"
+    },
+    "help": {
+      "title": "Help & legal",
+      "description": "Guides, what changed, service status and the legal texts.",
+      "wiki": "User guide (wiki)",
+      "wikiHint": "How to use every feature",
+      "whatsNew": "What's new",
+      "whatsNewHint": "Recent changes to Setlyst",
+      "status": "Service status",
+      "statusHint": "Is everything running?",
+      "support": "Contact support"
+    }
   },
   "error": {
     "title": "Oops! Something went wrong.",
@@ -899,7 +1016,7 @@
       "left": "You left the band"
     },
     "roles": {
-      "owner": "Administrator",
+      "owner": "Owner",
       "admin": "Admin",
       "moderator": "Moderator",
       "member": "Member"
@@ -1037,7 +1154,10 @@
     "loading": "Loading notifications...",
     "bandRoleChanged": "Your role in {band} changed to {role}.",
     "bandMemberRemoved": "You were removed from {band}.",
-    "platformRoleChanged": "Your account role changed to {role}."
+    "platformRoleChanged": "Your account role changed to {role}.",
+    "bandMemberAdded": "An administrator added you to {band} as {role}.",
+    "shareLinkRevoked": "A moderator took down the public link of \"{title}\".",
+    "shareLinkRevokedWithReason": "A moderator took down the public link of \"{title}\": {reason}"
   },
   "rateLimit": {
     "message": "Too many requests right now. Wait a moment and try again.",
@@ -1064,7 +1184,13 @@
     "authorBio": "Setlyst is designed and built by a working guitarist who also writes software — so every feature is shaped by what's actually needed on stage.",
     "contributeTitle": "Found a bug or have an idea?",
     "contributeDescription": "Issues and pull requests are welcome.",
-    "reportIssue": "Open an issue"
+    "reportIssue": "Open an issue",
+    "links": {
+      "wiki": "User guide",
+      "whatsNew": "What's new",
+      "status": "Service status",
+      "legal": "Privacy & terms"
+    }
   },
   "publicPage": {
     "language": "Language",
@@ -1073,5 +1199,824 @@
     "noSongs": "This setlist has no songs yet.",
     "readOnlyNotice": "Read-only view of a setlist shared via Setlyst.",
     "madeWith": "Made with Setlyst"
+  },
+  "apiErrors": {
+    "generic": "Something went wrong. Please try again.",
+    "unavailable": "The server isn't responding right now. Please try again in a moment.",
+    "reason": "Reason: {reason}",
+    "INVALID_CREDENTIALS": "Invalid username or password.",
+    "ACCOUNT_BANNED_UNTIL": "This account is suspended until {date}.",
+    "ACCOUNT_BANNED_PERMANENT": "This account has been permanently suspended.",
+    "ACCOUNT_DEACTIVATED": "This account is deactivated. Contact an administrator to reactivate it.",
+    "SESSION_REVOKED": "Your session has ended. Please sign in again.",
+    "PASSWORD_CHANGE_REQUIRED": "You need to set a new password before continuing.",
+    "WEAK_PASSWORD": "This password doesn't meet the security requirements.",
+    "PASSWORD_REUSED": "The new password must be different from the current one.",
+    "WRONG_PASSWORD": "The current password is incorrect.",
+    "IMPERSONATION_READ_ONLY": "You're viewing as another user — changes are disabled.",
+    "QUOTA_EXCEEDED": "You've reached the limit of {limit} {resource}. Remove something or ask an administrator for more room.",
+    "INSUFFICIENT_ROLE": "Your role doesn't allow this action on this account.",
+    "CANNOT_TARGET_SELF": "You can't do this to your own account.",
+    "LAST_ADMIN": "The platform must keep at least one active administrator.",
+    "SHARE_LOCKED": "Public sharing was disabled by a moderator for this item.",
+    "USERNAME_COOLDOWN": "You can change your username again on {date}.",
+    "USERNAME_COOLDOWN_GENERIC": "You changed your username recently. Try again later.",
+    "USERNAME_TAKEN": "This username is already taken.",
+    "INVITE_INVALID": "This invite link is invalid, expired or has already been used.",
+    "ALREADY_MEMBER": "This user is already a member of the band.",
+    "ALREADY_EXISTS": "Something with these details already exists. Try a different name.",
+    "NOT_FOUND": "This item no longer exists or you don't have access to it.",
+    "FORBIDDEN": "You don't have permission to do this.",
+    "UNPROCESSABLE_ENTITY": "Nothing changed — there was nothing to save.",
+    "resources": {
+      "songs": "songs",
+      "artists": "artists",
+      "setlists": "setlists",
+      "gigs": "shows",
+      "tags": "tags",
+      "bands_owned": "bands you own",
+      "band_memberships": "band memberships",
+      "band_members": "members in this band",
+      "band_setlists": "setlists in this band",
+      "band_gigs": "shows in this band",
+      "band_songs": "songs in this band",
+      "setlist_items": "items in this setlist",
+      "generic": "items"
+    },
+    "passwordIssues": {
+      "too_short": "At least 8 characters.",
+      "too_long": "At most 128 characters.",
+      "missing_lowercase": "Add a lowercase letter.",
+      "missing_uppercase": "Add an uppercase letter.",
+      "missing_digit": "Add a number.",
+      "missing_symbol": "Add a symbol (e.g. ! @ # -).",
+      "contains_username": "Don't include your username.",
+      "too_common": "This password is too common."
+    }
+  },
+  "passwordPolicy": {
+    "show": "Show password",
+    "hide": "Hide password",
+    "title": "Your password must have",
+    "rules": {
+      "length": "8 to 128 characters",
+      "lowercase": "A lowercase letter",
+      "uppercase": "An uppercase letter",
+      "digit": "A number",
+      "symbol": "A symbol (! @ # - …)",
+      "noUsername": "Doesn't contain your username",
+      "notCommon": "Isn't a commonly used password"
+    },
+    "strength": {
+      "0": "",
+      "1": "Weak",
+      "2": "Almost there",
+      "3": "Good",
+      "4": "Strong"
+    },
+    "mismatch": "The passwords don't match.",
+    "notCompliant": "The password doesn't meet every requirement yet.",
+    "generate": "Generate a strong password",
+    "copied": "Password copied to the clipboard."
+  },
+  "metadata": {
+    "login": "Sign in",
+    "register": "Create account",
+    "forgotPassword": "Forgot password",
+    "changePassword": "Set a new password",
+    "users": "Users",
+    "adminBands": "Bands · Staff",
+    "adminSongs": "Songs · Staff",
+    "adminSetlists": "Setlists · Staff",
+    "adminLinks": "Public links",
+    "adminAudit": "Audit log",
+    "adminLimits": "Limits",
+    "dashboard": "Dashboard",
+    "songs": "Songs",
+    "artists": "Artists",
+    "setlists": "Setlists",
+    "gigs": "Shows",
+    "bands": "Bands",
+    "analytics": "Analytics",
+    "profile": "My profile",
+    "invite": "Band invite",
+    "liveSong": "{name} · Live",
+    "editLyrics": "{name} · Lyrics",
+    "gig": "{name}",
+    "userProfile": "@{name}",
+    "setlist": "{name}",
+    "liveSetlist": "{name} · Live",
+    "setlistAnalytics": "{name} · Analytics",
+    "band": "{name}",
+    "bandGigs": "{name} · Shows",
+    "bandSetlists": "{name} · Setlists"
+  },
+  "usernamePolicy": {
+    "rules": "3–20 characters: letters, numbers, dots, hyphens or underscores. Must start with a letter.",
+    "issues": {
+      "length": "Use between 3 and 20 characters.",
+      "characters": "Only letters without accents, numbers, dots, hyphens and underscores.",
+      "start": "Must start with a letter.",
+      "end": "Must end with a letter or a number.",
+      "consecutive": "Don't put two special characters in a row.",
+      "reserved": "This name is reserved. Please choose another one."
+    }
+  },
+  "changePassword": {
+    "requiredTitle": "Set a new password",
+    "requiredDescription": "Before continuing, @{username} needs a new password — either an administrator issued a temporary one, or the current one no longer meets our security requirements.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "same": "Choose a password different from the current one.",
+    "signOutNotice": "For your security, you'll be signed out of every device and asked to sign in again with the new password.",
+    "submit": "Change password",
+    "saving": "Saving...",
+    "success": "Password changed. Please sign in again.",
+    "signOut": "Sign out"
+  },
+  "forgotPassword": {
+    "title": "Forgot your password?",
+    "description": "We'll get you back in. Here's how account recovery works on Setlyst.",
+    "stepContact": "Contact a platform administrator or moderator — or write to <link>{email}</link> — from the email on your account, and tell us your username.",
+    "stepTemporary": "After confirming it's you, they'll set a temporary password. At your next sign-in you'll be asked to choose a new one.",
+    "safety": "Setlyst staff will never ask for your current password.",
+    "back": "Back to sign in"
+  },
+  "impersonation": {
+    "banner": "Viewing Setlyst as <strong>@{username}</strong> (read-only). Signed in as @{staff}.",
+    "stop": "Back to my account",
+    "started": "Now viewing as @{username}. Changes are disabled.",
+    "stopped": "Back to your own account.",
+    "failed": "Couldn't switch accounts. Please try again.",
+    "action": "View as this user",
+    "confirmTitle": "View Setlyst as @{username}?",
+    "confirmDescription": "You'll see exactly what this user sees, in read-only mode, for up to one hour. This is recorded in the audit log.",
+    "confirm": "Start viewing"
+  },
+  "roles": {
+    "user": "User",
+    "moderator": "Moderator",
+    "admin": "Admin"
+  },
+  "legal": {
+    "title": "Legal",
+    "wiki": "Documentation",
+    "status": "Status",
+    "documents": {
+      "terms": {
+        "short": "Terms of Use"
+      },
+      "privacy": {
+        "short": "Privacy"
+      },
+      "security": {
+        "short": "Security & data"
+      }
+    },
+    "backToApp": "Back to Setlyst",
+    "updated": "Last updated {date}"
+  },
+  "staff": {
+    "status": {
+      "active": "Active",
+      "inactive": "Deactivated",
+      "bannedUntil": "Suspended until {date}",
+      "bannedPermanent": "Suspended",
+      "bannedHint": "This account can't sign in until the suspension ends.",
+      "mustChange": "Password change pending",
+      "mustChangeHint": "Will be asked for a new password at the next sign-in."
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "{total, plural, one {# account} other {# accounts}} · {banned} suspended · {inactive} deactivated",
+      "add": "New user",
+      "searchPlaceholder": "Search by username, name or email…",
+      "filterRole": "Filter by role",
+      "filterState": "Filter by status",
+      "roleFilter": {
+        "all": "All roles",
+        "user": "Users",
+        "moderator": "Moderators",
+        "admin": "Admins"
+      },
+      "stateFilter": {
+        "all": "Any status",
+        "active": "Active",
+        "inactive": "Deactivated",
+        "banned": "Suspended",
+        "mustChange": "Password change pending"
+      },
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "lastLogin": "Last sign-in",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "empty": "No accounts match these filters.",
+      "you": "you",
+      "neverSignedIn": "Never"
+    },
+    "userForm": {
+      "createTitle": "New user",
+      "editTitle": "Edit user",
+      "createDescription": "Create an account and share the temporary password with the person safely.",
+      "editDescription": "Profile details and status. Role, suspension and password have their own actions in the menu.",
+      "username": "Username",
+      "password": "Temporary password",
+      "copyPassword": "Copy password",
+      "requireChange": "Require a new password at first sign-in",
+      "requireChangeHint": "Recommended — only the person will know their final password.",
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "role": "Role",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Deactivated",
+      "create": "Create user",
+      "created": "User created.",
+      "updated": "Changes saved."
+    },
+    "ban": {
+      "title": "Suspend @{username}",
+      "description": "They'll be signed out everywhere right away and can't sign in until the suspension ends. Nothing is deleted.",
+      "duration": "Duration",
+      "durations": {
+        "1": "1 hour",
+        "24": "24 hours",
+        "72": "3 days",
+        "168": "7 days",
+        "720": "30 days",
+        "2160": "90 days",
+        "0": "Until lifted manually"
+      },
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. Repeated spam in public setlists",
+      "reasonHint": "Shown to the person when they try to sign in",
+      "confirm": "Suspend account",
+      "done": "@{username} was suspended."
+    },
+    "resetPassword": {
+      "title": "Set a temporary password for @{username}",
+      "description": "Every session of this account will be signed out.",
+      "newPassword": "Temporary password",
+      "copy": "Copy password",
+      "requireChange": "Require a new password at next sign-in",
+      "requireChangeHint": "Recommended — you shouldn't know anyone's permanent password.",
+      "shareSafely": "Share it privately (never in a group chat) and ask them to sign in soon.",
+      "confirm": "Set password",
+      "done": "Temporary password set for @{username}."
+    },
+    "actions": {
+      "menu": "Actions",
+      "openDetails": "Open details",
+      "edit": "Edit profile",
+      "impersonate": "View as this user",
+      "changeRole": "Change role",
+      "resetPassword": "Set temporary password",
+      "revokeSessions": "Sign out everywhere",
+      "ban": "Suspend…",
+      "unban": "Lift suspension",
+      "deactivate": "Deactivate",
+      "activate": "Reactivate",
+      "isYou": "This is your account — manage it from your profile.",
+      "outranked": "Your role can't manage this account.",
+      "roleChanged": "@{username} is now {role}.",
+      "deactivated": "@{username} was deactivated.",
+      "activated": "@{username} was reactivated.",
+      "unbanned": "Suspension lifted for @{username}.",
+      "sessionsRevoked": "@{username} was signed out everywhere.",
+      "confirmRoleTitle": "Make this account {role}?",
+      "confirmRole": {
+        "user": "@{username} loses all staff permissions and goes back to a regular account.",
+        "moderator": "@{username} will be able to review all content, manage regular users, suspend them and take public links down.",
+        "admin": "@{username} will have full control of the platform, including other staff, limits and everyone's data."
+      },
+      "confirmRoleButton": "Change role",
+      "confirmDeactivateTitle": "Deactivate @{username}?",
+      "confirmDeactivate": "They're signed out and can't sign in until reactivated. Their songs, setlists and band memberships are kept.",
+      "confirmActivateTitle": "Reactivate @{username}?",
+      "confirmActivate": "They'll be able to sign in again.",
+      "confirmUnbanTitle": "Lift the suspension of @{username}?",
+      "confirmUnban": "They'll be able to sign in right away.",
+      "confirmSessionsTitle": "Sign @{username} out everywhere?",
+      "confirmSessions": "Useful if a device was lost or the account may be compromised. Their password doesn't change.",
+      "confirmImpersonateTitle": "View Setlyst as @{username}?",
+      "confirmImpersonate": "You'll see exactly what they see, read-only — nothing can be changed. This is recorded in the audit log. Use \"Back to my account\" in the banner to return."
+    },
+    "userDetail": {
+      "bannedUntil": "Suspended until {date}",
+      "bannedPermanent": "Suspended until lifted manually",
+      "bannedBy": "By @{username} on {date}.",
+      "reason": "Reason: {reason}",
+      "mustChangeTitle": "Waiting for a new password",
+      "mustChangeDescription": "This person must set a new password at their next sign-in before using Setlyst.",
+      "account": "Account",
+      "email": "Email",
+      "name": "Name",
+      "created": "Created",
+      "createdBy": "{date} by @{username}",
+      "selfRegistered": "{date} (self sign-up)",
+      "lastLogin": "Last sign-in",
+      "never": "Never",
+      "passwordChanged": "Password last changed",
+      "usernameChanged": "Username last changed",
+      "lastModified": "Last modified",
+      "modifiedBy": "{date} by @{username}",
+      "id": "Account ID",
+      "activity": "Staff activity",
+      "activityDescription": "Recent administrative actions on this account.",
+      "noActivity": "No administrative actions recorded yet.",
+      "usernameHistory": "Username history",
+      "usernameHistoryEmpty": "This account has never changed its username.",
+      "usage": "Usage",
+      "usageDescription": "What this account is using of its allowance.",
+      "limits": "Limits",
+      "limitsDescription": "Override the platform defaults for this account only.",
+      "bands": "Bands"
+    },
+    "userBands": {
+      "empty": "Not a member of any band.",
+      "joined": "Joined {date}",
+      "add": "Add to a band",
+      "addTitle": "Add @{username} to a band",
+      "addDescription": "They're added right away (no invite needed) and get a notification.",
+      "addConfirm": "Add to band",
+      "searchBands": "Search bands…",
+      "role": "Role in the band",
+      "bandHint": "Owner @{owner} · {members, plural, one {# member} other {# members}}",
+      "alreadyMember": "Already a member",
+      "added": "@{username} was added to {band}."
+    },
+    "picker": {
+      "empty": "Nothing found."
+    },
+    "quotaEditor": {
+      "unlimited": "Unlimited account",
+      "unlimitedHint": "Ignores every limit. Use sparingly — the server is small.",
+      "defaultPlaceholder": "Default: {value}",
+      "invalid": "Limits must be whole numbers from 0 to {max}.",
+      "resetToDefaults": "Use platform defaults",
+      "saved": "Limits updated.",
+      "lastChangedBy": "Last changed by @{username}"
+    },
+    "danger": {
+      "title": "Danger zone",
+      "subtitle": "Permanent deletion",
+      "preferDeactivate": "In almost every case, deactivating or suspending the account is the better choice: it's instant, reversible and keeps the history.",
+      "consequencePersonal": "Their personal songs, artists, setlists and shows are deleted.",
+      "consequenceBands": "Bands they own go to the next most senior member; band content they created stays with the band.",
+      "consequenceIrreversible": "This can't be undone.",
+      "delete": "Delete account permanently…",
+      "confirmTitle": "Permanently delete @{username}?",
+      "confirmDescription": "This removes the account and its personal data for good.",
+      "typeToConfirm": "Type {username} to confirm",
+      "confirmButton": "Delete permanently",
+      "deleted": "@{username} was permanently deleted."
+    },
+    "audit": {
+      "by": "by @{actor}",
+      "system": "system",
+      "impersonated": "view as",
+      "impersonatedHint": "Recorded during a \"view as\" session.",
+      "actions": {
+        "user_registered": "Signed up",
+        "user_created": "Account created",
+        "user_updated": "Profile edited",
+        "user_role_changed": "Role changed",
+        "user_activated": "Reactivated",
+        "user_deactivated": "Deactivated",
+        "user_banned": "Suspended",
+        "user_unbanned": "Suspension lifted",
+        "user_deleted": "Account deleted",
+        "user_password_changed": "Password changed",
+        "user_password_reset": "Temporary password set",
+        "user_sessions_revoked": "Signed out everywhere",
+        "user_quotas_updated": "Limits changed",
+        "user_impersonated": "Viewed as",
+        "user_login_failed": "Failed sign-in",
+        "band_updated": "Band edited",
+        "band_deleted": "Band deleted",
+        "band_member_added": "Member added",
+        "band_member_removed": "Member removed",
+        "band_member_role_changed": "Member role changed",
+        "band_ownership_transferred": "Ownership transferred",
+        "song_updated": "Song edited",
+        "song_deleted": "Song deleted",
+        "setlist_updated": "Setlist edited",
+        "setlist_deleted": "Setlist deleted",
+        "share_revoked": "Public link taken down",
+        "share_unlocked": "Sharing allowed again",
+        "settings_quota_defaults_updated": "Default limits changed"
+      }
+    },
+    "lists": {
+      "total": "{count, plural, one {# result} other {# results}}",
+      "filteredBy": "Filtered by",
+      "clearFilter": "Remove filter {label}"
+    },
+    "bands": {
+      "title": "Bands",
+      "description": "Every band on the platform. Open one to manage its members or details.",
+      "search": "Search by band or slug…",
+      "columns": {
+        "band": "Band",
+        "owner": "Owner",
+        "members": "Members",
+        "content": "Content",
+        "updated": "Last modified"
+      },
+      "empty": "No bands found.",
+      "contentSummary": "{songs} songs · {setlists} setlists · {gigs} shows"
+    },
+    "bandDetail": {
+      "meta": "{members, plural, one {# member} other {# members}} · created {created}",
+      "lastModified": "Last modified {date} by @{username}",
+      "songs": "{count, plural, one {# song} other {# songs}}",
+      "setlists": "{count, plural, one {# setlist} other {# setlists}}",
+      "members": "Members",
+      "membersDescription": "Add people directly, change roles or hand the band to someone else.",
+      "readOnly": "Only admins can change bands.",
+      "details": "Details",
+      "name": "Name",
+      "description": "Description",
+      "logo": "Logo URL",
+      "logoInvalid": "Use an https:// address.",
+      "membersManageSetlists": "Members can manage setlists",
+      "membersManageSetlistsHint": "When off, only the band's admins and moderators can.",
+      "saved": "Band updated."
+    },
+    "bandMembers": {
+      "joined": "joined {date}",
+      "add": "Add member",
+      "addTitle": "Add a member",
+      "addDescription": "They join right away, without an invite, and get a notification.",
+      "searchUsers": "Search users…",
+      "role": "Role in the band",
+      "alreadyMember": "Already a member",
+      "unavailable": "Account deactivated or suspended",
+      "changeRole": "Change role",
+      "transfer": "Make owner",
+      "remove": "Remove from band",
+      "confirmRoleTitle": "Change the role of {username}?",
+      "confirmRole": "They'll become {role} in this band and be notified.",
+      "confirmRemoveTitle": "Remove {username} from the band?",
+      "confirmRemove": "They lose access to the band's songs, setlists and shows. What they created stays with the band.",
+      "confirmTransferTitle": "Make {username} the owner?",
+      "confirmTransfer": "The current owner becomes an admin of the band.",
+      "roleChanged": "{username} is now {role}.",
+      "removed": "{username} was removed from the band.",
+      "transferred": "{username} is now the owner.",
+      "added": "{username} was added."
+    },
+    "bandDanger": {
+      "title": "Danger zone",
+      "subtitle": "Delete this band",
+      "advice": "Consider removing members or changing the owner instead — deleting can't be undone.",
+      "consequenceContent": "Every band song, setlist and show is deleted.",
+      "consequenceMembers": "Members lose access immediately.",
+      "irreversible": "This can't be undone.",
+      "delete": "Delete band permanently…",
+      "confirmTitle": "Delete {name}?",
+      "confirmDescription": "The band and all of its content will be removed for good.",
+      "confirmButton": "Delete permanently",
+      "deleted": "{name} was deleted."
+    },
+    "songs": {
+      "title": "Songs",
+      "description": "Every song in every library, newest changes first.",
+      "search": "Search by title, artist or owner…",
+      "filterUser": "One user",
+      "filterBand": "One band",
+      "columns": {
+        "song": "Song",
+        "owner": "Owner",
+        "details": "Details",
+        "tags": "Tags",
+        "updated": "Last modified"
+      },
+      "empty": "No songs found.",
+      "noLyrics": "no lyrics",
+      "inSetlists": "{count, plural, =0 {in no setlist} one {in # setlist} other {in # setlists}}"
+    },
+    "songDetail": {
+      "owner": "Owner: <owner></owner>",
+      "lastModified": "Last modified {date} by @{username}",
+      "key": "Key",
+      "bpm": "BPM",
+      "genre": "Genre",
+      "duration": "Duration",
+      "tags": "Tags",
+      "title": "Title",
+      "lyrics": "Lyrics & chords",
+      "inSetlists": "{count, plural, =0 {In no setlist} one {In # setlist} other {In # setlists}}",
+      "editTitle": "Edit song",
+      "editDescription": "You're editing someone else's song. The owner will see you as the last editor.",
+      "saved": "Song updated.",
+      "delete": "Delete song",
+      "deleteTitle": "Delete “{title}”?",
+      "deleteDescription": "It's removed from its owner's library and from every setlist that uses it. This can't be undone.",
+      "deleted": "“{title}” was deleted."
+    },
+    "setlists": {
+      "title": "Setlists",
+      "description": "Every setlist on the platform and the state of its public link.",
+      "search": "Search by title or owner…",
+      "filterUser": "One user",
+      "filterBand": "One band",
+      "columns": {
+        "setlist": "Setlist",
+        "owner": "Owner",
+        "songs": "Songs",
+        "link": "Public link",
+        "updated": "Last modified"
+      },
+      "empty": "No setlists found."
+    },
+    "setlistDetail": {
+      "summary": "{songs, plural, one {# song} other {# songs}} · {duration}",
+      "lastModified": "Last modified {date} by @{username}",
+      "publicLink": "Public link",
+      "publicDescription": "Anyone with the link can view this setlist.",
+      "privateDescription": "Not shared. You can still lock it so the owner can't share it.",
+      "lockedDescription": "Taken down by staff on {date}. The owner can't share it until it's allowed again.",
+      "lockReason": "Reason given to the owner",
+      "runningOrder": "Running order",
+      "empty": "This setlist is empty.",
+      "break": "Break",
+      "editTitle": "Edit setlist",
+      "editDescription": "Title and description. The owner will see you as the last editor.",
+      "title": "Title",
+      "description": "Description",
+      "saved": "Setlist updated.",
+      "delete": "Delete setlist",
+      "deleteTitle": "Delete “{title}”?",
+      "deleteDescription": "The setlist and its public link are removed. The songs themselves are kept. This can't be undone.",
+      "deleted": "“{title}” was deleted."
+    },
+    "share": {
+      "public": "Public",
+      "private": "Private",
+      "locked": "Taken down",
+      "revoke": "Take down",
+      "lock": "Block sharing",
+      "unlock": "Allow sharing",
+      "revokeTitle": "Take down the public link of “{title}”?",
+      "revokeDescription": "The link stops working immediately and the owner can't create a new one until staff allow it. The owner is notified. Nothing is deleted.",
+      "unlockTitle": "Allow “{title}” to be shared again?",
+      "unlockDescription": "The owner will be able to create a new public link. The old one stays disabled.",
+      "reason": "Reason (shown to the owner)",
+      "reasonPlaceholder": "e.g. Contains copyrighted material shared publicly",
+      "reasonHint": "Optional, but it helps the owner understand what to fix.",
+      "revoked": "Public link of “{title}” taken down.",
+      "unlocked": "“{title}” can be shared again.",
+      "filterLabel": "Filter by link",
+      "filterAll": "Any link state",
+      "filterPublic": "Public",
+      "filterNotPublic": "Not public"
+    },
+    "links": {
+      "title": "Public links",
+      "description": "Everything currently reachable without an account, plus links taken down by staff.",
+      "search": "Search by title or owner…",
+      "filterAll": "All",
+      "filterActive": "Active",
+      "filterLocked": "Taken down",
+      "columns": {
+        "item": "Item",
+        "owner": "Owner",
+        "status": "Status",
+        "updated": "Last modified",
+        "actions": "Actions"
+      },
+      "empty": "No public links right now.",
+      "kinds": {
+        "setlist": "Setlist",
+        "gig": "Show"
+      },
+      "lockedBy": "by @{username} on {date}"
+    },
+    "auditPage": {
+      "title": "Audit log",
+      "description": "Every administrative action, who did it and when.",
+      "search": "Search by user or item…",
+      "category": "Category",
+      "categories": {
+        "all": "All actions",
+        "user": "Accounts",
+        "band": "Bands",
+        "song": "Songs",
+        "setlist": "Setlists",
+        "share": "Public links",
+        "settings": "Platform settings"
+      },
+      "empty": "Nothing recorded for these filters."
+    },
+    "limits": {
+      "title": "Limits",
+      "description": "Default allowance for every account. The server is small — keep these realistic.",
+      "howItWorks": "These apply to everyone unless an account has its own limits (set on the user's page). Lowering a limit never deletes anything: people just can't add more until they're under it.",
+      "readOnly": "Only admins can change platform limits.",
+      "groups": {
+        "account": "Per account",
+        "container": "Per band / per setlist"
+      },
+      "invalid": "Every limit must be a whole number from 0 to {max}.",
+      "saved": "Default limits updated.",
+      "lowerTitle": "Lower limits for everyone?",
+      "lowerDescription": "You're lowering: {resources}. Accounts already above a new limit keep their data but can't add more.",
+      "lowerConfirm": "Save limits"
+    }
+  },
+  "quotas": {
+    "custom": "custom",
+    "unlimited": "Unlimited",
+    "unlimitedAccount": "This account has no limits.",
+    "usedOf": "{used} of {limit}",
+    "usedUnlimited": "{used} · unlimited",
+    "perContainer": "up to {limit}",
+    "perContainerTitle": "Per band / per setlist",
+    "resources": {
+      "songs": "Songs",
+      "artists": "Artists",
+      "setlists": "Setlists",
+      "gigs": "Shows",
+      "tags": "Distinct tags",
+      "bands_owned": "Bands owned",
+      "band_memberships": "Band memberships",
+      "band_members": "Members per band",
+      "band_setlists": "Setlists per band",
+      "band_gigs": "Shows per band",
+      "band_songs": "Songs per band",
+      "setlist_items": "Items per setlist"
+    }
+  },
+  "tags": {
+    "placeholder": "e.g. ballad, opener, romantic",
+    "hint": "Press Enter or comma to add · {count}/{max}",
+    "full": "Up to {max} tags",
+    "remove": "Remove tag {tag}",
+    "suggestions": "Tags you already use",
+    "issues": {
+      "too_long": "Tags can have at most {max} characters.",
+      "characters": "Use letters, numbers, spaces and - _ & ' only."
+    },
+    "manage": {
+      "title": "Your tags",
+      "description": "Rename a tag on every song at once (renaming onto an existing tag merges them) or remove it.",
+      "empty": "You haven't tagged any song yet.",
+      "songs": "{count, plural, one {# song} other {# songs}}",
+      "newName": "New name",
+      "save": "Save",
+      "cancel": "Cancel",
+      "rename": "Rename {tag}",
+      "removeTag": "Remove {tag}",
+      "remove": "Remove",
+      "confirmDelete": "Remove from {count, plural, one {# song} other {# songs}}?",
+      "renamed": "“{from}” is now “{to}”.",
+      "deleted": "Tag “{tag}” removed."
+    }
+  },
+  "pdfOptions": {
+    "presets": {
+      "title": "Start from",
+      "stage": {
+        "name": "Stage",
+        "hint": "Big titles, key & BPM"
+      },
+      "compact": {
+        "name": "Compact",
+        "hint": "Two columns, one page"
+      },
+      "songbook": {
+        "name": "Songbook",
+        "hint": "Lyrics with chords"
+      },
+      "large": {
+        "name": "Large print",
+        "hint": "Readable from afar"
+      }
+    },
+    "tabs": {
+      "content": "Content",
+      "lyrics": "Lyrics",
+      "layout": "Layout"
+    },
+    "toggles": {
+      "show_title": "Setlist title",
+      "show_description": "Description",
+      "show_band_name": "Band name",
+      "show_date": "Export date",
+      "show_total_duration": "Total duration",
+      "show_numbers": "Song numbers",
+      "show_artist": "Artist",
+      "show_key": "Key",
+      "show_bpm": "BPM",
+      "show_song_duration": "Song duration",
+      "show_tags": "Tags",
+      "show_blocks": "Blocks",
+      "show_breaks": "Breaks",
+      "include_lyrics": "Include lyrics",
+      "page_break_per_song": "Each song on a new page",
+      "compact": "Compact",
+      "uppercase_titles": "Uppercase titles",
+      "page_numbers": "Page numbers",
+      "watermark": "Setlyst watermark"
+    },
+    "hints": {
+      "include_lyrics": "Turns the running order into a full songbook.",
+      "compact": "Tighter spacing to fit more per page.",
+      "watermark": "A faint Setlyst mark and a “Made with Setlyst” footer."
+    },
+    "chords": {
+      "label": "Chords",
+      "above": "Above the lyrics",
+      "inline": "Inline [C]",
+      "hide": "Hidden"
+    },
+    "fontScale": "Text size",
+    "columns": {
+      "label": "Columns",
+      "1": "One column",
+      "2": "Two columns"
+    },
+    "margins": {
+      "label": "Margins",
+      "narrow": "Narrow",
+      "normal": "Normal",
+      "wide": "Wide"
+    },
+    "paper": "Paper",
+    "papers": {
+      "a4": "A4",
+      "letter": "Letter",
+      "legal": "Legal"
+    },
+    "orientation": {
+      "label": "Orientation",
+      "portrait": "Portrait",
+      "landscape": "Landscape"
+    }
+  },
+  "whatsNew": {
+    "title": "What's new",
+    "description": "Recent improvements to Setlyst. Step-by-step guides are in the <wiki>user guide</wiki>.",
+    "latest": "Latest",
+    "kinds": {
+      "new": "New",
+      "improved": "Improved",
+      "fixed": "Fixed",
+      "security": "Security"
+    }
+  },
+  "status": {
+    "title": "Service status",
+    "description": "Live health of the Setlyst API and database.",
+    "refresh": "Refresh",
+    "refreshing": "Checking…",
+    "overall": {
+      "operational": "All systems operational",
+      "degraded": "Degraded performance",
+      "down": "Service disruption"
+    },
+    "overallHint": {
+      "operational": "Everything is working normally.",
+      "degraded": "Setlyst works, but may be slower than usual.",
+      "down": "Some features are unavailable. Songs saved for offline use still work in Live Mode."
+    },
+    "servicesTitle": "Components",
+    "services": {
+      "api": "API",
+      "database": "Database"
+    },
+    "health": {
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "down": "Unavailable"
+    },
+    "details": {
+      "version": "v{version}",
+      "uptime": "up {uptime}",
+      "unreachable": "Not responding",
+      "latency": "{ms} ms response",
+      "noLatency": "No response",
+      "unknown": "Unknown"
+    },
+    "connections": "Database connections",
+    "checkedAt": "Checked {date} · refreshes every {seconds}s",
+    "backToApp": "Back to Setlyst"
+  },
+  "audit": {
+    "modified": "Last modified {date}",
+    "modifiedBy": "Last modified {date} by @{username}"
+  },
+  "shareLock": {
+    "title": "Public sharing disabled by a moderator",
+    "description": "The public link was taken down and a new one can't be created for now. Everything else keeps working normally.",
+    "reason": "Reason: {reason}",
+    "contact": "Questions? Write to {email}."
   }
 }

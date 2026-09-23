@@ -1,3 +1,4 @@
+import { parseApiTimestamp } from "@/lib/dates";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -87,7 +88,7 @@ export function getUsernameCooldownInfo(
 ): { inCooldown: boolean; cooldownDate: string | null } {
   const cooldownUntil = usernameChangedAt
     ? new Date(
-        new Date(usernameChangedAt).getTime() +
+        parseApiTimestamp(usernameChangedAt).getTime() +
           USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000,
       )
     : null;

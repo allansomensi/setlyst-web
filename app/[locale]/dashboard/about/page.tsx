@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import {
+  Activity,
+  BookOpen,
   Briefcase,
   Bug,
   Camera,
   Clapperboard,
   ExternalLink,
+  FileText,
   FolderGit2,
   GitCommitHorizontal,
   Globe,
@@ -13,8 +16,12 @@ import {
   Monitor,
   Scale,
   Server,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/components/nav-link";
+import { STATUS_PATH, WIKI_URL } from "@/lib/links";
 import { Badge } from "@/components/ui/badge";
 import { AppLogo } from "@/components/app-logo";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
@@ -107,6 +114,32 @@ export default async function AboutPage() {
         <p className="text-muted-foreground relative mt-3 max-w-2xl leading-relaxed">
           {t("openSource")}
         </p>
+        <div className="relative mt-5 flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href={WIKI_URL} target="_blank" rel="noopener noreferrer">
+              <BookOpen className="mr-1.5 h-4 w-4" />
+              {t("links.wiki")}
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/dashboard/whats-new">
+              <Sparkles className="mr-1.5 h-4 w-4" />
+              {t("links.whatsNew")}
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href={STATUS_PATH}>
+              <Activity className="mr-1.5 h-4 w-4" />
+              {t("links.status")}
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/legal/privacy">
+              <FileText className="mr-1.5 h-4 w-4" />
+              {t("links.legal")}
+            </Link>
+          </Button>
+        </div>
       </section>
 
       {/* Repositories + last commit */}

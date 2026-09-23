@@ -35,6 +35,7 @@ import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { parseApiTimestamp } from "@/lib/dates";
 
 const SEARCHABLE_KEYS = ["name"] as const;
 
@@ -150,7 +151,9 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                 <TableRow key={artist.id}>
                   <TableCell className="font-medium">{artist.name}</TableCell>
                   <TableCell>
-                    {new Date(artist.created_at).toLocaleDateString(locale)}
+                    {parseApiTimestamp(artist.created_at).toLocaleDateString(
+                      locale,
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

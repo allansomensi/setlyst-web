@@ -5,6 +5,8 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { Song, Artist, formatGenre } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
+import { TagChip } from "@/components/tags/tag-chip";
+import { ManageTagsDialog } from "./manage-tags-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
@@ -48,6 +50,7 @@ import {
   FileEdit,
   Loader2,
   Download,
+  Tags,
 } from "lucide-react";
 import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
@@ -56,7 +59,10 @@ import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 import { useSession } from "next-auth/react";
 
-const SEARCHABLE_KEYS = ["title", "artist_name", "genre"] as const;
+const SEARCHABLE_KEYS = ["title", "artist_name", "genre", "tags_text"] as const;
+
+/** How many of the most used tags are offered as quick filters. */
+const TAG_FILTER_LIMIT = 12;
 
 interface SongsTableProps {
   initialSongs: Song[];
@@ -87,6 +93,8 @@ export function SongsTable({
   const [songToDelete, setSongToDelete] = useState<string | null>(null);
 
   const [isExporting, setIsExporting] = useState(false);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [managingTags, setManagingTags] = useState(false);
 
   // See hooks/use-offline-records.ts: with no connection, or when this
   // page's own fetch failed, both lists come from the on-device mirror
@@ -107,8 +115,31 @@ export function SongsTable({
     return availableSongs.map((song) => ({
       ...song,
       artist_name: getArtistName(song.artist_id),
+      tags_text: (song.tags ?? []).join(" "),
     }));
   }, [availableSongs, availableArtists]);
+
+  // The library's tag vocabulary, most used first — quick filters here and
+  // suggestions in the song dialog.
+  const tagsByUse = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const song of availableSongs) {
+      for (const tag of song.tags ?? []) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([tag]) => tag);
+  }, [availableSongs]);
+
+  const filteredSongs = useMemo(
+    () =>
+      tagFilter
+        ? songsWithArtistName.filter((song) => song.tags?.includes(tagFilter))
+        : songsWithArtistName,
+    [songsWithArtistName, tagFilter],
+  );
 
   const {
     search,
@@ -122,7 +153,7 @@ export function SongsTable({
     pageSize,
     setPageSize,
     totalItems,
-  } = useTableControls(songsWithArtistName, SEARCHABLE_KEYS);
+  } = useTableControls(filteredSongs, SEARCHABLE_KEYS);
 
   const songs = processedData;
 
@@ -223,6 +254,15 @@ export function SongsTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <Button
+            variant="outline"
+            onClick={() => setManagingTags(true)}
+            {...offlineDisabled}
+          >
+            <Tags className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">{t("manageTags")}</span>
+          </Button>
+
           <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
             <Plus className="mr-2 h-4 w-4" />
             {t("addSong")}
@@ -237,6 +277,52 @@ export function SongsTable({
         placeholder={t("searchPlaceholder")}
         className="max-w-sm"
       />
+
+      {tagsByUse.length > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-1.5"
+          role="group"
+          aria-label={t("tagFilterLabel")}
+        >
+          <span className="text-muted-foreground mr-1 text-xs">
+            {t("tagFilterLabel")}
+          </span>
+          {tagsByUse.slice(0, TAG_FILTER_LIMIT).map((tag) => {
+            const active = tagFilter === tag;
+            return (
+              <button
+                key={tag}
+                type="button"
+                aria-pressed={active}
+                onClick={() => {
+                  setTagFilter(active ? null : tag);
+                  setCurrentPage(1);
+                }}
+                className="rounded-full focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <TagChip
+                  tag={tag}
+                  className={
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-secondary/70"
+                  }
+                />
+              </button>
+            );
+          })}
+          {tagFilter && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => setTagFilter(null)}
+            >
+              {t("clearTagFilter")}
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Table */}
       <div
@@ -322,6 +408,33 @@ export function SongsTable({
                         </span>
                       )}
                     </div>
+                    {song.tags?.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {song.tags.slice(0, 3).map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            data-no-row-click
+                            title={t("filterByTag", { tag })}
+                            onClick={() => {
+                              setTagFilter(tag);
+                              setCurrentPage(1);
+                            }}
+                            className="rounded-full focus-visible:ring-2 focus-visible:outline-none"
+                          >
+                            <TagChip
+                              tag={tag}
+                              className="hover:bg-secondary/70 h-5"
+                            />
+                          </button>
+                        ))}
+                        {song.tags.length > 3 && (
+                          <span className="text-muted-foreground text-[10px]">
+                            +{song.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {/* The artist column is dropped on phones. */}
                     <p className="text-muted-foreground truncate text-xs font-normal sm:hidden">
                       {song.artist_name}
@@ -399,12 +512,21 @@ export function SongsTable({
         search={search}
       />
 
+      <ManageTagsDialog
+        open={managingTags}
+        onOpenChange={(open) => {
+          setManagingTags(open);
+          if (!open) setTagFilter(null);
+        }}
+      />
+
       <SongDialog
         key={editingSong?.id ?? "new"}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         song={editingSong}
         artists={artists}
+        tagSuggestions={tagsByUse}
       />
 
       <Dialog

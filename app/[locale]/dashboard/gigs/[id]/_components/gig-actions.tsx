@@ -117,6 +117,9 @@ export function GigActions({
       <ShareGigDialog
         gigId={gig.id}
         shareToken={gig.share_token}
+        shareLock={
+          gig.share_locked_at ? { reason: gig.share_lock_reason ?? null } : null
+        }
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
       />

@@ -1,80 +1,61 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import {
+  DEFAULT_LIVE,
+  LIVE_FONT_FAMILIES,
+  normalizeLiveDefaults,
+  type LiveDefaults,
+  type LiveFontFamily,
+} from "@/lib/ui-settings";
 
-export type LiveFontFamily = "sans" | "mono" | "serif";
+export { LIVE_FONT_FAMILIES, type LiveFontFamily };
 
-export const LIVE_FONT_FAMILIES: readonly LiveFontFamily[] = [
-  "sans",
-  "mono",
-  "serif",
-];
-
-export interface LiveDisplayPrefs {
-  /** Pure black/white with stage-yellow chords, for bright or dim stages. */
-  highContrast: boolean;
-  /** Whole song on one screen: auto-sized text, no scrolling needed. */
-  fitToScreen: boolean;
-  /** Typeface of the lyrics. Mono keeps chords aligned on any font stack. */
-  fontFamily: LiveFontFamily;
-  /** Chords over the lyrics, or lyrics alone (for the singer's screen). */
-  showChords: boolean;
-  /** Section headings (Verse, Chorus…) and the chorus accent bar. */
-  showSections: boolean;
-}
+export type LiveDisplayPrefs = LiveDefaults;
 
 const STORAGE_KEY = "setlyst:live-display";
-const DEFAULTS: LiveDisplayPrefs = {
-  highContrast: false,
-  fitToScreen: false,
-  fontFamily: "sans",
-  // Most people reading Live Mode are singing, not playing: lyrics first,
-  // chords one tap away. Sections stay on — they're how you find your
-  // place in the song.
-  showChords: false,
-  showSections: true,
-};
 
 /*
- * These live on the device, not on the account: they're about the screen
- * and the stage, not about the person. The phone on the mic stand may
- * want the whole song on one screen while the tablet on the keyboard
- * scrolls, and a dark club and a daylight festival want different
- * contrast. The typeface and chords on/off follow the same logic — the
- * singer's phone wants lyrics only, the guitarist's tablet wants chords.
- * (Font size is on the account because it follows the reader's eyes;
- * these follow the hardware.)
+ * Two layers:
+ *
+ * - **Account defaults** (Settings → Live Mode), saved on the account so
+ *   every device starts the same way. Installed here by
+ *   `UiSettingsProvider` via `setLiveAccountDefaults`.
+ * - **Device overrides**, written whenever the quick toggles in Live Mode
+ *   are used. They're about the screen and the stage, not the person: the
+ *   phone on the mic stand may want the whole song on one screen while
+ *   the tablet on the keyboard scrolls with chords. A device with no
+ *   override simply follows the account defaults.
  *
  * Read through useSyncExternalStore so the server render and the first
- * client render agree on the defaults (no hydration mismatch), after which
- * the stored value takes over. Every mounted viewer shares one snapshot,
- * and a change in another tab applies here too via the `storage` event.
+ * client render agree (no hydration mismatch). Every mounted viewer
+ * shares one snapshot, and a change in another tab applies via `storage`.
  */
 
 const listeners = new Set<() => void>();
+let accountDefaults: LiveDefaults = DEFAULT_LIVE;
 let cached: LiveDisplayPrefs | null = null;
+
+function notify() {
+  listeners.forEach((l) => l());
+}
+
+function readOverride(): Partial<LiveDisplayPrefs> | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Partial<LiveDisplayPrefs>) : null;
+  } catch {
+    // Private mode, blocked storage, corrupt JSON: no override.
+    return null;
+  }
+}
 
 function read(): LiveDisplayPrefs {
   if (cached) return cached;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as Partial<LiveDisplayPrefs>) : {};
-    cached = {
-      highContrast: parsed.highContrast === true,
-      fitToScreen: parsed.fitToScreen === true,
-      fontFamily: LIVE_FONT_FAMILIES.includes(
-        parsed.fontFamily as LiveFontFamily,
-      )
-        ? (parsed.fontFamily as LiveFontFamily)
-        : DEFAULTS.fontFamily,
-      showChords: parsed.showChords === true,
-      showSections: parsed.showSections !== false,
-    };
-  } catch {
-    // Private mode, blocked storage, corrupt JSON: fall back to defaults
-    // rather than taking Live Mode down over a display preference.
-    cached = DEFAULTS;
-  }
+  const override = readOverride();
+  cached = override
+    ? normalizeLiveDefaults({ ...accountDefaults, ...override })
+    : accountDefaults;
   return cached;
 }
 
@@ -85,7 +66,30 @@ function write(next: LiveDisplayPrefs) {
   } catch {
     // Still applied for this session; it just won't be remembered.
   }
-  listeners.forEach((l) => l());
+  notify();
+}
+
+/** Installs the account's saved defaults (see UiSettingsProvider). */
+export function setLiveAccountDefaults(defaults: LiveDefaults) {
+  accountDefaults = normalizeLiveDefaults(defaults);
+  cached = null;
+  notify();
+}
+
+/** Whether this device has its own Live Mode choices. */
+export function hasLiveDeviceOverride(): boolean {
+  return readOverride() !== null;
+}
+
+/** Drops this device's choices so it follows the account defaults again. */
+export function resetLiveDeviceOverride() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Nothing stored anyway.
+  }
+  cached = null;
+  notify();
 }
 
 function subscribe(listener: () => void) {
@@ -103,7 +107,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-const getServerSnapshot = () => DEFAULTS;
+const getServerSnapshot = () => DEFAULT_LIVE;
 
 export function useLiveDisplayPrefs() {
   const prefs = useSyncExternalStore(subscribe, read, getServerSnapshot);

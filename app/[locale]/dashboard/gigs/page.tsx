@@ -1,8 +1,13 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { Gig, Setlist, BandWithMembership, BAND_ROLE_LEVEL } from "@/types/api";
 import { GigsTable } from "./_components/gigs-table";
 import { BandOption } from "./_components/gigs-dialog";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
+
+export async function generateMetadata() {
+  return staticTitle("gigs");
+}
 
 export default async function GigsPage() {
   // Three independent sources — one failing (a transient rate limit,

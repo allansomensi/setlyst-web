@@ -56,33 +56,3 @@ export async function checkUsernameAvailability(
     return null;
   }
 }
-
-export async function changePassword(formData: FormData) {
-  const t = await getTranslations("profile.errors");
-
-  const current_password = formData.get("current_password") as string;
-  const new_password = formData.get("new_password") as string;
-
-  if (!current_password || !new_password) {
-    return {
-      success: false,
-      error: t("missingFields") || "Missing required fields",
-    };
-  }
-
-  if (new_password.length < 8) {
-    return {
-      success: false,
-      error: t("passwordTooShort") || "Password must be at least 8 characters",
-    };
-  }
-
-  return guardedAction(
-    () =>
-      fetchServerApi("/users/me/password", {
-        method: "PATCH",
-        body: JSON.stringify({ current_password, new_password }),
-      }),
-    () => revalidatePath("/dashboard/profile"),
-  );
-}

@@ -1,4 +1,9 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { AcceptInviteCard } from "./_components/accept-invite-card";
+
+export async function generateMetadata() {
+  return staticTitle("invite");
+}
 
 export default async function AcceptInvitePage({
   params,

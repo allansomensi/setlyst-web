@@ -25,10 +25,13 @@ import { toast } from "sonner";
 import { toastActionError } from "@/lib/action-toast";
 import { enableSetlistSharing, disableSetlistSharing } from "../../actions";
 import { QrCodeDisplay } from "@/components/qr-code-display";
+import { ShareLockedNotice } from "@/components/share-locked-notice";
 
 interface ShareSetlistDialogProps {
   setlistId: string;
   shareToken: string | null;
+  /** Set when staff took the public link down; sharing is blocked. */
+  shareLock?: { reason: string | null } | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -36,6 +39,7 @@ interface ShareSetlistDialogProps {
 export function ShareSetlistDialog({
   setlistId,
   shareToken: initialShareToken,
+  shareLock,
   isOpen,
   onClose,
 }: ShareSetlistDialogProps) {
@@ -96,7 +100,9 @@ export function ShareSetlistDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {shareToken ? (
+          {shareLock ? (
+            <ShareLockedNotice reason={shareLock.reason} />
+          ) : shareToken ? (
             <>
               <div className="space-y-2">
                 <Label htmlFor="share-link">{t("linkLabel")}</Label>
@@ -206,7 +212,7 @@ export function ShareSetlistDialog({
           <Button type="button" variant="secondary" onClick={onClose}>
             {tCommon("cancel")}
           </Button>
-          {!shareToken && (
+          {!shareToken && !shareLock && (
             <Button type="button" onClick={handleEnable} disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t("enableAction")}

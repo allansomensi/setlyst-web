@@ -16,6 +16,21 @@ interface SetlystJwtPayload {
   status: string;
   exp: number;
   iat: number;
+  /** Set on impersonation tokens: the staff member viewing as `sub`. */
+  imp?: string;
+}
+
+/**
+ * Sign-in failures are reported to the login page as a JSON-encoded
+ * `Error` message (NextAuth forwards it as `signIn()`'s `error`), so the
+ * page can show the exact reason — suspension end date included — in the
+ * user's language. See `parseSignInError` in lib/sign-in-errors.ts.
+ */
+function signInError(
+  code: string,
+  meta?: Record<string, unknown> | null,
+): Error {
+  return new Error(JSON.stringify({ code, meta: meta ?? null }));
 }
 
 const VALID_ROLES = ["user", "moderator", "admin"] as const;
@@ -83,6 +98,84 @@ async function fetchPreferredLanguage(
   }
 }
 
+type SessionToken = import("next-auth/jwt").JWT;
+
+/**
+ * Switches the session to a read-only impersonation token issued by the
+ * API (`POST /users/{id}/impersonate`, called from a server action).
+ *
+ * The token is accepted only if it names *this* session's user as its
+ * impersonator and the API accepts it — so a client can't smuggle in an
+ * arbitrary token through `useSession().update()`. The staff member's own
+ * token is kept aside and restored by `restoreImpersonator`.
+ */
+async function startImpersonation(
+  token: SessionToken,
+  impersonationToken: string,
+): Promise<SessionToken | null> {
+  let decoded: SetlystJwtPayload;
+  try {
+    decoded = jwtDecode<SetlystJwtPayload>(impersonationToken);
+  } catch {
+    return null;
+  }
+
+  if (!decoded.imp || decoded.imp !== token.id || !isValidRole(decoded.role)) {
+    return null;
+  }
+
+  const apiUrl = getApiBaseUrl();
+  try {
+    const res = await fetch(`${apiUrl}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${impersonationToken}`,
+        Accept: "application/json",
+      },
+      redirect: "error",
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+  } catch {
+    return null;
+  }
+
+  return {
+    ...token,
+    impersonator: {
+      id: token.id,
+      name: (token.name as string | undefined) ?? "",
+      role: token.role,
+      apiToken: token.apiToken,
+      apiTokenExpires: token.apiTokenExpires,
+    },
+    id: decoded.sub,
+    name: decoded.username,
+    role: decoded.role,
+    apiToken: impersonationToken,
+    apiTokenExpires: decoded.exp * 1000,
+    mustChangePassword: false,
+    isFirstLogin: false,
+  };
+}
+
+function restoreImpersonator(token: SessionToken): SessionToken {
+  const original = token.impersonator;
+  if (!original) return token;
+  return {
+    ...token,
+    id: original.id,
+    name: original.name,
+    role: original.role,
+    apiToken: original.apiToken,
+    apiTokenExpires: original.apiTokenExpires,
+    impersonator: undefined,
+    error:
+      original.apiTokenExpires && Date.now() > original.apiTokenExpires
+        ? "TokenExpired"
+        : undefined,
+  };
+}
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -121,7 +214,23 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!res.ok) {
-            return null;
+            if (res.status === 429) throw signInError("RATE_LIMITED");
+            let code =
+              res.status >= 500 ? "SERVICE_UNAVAILABLE" : "INVALID_CREDENTIALS";
+            let meta: Record<string, unknown> | null = null;
+            try {
+              const errorBody = (await res.json()) as {
+                code?: unknown;
+                meta?: unknown;
+              };
+              if (typeof errorBody.code === "string") code = errorBody.code;
+              if (errorBody.meta && typeof errorBody.meta === "object") {
+                meta = errorBody.meta as Record<string, unknown>;
+              }
+            } catch {
+              // Not JSON: keep the status-derived code.
+            }
+            throw signInError(code, meta);
           }
 
           const body: unknown = await res.json();
@@ -137,9 +246,14 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const { token, is_first_login: isFirstLogin } = body as {
+          const {
+            token,
+            is_first_login: isFirstLogin,
+            must_change_password: mustChangePassword,
+          } = body as {
             token: string;
             is_first_login: boolean;
+            must_change_password?: boolean;
           };
 
           let decoded: SetlystJwtPayload;
@@ -171,14 +285,19 @@ export const authOptions: NextAuthOptions = {
             role: decoded.role,
             apiToken: token,
             isFirstLogin,
-            language: await fetchPreferredLanguage(token),
+            mustChangePassword: mustChangePassword === true,
+            language: mustChangePassword
+              ? null
+              : await fetchPreferredLanguage(token),
           };
         } catch (err) {
+          // Our own, already-classified failures pass straight through.
+          if (err instanceof Error && err.message.startsWith("{")) throw err;
           console.error(
             "[auth] Authentication request failed:",
             (err as Error)?.name,
           );
-          return null;
+          throw signInError("SERVICE_UNAVAILABLE");
         }
       },
     }),
@@ -190,7 +309,9 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.apiToken = user.apiToken;
         token.isFirstLogin = user.isFirstLogin;
+        token.mustChangePassword = user.mustChangePassword === true;
         token.language = user.language ?? undefined;
+        token.impersonator = undefined;
 
         try {
           const decoded = jwtDecode<SetlystJwtPayload>(user.apiToken as string);
@@ -200,14 +321,34 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // Keeps the token's copy of the language in step when it's changed
-      // from the settings page in this same session, so a later launch
-      // that resolves the locale from the token (see proxy.ts) doesn't
-      // send the person back to the language they just moved away from.
       if (trigger === "update") {
-        const next = (session as { language?: unknown } | undefined)?.language;
-        if (isSupportedLocale(next)) {
-          token.language = next;
+        const update = (session ?? {}) as {
+          language?: unknown;
+          impersonationToken?: unknown;
+          stopImpersonation?: unknown;
+        };
+
+        // Keeps the token's copy of the language in step when it's changed
+        // from the settings page in this same session, so a later launch
+        // that resolves the locale from the token (see proxy.ts) doesn't
+        // send the person back to the language they just moved away from.
+        if (isSupportedLocale(update.language)) {
+          token.language = update.language;
+        }
+
+        if (
+          typeof update.impersonationToken === "string" &&
+          !token.impersonator
+        ) {
+          const next = await startImpersonation(
+            token,
+            update.impersonationToken,
+          );
+          if (next) return next;
+        }
+
+        if (update.stopImpersonation === true && token.impersonator) {
+          return restoreImpersonator(token);
         }
       }
 
@@ -215,6 +356,9 @@ export const authOptions: NextAuthOptions = {
         token.apiTokenExpires &&
         Date.now() > (token.apiTokenExpires as number)
       ) {
+        // An expired *impersonation* ends the impersonation, not the
+        // staff member's own session.
+        if (token.impersonator) return restoreImpersonator(token);
         return { ...token, error: "TokenExpired" };
       }
 
@@ -227,10 +371,20 @@ export const authOptions: NextAuthOptions = {
 
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name =
+          (token.name as string | undefined) ?? session.user.name;
         session.user.role = token.role as ValidRole;
         session.user.apiToken = token.apiToken as string;
         session.user.isFirstLogin = token.isFirstLogin;
+        session.user.mustChangePassword = token.mustChangePassword === true;
         session.user.language = token.language;
+        session.user.impersonator = token.impersonator
+          ? {
+              id: token.impersonator.id,
+              name: token.impersonator.name,
+              role: token.impersonator.role,
+            }
+          : undefined;
       }
       return session;
     },

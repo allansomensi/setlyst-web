@@ -1,3 +1,4 @@
+import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi } from "@/lib/api-server";
 import { Setlist, SetlistItem } from "@/types/api";
 import { Link } from "@/components/nav-link";
@@ -6,6 +7,20 @@ import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { SetlistTempoChart } from "./_components/setlist-tempo-chart";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return entityTitle<Setlist>(
+    `/setlists/${id}`,
+    (s) => s.title,
+    "setlistAnalytics",
+    "setlists",
+  );
+}
 
 export default async function SetlistAnalyticsPage({
   params,

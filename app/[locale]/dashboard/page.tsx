@@ -1,3 +1,4 @@
+import { staticTitle } from "@/lib/page-metadata";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTranslations } from "next-intl/server";
@@ -15,6 +16,10 @@ import { Link } from "@/components/nav-link";
 import { getDashboardMetrics } from "./actions";
 import { UserMetricsCharts } from "./_components/user-metrics";
 import { AdminMetricsCharts } from "./_components/admin-metrics";
+
+export async function generateMetadata() {
+  return staticTitle("dashboard");
+}
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);

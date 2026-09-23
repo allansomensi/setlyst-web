@@ -65,6 +65,9 @@ export default async function middleware(req: NextRequest) {
   const hasLocalePrefix = localeSegment !== null;
 
   const isProtected = pathWithoutLocale.startsWith("/dashboard");
+  const isChangePassword =
+    pathWithoutLocale === "/change-password" ||
+    pathWithoutLocale.startsWith("/change-password/");
   const isAuthPage =
     pathWithoutLocale === "/login" ||
     pathWithoutLocale.startsWith("/login/") ||
@@ -73,7 +76,8 @@ export default async function middleware(req: NextRequest) {
 
   // Resolved once and shared by the auth gate and the locale fallback
   // below, so a request never decrypts the session token twice.
-  const needsToken = isProtected || isAuthPage || !hasLocalePrefix;
+  const needsToken =
+    isProtected || isAuthPage || isChangePassword || !hasLocalePrefix;
   const token = needsToken
     ? await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
     : null;
@@ -85,13 +89,34 @@ export default async function middleware(req: NextRequest) {
   // was sent to the English login page.
   const locale = localeSegment ?? resolvePreferredLocale(req, token);
 
-  if (isProtected && (!token || token.error === "TokenExpired")) {
+  if (
+    (isProtected || isChangePassword) &&
+    (!token || token.error === "TokenExpired")
+  ) {
     const loginUrl = new URL(
       `/${locale ?? DEFAULT_LOCALE}/login`,
       req.nextUrl.origin,
     );
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // An account flagged for a mandatory password change (temporary
+  // password, or one below the current policy) can't reach anything else
+  // until it's done — the API refuses every other call anyway.
+  if (isProtected && token && !token.error && token.mustChangePassword) {
+    return NextResponse.redirect(
+      new URL(
+        `/${locale ?? DEFAULT_LOCALE}/change-password`,
+        req.nextUrl.origin,
+      ),
+    );
+  }
+
+  if (isChangePassword && token && !token.error && !token.mustChangePassword) {
+    return NextResponse.redirect(
+      new URL(`/${locale ?? DEFAULT_LOCALE}/dashboard`, req.nextUrl.origin),
+    );
   }
 
   if (isAuthPage && token && !token.error) {

@@ -64,7 +64,11 @@ export function OfflineSyncProvider({
   children: React.ReactNode;
 }) {
   const { data: session } = useSession();
-  const isAuthenticated = Boolean(session?.user?.apiToken);
+  // Never mirror someone else's library onto this device: while staff are
+  // "viewing as" another user, the offline copy stays the staff member's
+  // own and background sync is paused.
+  const isAuthenticated =
+    Boolean(session?.user?.apiToken) && !session?.user?.impersonator;
   const isOnline = useOnlineStatus();
   const { fetchApi } = useApi();
   const locale = useLocale();

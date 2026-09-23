@@ -1,5 +1,6 @@
 "use client";
 
+import { ShareLockedNotice } from "@/components/share-locked-notice";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,8 @@ import { QrCodeDisplay } from "@/components/qr-code-display";
 interface ShareGigDialogProps {
   gigId: string;
   shareToken: string | null;
+  /** Set when staff took the public link down; sharing is blocked. */
+  shareLock?: { reason: string | null } | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -36,6 +39,7 @@ interface ShareGigDialogProps {
 export function ShareGigDialog({
   gigId,
   shareToken: initialShareToken,
+  shareLock,
   isOpen,
   onClose,
 }: ShareGigDialogProps) {
@@ -96,7 +100,9 @@ export function ShareGigDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {shareToken ? (
+          {shareLock ? (
+            <ShareLockedNotice reason={shareLock.reason} />
+          ) : shareToken ? (
             <>
               <div className="space-y-2">
                 <Label htmlFor="share-link">{t("linkLabel")}</Label>
@@ -203,7 +209,7 @@ export function ShareGigDialog({
           <Button type="button" variant="secondary" onClick={onClose}>
             {tCommon("cancel")}
           </Button>
-          {!shareToken && (
+          {!shareToken && !shareLock && (
             <Button type="button" onClick={handleEnable} disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t("enableAction")}

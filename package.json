@@ -6,6 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "lint:eslint": "eslint . --max-warnings 0",
     "lint:prettier": "prettier --check .",
@@ -51,7 +54,8 @@
     "prettier": "^3.9.8",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
