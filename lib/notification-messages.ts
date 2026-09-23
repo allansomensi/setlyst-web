@@ -79,7 +79,23 @@ const SUBSCRIPTION_KINDS = [
   "trial_extended",
   "revoked",
   "expired",
+  // Card payments
+  "subscribed",
+  "plan_changed",
+  "payment_failed",
+  "cancel_scheduled",
+  "resumed",
+  "canceled",
 ] as const;
+
+/** Subscription changes shown as a warning rather than good news. */
+const SUBSCRIPTION_WARNINGS: ReadonlySet<string> = new Set([
+  "revoked",
+  "expired",
+  "payment_failed",
+  "cancel_scheduled",
+  "canceled",
+]);
 
 const CREDIT_REASONS = [
   "admin_adjustment",
@@ -280,7 +296,7 @@ export function describeNotification(
         values,
         SETTINGS_SUBSCRIPTION_HREF,
         "subscription",
-        kind === "revoked" || kind === "expired" ? "warning" : "success",
+        kind && SUBSCRIPTION_WARNINGS.has(kind) ? "warning" : "success",
       );
     }
     case "trial_ending": {

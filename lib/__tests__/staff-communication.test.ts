@@ -382,6 +382,31 @@ describe("notification messages", () => {
     ).toBe("subscriptionChanged.plan_grantedUntil");
     expect(
       describeNotification({
+        type: "subscription_changed",
+        data: {
+          kind: "payment_failed",
+          plan_code: "pro",
+          status: "past_due",
+          current_period_end: "2026-10-23T00:00:00",
+        },
+      }),
+    ).toMatchObject({
+      key: "subscriptionChanged.payment_failed",
+      tone: "warning",
+    });
+    expect(
+      describeNotification({
+        type: "subscription_changed",
+        data: {
+          kind: "subscribed",
+          plan_code: "pro",
+          status: "active",
+          current_period_end: null,
+        },
+      }),
+    ).toMatchObject({ key: "subscriptionChanged.subscribed", tone: "success" });
+    expect(
+      describeNotification({
         type: "credits_granted",
         data: { amount: -10, reason: "admin_adjustment" },
       }),

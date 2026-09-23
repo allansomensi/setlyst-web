@@ -119,6 +119,14 @@ export default async function SettingsPage({
     ? (googleParam as GoogleLinkStatus)
     : null;
 
+  const checkoutParam = Array.isArray(params.checkout)
+    ? params.checkout[0]
+    : params.checkout;
+  const checkoutStatus =
+    checkoutParam === "success" || checkoutParam === "canceled"
+      ? checkoutParam
+      : null;
+
   const username = me?.username ?? session?.user.name ?? "";
   const passwordSet = me?.password_set ?? security?.password_set ?? true;
 
@@ -203,6 +211,8 @@ export default async function SettingsPage({
               credits={credits}
               referrals={referrals}
               planNames={planNames}
+              plans={plans ?? []}
+              checkoutStatus={checkoutStatus}
               readOnly={readOnly}
             />
           </section>

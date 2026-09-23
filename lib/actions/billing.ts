@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction, type ActionResult } from "@/lib/action-guard";
 import { revalidateDashboard } from "@/lib/revalidate";
+import type { BillingInterval } from "@/lib/pricing";
 import type { BillingMe } from "@/types/billing";
 import type {
   CreditEntry,
@@ -55,6 +56,86 @@ export async function redeemReward(
         body: JSON.stringify({ reward_id: id }),
       }),
     () => revalidateDashboard("", "layout"),
+  );
+}
+
+// ---------------------------------------------------------------------
+// Card payments (Stripe)
+// ---------------------------------------------------------------------
+
+/** Where the browser goes next (Stripe Checkout or the billing portal). */
+export interface RedirectTarget {
+  url: string;
+}
+
+const INTERVALS: readonly BillingInterval[] = ["monthly", "yearly"];
+
+function planChoice(
+  planCode: string,
+  interval: string,
+): { plan_code: string; interval: BillingInterval } | null {
+  const code = (planCode ?? "").trim().toLowerCase();
+  if (!/^[a-z0-9_-]{2,32}$/.test(code)) return null;
+  if (!(INTERVALS as readonly string[]).includes(interval)) return null;
+  return { plan_code: code, interval: interval as BillingInterval };
+}
+
+/** Only ever send the browser to an https page (Stripe's). */
+function safeRedirect(target: RedirectTarget): RedirectTarget {
+  const url = new URL(target.url);
+  if (url.protocol !== "https:") throw new Error("Unexpected redirect");
+  return { url: url.toString() };
+}
+
+/** Opens a Stripe Checkout page for `planCode` billed every `interval`. */
+export async function startCheckout(
+  planCode: string,
+  interval: string,
+): Promise<ActionResult<RedirectTarget>> {
+  const choice = planChoice(planCode, interval);
+  if (!choice) return invalid();
+  return guardedAction(async () =>
+    safeRedirect(
+      await fetchServerApi<RedirectTarget>("/billing/checkout", {
+        method: "POST",
+        body: JSON.stringify(choice),
+      }),
+    ),
+  );
+}
+
+/**
+ * Moves the running paid subscription to another plan or interval. The
+ * difference is charged (or credited) right away; a declined card leaves
+ * the plan as it was.
+ */
+export async function changePaidPlan(
+  planCode: string,
+  interval: string,
+): Promise<ActionResult<BillingMe>> {
+  const choice = planChoice(planCode, interval);
+  if (!choice) return invalid();
+  return guardedAction(
+    () =>
+      fetchServerApi<BillingMe>("/billing/subscription/change", {
+        method: "POST",
+        body: JSON.stringify(choice),
+      }),
+    () => revalidateDashboard("", "layout"),
+  );
+}
+
+/** Opens the Stripe billing portal (card, invoices, cancellation). */
+export async function openBillingPortal(): Promise<
+  ActionResult<RedirectTarget>
+> {
+  return guardedAction(async () =>
+    safeRedirect(
+      await fetchServerApi<RedirectTarget>("/billing/portal", {
+        method: "POST",
+        body: JSON.stringify({}),
+      }),
+    ),
   );
 }
 

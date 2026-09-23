@@ -3,6 +3,7 @@
  * friends). Plans reuse the public plan types.
  */
 
+import type { BillingInterval } from "@/lib/pricing";
 import type { PlanBase, PlanFeatures } from "@/types/public";
 
 export type SubscriptionStatus =
@@ -26,6 +27,8 @@ export interface Subscription {
   current_period_end: string | null;
   trial_ends_at: string | null;
   cancel_at_period_end: boolean;
+  /** How a paid subscription is charged; `null` for everything else. */
+  billing_interval?: BillingInterval | null;
 }
 
 export interface CreditReward {
@@ -38,6 +41,8 @@ export interface CreditReward {
 export interface BillingMe {
   /** Whether plans are enforced at all. While `false`, everything is allowed. */
   enforced: boolean;
+  /** Whether card payments are set up on the server (checkout available). */
+  payments_enabled?: boolean;
   plan: Plan | null;
   subscription: Subscription | null;
   /** Effective feature flags for the caller. */

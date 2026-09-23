@@ -45,8 +45,14 @@ import type {
 } from "@/types/account";
 import type { BillingMe, SubscriptionStatus } from "@/types/billing";
 import type { PaginatedResponse } from "@/types/api";
-import { PLAN_FEATURES } from "@/types/public";
+import { PLAN_FEATURES, type PublicPlan } from "@/types/public";
 import { CreditsCard, ReferralCard } from "./credits-referrals";
+import {
+  CheckoutReturn,
+  PaidPlanActions,
+  isPaidAndLive,
+  paymentsAvailable,
+} from "./paid-plan";
 
 interface SubscriptionSectionProps {
   billing: BillingMe | null;
@@ -56,6 +62,10 @@ interface SubscriptionSectionProps {
   referrals: PaginatedResponse<ReferralEntry> | null;
   /** Localized plan names by code (from the public plan list). */
   planNames: Record<string, string>;
+  /** Public plans, for choosing one to pay for. */
+  plans: PublicPlan[];
+  /** `?checkout=` on the way back from Stripe Checkout. */
+  checkoutStatus: "success" | "canceled" | null;
   readOnly: boolean;
 }
 
@@ -74,6 +84,8 @@ export function SubscriptionSection({
   credits,
   referrals,
   planNames,
+  plans,
+  checkoutStatus,
   readOnly,
 }: SubscriptionSectionProps) {
   const t = useTranslations("billing");
@@ -92,7 +104,17 @@ export function SubscriptionSection({
 
   return (
     <div className="space-y-4">
-      <PlanCard billing={billing} planName={planName} history={history} />
+      <CheckoutReturn
+        status={checkoutStatus}
+        activated={isPaidAndLive(billing.subscription)}
+      />
+      <PlanCard
+        billing={billing}
+        planName={planName}
+        history={history}
+        plans={plans}
+        readOnly={readOnly}
+      />
 
       <Card>
         <CardHeader>
@@ -142,10 +164,14 @@ function PlanCard({
   billing,
   planName,
   history,
+  plans,
+  readOnly,
 }: {
   billing: BillingMe;
   planName: (code: string | null | undefined) => string;
   history: SubscriptionEvent[] | null;
+  plans: PublicPlan[];
+  readOnly: boolean;
 }) {
   const t = useTranslations("billing");
   const tFeatures = useTranslations("pricing.features");
@@ -212,7 +238,9 @@ function PlanCard({
                       ? t("plan.ended")
                       : subscription.cancel_at_period_end
                         ? t("plan.endsOn")
-                        : t("plan.renewsOn")}
+                        : subscription.source === "payment"
+                          ? t("plan.nextCharge")
+                          : t("plan.renewsOn")}
                   </dt>
                   <dd className="font-medium">
                     {date(subscription.current_period_end) ??
@@ -224,6 +252,13 @@ function PlanCard({
                 <dt className="text-muted-foreground">{t("plan.source")}</dt>
                 <dd className="font-medium">
                   {t(`source.${subscription.source}`)}
+                  {subscription.source === "payment" &&
+                    subscription.billing_interval && (
+                      <span className="text-muted-foreground font-normal">
+                        {" · "}
+                        {t(`interval.${subscription.billing_interval}`)}
+                      </span>
+                    )}
                 </dd>
               </div>
             </dl>
@@ -289,18 +324,28 @@ function PlanCard({
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground flex items-center gap-2 text-sm">
-          <CalendarClock className="size-4 shrink-0" />
-          {t("paymentsSoon")}
-        </p>
-        <Button asChild variant="outline">
-          <Link href="/pricing">
-            <Sparkles className="mr-2 size-4" />
-            {t("seePlans")}
-          </Link>
-        </Button>
-      </CardFooter>
+      {paymentsAvailable(billing) ? (
+        <CardFooter>
+          <PaidPlanActions
+            billing={billing}
+            plans={plans}
+            readOnly={readOnly}
+          />
+        </CardFooter>
+      ) : (
+        <CardFooter className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground flex items-center gap-2 text-sm">
+            <CalendarClock className="size-4 shrink-0" />
+            {t("paymentsSoon")}
+          </p>
+          <Button asChild variant="outline">
+            <Link href="/pricing">
+              <Sparkles className="mr-2 size-4" />
+              {t("seePlans")}
+            </Link>
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
