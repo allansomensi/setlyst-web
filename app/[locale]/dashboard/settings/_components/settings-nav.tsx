@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   CreditCard,
@@ -50,8 +51,13 @@ export function SettingsNav() {
   const t = useTranslations("settings.sections");
   const [active, setActive] = useState<SettingsSection>("preferences");
 
+  const sectionParam = useSearchParams()?.get("section") ?? null;
+
+  // `?section=subscription` (links from the pricing page, the plan banner,
+  // upgrade prompts; also while already on this page) or a
+  // `#subscription` anchor (e-mails).
   useEffect(() => {
-    const hash = window.location.hash.slice(1);
+    const hash = sectionParam ?? window.location.hash.slice(1);
     if ((SETTINGS_SECTIONS as readonly string[]).includes(hash)) {
       // The page scrolls inside the dashboard's <main>, so make sure the
       // anchor is honoured once everything has rendered.
@@ -60,7 +66,9 @@ export function SettingsNav() {
         if (target) scrollIntoDashboard(target);
       });
     }
+  }, [sectionParam]);
 
+  useEffect(() => {
     const visible = new Map<string, number>();
     const observer = new IntersectionObserver(
       (entries) => {

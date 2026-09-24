@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { ScrollText } from "lucide-react";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
@@ -37,6 +37,8 @@ interface LiveLyricsAreaProps {
   direction?: "next" | "prev" | null;
   /** Swipe left/right to change song (touch only). Omit to disable. */
   swipe?: SwipeOptions;
+  /** Accessible name of the lyrics region (the song title). */
+  label?: string;
 }
 
 /**
@@ -58,6 +60,7 @@ export function LiveLyricsArea({
   songKey,
   direction = null,
   swipe,
+  label,
 }: LiveLyricsAreaProps) {
   const t = useTranslations("liveMode.display");
   const contentRef = useRef<HTMLDivElement>(null);
@@ -81,20 +84,49 @@ export function LiveLyricsArea({
     onPrev: swipe?.onPrev ?? noop,
   });
 
+  // Focus the pane when Live Mode opens so the browser's own keyboard
+  // scrolling (and a pedal sending arrow keys) works on it straight away,
+  // without a first tap on the lyrics.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (
+      el &&
+      (document.activeElement === document.body || !document.activeElement)
+    ) {
+      el.focus({ preventScroll: true });
+    }
+  }, [containerRef]);
+
   return (
+    // The only <main> on the page: Live Mode renders in its own bare
+    // layout (app/[locale]/(live)), without the dashboard's.
     <main
       ref={containerRef}
+      // Focusable so keyboard users can scroll it (a scrollable region must
+      // be reachable) and so it can receive focus on mount.
+      tabIndex={0}
+      aria-label={label}
       data-live-fit={fitToScreen ? "" : undefined}
       className={cn(
-        "min-h-0 flex-1",
+        "min-h-0 flex-1 outline-none",
+        // Landscape phones: keep the lyrics clear of the notch / rounded
+        // corners on either side.
+        "pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
         // Vertical scrolling and pinch-zoom stay native; horizontal
         // movement is left to the swipe handler.
         swipe && "touch-pan-y touch-pinch-zoom",
         fitToScreen
-          ? cn("p-3 md:p-6", overflows ? "overflow-y-auto" : "overflow-hidden")
+          ? cn(
+              "[--pad:0.75rem] md:[--pad:1.5rem]",
+              "py-(--pad) pr-[max(var(--pad),env(safe-area-inset-right))] pl-[max(var(--pad),env(safe-area-inset-left))]",
+              overflows ? "overflow-y-auto" : "overflow-hidden",
+            )
           : // No `scroll-smooth`: auto-scroll moves a pixel at a time, and
             // smooth scrolling turned each of those into its own animation.
-            "overflow-auto p-4 pb-24 md:p-12 md:pb-28",
+            cn(
+              "overflow-auto [--pad:1rem] md:[--pad:3rem]",
+              "pt-(--pad) pr-[max(var(--pad),env(safe-area-inset-right))] pb-24 pl-[max(var(--pad),env(safe-area-inset-left))] md:pb-28",
+            ),
       )}
     >
       {fitToScreen && overflows && (

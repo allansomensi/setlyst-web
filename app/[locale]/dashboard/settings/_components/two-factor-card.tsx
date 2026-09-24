@@ -35,8 +35,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PasswordInput } from "@/components/auth/password-input";
 import { OtpInput } from "@/components/auth/otp-input";
+import {
+  ReauthProofField,
+  useReauthProof,
+} from "@/components/auth/reauth-proof";
 import { useAppRouter } from "@/hooks/use-app-router";
 import {
   disableTwoFactor,
@@ -184,10 +187,11 @@ function SetupDialog({
   onClose: () => void;
 }) {
   const t = useTranslations("twoFactor.setup");
+  const tReauth = useTranslations("security.reauth");
   const router = useAppRouter();
   const { update } = useSession();
   const [step, setStep] = useState<SetupStep>("password");
-  const [password, setPassword] = useState("");
+  const reauth = useReauthProof(passwordSet);
   const [setup, setSetup] = useState<TwoFactorSetup | null>(null);
   const [code, setCode] = useState("");
   const [codes, setCodes] = useState<string[]>([]);
@@ -199,13 +203,23 @@ function SetupDialog({
   const stepIndex = ["password", "scan", "verify", "codes"].indexOf(step);
 
   const begin = async () => {
+    if (pending || !reauth.complete) return;
     setPending(true);
     setError(null);
-    const result = await startTwoFactorSetup(
-      passwordSet ? password : undefined,
-    );
+    const result = await startTwoFactorSetup(reauth.proof);
     setPending(false);
     if (!result.success || !result.data) {
+      if (!result.success && reauth.handleFailure(result)) {
+        setError(result.error);
+        return;
+      }
+      if (!result.success && result.apiCode === "EMAIL_NOT_VERIFIED") {
+        // 2FA needs a verified address (recovery goes through it): the
+        // toast offers to send the verification code.
+        onClose();
+        toastActionError(result, result.error);
+        return;
+      }
       if (!result.success && result.code) {
         toastActionError(result, result.error);
         return;
@@ -281,7 +295,11 @@ function SetupDialog({
             {t("stepOf", { step: stepIndex + 1, total: 4 })}
           </p>
           <DialogTitle>{t(`${step}Title`)}</DialogTitle>
-          <DialogDescription>{t(`${step}Description`)}</DialogDescription>
+          <DialogDescription>
+            {step === "password" && reauth.method === "email_code"
+              ? tReauth("setupDescription")
+              : t(`${step}Description`)}
+          </DialogDescription>
         </DialogHeader>
 
         {step === "password" && (
@@ -301,23 +319,13 @@ function SetupDialog({
               readOnly
               hidden
             />
-            {passwordSet ? (
-              <div className="space-y-2">
-                <Label htmlFor="two-factor-password">{t("password")}</Label>
-                <PasswordInput
-                  id="two-factor-password"
-                  autoComplete="current-password"
-                  autoFocus
-                  maxLength={256}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={pending}
-                  className="h-10"
-                />
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">{t("noPassword")}</p>
-            )}
+            <ReauthProofField
+              state={reauth}
+              id="two-factor-setup"
+              passwordLabel={t("password")}
+              disabled={pending}
+              autoFocus
+            />
             <p className="text-muted-foreground text-sm">{t("appsHint")}</p>
             {error && (
               <p role="alert" className="text-destructive text-sm font-medium">
@@ -333,10 +341,7 @@ function SetupDialog({
               >
                 {t("cancel")}
               </Button>
-              <Button
-                type="submit"
-                disabled={pending || (passwordSet && !password)}
-              >
+              <Button type="submit" disabled={pending || !reauth.complete}>
                 {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
                 {t("continue")}
               </Button>
@@ -484,13 +489,13 @@ function DisableDialog({
   const t = useTranslations("twoFactor.disableDialog");
   const router = useAppRouter();
   const { update } = useSession();
-  const [password, setPassword] = useState("");
+  const reauth = useReauthProof(passwordSet);
   const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const valid =
-    (!passwordSet || password.length > 0) &&
+    reauth.complete &&
     (/^\d{6}$/.test(code.trim()) ||
       /^[A-Za-z0-9]{4}-?[A-Za-z0-9]{4}$/.test(code.trim()));
 
@@ -499,12 +504,13 @@ function DisableDialog({
     if (!valid || pending) return;
     setPending(true);
     setError(null);
-    const result = await disableTwoFactor({
-      password: passwordSet ? password : undefined,
-      code,
-    });
+    const result = await disableTwoFactor({ ...reauth.proof, code });
     setPending(false);
     if (!result.success) {
+      if (reauth.handleFailure(result)) {
+        setError(result.error);
+        return;
+      }
       if (result.code) {
         toastActionError(result, result.error);
         return;
@@ -534,27 +540,18 @@ function DisableDialog({
             readOnly
             hidden
           />
-          {passwordSet && (
-            <div className="space-y-2">
-              <Label htmlFor="disable-password">{t("password")}</Label>
-              <PasswordInput
-                id="disable-password"
-                autoComplete="current-password"
-                autoFocus
-                maxLength={256}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={pending}
-                className="h-10"
-              />
-            </div>
-          )}
+          <ReauthProofField
+            state={reauth}
+            id="two-factor-disable"
+            passwordLabel={t("password")}
+            disabled={pending}
+            autoFocus={passwordSet}
+          />
           <div className="space-y-2">
             <Label htmlFor="disable-code">{t("code")}</Label>
             <Input
               id="disable-code"
               autoComplete="one-time-code"
-              autoFocus={!passwordSet}
               maxLength={9}
               spellCheck={false}
               value={code}

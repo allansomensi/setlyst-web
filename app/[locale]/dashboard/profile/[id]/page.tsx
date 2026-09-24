@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
-import { getLocale, getTranslations } from "next-intl/server";
+import { notFoundOnMissing } from "@/lib/api-not-found";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import {
   CalendarDays,
   ChevronLeft,
@@ -49,8 +50,13 @@ export default async function UserProfilePage({
   const t = await getTranslations("userProfile");
   const tRoles = await getTranslations("roles");
   const locale = await getLocale();
+  const timeZone = await getTimeZone();
 
-  const profile = await fetchServerApi<UserProfileView>(`/users/${id}/profile`);
+  // A deleted account, a malformed id or a profile the viewer can't see
+  // is a 404, not the generic error screen.
+  const profile = await fetchServerApi<UserProfileView>(
+    `/users/${id}/profile`,
+  ).catch(notFoundOnMissing);
   const isSelf = profile.is_self || session?.user?.id === profile.id;
   const viewerIsStaff = isStaffRole(session?.user?.role);
 
@@ -63,6 +69,7 @@ export default async function UserProfilePage({
     {
       month: "long",
       year: "numeric",
+      timeZone,
     },
   );
   const admin = profile.admin_details;
@@ -228,7 +235,12 @@ export default async function UserProfilePage({
                 <span className="text-muted-foreground">
                   {t("lastLoginLabel")}
                 </span>
-                <span>{formatApiDate(admin.last_login_at, locale)}</span>
+                <span>
+                  {formatApiDate(admin.last_login_at, locale, {
+                    dateStyle: "medium",
+                    timeZone,
+                  })}
+                </span>
               </div>
             )}
             {admin.username_changed_at && (
@@ -236,7 +248,12 @@ export default async function UserProfilePage({
                 <span className="text-muted-foreground">
                   {t("usernameChangedLabel")}
                 </span>
-                <span>{formatApiDate(admin.username_changed_at, locale)}</span>
+                <span>
+                  {formatApiDate(admin.username_changed_at, locale, {
+                    dateStyle: "medium",
+                    timeZone,
+                  })}
+                </span>
               </div>
             )}
             {typeof admin.open_flags === "number" && admin.open_flags > 0 && (

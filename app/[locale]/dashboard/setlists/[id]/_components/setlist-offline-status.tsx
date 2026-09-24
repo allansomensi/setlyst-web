@@ -4,6 +4,7 @@ import { useTranslations, useFormatter } from "next-intl";
 import { Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { useOfflineSync } from "@/components/providers/offline-sync-provider";
 import { cn } from "@/lib/utils";
+import { useSyncErrorText } from "@/hooks/use-sync-error-text";
 
 /**
  * Whether this setlist would work with no signal — shown next to the total
@@ -24,6 +25,7 @@ export function SetlistOfflineStatus({ setlistId }: { setlistId: string }) {
   const isSyncing = status === "syncing";
   const isSynced = isSetlistCached(setlistId);
   const hasFailed = status === "error" && !isSynced;
+  const errorText = useSyncErrorText(lastError);
 
   const label = isSyncing
     ? tOffline("syncing")
@@ -38,8 +40,8 @@ export function SetlistOfflineStatus({ setlistId }: { setlistId: string }) {
       ? tOffline("syncedAt", {
           time: format.relativeTime(new Date(lastSyncedAt), new Date()),
         })
-      : hasFailed && lastError
-        ? `${label}: ${lastError}`
+      : hasFailed && errorText
+        ? `${label}: ${errorText}`
         : label;
 
   const Icon = isSyncing ? RefreshCw : hasFailed ? CloudOff : Cloud;
@@ -50,7 +52,7 @@ export function SetlistOfflineStatus({ setlistId }: { setlistId: string }) {
       onClick={syncNow}
       disabled={isSyncing}
       title={detail}
-      aria-label={`${label}. ${tOffline("syncNow")}`}
+      aria-label={`${detail}. ${tOffline("syncNow")}`}
       className={cn(
         // Same box as the duration pill beside it.
         "flex w-fit max-w-full min-w-0 items-center gap-1.5 rounded-md border px-2.5 py-1 text-left text-sm font-medium transition-colors",

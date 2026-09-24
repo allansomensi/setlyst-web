@@ -3,6 +3,7 @@
 import { Infinity as InfinityIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { UpgradeHint } from "@/components/content/upgrade-hint";
 import { cn } from "@/lib/utils";
 import type { QuotaReport, QuotaUsageItem } from "@/types/api";
 
@@ -113,5 +114,105 @@ export function QuotaUsageList({ report }: { report: QuotaReport }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** The part of a quota an "Add" button cares about. */
+export interface QuotaUsage {
+  used: number;
+  limit: number;
+}
+
+/**
+ * The account-wide usage of `resource` from `GET /users/me/quotas`, or null
+ * when there's nothing to show (unlimited, not counted, no report).
+ */
+export function quotaUsageOf(
+  report: QuotaReport | null | undefined,
+  resource: QuotaUsageItem["resource"],
+): QuotaUsage | null {
+  if (!report || report.unlimited) return null;
+  const item = report.items.find((entry) => entry.resource === resource);
+  if (!item || item.used === null || item.limit === null) return null;
+  return { used: item.used, limit: item.limit };
+}
+
+/** Whether the allowance is used up, or nearly (from 80%). */
+export function quotaState(usage: QuotaUsage | null | undefined): {
+  full: boolean;
+  warn: boolean;
+} {
+  if (!usage || usage.limit <= 0) {
+    return { full: Boolean(usage && usage.limit <= 0), warn: false };
+  }
+  const full = usage.used >= usage.limit;
+  return { full, warn: !full && usage.used / usage.limit >= WARN_RATIO };
+}
+
+/**
+ * "123 / 150" next to an "Add" button, so a limit is never a surprise:
+ * neutral normally, amber from 80%, red when full (the button is then
+ * disabled and an UpgradeHint says why).
+ */
+export function QuotaChip({
+  usage,
+  resource,
+  className,
+}: {
+  usage: QuotaUsage | null | undefined;
+  resource: QuotaUsageItem["resource"];
+  className?: string;
+}) {
+  const t = useTranslations("quotas");
+  if (!usage) return null;
+  const { full, warn } = quotaState(usage);
+  const label = t("chipLabel", {
+    resource: t(`resources.${resource}`),
+    used: usage.used,
+    limit: usage.limit,
+  });
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      role="note"
+      className={cn(
+        "inline-flex h-7 shrink-0 items-center rounded-full border px-2.5 text-xs font-medium tabular-nums",
+        full
+          ? "border-destructive/40 bg-destructive/10 text-destructive"
+          : warn
+            ? "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300"
+            : "text-muted-foreground bg-muted/40",
+        className,
+      )}
+    >
+      {usage.used} / {usage.limit}
+    </span>
+  );
+}
+
+/**
+ * Under an "Add" button that a full allowance disabled: says why, and
+ * where to get more room.
+ */
+export function QuotaLimitNotice({
+  usage,
+  resource,
+  className,
+}: {
+  usage: QuotaUsage | null | undefined;
+  resource: QuotaUsageItem["resource"];
+  className?: string;
+}) {
+  const t = useTranslations("quotas");
+  if (!quotaState(usage).full) return null;
+  return (
+    <UpgradeHint
+      className={className}
+      message={t("fullHint", {
+        // Mid-sentence: "the limit for songs", not "for Songs".
+        resource: t(`resources.${resource}`).toLocaleLowerCase(),
+      })}
+    />
   );
 }

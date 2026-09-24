@@ -19,6 +19,9 @@ jobs:
       NEXTAUTH_URL: https://www.example.com
       NEXTAUTH_SECRET: ci-only-secret-that-is-at-least-32-chars
       NEXT_TELEMETRY_DISABLED: "1"
+      # This build is never deployed: allow the provider identification
+      # placeholders (lib/legal.ts refuses them in real production builds).
+      ALLOW_PLACEHOLDER_CONTROLLER: "true"
     steps:
       - uses: actions/checkout@v4
 

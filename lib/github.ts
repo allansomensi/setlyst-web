@@ -1,3 +1,5 @@
+import "server-only";
+
 import { GITHUB_OWNER } from "@/lib/about";
 
 export interface LatestCommit {

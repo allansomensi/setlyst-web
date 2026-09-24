@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Sidebar } from "./_components/sidebar";
 import { MobileNav } from "./_components/mobile-nav";
 import { OfflineStatusBanner } from "@/components/offline-status-banner";
@@ -10,11 +10,14 @@ import { ImpersonationBanner } from "@/components/impersonation/impersonation-ba
 import { UiSettingsProvider } from "@/components/providers/ui-settings-provider";
 import { getMe, getMyBilling, getMyPreferences } from "@/lib/server-data";
 import { pickLocalized } from "@/lib/localized";
-import { trialInfo } from "@/lib/trial";
+import { accountPlanStatus, trialInfo, type BillingState } from "@/lib/trial";
 import { DEFAULT_UI_SETTINGS, normalizeUiSettings } from "@/lib/ui-settings";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { AccountGates } from "./_components/account-gates";
 import { TrialWelcomeDialog } from "./_components/trial/trial-welcome-dialog";
+import { PlanStatusBanner } from "./_components/trial/plan-status-banner";
+import { DashboardScrollArea } from "./_components/dashboard-scroll-area";
+import { ActionToastSetup } from "./_components/action-toast-setup";
 
 export default async function DashboardLayout({
   children,
@@ -49,10 +52,17 @@ export default async function DashboardLayout({
     getMyBilling().catch(() => null),
   ]);
 
-  const trial = trialInfo(
-    billing,
-    billing?.plan ? pickLocalized(billing.plan.name, locale) : "",
+  const planName = billing?.plan
+    ? pickLocalized(billing.plan.name, locale)
+    : "";
+  const trial = trialInfo(billing, planName);
+  // Trial / trial ending / ended / payment failed, for the navigation chip
+  // and the banner. See lib/trial.ts.
+  const planStatus = accountPlanStatus(
+    billing as BillingState | null,
+    planName,
   );
+  const tCommon = await getTranslations("common");
 
   const user = { name: session.user?.name, role: session.user?.role };
 
@@ -75,12 +85,29 @@ export default async function DashboardLayout({
           scrolled by script (scrollIntoView, focus), which used to slide the
           whole dashboard out from under the sidebar. */}
       <div className="bg-background dashboard-clip flex h-dvh flex-col md:flex-row">
-        <Sidebar user={user} trial={trial} />
-        <MobileNav user={user} trial={trial} />
-        <main className="dashboard-clip flex min-h-0 flex-1 flex-col">
+        <a
+          href="#main-content"
+          className="bg-primary text-primary-foreground focus-visible:ring-ring/50 sr-only z-[60] rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:left-3 focus-visible:ring-3"
+        >
+          {tCommon("skipToContent")}
+        </a>
+        <Sidebar user={user} planStatus={planStatus} />
+        <MobileNav user={user} planStatus={planStatus} />
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="dashboard-clip flex min-h-0 flex-1 flex-col outline-none"
+        >
           <ImpersonationBanner />
+          <PlanStatusBanner status={planStatus} readOnly={gates.readOnly} />
           <AccountGates {...gates} />
           <OfflineStatusBanner />
+          <ActionToastSetup
+            email={gates.email}
+            passwordSet={gates.passwordSet}
+            username={gates.username}
+            readOnly={gates.readOnly}
+          />
           <AnnouncementModalHost />
           {!gates.readOnly && gates.termsAccepted && (
             <TrialWelcomeDialog
@@ -88,12 +115,11 @@ export default async function DashboardLayout({
               name={me?.first_name || gates.username}
             />
           )}
-          <div
-            data-dashboard-scroll=""
-            className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-8"
-          >
+          {/* Bottom inset: the home indicator of the installed iOS app;
+              side insets: landscape on a notched phone. */}
+          <DashboardScrollArea className="flex-1 overflow-y-auto overscroll-contain pt-4 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] md:p-8 md:pr-[max(2rem,env(safe-area-inset-right))] md:pb-[max(2rem,env(safe-area-inset-bottom))]">
             {children}
-          </div>
+          </DashboardScrollArea>
         </main>
       </div>
     </UiSettingsProvider>

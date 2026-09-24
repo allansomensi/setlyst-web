@@ -86,18 +86,22 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
    # Optional
    NEXT_PUBLIC_WIKI_URL=https://github.com/allansomensi/setlyst-web/wiki
    NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
-   NEXT_PUBLIC_PRIVACY_EMAIL=privacy@example.com   # LGPD officer, defaults to the support e-mail
+   NEXT_PUBLIC_PRIVACY_EMAIL=privacy@example.com   # LGPD privacy channel (small-scale agent, no encarregado), defaults to the support e-mail
+   NEXT_PUBLIC_COPYRIGHT_EMAIL=copyright@example.com # copyright notices and content reports, defaults to the support e-mail
    NEXT_PUBLIC_BILLING_ENFORCED=false              # "true" once the API enforces billing
-   NEXT_PUBLIC_CONTROLLER_NAME=                    # who runs Setlyst, shown in the legal documents
-   NEXT_PUBLIC_CONTROLLER_TAX_ID=                  # CPF (individual) or CNPJ (company), detected by length
+   NEXT_PUBLIC_CONTROLLER_NAME=                    # who runs Setlyst: footer, /contato and legal documents (required to build)
+   NEXT_PUBLIC_CONTROLLER_TAX_ID=                  # CPF (individual) or CNPJ (company), detected by length, check digits validated
    NEXT_PUBLIC_CONTROLLER_ADDRESS=                 # postal address (Decreto 7.962/2013)
+   ALLOW_PLACEHOLDER_CONTROLLER=false              # "true" only for CI builds never deployed
    INTERNAL_API_SECRET=                            # same value as the API's, see "Client address" below
    TRUSTED_PROXY_HOPS=1                            # reverse proxies in front of Next.js (self-hosted)
    TRUST_X_REAL_IP=false                           # "true" only if your proxy overwrites X-Real-IP
    NEXT_PUBLIC_ENABLE_SW_IN_DEV=false              # register the service worker in `npm run dev`
    ```
 
-   **Client address.** With `INTERNAL_API_SECRET` set, the server tells the API who the visitor is so rate limits apply per visitor. On Vercel (`VERCEL` is set by the platform) the address comes from `x-vercel-forwarded-for`/`x-real-ip`. Self-hosted, it is the entry `TRUSTED_PROXY_HOPS` positions from the right of `X-Forwarded-For` (the address your closest reverse proxy appended; `0` disables it), or `X-Real-IP` when `TRUST_X_REAL_IP=true`. The leftmost `X-Forwarded-For` entry is written by the client and is never trusted; when nothing trustworthy is available no address is sent.
+   **Client address.** With `INTERNAL_API_SECRET` set, the server tells the API who the visitor is so rate limits apply per visitor. On Vercel (`VERCEL` is set by the platform) the address comes from `x-vercel-forwarded-for`/`x-real-ip`. Self-hosted, it is the entry `TRUSTED_PROXY_HOPS` positions from the right of `X-Forwarded-For` (the address your closest reverse proxy appended; the default `0` disables it, and the server logs a warning at startup until one of these is set), or `X-Real-IP` when `TRUST_X_REAL_IP=true`. The leftmost `X-Forwarded-For` entry is written by the client and is never trusted; when nothing trustworthy is available no address is sent.
+
+   **Provider identification.** Decreto 7.962/2013 (art. 2º) and the LGPD (art. 41) require the provider's name, CPF/CNPJ and address to be shown in plain view: they appear in the site footer, on `/contato` and in the legal documents. A production build (`next build`) fails while `NEXT_PUBLIC_CONTROLLER_NAME`, `NEXT_PUBLIC_CONTROLLER_TAX_ID` or `NEXT_PUBLIC_CONTROLLER_ADDRESS` is missing, or when the CPF/CNPJ check digits are invalid; a CI build that is never deployed can set `ALLOW_PLACEHOLDER_CONTROLLER=true`. Set `NEXT_PUBLIC_PRIVACY_EMAIL` (privacy channel) and `NEXT_PUBLIC_COPYRIGHT_EMAIL` (copyright notices) to real mailboxes before launch. Each legal document has its own version history in `lib/legal-texts/versions.ts` (rendered at the end of `/legal/<doc>`; superseded texts are served at `/legal/<doc>/v/<version>`).
 
 4. **Run the development server**
 

@@ -15,7 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PasswordInput } from "@/components/auth/password-input";
+import { OtpInput } from "@/components/auth/otp-input";
+import {
+  ReauthProofField,
+  useReauthProof,
+} from "@/components/auth/reauth-proof";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useCountdown } from "@/hooks/use-countdown";
 import { confirmEmailChange, startEmailChange } from "@/lib/actions/account";
@@ -30,7 +34,10 @@ interface EmailChangeDialogProps {
   onOpenChange: (open: boolean) => void;
   /** `null` when the account has no address yet (the dialog "adds" one). */
   currentEmail: string | null;
-  /** The current password is asked for when the account has one. */
+  /**
+   * The current password is asked for when the account has one; otherwise
+   * a code e-mailed to the current address.
+   */
   passwordSet: boolean;
   /** For the hidden username field password managers look for. */
   username: string;
@@ -49,11 +56,15 @@ export function EmailChangeDialog({
   username,
 }: EmailChangeDialogProps) {
   const t = useTranslations("account.emailChange");
+  const tReauth = useTranslations("security.reauth");
   const router = useAppRouter();
-  const { update } = useSession();
+  const { data: session, update } = useSession();
+  // With two-factor on, the change also takes a code from the app.
+  const needsSecondFactor = session?.user?.twoFactorEnabled === true;
   const [step, setStep] = useState<"form" | "code">("form");
   const [newEmail, setNewEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const reauth = useReauthProof(passwordSet);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
   const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,12 +75,17 @@ export function EmailChangeDialog({
   const same =
     currentEmail !== null && email.toLowerCase() === currentEmail.toLowerCase();
   const canStart =
-    emailValid && !same && (!passwordSet || password.length > 0) && !pending;
+    emailValid &&
+    !same &&
+    reauth.complete &&
+    (!needsSecondFactor || twoFactorCode.length === 6) &&
+    !pending;
 
   const reset = () => {
     setStep("form");
     setNewEmail("");
-    setPassword("");
+    reauth.reset();
+    setTwoFactorCode("");
     setCode("");
     setError(null);
   };
@@ -80,11 +96,23 @@ export function EmailChangeDialog({
     setError(null);
     const result = await startEmailChange({
       newEmail: email,
-      password: passwordSet ? password : undefined,
+      ...reauth.proof,
+      code: needsSecondFactor ? twoFactorCode : undefined,
     });
     setPending(false);
     if (!result.success) {
       if (result.retryAfterSeconds) startCooldown(result.retryAfterSeconds);
+      if (reauth.handleFailure(result)) {
+        if (isResend) setStep("form");
+        setError(result.error);
+        return;
+      }
+      if (
+        result.apiCode === "INVALID_TWO_FACTOR_CODE" ||
+        result.apiCode === "INVALID_CODE"
+      ) {
+        setTwoFactorCode("");
+      }
       if (result.code) {
         toastActionError(result, result.error);
         return;
@@ -184,21 +212,24 @@ export function EmailChangeDialog({
               />
               {same && <p className="text-destructive text-xs">{t("same")}</p>}
             </div>
-            {passwordSet && (
+            <ReauthProofField
+              state={reauth}
+              id="email-change"
+              passwordLabel={t("password")}
+              passwordHint={t("passwordHint")}
+              disabled={pending}
+            />
+            {needsSecondFactor && (
               <div className="space-y-2">
-                <Label htmlFor="email-change-password">{t("password")}</Label>
-                <PasswordInput
-                  id="email-change-password"
-                  autoComplete="current-password"
-                  maxLength={256}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                <Label htmlFor="email-change-2fa">
+                  {tReauth("twoFactorLabel")}
+                </Label>
+                <OtpInput
+                  id="email-change-2fa"
+                  value={twoFactorCode}
+                  onChange={setTwoFactorCode}
                   disabled={pending}
-                  className="h-10"
                 />
-                <p className="text-muted-foreground text-xs">
-                  {t("passwordHint")}
-                </p>
               </div>
             )}
             {error && (

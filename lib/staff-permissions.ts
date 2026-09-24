@@ -6,8 +6,12 @@
  * - Staff manage accounts strictly below their own rank: moderators manage
  *   regular users; admins manage users and moderators.
  * - Nobody manages their own account from the staff console.
- * - Only admins change platform roles. An admin may also demote a fellow
- *   admin (never themselves), as long as another active admin remains.
+ * - Only admins change platform roles, and never another admin's (or
+ *   their own): demoting an admin is a server-side operation
+ *   (`create_superuser --demote`).
+ * - Deleting an account, setting a temporary password, changing its
+ *   e-mail and viewing as it are admin-only; moderators keep suspension,
+ *   deactivation, sign-out and names.
  */
 
 import type { UserRole } from "@/types/api";
@@ -39,7 +43,20 @@ export function canManageUser(actor: StaffActor, target: StaffTarget): boolean {
 }
 
 export function canChangeRole(actor: StaffActor, target: StaffTarget): boolean {
-  return actor.role === "admin" && actor.id !== target.id;
+  return (
+    actor.role === "admin" && actor.id !== target.id && target.role !== "admin"
+  );
+}
+
+/**
+ * The admin-only account operations: delete, temporary password, e-mail
+ * change, view as. The target must still rank below the actor.
+ */
+export function canAdministerUser(
+  actor: StaffActor,
+  target: StaffTarget,
+): boolean {
+  return actor.role === "admin" && canManageUser(actor, target);
 }
 
 /** Roles `actor` may give when creating an account. */
@@ -54,11 +71,12 @@ export function assignableRoles(actor: UserRole): UserRole[] {
  * `require_staff` / `require_admin` checks. Capabilities ending in
  * `.write` gate changes; the others gate seeing a screen at all.
  *
- * Moderators review: users, the moderation queue, audit, content and
- * public links; they write announcements, and read release notes, the
- * billing overview and the default limits. Everything else (plans,
+ * Moderators review: users, the moderation queue, content and public
+ * links; they draft announcements, and read release notes, the billing
+ * overview and the default limits. Everything else (the audit log, plans,
  * billing settings, the finance report, promo codes, promotions,
- * release-note edits, limit edits, rescans) is admin-only.
+ * publishing announcements or e-mailing them, release-note edits, limit
+ * edits, rescans) is admin-only.
  */
 export type StaffCapability =
   | "users"
@@ -66,6 +84,7 @@ export type StaffCapability =
   | "moderation.rescan"
   | "audit"
   | "announcements"
+  | "announcements.publish"
   | "releaseNotes"
   | "releaseNotes.write"
   | "billing"
@@ -80,6 +99,8 @@ export type StaffCapability =
 
 const ADMIN_ONLY: ReadonlySet<StaffCapability> = new Set<StaffCapability>([
   "moderation.rescan",
+  "audit",
+  "announcements.publish",
   "releaseNotes.write",
   "billing.write",
   "finance",

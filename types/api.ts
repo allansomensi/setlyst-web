@@ -572,9 +572,13 @@ export interface DependenciesStatus {
  * `GET /status`. The public endpoint returns only `status` and `version`;
  * the other fields come with the staff-only `/status/details`.
  */
+/**
+ * `GET /status`. The public report carries `status` only; the other
+ * fields come from the authenticated `/status/details`.
+ */
 export interface ApiStatus {
   status: ServiceHealth;
-  version: string;
+  version?: string;
   updated_at?: string;
   uptime_seconds?: number;
   dependencies?: DependenciesStatus;
@@ -651,6 +655,12 @@ export interface ImportBackupResponse {
   songs_imported: number;
   setlists_imported: number;
   gigs_imported?: number;
+  tours_imported?: number;
+  /**
+   * Tours in the file left out because the plan doesn't include tours
+   * (their gigs are imported without a tour).
+   */
+  skipped_tours?: number;
 }
 
 export interface BackupArtist {
@@ -714,7 +724,6 @@ export interface Band {
   slug: string;
   description: string | null;
   logo_url: string | null;
-  members_can_manage_setlists: boolean;
   /** `null` once the creator's account is deleted. */
   created_by: string | null;
   updated_by?: string | null;
@@ -769,7 +778,6 @@ export interface UpdateBandPayload {
   name?: string;
   description?: string | null;
   logo_url?: string | null;
-  members_can_manage_setlists?: boolean;
   /** 1..100, `null` turns automatic acceptance off. */
   suggestion_auto_accept_votes?: number | null;
 }
@@ -1104,7 +1112,6 @@ export interface AdminBandSummary {
   slug: string;
   description: string | null;
   logo_url: string | null;
-  members_can_manage_setlists: boolean;
   created_by: string | null;
   owner_id: string | null;
   owner_username: string | null;

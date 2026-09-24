@@ -2,8 +2,10 @@
  * Política de Cookies do Setlyst.
  *
  * Lista os cookies e o armazenamento local realmente usados pelo app
- * (next-auth, next-intl, next-themes, service worker, Dexie). Ao adicionar
- * um cookie novo, atualize esta lista. Deve ser revisada por um advogado
+ * (next-auth em produção, com os prefixos __Secure-/__Host-; next-intl;
+ * next-themes; lib/auth-flow.ts; hooks/use-*-prefs; service worker;
+ * Dexie). Ao adicionar um cookie ou uma chave de armazenamento, atualize
+ * esta lista e o histórico de versões. Deve ser revisada por um advogado
  * antes da publicação definitiva.
  */
 
@@ -30,11 +32,13 @@ export const COOKIES: LegalTexts = {
           "Sem estes cookies a plataforma não funciona. Eles dispensam consentimento, pois são indispensáveis à prestação do serviço que você solicitou:",
           {
             list: [
-              "Sessão (next-auth.session-token): mantém você conectado. Criptografado, expira com a sessão ou após o período de validade do login.",
-              "Proteção contra falsificação de requisições (next-auth.csrf-token): impede que outros sites façam ações em seu nome. Dura a sessão do navegador.",
-              "Endereço de retorno (next-auth.callback-url): lembra a página a que você deve voltar depois de entrar. Dura a sessão do navegador.",
+              "Sessão (__Secure-next-auth.session-token): mantém você conectado. Criptografado; vale por até 24 horas e é renovado enquanto você usa a plataforma.",
+              "Proteção contra falsificação de requisições (__Host-next-auth.csrf-token): impede que outros sites façam ações em seu nome. Dura a sessão do navegador.",
+              "Endereço de retorno (__Secure-next-auth.callback-url): lembra a página a que você deve voltar depois de entrar. Dura a sessão do navegador.",
+              "Login com Google (setlyst_google_intent, setlyst_google_signup, setlyst_google_2fa, setlyst_google_error, setlyst_google_link e os cookies de estado e PKCE do next-auth): guardam temporariamente as escolhas feitas antes de ir ao Google e o andamento do login ou da vinculação da conta Google. Duram até 15 minutos.",
               "Idioma (NEXT_LOCALE): guarda o idioma escolhido. Dura 1 ano.",
-              "Indicação (quando presente): guarda por pouco tempo o código de indicação usado no cadastro com Google, para creditar quem indicou você.",
+              "Fuso horário (tz): guarda o fuso horário do seu dispositivo, para exibir datas e horários corretamente. Dura 1 ano.",
+              "Indicação (setlyst_ref, quando presente): guarda o código de indicação de um link de convite, para creditar quem indicou você mesmo que o cadastro seja feito depois ou com Google. Dura 30 dias.",
             ],
           },
         ],
@@ -43,15 +47,18 @@ export const COOKIES: LegalTexts = {
         id: "preferences",
         heading: "Preferências e armazenamento local",
         blocks: [
-          "Usamos o armazenamento local do navegador para:",
+          "Usamos o armazenamento local (localStorage), o armazenamento de sessão (sessionStorage) e o banco de dados do navegador (IndexedDB) para:",
           {
             list: [
-              "Tema (claro, escuro ou do sistema) nas páginas públicas.",
-              "Conteúdo salvo para uso offline e fila de alterações feitas sem conexão, que são sincronizadas quando a conexão volta.",
+              "Tema claro, escuro ou do sistema (theme).",
+              "Preferências de exibição do Modo Ao Vivo (setlyst:live-display) e quantidade de itens por página nas listas (setlyst:page-size).",
+              "Registro de que a dica de gesto do Modo Ao Vivo já foi exibida (setlyst:live-swipe-hint-seen).",
+              "Avisos e banners dispensados (setlyst:email-banner-dismissed e setlyst-announcements-continued, no armazenamento de sessão, apagados ao fechar o navegador).",
+              "Banco de dados offline (setlyst-offline, no IndexedDB): conteúdo salvo para uso sem conexão e fila de alterações feitas sem conexão, que são sincronizadas quando a conexão volta.",
               "Arquivos da aplicação guardados pelo service worker, para abrir o app mais rápido e sem conexão.",
             ],
           },
-          "Esses dados ficam somente no seu dispositivo e são apagados quando você sai da conta.",
+          "Esses dados ficam somente no seu dispositivo e não são usados para identificar você nem para rastreamento. O banco de dados offline é apagado quando você sai da conta; as preferências permanecem até que você as altere ou limpe os dados do site no navegador.",
         ],
       },
       {
@@ -59,6 +66,7 @@ export const COOKIES: LegalTexts = {
         heading: "Estatísticas de acesso",
         blocks: [
           "Usamos o Vercel Web Analytics para contar visitas de forma agregada. Ele não usa cookies, não cria identificadores persistentes e não segue você entre sites.",
+          "Como o Setlyst usa apenas cookies e armazenamento estritamente necessários ou de preferência, sem ferramentas de publicidade ou rastreamento, não exibimos banner de consentimento de cookies, conforme o Guia Orientativo sobre Cookies da ANPD.",
         ],
       },
       {
@@ -98,11 +106,13 @@ export const COOKIES: LegalTexts = {
           "The platform does not work without these cookies. They do not require consent, as they are essential to provide the service you requested:",
           {
             list: [
-              "Session (next-auth.session-token): keeps you signed in. Encrypted; expires with the session or after the sign-in validity period.",
-              "Cross-site request forgery protection (next-auth.csrf-token): stops other sites from taking actions on your behalf. Lasts for the browser session.",
-              "Return address (next-auth.callback-url): remembers the page to return to after signing in. Lasts for the browser session.",
+              "Session (__Secure-next-auth.session-token): keeps you signed in. Encrypted; valid for up to 24 hours and renewed while you use the platform.",
+              "Cross-site request forgery protection (__Host-next-auth.csrf-token): stops other sites from taking actions on your behalf. Lasts for the browser session.",
+              "Return address (__Secure-next-auth.callback-url): remembers the page to return to after signing in. Lasts for the browser session.",
+              "Sign in with Google (setlyst_google_intent, setlyst_google_signup, setlyst_google_2fa, setlyst_google_error, setlyst_google_link and next-auth's state and PKCE cookies): temporarily store the choices made before going to Google and the progress of the sign-in or of linking the Google account. Last up to 15 minutes.",
               "Language (NEXT_LOCALE): stores the chosen language. Lasts 1 year.",
-              "Referral (when present): briefly stores the referral code used when signing up with Google, so the person who referred you is credited.",
+              "Time zone (tz): stores your device's time zone, so dates and times are shown correctly. Lasts 1 year.",
+              "Referral (setlyst_ref, when present): stores the referral code of an invitation link, so the person who referred you is credited even if you sign up later or with Google. Lasts 30 days.",
             ],
           },
         ],
@@ -111,15 +121,18 @@ export const COOKIES: LegalTexts = {
         id: "preferences",
         heading: "Preferences and local storage",
         blocks: [
-          "We use the browser's local storage for:",
+          "We use the browser's local storage (localStorage), session storage (sessionStorage) and database (IndexedDB) for:",
           {
             list: [
-              "Theme (light, dark or system) on the public pages.",
-              "Content saved for offline use and the queue of changes made without a connection, which are synced when the connection returns.",
+              "Light, dark or system theme (theme).",
+              "Live Mode display preferences (setlyst:live-display) and the number of items per page in lists (setlyst:page-size).",
+              "A record that the Live Mode swipe hint has been shown (setlyst:live-swipe-hint-seen).",
+              "Dismissed notices and banners (setlyst:email-banner-dismissed and setlyst-announcements-continued, in session storage, erased when the browser is closed).",
+              "Offline database (setlyst-offline, in IndexedDB): content saved for offline use and the queue of changes made without a connection, which are synced when the connection returns.",
               "Application files kept by the service worker, so the app opens faster and without a connection.",
             ],
           },
-          "This data stays only on your device and is erased when you sign out.",
+          "This data stays only on your device and is not used to identify or track you. The offline database is erased when you sign out; preferences remain until you change them or clear the site's data in your browser.",
         ],
       },
       {
@@ -127,6 +140,7 @@ export const COOKIES: LegalTexts = {
         heading: "Visit statistics",
         blocks: [
           "We use Vercel Web Analytics to count visits in aggregate. It does not use cookies, does not create persistent identifiers and does not follow you across sites.",
+          "As Setlyst only uses strictly necessary or preference cookies and storage, with no advertising or tracking tools, we do not show a cookie consent banner, in line with the ANPD's guidance on cookies.",
         ],
       },
       {
@@ -166,11 +180,13 @@ export const COOKIES: LegalTexts = {
           "La plataforma no funciona sin estas cookies. No requieren consentimiento, porque son indispensables para prestar el servicio que solicitaste:",
           {
             list: [
-              "Sesión (next-auth.session-token): mantiene tu sesión iniciada. Cifrada; caduca con la sesión o tras el período de validez del inicio de sesión.",
-              "Protección contra falsificación de peticiones (next-auth.csrf-token): impide que otros sitios realicen acciones en tu nombre. Dura la sesión del navegador.",
-              "Dirección de retorno (next-auth.callback-url): recuerda la página a la que volver tras iniciar sesión. Dura la sesión del navegador.",
+              "Sesión (__Secure-next-auth.session-token): mantiene tu sesión iniciada. Cifrada; vale hasta 24 horas y se renueva mientras usas la plataforma.",
+              "Protección contra falsificación de peticiones (__Host-next-auth.csrf-token): impide que otros sitios realicen acciones en tu nombre. Dura la sesión del navegador.",
+              "Dirección de retorno (__Secure-next-auth.callback-url): recuerda la página a la que volver tras iniciar sesión. Dura la sesión del navegador.",
+              "Inicio de sesión con Google (setlyst_google_intent, setlyst_google_signup, setlyst_google_2fa, setlyst_google_error, setlyst_google_link y las cookies de estado y PKCE de next-auth): guardan temporalmente las opciones elegidas antes de ir a Google y el avance del inicio de sesión o de la vinculación de la cuenta de Google. Duran hasta 15 minutos.",
               "Idioma (NEXT_LOCALE): guarda el idioma elegido. Dura 1 año.",
-              "Recomendación (cuando existe): guarda durante poco tiempo el código de recomendación usado al registrarte con Google, para acreditar a quien te recomendó.",
+              "Zona horaria (tz): guarda la zona horaria de tu dispositivo, para mostrar fechas y horas correctamente. Dura 1 año.",
+              "Recomendación (setlyst_ref, cuando existe): guarda el código de recomendación de un enlace de invitación, para acreditar a quien te recomendó aunque te registres más tarde o con Google. Dura 30 días.",
             ],
           },
         ],
@@ -179,15 +195,18 @@ export const COOKIES: LegalTexts = {
         id: "preferences",
         heading: "Preferencias y almacenamiento local",
         blocks: [
-          "Usamos el almacenamiento local del navegador para:",
+          "Usamos el almacenamiento local (localStorage), el almacenamiento de sesión (sessionStorage) y la base de datos del navegador (IndexedDB) para:",
           {
             list: [
-              "Tema (claro, oscuro o del sistema) en las páginas públicas.",
-              "Contenido guardado para uso sin conexión y cola de cambios hechos sin conexión, que se sincronizan cuando vuelve la conexión.",
+              "Tema claro, oscuro o del sistema (theme).",
+              "Preferencias de visualización del Modo en vivo (setlyst:live-display) y cantidad de elementos por página en las listas (setlyst:page-size).",
+              "Registro de que la sugerencia de gesto del Modo en vivo ya se mostró (setlyst:live-swipe-hint-seen).",
+              "Avisos y banners descartados (setlyst:email-banner-dismissed y setlyst-announcements-continued, en el almacenamiento de sesión, que se borran al cerrar el navegador).",
+              "Base de datos sin conexión (setlyst-offline, en IndexedDB): contenido guardado para uso sin conexión y cola de cambios hechos sin conexión, que se sincronizan cuando vuelve la conexión.",
               "Archivos de la aplicación guardados por el service worker, para abrir la app más rápido y sin conexión.",
             ],
           },
-          "Estos datos quedan solo en tu dispositivo y se borran al cerrar sesión.",
+          "Estos datos quedan solo en tu dispositivo y no se usan para identificarte ni para seguimiento. La base de datos sin conexión se borra al cerrar sesión; las preferencias permanecen hasta que las cambies o borres los datos del sitio en el navegador.",
         ],
       },
       {
@@ -195,6 +214,7 @@ export const COOKIES: LegalTexts = {
         heading: "Estadísticas de visitas",
         blocks: [
           "Usamos Vercel Web Analytics para contar las visitas de forma agregada. No usa cookies, no crea identificadores persistentes y no te sigue entre sitios.",
+          "Como Setlyst solo usa cookies y almacenamiento estrictamente necesarios o de preferencias, sin herramientas publicitarias ni de seguimiento, no mostramos un banner de consentimiento de cookies, conforme a la guía orientativa sobre cookies de la ANPD.",
         ],
       },
       {

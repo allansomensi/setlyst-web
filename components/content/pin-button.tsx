@@ -99,7 +99,7 @@ export function PinButton({
           aria-label={label}
           data-no-row-click
           className={cn(
-            "h-8 w-8 shrink-0",
+            "shrink-0",
             optimistic ? "text-primary" : "text-muted-foreground",
             className,
           )}

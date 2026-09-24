@@ -29,6 +29,7 @@ import {
   DEFAULT_PDF_OPTIONS,
   MAX_SUBTITLE_LENGTH,
   pdfOptionsToQuery,
+  withoutLyrics,
   type PdfExportOptions,
 } from "@/lib/pdf-export-options";
 import { useDownload } from "@/hooks/use-download";
@@ -43,6 +44,12 @@ interface ExportPdfDialogProps {
   endpoint: string;
   /** Offer "save as my default" (signed-in exports only). */
   canSaveDefault?: boolean;
+  /**
+   * Public share page: no lyrics, chords or songbook options (a public
+   * link's PDF never carries lyrics), with `publicNotice` explaining it.
+   */
+  publicLink?: boolean;
+  publicNotice?: string;
   setlistTitle: string;
   isOpen: boolean;
   onClose: () => void;
@@ -74,6 +81,8 @@ export function ExportPdfDialog(props: ExportPdfDialogProps) {
 function ExportForm({
   endpoint,
   canSaveDefault = false,
+  publicLink = false,
+  publicNotice,
   setlistTitle,
   onClose,
 }: ExportPdfDialogProps) {
@@ -84,7 +93,11 @@ function ExportForm({
   const download = useDownload();
 
   const [isPending, startTransition] = useTransition();
-  const [options, setOptions] = useState<PdfExportOptions>(settings.pdf);
+  const [options, setOptionsState] = useState<PdfExportOptions>(() =>
+    publicLink ? withoutLyrics(settings.pdf) : settings.pdf,
+  );
+  const setOptions = (next: PdfExportOptions) =>
+    setOptionsState(publicLink ? withoutLyrics(next) : next);
   const [language, setLanguage] = useState<AppLocale>(
     isAppLocale(locale) ? locale : "en",
   );
@@ -115,6 +128,11 @@ function ExportForm({
       <DialogHeader>
         <DialogTitle>{t("title")}</DialogTitle>
         <DialogDescription>{t("description")}</DialogDescription>
+        {publicLink && publicNotice && (
+          <p className="text-muted-foreground bg-muted/50 rounded-md border px-3 py-2 text-xs">
+            {publicNotice}
+          </p>
+        )}
       </DialogHeader>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -166,6 +184,7 @@ function ExportForm({
         value={options}
         onChange={setOptions}
         disabled={isPending}
+        allowLyrics={!publicLink}
       />
 
       <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

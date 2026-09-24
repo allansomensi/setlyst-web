@@ -1,7 +1,9 @@
 "use server";
 
 import { fetchServerApi } from "@/lib/api-server";
-import { guardedAction } from "@/lib/action-guard";
+import { guardedAction, invalidRequest } from "@/lib/action-guard";
+import { apiPath } from "@/lib/api-endpoint";
+import { isUuid } from "@/lib/uuid";
 import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 
@@ -27,11 +29,8 @@ export async function createArtist(data: { name: string }) {
 }
 
 export async function updateArtist(id: string, data: { name: string }) {
+  if (!isUuid(id)) return invalidRequest();
   const t = await getTranslations("artists.errors");
-
-  if (!id) {
-    return { success: false, error: t("invalidId") };
-  }
 
   const name = data.name?.trim();
   if (!name || name.length < 1 || name.length > 255) {
@@ -43,7 +42,7 @@ export async function updateArtist(id: string, data: { name: string }) {
 
   return guardedAction(
     () =>
-      fetchServerApi(`/artists/${id}`, {
+      fetchServerApi(apiPath`/artists/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ name }),
       }),
@@ -53,14 +52,10 @@ export async function updateArtist(id: string, data: { name: string }) {
 }
 
 export async function deleteArtist(id: string) {
-  const t = await getTranslations("artists.errors");
-
-  if (!id) {
-    return { success: false, error: t("invalidId") };
-  }
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/artists/${id}`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/artists/${id}`, { method: "DELETE" }),
     // Deleting an artist takes its songs with it.
     () => revalidateDashboard("", "layout"),
   );

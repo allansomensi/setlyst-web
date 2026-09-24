@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { Setlist } from "@/types/api";
+import { QuotaReport, Setlist } from "@/types/api";
 import {
   deleteSetlist,
   duplicateSetlist,
@@ -33,14 +33,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  QuotaChip,
+  QuotaLimitNotice,
+  quotaState,
+  quotaUsageOf,
+} from "@/components/quota-usage-list";
 import {
   MoreHorizontal,
   Plus,
@@ -52,6 +52,7 @@ import {
   Copy,
   Star,
   Library,
+  SearchX,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
@@ -89,6 +90,11 @@ interface SetlistsTableProps {
    * empty account. See components/load-error-notice.tsx.
    */
   loadError?: boolean;
+  /**
+   * `GET /users/me/quotas`, for the usage chip next to "New setlist"
+   * (personal setlists only; a band's limit is per band).
+   */
+  quotas?: QuotaReport | null;
 }
 
 export function SetlistsTable({
@@ -96,6 +102,7 @@ export function SetlistsTable({
   bandId,
   bandsById,
   loadError,
+  quotas = null,
 }: SetlistsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -103,6 +110,8 @@ export function SetlistsTable({
   const tCommon = useTranslations("common");
   const tTrash = useTranslations("trash");
   const repertoireName = t("repertoire.name");
+  const quota = bandId ? null : quotaUsageOf(quotas, "setlists");
+  const quotaFull = quotaState(quota).full;
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -220,11 +229,19 @@ export function SetlistsTable({
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("addSetlist")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <QuotaChip usage={quota} resource="setlists" />
+          <Button
+            onClick={() => handleOpenDialog()}
+            {...offlineDisabled}
+            disabled={offlineDisabled.disabled || quotaFull}
+          >
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
+            {t("addSetlist")}
+          </Button>
+        </div>
       </div>
+      <QuotaLimitNotice usage={quota} resource="setlists" className="-mt-3" />
 
       {/* Search */}
       <SearchInput
@@ -277,10 +294,33 @@ export function SetlistsTable({
                       copy is worth showing as one — see isFromCache. */}
                   {loadError && !isFromCache ? (
                     <LoadErrorNotice />
+                  ) : search ? (
+                    <EmptyState
+                      compact
+                      icon={SearchX}
+                      title={t("emptySearch", { search })}
+                      actions={
+                        <Button variant="outline" onClick={() => setSearch("")}>
+                          {tCommon("clearSearch")}
+                        </Button>
+                      }
+                    />
                   ) : (
-                    <span className="text-muted-foreground">
-                      {search ? t("emptySearch", { search }) : t("empty")}
-                    </span>
+                    <EmptyState
+                      icon={ListMusic}
+                      title={t("emptyState.title")}
+                      description={t("emptyState.description")}
+                      actions={
+                        <Button
+                          onClick={() => handleOpenDialog()}
+                          {...offlineDisabled}
+                          disabled={offlineDisabled.disabled || quotaFull}
+                        >
+                          <Plus className="mr-2 h-4 w-4" aria-hidden />
+                          {t("addSetlist")}
+                        </Button>
+                      }
+                    />
                   )}
                 </TableCell>
               </TableRow>
@@ -392,7 +432,7 @@ export function SetlistsTable({
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="h-8 w-8 p-0"
+                              size="icon"
                               onClick={(e) => e.stopPropagation()}
                               aria-label={tCommon("moreActionsFor", {
                                 name: setlist.title,
@@ -460,17 +500,11 @@ export function SetlistsTable({
 
       <TablePagination
         currentPage={currentPage}
-
         totalPages={totalPages}
-
         setCurrentPage={setCurrentPage}
-
         totalItems={totalItems}
-
         pageSize={pageSize}
-
         setPageSize={setPageSize}
-
         search={search}
       />
 
@@ -481,37 +515,17 @@ export function SetlistsTable({
         bandId={editingSetlist ? (editingSetlist.band_id ?? undefined) : bandId}
       />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!setlistToDelete}
         onOpenChange={(open) => !open && setSetlistToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("dialog.deleteConfirm", {
-                title: setlistToDelete?.title ?? "",
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setSetlistToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {t("dialog.moveToTrash")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteConfirm", {
+          title: setlistToDelete?.title ?? "",
+        })}
+        confirmLabel={t("dialog.moveToTrash")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </div>
   );
 }

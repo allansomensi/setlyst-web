@@ -136,3 +136,15 @@ export const STATUS_TONES: Record<PromoCodeStatus | PromotionStatus, string> = {
   disabled: "border-border bg-muted text-muted-foreground",
   inactive: "border-border bg-muted text-muted-foreground",
 };
+
+/** What a staff refund returned (`POST /admin/users/{id}/subscription/refund`). */
+export interface StaffRefundResult {
+  /** Minor units refunded to the card. */
+  refunded_cents: number;
+  /** ISO 4217, lower case (`brl`). */
+  currency: string;
+}
+
+/** Bounds of a staff refund's reason (kept in the audit log). */
+export const REFUND_REASON_MIN = 3;
+export const REFUND_REASON_MAX = 500;

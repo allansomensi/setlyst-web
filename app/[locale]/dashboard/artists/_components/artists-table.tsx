@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Artist } from "@/types/api";
+import { Artist, QuotaReport } from "@/types/api";
 import { deleteArtist } from "../actions";
 import { ArtistDialog } from "./artist-dialog";
 import { SearchInput } from "@/components/ui/search-input";
@@ -23,15 +23,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
+  QuotaChip,
+  QuotaLimitNotice,
+  quotaState,
+  quotaUsageOf,
+} from "@/components/quota-usage-list";
+import { useOfflineDisabled } from "@/components/offline-disabled";
+import {
+  Disc3,
+  MoreHorizontal,
+  Plus,
+  Pencil,
+  SearchX,
+  Trash2,
+} from "lucide-react";
 import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
@@ -41,12 +49,20 @@ const SEARCHABLE_KEYS = ["name"] as const;
 
 interface ArtistsTableProps {
   initialArtists: Artist[];
+  /** `GET /users/me/quotas`, for the usage chip next to "New artist". */
+  quotas?: QuotaReport | null;
 }
 
-export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
+export function ArtistsTable({
+  initialArtists,
+  quotas = null,
+}: ArtistsTableProps) {
   const t = useTranslations("artists");
   const tCommon = useTranslations("common");
   const tTrash = useTranslations("trash");
+  const offlineDisabled = useOfflineDisabled();
+  const quota = quotaUsageOf(quotas, "artists");
+  const quotaFull = quotaState(quota).full;
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -105,11 +121,19 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("addArtist")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <QuotaChip usage={quota} resource="artists" />
+          <Button
+            onClick={() => handleOpenDialog()}
+            {...offlineDisabled}
+            disabled={offlineDisabled.disabled || quotaFull}
+          >
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
+            {t("addArtist")}
+          </Button>
+        </div>
       </div>
+      <QuotaLimitNotice usage={quota} resource="artists" className="-mt-3" />
 
       {/* Search */}
       <SearchInput
@@ -144,11 +168,35 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
           <TableBody>
             {artists.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={3}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {search ? t("emptySearch", { search }) : t("empty")}
+                <TableCell colSpan={3} className="h-24 text-center">
+                  {search ? (
+                    <EmptyState
+                      compact
+                      icon={SearchX}
+                      title={t("emptySearch", { search })}
+                      actions={
+                        <Button variant="outline" onClick={() => setSearch("")}>
+                          {tCommon("clearSearch")}
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <EmptyState
+                      icon={Disc3}
+                      title={t("emptyState.title")}
+                      description={t("emptyState.description")}
+                      actions={
+                        <Button
+                          onClick={() => handleOpenDialog()}
+                          {...offlineDisabled}
+                          disabled={offlineDisabled.disabled || quotaFull}
+                        >
+                          <Plus className="mr-2 h-4 w-4" aria-hidden />
+                          {t("addArtist")}
+                        </Button>
+                      }
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
@@ -163,7 +211,7 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-8 w-8 p-0"
+                          size="icon"
                           aria-label={tCommon("moreActionsFor", {
                             name: artist.name,
                           })}
@@ -197,17 +245,11 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
 
       <TablePagination
         currentPage={currentPage}
-
         totalPages={totalPages}
-
         setCurrentPage={setCurrentPage}
-
         totalItems={totalItems}
-
         pageSize={pageSize}
-
         setPageSize={setPageSize}
-
         search={search}
       />
 
@@ -217,33 +259,15 @@ export function ArtistsTable({ initialArtists }: ArtistsTableProps) {
         artist={editingArtist}
       />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!artistToDelete}
         onOpenChange={(open) => !open && setArtistToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
-            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setArtistToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {tCommon("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteConfirm")}
+        confirmLabel={tCommon("delete")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </div>
   );
 }

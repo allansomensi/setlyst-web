@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import {
   CalendarDays,
   ChevronRight,
@@ -26,10 +26,12 @@ export default async function ProfilePage() {
   const user = await getMe();
   const t = await getTranslations("profile");
   const locale = await getLocale();
+  const timeZone = await getTimeZone();
 
   const { inCooldown, cooldownDate } = getUsernameCooldownInfo(
     user.username_changed_at,
     locale,
+    timeZone,
   );
   const displayName =
     [user.first_name, user.last_name].filter(Boolean).join(" ") ||

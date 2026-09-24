@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { DiscardChangesDialog } from "@/components/ui/discard-changes-dialog";
+import { useDialogCloseGuard } from "@/hooks/use-dialog-close-guard";
+import { FieldError } from "@/components/ui/field-error";
+import { fieldA11y, focusFirstError, type FieldErrors } from "@/lib/forms";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Gig, GigStatus, Setlist } from "@/types/api";
@@ -91,6 +95,12 @@ function initialState(
   } satisfies GigFormState;
 }
 
+type GigField = "venue" | "scheduledAt";
+const FIELD_ORDER = [
+  { key: "venue", id: "gig-venue" },
+  { key: "scheduledAt", id: "gig-scheduled-at" },
+] as const satisfies readonly { key: GigField; id: string }[];
+
 /**
  * Creates or edits a gig.
  *
@@ -117,10 +127,22 @@ export function GigDialog({
   const [form, setForm] = useState<GigFormState>(() =>
     initialState(gig, fixedBandId, initialTourId),
   );
+  const [initialForm] = useState<GigFormState>(() =>
+    initialState(gig, fixedBandId, initialTourId),
+  );
   const isEditing = !!gig;
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const closeGuard = useDialogCloseGuard({ isDirty, isPending, onClose });
+  const [errors, setErrors] = useState<FieldErrors<GigField>>({});
+  const tErrors = useTranslations("gigs.errors");
 
-  const set = <K extends keyof GigFormState>(key: K, value: GigFormState[K]) =>
+  const set = <K extends keyof GigFormState>(
+    key: K,
+    value: GigFormState[K],
+  ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    if (key in errors) setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
 
   const setlistOptions =
     form.scope === ""
@@ -132,6 +154,19 @@ export function GigDialog({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isPending) return;
+
+    const nextErrors: FieldErrors<GigField> = {};
+    if (!form.venue.trim()) nextErrors.venue = t("venueRequired");
+    if (!form.scheduledAt) {
+      nextErrors.scheduledAt = tErrors("scheduledAtRequired");
+    }
+    if (nextErrors.venue || nextErrors.scheduledAt) {
+      setErrors(nextErrors);
+      focusFirstError(nextErrors, FIELD_ORDER);
+      return;
+    }
+    setErrors({});
 
     startTransition(async () => {
       const result = isEditing
@@ -170,176 +205,188 @@ export function GigDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>
-              {isEditing ? t("editTitle") : t("addTitle")}
-            </DialogTitle>
-            <DialogDescription>{t("description")}</DialogDescription>
-          </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={closeGuard.onOpenChange}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+          <form onSubmit={handleSubmit} noValidate>
+            <DialogHeader>
+              <DialogTitle>
+                {isEditing ? t("editTitle") : t("addTitle")}
+              </DialogTitle>
+              <DialogDescription>{t("description")}</DialogDescription>
+            </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="gig-venue">{t("venueLabel")} *</Label>
-              <Input
-                id="gig-venue"
-                value={form.venue}
-                onChange={(e) => set("venue", e.target.value)}
-                required
-                disabled={isPending}
-                maxLength={255}
-                placeholder={t("venuePlaceholder")}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gig-location">{t("locationLabel")}</Label>
-              <Input
-                id="gig-location"
-                value={form.location}
-                onChange={(e) => set("location", e.target.value)}
-                disabled={isPending}
-                maxLength={500}
-                placeholder={t("locationPlaceholder")}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="gig-scheduled-at">
-                  {t("scheduledAtLabel")} *
-                </Label>
+                <Label htmlFor="gig-venue">{t("venueLabel")} *</Label>
                 <Input
-                  id="gig-scheduled-at"
-                  type="datetime-local"
-                  value={form.scheduledAt}
-                  onChange={(e) => set("scheduledAt", e.target.value)}
+                  id="gig-venue"
+                  value={form.venue}
+                  onChange={(e) => set("venue", e.target.value)}
                   required
+                  aria-required
                   disabled={isPending}
+                  maxLength={255}
+                  placeholder={t("venuePlaceholder")}
+                  {...fieldA11y("gig-venue", errors.venue)}
+                />
+                <FieldError fieldId="gig-venue" message={errors.venue} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gig-location">{t("locationLabel")}</Label>
+                <Input
+                  id="gig-location"
+                  value={form.location}
+                  onChange={(e) => set("location", e.target.value)}
+                  disabled={isPending}
+                  maxLength={500}
+                  placeholder={t("locationPlaceholder")}
                 />
               </div>
 
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="gig-scheduled-at">
+                    {t("scheduledAtLabel")} *
+                  </Label>
+                  <Input
+                    id="gig-scheduled-at"
+                    type="datetime-local"
+                    value={form.scheduledAt}
+                    onChange={(e) => set("scheduledAt", e.target.value)}
+                    required
+                    aria-required
+                    disabled={isPending}
+                    {...fieldA11y("gig-scheduled-at", errors.scheduledAt)}
+                  />
+                  <FieldError
+                    fieldId="gig-scheduled-at"
+                    message={errors.scheduledAt}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gig-status">{t("statusLabel")}</Label>
+                  <NativeSelect
+                    id="gig-status"
+                    value={form.status}
+                    onChange={(e) => set("status", e.target.value as GigStatus)}
+                    disabled={isPending}
+                  >
+                    {STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {t(`status.${status}`)}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </div>
+              </div>
+
+              {!fixedBandId && !isEditing && bands.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="gig-band">{t("bandLabel")}</Label>
+                  <NativeSelect
+                    id="gig-band"
+                    value={form.scope}
+                    onChange={(e) =>
+                      // A setlist of the previous scope can't be linked.
+                      setForm((prev) => ({
+                        ...prev,
+                        scope: e.target.value,
+                        setlistId: "",
+                        tourId: "",
+                      }))
+                    }
+                    disabled={isPending}
+                  >
+                    <option value="">{t("personalOption")}</option>
+                    {bands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="gig-status">{t("statusLabel")}</Label>
+                <Label htmlFor="gig-setlist">{t("setlistLabel")}</Label>
                 <NativeSelect
-                  id="gig-status"
-                  value={form.status}
-                  onChange={(e) => set("status", e.target.value as GigStatus)}
+                  id="gig-setlist"
+                  value={form.setlistId}
+                  onChange={(e) => set("setlistId", e.target.value)}
                   disabled={isPending}
                 >
-                  {STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {t(`status.${status}`)}
+                  <option value="">{t("noSetlistOption")}</option>
+                  {setlistOptions.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.is_repertoire ? tRepertoire("name") : s.title}
                     </option>
                   ))}
                 </NativeSelect>
+              </div>
+
+              {(tourOptions.length > 0 || form.tourId) && (
+                <div className="space-y-2">
+                  <Label htmlFor="gig-tour">{t("tourLabel")}</Label>
+                  <NativeSelect
+                    id="gig-tour"
+                    value={form.tourId}
+                    onChange={(e) => set("tourId", e.target.value)}
+                    disabled={isPending}
+                  >
+                    <option value="">{t("noTourOption")}</option>
+                    {tourOptions.map((tour) => (
+                      <option key={tour.id} value={tour.id}>
+                        {tour.name}
+                      </option>
+                    ))}
+                    {form.tourId &&
+                      !tourOptions.some((tour) => tour.id === form.tourId) && (
+                        <option value={form.tourId}>
+                          {gig?.tour_name ?? t("currentTour")}
+                        </option>
+                      )}
+                  </NativeSelect>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="gig-notes">{t("notesLabel")}</Label>
+                <Textarea
+                  id="gig-notes"
+                  value={form.notes}
+                  onChange={(e) => set("notes", e.target.value)}
+                  disabled={isPending}
+                  placeholder={t("notesPlaceholder")}
+                  rows={3}
+                  maxLength={2000}
+                  className="min-h-20"
+                />
               </div>
             </div>
 
-            {!fixedBandId && !isEditing && bands.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="gig-band">{t("bandLabel")}</Label>
-                <NativeSelect
-                  id="gig-band"
-                  value={form.scope}
-                  onChange={(e) =>
-                    // A setlist of the previous scope can't be linked.
-                    setForm((prev) => ({
-                      ...prev,
-                      scope: e.target.value,
-                      setlistId: "",
-                      tourId: "",
-                    }))
-                  }
-                  disabled={isPending}
-                >
-                  <option value="">{t("personalOption")}</option>
-                  {bands.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="gig-setlist">{t("setlistLabel")}</Label>
-              <NativeSelect
-                id="gig-setlist"
-                value={form.setlistId}
-                onChange={(e) => set("setlistId", e.target.value)}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeGuard.requestClose}
                 disabled={isPending}
               >
-                <option value="">{t("noSetlistOption")}</option>
-                {setlistOptions.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.is_repertoire ? tRepertoire("name") : s.title}
-                  </option>
-                ))}
-              </NativeSelect>
-            </div>
-
-            {(tourOptions.length > 0 || form.tourId) && (
-              <div className="space-y-2">
-                <Label htmlFor="gig-tour">{t("tourLabel")}</Label>
-                <NativeSelect
-                  id="gig-tour"
-                  value={form.tourId}
-                  onChange={(e) => set("tourId", e.target.value)}
-                  disabled={isPending}
-                >
-                  <option value="">{t("noTourOption")}</option>
-                  {tourOptions.map((tour) => (
-                    <option key={tour.id} value={tour.id}>
-                      {tour.name}
-                    </option>
-                  ))}
-                  {form.tourId &&
-                    !tourOptions.some((tour) => tour.id === form.tourId) && (
-                      <option value={form.tourId}>
-                        {gig?.tour_name ?? t("currentTour")}
-                      </option>
-                    )}
-                </NativeSelect>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="gig-notes">{t("notesLabel")}</Label>
-              <Textarea
-                id="gig-notes"
-                value={form.notes}
-                onChange={(e) => set("notes", e.target.value)}
-                disabled={isPending}
-                placeholder={t("notesPlaceholder")}
-                rows={3}
-                maxLength={2000}
-                className="min-h-20"
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              )}
-              {tCommon("save")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+                {tCommon("cancel")}
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                )}
+                {tCommon("save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <DiscardChangesDialog {...closeGuard.discard} />
+    </>
   );
 }

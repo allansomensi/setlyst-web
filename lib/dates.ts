@@ -12,6 +12,31 @@
  */
 
 const HAS_ZONE = /(Z|[+-]\d{2}:?\d{2})$/i;
+
+/**
+ * The zone dates are shown in when the viewer's is unknown (a first
+ * visit, before the browser reported its own): the primary market's.
+ */
+export const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
+
+/** Cookie holding the browser's IANA time zone (see TimeZoneCookie). */
+export const TIME_ZONE_COOKIE = "tz";
+
+/**
+ * `value` when it is an IANA time zone this runtime knows, otherwise null.
+ * Cookie input, so length and characters are checked before `Intl` sees it.
+ */
+export function validTimeZone(value: string | null | undefined): string | null {
+  if (typeof value !== "string" || value.length > 64) return null;
+  if (!/^[A-Za-z0-9_+\-/]+$/.test(value)) return null;
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: value,
+    }).resolvedOptions().timeZone;
+  } catch {
+    return null;
+  }
+}
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -48,13 +73,22 @@ export function formatApiDay(
   return formatApiDate(value, locale, { ...options, timeZone: "UTC" });
 }
 
+/**
+ * Date and time of a server timestamp. Pass `timeZone` wherever the code
+ * may run on the server (server components, server actions): the server's
+ * own zone is UTC and would be hours off for the viewer. Server code gets
+ * it from next-intl (`getTimeZone()` / `useTimeZone()`), which reads the
+ * viewer's zone from the `tz` cookie (i18n/request.ts).
+ */
 export function formatApiDateTime(
   value: string | null | undefined,
   locale: string,
+  timeZone?: string,
 ): string {
   return formatApiDate(value, locale, {
     dateStyle: "medium",
     timeStyle: "short",
+    ...(timeZone ? { timeZone } : {}),
   });
 }
 

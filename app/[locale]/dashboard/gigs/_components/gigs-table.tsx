@@ -2,7 +2,18 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { Gig, GigStatus, Setlist } from "@/types/api";
+import { Gig, GigStatus, QuotaReport, Setlist } from "@/types/api";
+import { useSearchParams } from "next/navigation";
+import { useSyncSearchParams } from "@/hooks/use-url-state";
+import { foldForSearch } from "@/lib/search";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import {
+  QuotaChip,
+  QuotaLimitNotice,
+  quotaState,
+  quotaUsageOf,
+} from "@/components/quota-usage-list";
 import { deleteGig } from "../actions";
 import { GigDialog, BandOption, TourOption } from "./gigs-dialog";
 import { PinButton } from "@/components/content/pin-button";
@@ -29,14 +40,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   MoreHorizontal,
   Plus,
   Pencil,
@@ -45,6 +48,8 @@ import {
   ChevronRight,
   Guitar,
   Calendar,
+  CalendarPlus,
+  SearchX,
 } from "lucide-react";
 import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
@@ -78,6 +83,11 @@ interface GigsTableProps {
   tours?: TourOption[];
   /** Only gigs of this tour (`?tour_id=`), with a way to clear it. */
   tourFilter?: { id: string; name: string } | null;
+  /**
+   * `GET /users/me/quotas`, for the usage chip next to "New show"
+   * (personal shows only; a band's limit is per band).
+   */
+  quotas?: QuotaReport | null;
 }
 
 const STATUS_VARIANT: Record<
@@ -98,6 +108,7 @@ export function GigsTable({
   loadError,
   tours = [],
   tourFilter = null,
+  quotas = null,
 }: GigsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -107,7 +118,12 @@ export function GigsTable({
   const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
-  const [search, setSearch] = useState("");
+  // In the URL (`?q=`), so Back from a show returns to the same search.
+  const initialSearch = useSearchParams()?.get("q") ?? "";
+  const [search, setSearch] = useState(initialSearch);
+  useSyncSearchParams({ q: search.trim() || null });
+  const quota = fixedBandId ? null : quotaUsageOf(quotas, "gigs");
+  const quotaFull = quotaState(quota).full;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGig, setEditingGig] = useState<Gig | null>(null);
   // Part of the dialog's key: every open starts from the gig's saved
@@ -123,18 +139,16 @@ export function GigsTable({
   });
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    // Accent- and case-insensitive, like every other search box.
+    const q = foldForSearch(search.trim());
     const inTour = tourFilter
       ? availableGigs.filter((gig) => gig.tour_id === tourFilter.id)
       : availableGigs;
     if (!q) return inTour;
     return inTour.filter((gig) => {
       const bandName = gig.band_id ? bandsById[gig.band_id]?.name : "";
-      return (
-        gig.venue.toLowerCase().includes(q) ||
-        (gig.notes ?? "").toLowerCase().includes(q) ||
-        (bandName ?? "").toLowerCase().includes(q) ||
-        (gig.tour_name ?? "").toLowerCase().includes(q)
+      return [gig.venue, gig.location, gig.notes, bandName, gig.tour_name].some(
+        (value) => foldForSearch(value ?? "").includes(q),
       );
     });
   }, [availableGigs, search, bandsById, tourFilter]);
@@ -260,7 +274,7 @@ export function GigsTable({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 p-0"
+                  size="icon"
                   onClick={(e) => e.stopPropagation()}
                   aria-label={tCommon("moreActionsFor", { name: gig.venue })}
                 >
@@ -314,11 +328,19 @@ export function GigsTable({
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("addGig")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <QuotaChip usage={quota} resource="gigs" />
+          <Button
+            onClick={() => handleOpenDialog()}
+            {...offlineDisabled}
+            disabled={offlineDisabled.disabled || quotaFull}
+          >
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
+            {t("addGig")}
+          </Button>
+        </div>
       </div>
+      <QuotaLimitNotice usage={quota} resource="gigs" className="-mt-3" />
 
       {tourFilter && (
         <div className="bg-primary/5 border-primary/30 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm">
@@ -368,10 +390,33 @@ export function GigsTable({
                 <TableCell colSpan={4} className="h-24 text-center">
                   {loadError && !isFromCache ? (
                     <LoadErrorNotice />
+                  ) : search ? (
+                    <EmptyState
+                      compact
+                      icon={SearchX}
+                      title={t("emptySearch", { search })}
+                      actions={
+                        <Button variant="outline" onClick={() => setSearch("")}>
+                          {tCommon("clearSearch")}
+                        </Button>
+                      }
+                    />
                   ) : (
-                    <span className="text-muted-foreground">
-                      {search ? t("emptySearch", { search }) : t("empty")}
-                    </span>
+                    <EmptyState
+                      icon={CalendarPlus}
+                      title={t("emptyState.title")}
+                      description={t("emptyState.description")}
+                      actions={
+                        <Button
+                          onClick={() => handleOpenDialog()}
+                          {...offlineDisabled}
+                          disabled={offlineDisabled.disabled || quotaFull}
+                        >
+                          <Plus className="mr-2 h-4 w-4" aria-hidden />
+                          {t("addGig")}
+                        </Button>
+                      }
+                    />
                   )}
                 </TableCell>
               </TableRow>
@@ -431,33 +476,15 @@ export function GigsTable({
         initialTourId={tourFilter?.id}
       />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!gigToDelete}
         onOpenChange={(open) => !open && setGigToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
-            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setGigToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {tCommon("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteConfirm")}
+        confirmLabel={tCommon("delete")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </div>
   );
 }

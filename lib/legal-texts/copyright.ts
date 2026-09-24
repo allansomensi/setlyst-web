@@ -1,13 +1,16 @@
 /*
- * Política de Direitos Autorais do Setlyst (Lei 9.610/1998 e Marco Civil
- * da Internet, arts. 19 a 21).
+ * Política de Direitos Autorais do Setlyst (Lei 9.610/1998; Marco Civil
+ * da Internet, arts. 19, § 2º, 21 e 31; STF, Temas 987 e 533).
  *
  * O procedimento de retirada usa o bloqueio de compartilhamento já
- * existente (share lock da Equipe). Deve ser revisado por um advogado
- * antes da publicação definitiva.
+ * existente (share lock da Equipe), com prazo de 2 dias úteis. Links
+ * públicos e os seus PDFs nunca incluem letras nem cifras (a API força
+ * `include_lyrics=false` no PDF público). O canal de notificação é
+ * `COPYRIGHT_EMAIL` (NEXT_PUBLIC_COPYRIGHT_EMAIL). Deve ser revisado por
+ * um advogado antes da publicação definitiva.
  */
 
-import { SUPPORT_EMAIL } from "@/lib/links";
+import { COPYRIGHT_EMAIL } from "@/lib/legal";
 import type { LegalTexts } from "./types";
 
 export const COPYRIGHT: LegalTexts = {
@@ -44,7 +47,8 @@ export const COPYRIGHT: LegalTexts = {
         id: "public-sharing",
         heading: "Compartilhamento público",
         blocks: [
-          "Links públicos tornam o conteúdo acessível a qualquer pessoa. Antes de gerar um link público com letras ou cifras de terceiros, verifique se você tem autorização para isso. Uma alternativa é compartilhar apenas a ordem das músicas, sem letras.",
+          "Links públicos exibem apenas a ordem das músicas e informações técnicas (título, artista, tom, andamento e duração), sem letras nem cifras, e o PDF que pode ser baixado a partir de um link público também não as inclui. Assim, o Setlyst não reproduz nem comunica ao público, por meio de links públicos, as letras e cifras inseridas pelos usuários.",
+          "Campos de texto livre exibidos em links públicos, como a descrição da setlist, não devem conter letras nem cifras de terceiros; conteúdo nessa situação pode ser retirado conforme esta Política.",
           "Dentro de uma banda, o conteúdo é visível somente aos integrantes, conforme as permissões definidas.",
         ],
       },
@@ -52,7 +56,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "notice",
         heading: "Notificação de infração",
         blocks: [
-          `O titular de direitos, ou quem o represente, pode notificar o Setlyst pelo e-mail ${SUPPORT_EMAIL}, com o assunto “Direitos autorais”. Para que possamos localizar o conteúdo de forma inequívoca e analisar o pedido, a notificação deve conter:`,
+          `O titular de direitos, ou quem o represente, pode notificar o Setlyst pelo canal dedicado ${COPYRIGHT_EMAIL}, permanentemente disponível, com o assunto “Direitos autorais”. A página de Contato e a opção “Denunciar conteúdo” dos links públicos levam a esse canal. Para que possamos localizar o conteúdo de forma inequívoca e analisar o pedido, a notificação deve conter:`,
           {
             list: [
               "nome completo ou razão social, CPF ou CNPJ, e-mail e telefone do notificante;",
@@ -72,15 +76,15 @@ export const COPYRIGHT: LegalTexts = {
         id: "takedown",
         heading: "Análise e retirada",
         blocks: [
-          "Recebida uma notificação completa e fundamentada, o Setlyst pode bloquear o compartilhamento público do conteúdo, tornar o conteúdo indisponível ou removê-lo, em prazo razoável.",
+          "Recebida notificação completa, o Setlyst torna o conteúdo indisponível ao público em até 2 dias úteis e, conforme o caso, remove-o.",
           "Quem inseriu o conteúdo é informado sobre a medida e seus motivos, conforme o art. 20 do Marco Civil da Internet, e recebe as informações necessárias para apresentar contranotificação. Os dados de contato do notificante podem ser compartilhados com o usuário quando necessários para a defesa de direitos.",
         ],
       },
       {
         id: "marco-civil",
-        heading: "Marco Civil da Internet",
+        heading: "Regime de responsabilidade",
         blocks: [
-          "Nos termos do art. 19 da Lei 12.965/2014, o provedor de aplicações somente pode ser responsabilizado civilmente por conteúdo de terceiros se, após ordem judicial específica, não tomar as providências para torná-lo indisponível. Ainda assim, o Setlyst analisa notificações extrajudiciais fundamentadas e age de forma voluntária quando identifica violação clara.",
+          "Violações de direitos autorais não se submetem ao art. 19 do Marco Civil da Internet (art. 19, § 2º, e art. 31 da Lei 12.965/2014). O Setlyst adota procedimento de notificação e retirada: recebida notificação completa (seção 5), o conteúdo indicado é tornado indisponível ao público, com a desativação do link público ou o bloqueio do item, em até 2 dias úteis, independentemente de ordem judicial, e o usuário é avisado para, querendo, apresentar contranotificação (seção 8). Para outros conteúdos ilícitos, aplicam-se o Marco Civil da Internet e a interpretação dada pelo Supremo Tribunal Federal.",
           "Nos termos do art. 21 da mesma lei, imagens ou materiais contendo nudez ou atos sexuais de caráter privado divulgados sem autorização dos participantes são removidos após notificação da pessoa atingida ou de seu representante, independentemente de ordem judicial. A notificação deve permitir a identificação específica do material e comprovar a legitimidade de quem a apresenta.",
         ],
       },
@@ -88,7 +92,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "counter-notice",
         heading: "Contranotificação",
         blocks: [
-          `Se você entender que o conteúdo foi retirado por engano ou que tem direito de usá-lo, pode enviar uma contranotificação para ${SUPPORT_EMAIL} em até 30 dias, contendo:`,
+          `Se você entender que o conteúdo foi retirado por engano ou que tem direito de usá-lo, pode enviar uma contranotificação para ${COPYRIGHT_EMAIL} em até 30 dias, contendo:`,
           {
             list: [
               "seu nome completo, nome de usuário e e-mail;",
@@ -104,7 +108,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "repeat-infringers",
         heading: "Reincidência",
         blocks: [
-          "Contas com notificações procedentes repetidas podem ter o compartilhamento público desativado, ser suspensas ou ser encerradas, conforme os Termos de Uso.",
+          "Contas com 3 (três) notificações procedentes em 12 meses têm o compartilhamento público desativado por 90 dias; a partir da 5ª notificação procedente no mesmo período, a conta pode ser encerrada, assegurada a oportunidade de contranotificação em cada caso.",
         ],
       },
       {
@@ -150,7 +154,8 @@ export const COPYRIGHT: LegalTexts = {
         id: "public-sharing",
         heading: "Public sharing",
         blocks: [
-          "Public links make content accessible to anyone. Before creating a public link with third-party lyrics or chords, make sure you are authorised to do so. An alternative is to share only the running order, without lyrics.",
+          "Public links show only the running order and technical information (title, artist, key, tempo and duration), without lyrics or chords, and the PDF that can be downloaded from a public link does not include them either. Setlyst therefore does not reproduce or communicate to the public, through public links, the lyrics and chords entered by users.",
+          "Free-text fields shown on public links, such as the setlist description, must not contain third-party lyrics or chords; content in that situation may be taken down under this Policy.",
           "Within a band, content is visible only to its members, according to the permissions set.",
         ],
       },
@@ -158,7 +163,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "notice",
         heading: "Infringement notice",
         blocks: [
-          `A rights holder, or their representative, can notify Setlyst at ${SUPPORT_EMAIL} with the subject “Copyright”. So that we can locate the content unambiguously and assess the request, the notice must include:`,
+          `A rights holder, or their representative, can notify Setlyst through the dedicated, permanently available channel ${COPYRIGHT_EMAIL}, with the subject “Copyright”. The Contact page and the “Report content” option on public links lead to this channel. So that we can locate the content unambiguously and assess the request, the notice must include:`,
           {
             list: [
               "the full name or company name, CPF or CNPJ (or equivalent tax ID), e-mail address and phone number of the notifying party;",
@@ -178,15 +183,15 @@ export const COPYRIGHT: LegalTexts = {
         id: "takedown",
         heading: "Review and takedown",
         blocks: [
-          "Once a complete and well-founded notice is received, Setlyst may block public sharing of the content, make the content unavailable or remove it, within a reasonable time.",
+          "Once a complete notice is received, Setlyst makes the content unavailable to the public within 2 business days and, where appropriate, removes it.",
           "Whoever added the content is told about the measure and its reasons, under article 20 of the Brazilian Civil Rights Framework for the Internet, and receives the information needed to submit a counter-notice. The notifying party's contact details may be shared with the user when needed for the defence of rights.",
         ],
       },
       {
         id: "marco-civil",
-        heading: "Civil Rights Framework for the Internet",
+        heading: "Liability regime",
         blocks: [
-          "Under article 19 of Law 12,965/2014, an application provider may only be held civilly liable for third-party content if, after a specific court order, it fails to take steps to make that content unavailable. Even so, Setlyst reviews well-founded out-of-court notices and acts voluntarily when it identifies a clear infringement.",
+          "Copyright infringements are not subject to article 19 of the Brazilian Civil Rights Framework for the Internet (article 19, § 2, and article 31 of Law 12,965/2014). Setlyst follows a notice and takedown procedure: once a complete notice is received (section 5), the indicated content is made unavailable to the public, by disabling the public link or blocking the item, within 2 business days, regardless of a court order, and the user is informed so that they may, if they wish, submit a counter-notice (section 8). For other unlawful content, the Civil Rights Framework for the Internet and its interpretation by the Brazilian Supreme Federal Court apply.",
           "Under article 21 of the same law, images or materials containing nudity or private sexual acts disclosed without the participants' authorisation are removed after notice from the affected person or their representative, regardless of a court order. The notice must allow the specific identification of the material and prove the standing of whoever submits it.",
         ],
       },
@@ -194,7 +199,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "counter-notice",
         heading: "Counter-notice",
         blocks: [
-          `If you believe the content was removed by mistake or that you have the right to use it, you can send a counter-notice to ${SUPPORT_EMAIL} within 30 days, including:`,
+          `If you believe the content was removed by mistake or that you have the right to use it, you can send a counter-notice to ${COPYRIGHT_EMAIL} within 30 days, including:`,
           {
             list: [
               "your full name, username and e-mail address;",
@@ -210,7 +215,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "repeat-infringers",
         heading: "Repeat infringers",
         blocks: [
-          "Accounts with repeated upheld notices may have public sharing disabled, be suspended or be closed, under the Terms of Use.",
+          "Accounts with 3 (three) upheld notices within 12 months have public sharing disabled for 90 days; from the 5th upheld notice within the same period, the account may be closed, with the opportunity to submit a counter-notice assured in each case.",
         ],
       },
       {
@@ -256,7 +261,8 @@ export const COPYRIGHT: LegalTexts = {
         id: "public-sharing",
         heading: "Compartir públicamente",
         blocks: [
-          "Los enlaces públicos hacen el contenido accesible a cualquier persona. Antes de crear un enlace público con letras o acordes de terceros, comprueba que tienes autorización. Una alternativa es compartir solo el orden de las canciones, sin letras.",
+          "Los enlaces públicos muestran solo el orden de las canciones e información técnica (título, artista, tono, tempo y duración), sin letras ni acordes, y el PDF que puede descargarse desde un enlace público tampoco los incluye. Así, Setlyst no reproduce ni comunica al público, mediante enlaces públicos, las letras y acordes introducidos por los usuarios.",
+          "Los campos de texto libre que aparecen en los enlaces públicos, como la descripción de la setlist, no deben contener letras ni acordes de terceros; el contenido en esa situación puede retirarse conforme a esta Política.",
           "Dentro de una banda, el contenido solo es visible para sus miembros, según los permisos definidos.",
         ],
       },
@@ -264,7 +270,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "notice",
         heading: "Notificación de infracción",
         blocks: [
-          `El titular de derechos, o quien lo represente, puede notificar a Setlyst en ${SUPPORT_EMAIL} con el asunto “Derechos de autor”. Para localizar el contenido de forma inequívoca y analizar la solicitud, la notificación debe incluir:`,
+          `El titular de derechos, o quien lo represente, puede notificar a Setlyst por el canal específico ${COPYRIGHT_EMAIL}, disponible de forma permanente, con el asunto “Derechos de autor”. La página de Contacto y la opción “Denunciar contenido” de los enlaces públicos llevan a ese canal. Para localizar el contenido de forma inequívoca y analizar la solicitud, la notificación debe incluir:`,
           {
             list: [
               "nombre completo o razón social, CPF o CNPJ (o identificación fiscal equivalente), correo y teléfono de quien notifica;",
@@ -284,15 +290,15 @@ export const COPYRIGHT: LegalTexts = {
         id: "takedown",
         heading: "Análisis y retirada",
         blocks: [
-          "Recibida una notificación completa y fundamentada, Setlyst puede bloquear el uso compartido público del contenido, hacerlo inaccesible o retirarlo, en un plazo razonable.",
+          "Recibida una notificación completa, Setlyst hace el contenido inaccesible al público en un plazo de 2 días hábiles y, según el caso, lo retira.",
           "Quien añadió el contenido recibe información sobre la medida y sus motivos, conforme al artículo 20 del Marco Civil de Internet, y los datos necesarios para presentar una contranotificación. Los datos de contacto de quien notifica pueden compartirse con el usuario cuando sean necesarios para la defensa de derechos.",
         ],
       },
       {
         id: "marco-civil",
-        heading: "Marco Civil de Internet",
+        heading: "Régimen de responsabilidad",
         blocks: [
-          "Según el artículo 19 de la Ley 12.965/2014, el proveedor de aplicaciones solo puede ser responsable civilmente por contenido de terceros si, tras una orden judicial específica, no toma medidas para hacerlo inaccesible. Aun así, Setlyst analiza las notificaciones extrajudiciales fundamentadas y actúa de forma voluntaria cuando identifica una infracción clara.",
+          "Las infracciones de derechos de autor no se someten al artículo 19 del Marco Civil de Internet (artículo 19, § 2, y artículo 31 de la Ley 12.965/2014). Setlyst adopta un procedimiento de notificación y retirada: recibida una notificación completa (sección 5), el contenido indicado se hace inaccesible al público, mediante la desactivación del enlace público o el bloqueo del elemento, en un plazo de 2 días hábiles, sin necesidad de orden judicial, y se avisa al usuario para que, si lo desea, presente una contranotificación (sección 8). Para otros contenidos ilícitos, se aplican el Marco Civil de Internet y la interpretación dada por el Supremo Tribunal Federal de Brasil.",
           "Según el artículo 21 de la misma ley, las imágenes o materiales con desnudos o actos sexuales de carácter privado divulgados sin autorización de los participantes se retiran tras la notificación de la persona afectada o de su representante, sin necesidad de orden judicial. La notificación debe permitir identificar específicamente el material y acreditar la legitimidad de quien la presenta.",
         ],
       },
@@ -300,7 +306,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "counter-notice",
         heading: "Contranotificación",
         blocks: [
-          `Si consideras que el contenido se retiró por error o que tienes derecho a usarlo, puedes enviar una contranotificación a ${SUPPORT_EMAIL} en un plazo de 30 días, con:`,
+          `Si consideras que el contenido se retiró por error o que tienes derecho a usarlo, puedes enviar una contranotificación a ${COPYRIGHT_EMAIL} en un plazo de 30 días, con:`,
           {
             list: [
               "tu nombre completo, nombre de usuario y correo;",
@@ -316,7 +322,7 @@ export const COPYRIGHT: LegalTexts = {
         id: "repeat-infringers",
         heading: "Reincidencia",
         blocks: [
-          "Las cuentas con notificaciones procedentes repetidas pueden perder el uso compartido público, ser suspendidas o cerradas, conforme a los Términos de Uso.",
+          "Las cuentas con 3 (tres) notificaciones procedentes en 12 meses tienen el uso compartido público desactivado durante 90 días; a partir de la 5.ª notificación procedente en el mismo período, la cuenta puede cerrarse, garantizando en cada caso la oportunidad de presentar una contranotificación.",
         ],
       },
       {

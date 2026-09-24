@@ -1,5 +1,5 @@
 import { History } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { formatApiDateTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +8,10 @@ import { cn } from "@/lib/utils";
  * bands, shows) so members know who changed what, and when.
  *
  * Hook-based but not async, so it renders from both Server and Client
- * Components (next-intl supports that).
+ * Components (next-intl supports that). The date is formatted in the
+ * viewer's zone as next-intl knows it (the `tz` cookie, see
+ * i18n/request.ts), the same on the server and in the browser, so it
+ * neither shows UTC nor causes a hydration mismatch.
  */
 export function AuditStamp({
   updatedAt,
@@ -21,7 +24,8 @@ export function AuditStamp({
 }) {
   const t = useTranslations("audit");
   const locale = useLocale();
-  const date = formatApiDateTime(updatedAt, locale);
+  const timeZone = useTimeZone();
+  const date = formatApiDateTime(updatedAt, locale, timeZone);
 
   return (
     <p

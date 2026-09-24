@@ -1,6 +1,7 @@
 import type { Table } from "dexie";
 import { offlineDb } from "./db";
 import { precacheUrls } from "./precache";
+import { ApiError } from "@/lib/api-client";
 import type {
   Artist,
   BandWithMembership,
@@ -52,7 +53,8 @@ export interface SyncResult {
   gigsSynced: number;
   bandsSynced: number;
   artistsSynced: number;
-  error?: string;
+  /** Why it (partly) failed; see SyncErrorCode. */
+  error?: SyncErrorCode;
 }
 
 /** Fetches every page of a paginated endpoint and returns the combined rows. */
@@ -79,8 +81,72 @@ async function fetchAllPages<T>(
   return rows;
 }
 
+/**
+ * Why a sync failed, as a stable code the UI translates
+ * (`offlineSync.errors.<code>`). The raw error text ("Failed to fetch",
+ * "API error: 500", Dexie's QuotaExceededError...) is English and
+ * meaningless to a musician, so it only goes to the console.
+ */
+export const SYNC_ERROR_CODES = [
+  "storage_full",
+  "session",
+  "network",
+  "server",
+  "unknown",
+] as const;
+export type SyncErrorCode = (typeof SYNC_ERROR_CODES)[number];
+
+function isQuotaError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const named = err as { name?: unknown; inner?: unknown };
+  if (named.name === "QuotaExceededError") return true;
+  // Dexie wraps the browser's error.
+  return isQuotaError(named.inner);
+}
+
+export function classifySyncError(err: unknown): SyncErrorCode {
+  if (isQuotaError(err)) return "storage_full";
+  if (err instanceof ApiError) {
+    if (err.status === 401 || err.status === 403) return "session";
+    if (err.status >= 500 || err.status === 429) return "server";
+    return "unknown";
+  }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return "network";
+  }
+  if (
+    err instanceof TypeError ||
+    (err instanceof Error &&
+      (err.name === "AbortError" || err.name === "TimeoutError"))
+  ) {
+    return "network";
+  }
+  return "unknown";
+}
+
+/**
+ * Reads a stored `lastError` back as a code. Older versions stored the raw
+ * English message; anything that isn't a known code reads as "unknown".
+ */
+export function syncErrorCode(
+  value: string | null | undefined,
+): SyncErrorCode | null {
+  if (!value) return null;
+  return (SYNC_ERROR_CODES as readonly string[]).includes(value)
+    ? (value as SyncErrorCode)
+    : "unknown";
+}
+
+/** The code to report when several steps failed: the most actionable one. */
+function mostRelevant(codes: SyncErrorCode[]): SyncErrorCode | null {
+  for (const code of SYNC_ERROR_CODES) {
+    if (codes.includes(code)) return code;
+  }
+  return null;
+}
+
 function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : "Unknown sync error";
+  return err instanceof Error ? err.message : String(err);
 }
 
 /**
@@ -134,6 +200,11 @@ export async function syncAllForOffline(
   // did succeed; only a real "we got essentially nothing" case is
   // reported as a failure.
   const failures: string[] = [];
+  const failureCodes: SyncErrorCode[] = [];
+  const fail = (label: string, err: unknown) => {
+    failures.push(`${label}: ${errorMessage(err)}`);
+    failureCodes.push(classifySyncError(err));
+  };
   const report = (progress: SyncProgress) => onProgress?.(progress);
 
   report({ phase: "library", completed: 0, total: 6 });
@@ -166,7 +237,7 @@ export async function syncAllForOffline(
     fallback: T,
   ): T {
     if (result.status === "fulfilled") return result.value;
-    failures.push(`${label}: ${errorMessage(result.reason)}`);
+    fail(`${label}`, result.reason);
     return fallback;
   }
 
@@ -228,7 +299,7 @@ export async function syncAllForOffline(
       );
       songsSynced = songs.length;
     } catch (err) {
-      failures.push(`saving songs: ${errorMessage(err)}`);
+      fail(`saving songs`, err);
     }
   }
 
@@ -240,7 +311,7 @@ export async function syncAllForOffline(
       );
       artistsSynced = artists.length;
     } catch (err) {
-      failures.push(`saving artists: ${errorMessage(err)}`);
+      fail(`saving artists`, err);
     }
   }
 
@@ -252,7 +323,7 @@ export async function syncAllForOffline(
       );
       bandsSynced = bands.length;
     } catch (err) {
-      failures.push(`saving bands: ${errorMessage(err)}`);
+      fail(`saving bands`, err);
     }
   }
 
@@ -263,7 +334,7 @@ export async function syncAllForOffline(
     );
     gigsSynced = gigs.length;
   } catch (err) {
-    failures.push(`saving shows: ${errorMessage(err)}`);
+    fail(`saving shows`, err);
   }
 
   if (preferences) {
@@ -274,7 +345,7 @@ export async function syncAllForOffline(
         syncedAt,
       });
     } catch (err) {
-      failures.push(`saving preferences: ${errorMessage(err)}`);
+      fail(`saving preferences`, err);
     }
   }
 
@@ -329,7 +400,7 @@ export async function syncAllForOffline(
       // setlist that opens to an empty running order at a venue reads as
       // data loss, which is worse than it plainly not being downloaded.
       if (songsRes.status === "rejected") {
-        failures.push(`"${setlist.title}": ${errorMessage(songsRes.reason)}`);
+        fail(`"${setlist.title}"`, songsRes.reason);
         continue;
       }
 
@@ -348,7 +419,7 @@ export async function syncAllForOffline(
         `/${locale}/dashboard/setlists/${setlist.id}/live`,
       );
     } catch (err) {
-      failures.push(`"${setlist.title}": ${errorMessage(err)}`);
+      fail(`"${setlist.title}"`, err);
     }
 
     report({
@@ -389,7 +460,12 @@ export async function syncAllForOffline(
     songsSynced > 0 ||
     gigsSynced > 0 ||
     failures.length === 0;
-  const lastError = failures.length > 0 ? failures.join("; ") : null;
+  // Stored (and returned) as a code the UI translates; the details are
+  // for whoever opens the console.
+  const lastError = mostRelevant(failureCodes);
+  if (failures.length > 0) {
+    console.warn("[offline sync] partial failure:", failures.join("; "));
+  }
 
   // Whatever setlists/songs made it into IndexedDB above are already safe
   // — this is just bookkeeping on top. If IndexedDB itself is unusable
@@ -414,7 +490,7 @@ export async function syncAllForOffline(
       gigsSynced,
       bandsSynced,
       artistsSynced,
-      error: errorMessage(err),
+      error: classifySyncError(err),
     };
   }
 

@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Coins, CreditCard, Gift, Loader2, XCircle } from "lucide-react";
-import { useTranslations } from "next-intl";
+import {
+  Coins,
+  CreditCard,
+  Gift,
+  Loader2,
+  ReceiptText,
+  XCircle,
+} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,15 +33,19 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { ClientDate } from "@/components/client-date";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import { useRouter } from "@/i18n/routing";
 import { toastActionError } from "@/lib/action-toast";
 import { onFormSubmit } from "@/lib/forms";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/money";
+import { REFUND_REASON_MAX, REFUND_REASON_MIN } from "@/lib/billing-admin";
 import type { AdminSubscriptionView } from "@/types/staff";
 import {
   adjustUserCredits,
   grantUserPlan,
+  refundUserSubscription,
   revokeUserPlan,
 } from "@/app/[locale]/dashboard/admin/billing/actions";
 
@@ -314,12 +325,20 @@ export function SubscriptionCard({
   const t = useTranslations("billingAdmin.userSubscription");
   const tStatus = useTranslations("billingAdmin.subscriptionStatus");
   const router = useRouter();
-  const [dialog, setDialog] = useState<"grant" | "credits" | "revoke" | null>(
-    null,
-  );
+  const locale = useLocale();
+  const [dialog, setDialog] = useState<
+    "grant" | "credits" | "revoke" | "refund" | null
+  >(null);
+  const [refundReason, setRefundReason] = useState("");
   const [pending, startTransition] = useTransition();
   const subscription = view?.subscription ?? null;
   const live = subscription ? LIVE.has(subscription.status) : false;
+  // Only a card subscription has charges to refund (the API refunds the
+  // 7-day withdrawal window, or the latest charge outside it).
+  const refundable = live && subscription?.source === "payment";
+  const reasonLength = refundReason.trim().length;
+  const reasonValid =
+    reasonLength >= REFUND_REASON_MIN && reasonLength <= REFUND_REASON_MAX;
   const planName = (code: string | null | undefined) =>
     code ? (plans.find((p) => p.code === code)?.name ?? code) : "";
   const label = (group: string, key: string) =>
@@ -334,6 +353,31 @@ export function SubscriptionCard({
       }
       setDialog(null);
       toast.success(t("revoked"));
+      router.refresh();
+    });
+
+  const refund = () =>
+    startTransition(async () => {
+      if (!reasonValid) return;
+      const result = await refundUserSubscription(userId, refundReason);
+      if (!result.success) {
+        toastActionError(result, result.error);
+        return;
+      }
+      setDialog(null);
+      setRefundReason("");
+      const cents = result.data?.refunded_cents ?? 0;
+      toast.success(
+        cents > 0
+          ? t("refunded", {
+              amount: formatMoney(
+                cents,
+                (result.data?.currency ?? "brl").toUpperCase(),
+                locale,
+              ),
+            })
+          : t("refundedNothing"),
+      );
       router.refresh();
     });
 
@@ -449,6 +493,20 @@ export function SubscriptionCard({
                     {t("revokeButton")}
                   </Button>
                 )}
+                {refundable && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => {
+                      setRefundReason("");
+                      setDialog("refund");
+                    }}
+                  >
+                    <ReceiptText aria-hidden />
+                    {t("refundButton")}
+                  </Button>
+                )}
               </div>
             )}
 
@@ -533,6 +591,42 @@ export function SubscriptionCard({
         pending={pending}
         onConfirm={revoke}
       />
+      <ConfirmActionDialog
+        open={dialog === "refund"}
+        onOpenChange={(open) => !open && setDialog(null)}
+        title={t("refundTitle")}
+        description={t("refundDescription", {
+          username,
+          plan: planName(subscription?.plan_code),
+        })}
+        confirmLabel={t("refundConfirm")}
+        destructive
+        pending={pending}
+        onConfirm={refund}
+        confirmDisabled={!reasonValid}
+      >
+        <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
+          <li>{t("refundWindow")}</li>
+          <li>{t("refundNow")}</li>
+          <li>{t("refundNotice")}</li>
+        </ul>
+        <div className="space-y-1.5">
+          <Label htmlFor="refund-reason">{t("refundReason")}</Label>
+          <Textarea
+            id="refund-reason"
+            rows={3}
+            maxLength={REFUND_REASON_MAX}
+            value={refundReason}
+            onChange={(e) => setRefundReason(e.target.value)}
+            placeholder={t("refundReasonPlaceholder")}
+            aria-invalid={refundReason !== "" && !reasonValid}
+            aria-describedby="refund-reason-hint"
+          />
+          <p id="refund-reason-hint" className="text-muted-foreground text-xs">
+            {t("refundReasonHint")}
+          </p>
+        </div>
+      </ConfirmActionDialog>
     </Card>
   );
 }

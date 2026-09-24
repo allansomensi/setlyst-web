@@ -20,6 +20,7 @@ import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
 import { fetchServerApi } from "@/lib/api-server";
 import { formatApiDate } from "@/lib/dates";
 import type { PaginatedResponse, SharedLink } from "@/types/api";
+import { requireStaffPage } from "@/lib/staff-guard";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -31,6 +32,7 @@ export default async function AdminLinksPage({
 }: {
   searchParams: ListSearchParams;
 }) {
+  await requireStaffPage("content");
   const t = await getTranslations("staff.links");
   const tShare = await getTranslations("staff.share");
   const locale = await getLocale();

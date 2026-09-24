@@ -1,3 +1,5 @@
+import "server-only";
+
 import { cache } from "react";
 import { fetchServerApi } from "@/lib/api-server";
 import type { User, UserPreferences } from "@/types/api";

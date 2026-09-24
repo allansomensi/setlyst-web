@@ -18,6 +18,7 @@ import { fetchServerApi } from "@/lib/api-server";
 import { formatApiDate } from "@/lib/dates";
 import { formatDuration } from "@/lib/utils";
 import type { AdminSetlistSummary, PaginatedResponse } from "@/types/api";
+import { requireStaffPage } from "@/lib/staff-guard";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -29,6 +30,7 @@ export default async function AdminSetlistsPage({
 }: {
   searchParams: ListSearchParams;
 }) {
+  await requireStaffPage("content");
   const t = await getTranslations("staff.setlists");
   const tShare = await getTranslations("staff.share");
   const locale = await getLocale();

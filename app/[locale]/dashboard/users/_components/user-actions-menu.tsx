@@ -35,6 +35,7 @@ import { useImpersonation } from "@/components/impersonation/use-impersonation";
 import { Link } from "@/i18n/routing";
 import { toastActionError } from "@/lib/action-toast";
 import {
+  canAdministerUser,
   canChangeRole,
   canManageUser,
   type StaffActor,
@@ -97,6 +98,8 @@ export function UserActionsMenu({
   const [pending, setPending] = useState<PendingConfirm | null>(null);
 
   const manage = canManageUser(actor, user);
+  // Temporary password and "view as" are admin-only (API: INSUFFICIENT_ROLE).
+  const administer = canAdministerUser(actor, user);
   const roleEditable = canChangeRole(actor, user);
 
   const run = (
@@ -244,13 +247,15 @@ export function UserActionsMenu({
                 <Pencil className="mr-2 h-4 w-4" />
                 {t("edit")}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setPending({ kind: "impersonate" })}
-                disabled={user.status !== "active" || user.is_banned}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {t("impersonate")}
-              </DropdownMenuItem>
+              {administer && (
+                <DropdownMenuItem
+                  onSelect={() => setPending({ kind: "impersonate" })}
+                  disabled={user.status !== "active" || user.is_banned}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  {t("impersonate")}
+                </DropdownMenuItem>
+              )}
             </>
           )}
 
@@ -281,10 +286,12 @@ export function UserActionsMenu({
           {manage && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setResetting(true)}>
-                <KeyRound className="mr-2 h-4 w-4" />
-                {t("resetPassword")}
-              </DropdownMenuItem>
+              {administer && (
+                <DropdownMenuItem onSelect={() => setResetting(true)}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  {t("resetPassword")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onSelect={() => setPending({ kind: "sessions" })}
               >

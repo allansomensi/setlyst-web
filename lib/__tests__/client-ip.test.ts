@@ -33,8 +33,11 @@ describe("normalizeIp", () => {
 });
 
 describe("clientIpTrustFromEnv", () => {
-  it("defaults to one trusted proxy hop and no x-real-ip", () => {
-    expect(clientIpTrustFromEnv({})).toEqual(selfHosted);
+  it("defaults to no trusted proxy hop and no x-real-ip", () => {
+    expect(clientIpTrustFromEnv({})).toEqual({
+      ...selfHosted,
+      trustedProxyHops: 0,
+    });
   });
 
   it("reads VERCEL, TRUSTED_PROXY_HOPS and TRUST_X_REAL_IP", () => {
@@ -50,10 +53,10 @@ describe("clientIpTrustFromEnv", () => {
     ).toBe(0);
     expect(
       clientIpTrustFromEnv({ TRUSTED_PROXY_HOPS: "abc" }).trustedProxyHops,
-    ).toBe(1);
+    ).toBe(0);
     expect(
       clientIpTrustFromEnv({ TRUSTED_PROXY_HOPS: "-3" }).trustedProxyHops,
-    ).toBe(1);
+    ).toBe(0);
   });
 });
 

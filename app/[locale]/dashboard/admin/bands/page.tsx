@@ -16,6 +16,7 @@ import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
 import { fetchServerApi } from "@/lib/api-server";
 import { formatApiDate } from "@/lib/dates";
 import type { AdminBandSummary, PaginatedResponse } from "@/types/api";
+import { requireStaffPage } from "@/lib/staff-guard";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -27,6 +28,7 @@ export default async function AdminBandsPage({
 }: {
   searchParams: ListSearchParams;
 }) {
+  await requireStaffPage("content");
   const t = await getTranslations("staff.bands");
   const locale = await getLocale();
   const { query, page } = adminListQuery(await searchParams, ["q", "user_id"]);

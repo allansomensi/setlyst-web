@@ -1,6 +1,7 @@
 "use server";
 
 import { fetchServerApi } from "@/lib/api-server";
+import { apiPath } from "@/lib/api-endpoint";
 import {
   guardedAction,
   invalidRequest,
@@ -52,7 +53,7 @@ export async function listSuggestions(
   });
   return guardedAction(() =>
     fetchServerApi<PaginatedResponse<Suggestion>>(
-      `/bands/${bandId}/suggestions?${query}`,
+      `${apiPath`/bands/${bandId}/suggestions`}?${query}`,
     ),
   );
 }
@@ -70,7 +71,7 @@ export async function createSuggestion(
   }
   return guardedAction(
     () =>
-      fetchServerApi<Suggestion>(`/bands/${bandId}/suggestions`, {
+      fetchServerApi<Suggestion>(apiPath`/bands/${bandId}/suggestions`, {
         method: "POST",
         body: JSON.stringify({
           song_id: data.song_id,
@@ -91,7 +92,7 @@ export async function voteSuggestion(
   if (!isUuid(bandId) || !isUuid(suggestionId) || ![-1, 0, 1].includes(value)) {
     return invalidRequest();
   }
-  const path = `/bands/${bandId}/suggestions/${suggestionId}/vote`;
+  const path = apiPath`/bands/${bandId}/suggestions/${suggestionId}/vote`;
   return guardedAction(
     () =>
       value === 0
@@ -121,7 +122,7 @@ export async function resolveSuggestion(
   return guardedAction(
     () =>
       fetchServerApi<Suggestion>(
-        `/bands/${bandId}/suggestions/${suggestionId}/${action}`,
+        apiPath`/bands/${bandId}/suggestions/${suggestionId}/${action}`,
         {
           method: "POST",
           body:
@@ -174,7 +175,7 @@ export async function createBandNote(
   if (!isUuid(bandId) || !body) return invalidRequest();
   return guardedAction(
     () =>
-      fetchServerApi<BandNote>(`/bands/${bandId}/notes`, {
+      fetchServerApi<BandNote>(apiPath`/bands/${bandId}/notes`, {
         method: "POST",
         body: JSON.stringify(body),
       }),
@@ -207,7 +208,7 @@ export async function updateBandNote(
   }
   return guardedAction(
     () =>
-      fetchServerApi<BandNote>(`/bands/${bandId}/notes/${noteId}`, {
+      fetchServerApi<BandNote>(apiPath`/bands/${bandId}/notes/${noteId}`, {
         method: "PATCH",
         body: JSON.stringify(body),
       }),
@@ -222,7 +223,7 @@ export async function deleteBandNote(
   if (!isUuid(bandId) || !isUuid(noteId)) return invalidRequest();
   return guardedAction(
     () =>
-      fetchServerApi<void>(`/bands/${bandId}/notes/${noteId}`, {
+      fetchServerApi<void>(apiPath`/bands/${bandId}/notes/${noteId}`, {
         method: "DELETE",
       }),
     revalidateBand,
@@ -246,7 +247,7 @@ export async function updateSuggestionThreshold(
   }
   return guardedAction(
     () =>
-      fetchServerApi<void>(`/bands/${bandId}`, {
+      fetchServerApi<void>(apiPath`/bands/${bandId}`, {
         method: "PATCH",
         body: JSON.stringify({ suggestion_auto_accept_votes: votes }),
       }),

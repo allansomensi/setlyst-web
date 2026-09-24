@@ -34,6 +34,8 @@ export function BandDialog({ band, isOpen, onClose }: BandDialogProps) {
   const isEditing = !!band;
 
   const handleAction = (formData: FormData) => {
+    // A double Enter must not create the band twice.
+    if (isPending) return;
     const data = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
@@ -54,7 +56,11 @@ export function BandDialog({ band, isOpen, onClose }: BandDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    // Can't be closed while saving (the request is already on its way).
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && !isPending && onClose()}
+    >
       <DialogContent>
         <form onSubmit={onFormSubmit(handleAction)} key={band?.id || "new"}>
           <DialogHeader>
@@ -97,7 +103,9 @@ export function BandDialog({ band, isOpen, onClose }: BandDialogProps) {
               {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{" "}
+              {isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              )}
               {tCommon("save")}
             </Button>
           </DialogFooter>

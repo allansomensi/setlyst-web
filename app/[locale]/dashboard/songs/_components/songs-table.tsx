@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { Song, Artist, formatGenre } from "@/types/api";
+import { Song, Artist, QuotaReport, formatGenre } from "@/types/api";
 import { deleteSong } from "../actions";
 import { SongDialog } from "./song-dialog";
 import { TagChip } from "@/components/tags/tag-chip";
@@ -11,6 +12,15 @@ import { SearchInput } from "@/components/ui/search-input";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
+import { useSyncSearchParams } from "@/hooks/use-url-state";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import {
+  QuotaChip,
+  QuotaLimitNotice,
+  quotaState,
+  quotaUsageOf,
+} from "@/components/quota-usage-list";
 import {
   useOfflineArtists,
   useOfflineSongs,
@@ -38,14 +48,6 @@ import { cn } from "@/lib/utils";
 import { SongsExportMenu } from "./songs-export-menu";
 import { TagFilterBar } from "./tag-filter-bar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   MoreHorizontal,
   Plus,
   Pencil,
@@ -57,6 +59,8 @@ import {
   FileUp,
   Play,
   Eye,
+  Music,
+  SearchX,
 } from "lucide-react";
 import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
@@ -69,7 +73,14 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 
-const SEARCHABLE_KEYS = ["title", "artist_name", "genre", "tags_text"] as const;
+// `lyrics` too: people often remember a line, not the title.
+const SEARCHABLE_KEYS = [
+  "title",
+  "artist_name",
+  "genre",
+  "tags_text",
+  "lyrics_text",
+] as const;
 
 interface SongsTableProps {
   initialSongs: Song[];
@@ -83,6 +94,8 @@ interface SongsTableProps {
   loadError?: boolean;
   /** Plan features, resolved by the page (`hasFeature`). */
   features?: { chordproImport: boolean; advancedPdf: boolean };
+  /** `GET /users/me/quotas`, for the usage chip next to "Add song". */
+  quotas?: QuotaReport | null;
 }
 
 export function SongsTable({
@@ -90,6 +103,7 @@ export function SongsTable({
   artists,
   loadError,
   features = { chordproImport: true, advancedPdf: true },
+  quotas = null,
 }: SongsTableProps) {
   const t = useTranslations("songs");
   const tCommon = useTranslations("common");
@@ -105,7 +119,13 @@ export function SongsTable({
   const { exportSong, pendingId: chordproPendingId } = useSongChordProExport();
   const tTrash = useTranslations("trash");
 
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  // In the URL (`?tag=`) with the search, sort and page, so Back from a
+  // song returns to the same filtered view.
+  const initialTag = useSearchParams()?.get("tag") ?? null;
+  const [tagFilter, setTagFilter] = useState<string | null>(initialTag);
+  useSyncSearchParams({ tag: tagFilter });
+  const songQuota = quotaUsageOf(quotas, "songs");
+  const songsFull = quotaState(songQuota).full;
   const [managingTags, setManagingTags] = useState(false);
 
   // See hooks/use-offline-records.ts: with no connection, or when this
@@ -128,6 +148,12 @@ export function SongsTable({
       ...song,
       artist_name: getArtistName(song.artist_id),
       tags_text: (song.tags ?? []).join(" "),
+      // Chord brackets and directives out, so "[G]Amazing [D]grace"
+      // matches "amazing grace".
+      lyrics_text: (song.lyrics ?? "")
+        .replace(/\[[^\]]*\]/g, "")
+        .replace(/\{[^}]*\}/g, " ")
+        .replace(/\s+/g, " "),
     }));
   }, [availableSongs, availableArtists]);
 
@@ -169,11 +195,11 @@ export function SongsTable({
 
   const songs = processedData;
 
-  const emptyMessage = search
-    ? t("emptySearch", { search })
-    : tagFilter
-      ? t("emptyTagFilter", { tag: tagFilter })
-      : t("empty");
+  const clearFilters = () => {
+    setSearch("");
+    setTagFilter(null);
+    setCurrentPage(1);
+  };
 
   const handleOpenDialog = (song?: Song) => {
     setEditingSong(song ?? null);
@@ -231,12 +257,18 @@ export function SongsTable({
             <span className="sr-only sm:not-sr-only">{t("manageTags")}</span>
           </Button>
 
-          <Button onClick={() => handleOpenDialog()} {...offlineDisabled}>
-            <Plus className="mr-2 h-4 w-4" />
+          <QuotaChip usage={songQuota} resource="songs" />
+          <Button
+            onClick={() => handleOpenDialog()}
+            {...offlineDisabled}
+            disabled={offlineDisabled.disabled || songsFull}
+          >
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
             {t("addSong")}
           </Button>
         </div>
       </div>
+      <QuotaLimitNotice usage={songQuota} resource="songs" className="-mt-3" />
 
       {/* Search */}
       <SearchInput
@@ -323,10 +355,49 @@ export function SongsTable({
                   {/* Only a failure the local copy couldn't cover. */}
                   {loadError && !isFromCache ? (
                     <LoadErrorNotice />
+                  ) : search || tagFilter ? (
+                    <EmptyState
+                      compact
+                      icon={SearchX}
+                      title={
+                        search
+                          ? t("emptySearch", { search })
+                          : t("emptyTagFilter", { tag: tagFilter ?? "" })
+                      }
+                      actions={
+                        <Button variant="outline" onClick={clearFilters}>
+                          {search
+                            ? tCommon("clearSearch")
+                            : t("clearTagFilter")}
+                        </Button>
+                      }
+                    />
                   ) : (
-                    <span className="text-muted-foreground">
-                      {emptyMessage}
-                    </span>
+                    <EmptyState
+                      icon={Music}
+                      title={t("emptyState.title")}
+                      description={t("emptyState.description")}
+                      actions={
+                        <>
+                          <Button
+                            onClick={() => handleOpenDialog()}
+                            {...offlineDisabled}
+                            disabled={offlineDisabled.disabled || songsFull}
+                          >
+                            <Plus className="mr-2 h-4 w-4" aria-hidden />
+                            {t("addSong")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsImportOpen(true)}
+                            {...offlineDisabled}
+                          >
+                            <FileUp className="mr-2 h-4 w-4" aria-hidden />
+                            {t("importChordpro")}
+                          </Button>
+                        </>
+                      }
+                    />
                   )}
                 </TableCell>
               </TableRow>
@@ -429,7 +500,7 @@ export function SongsTable({
                       />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-4 w-4" aria-hidden />
                             <span className="sr-only">
                               {tCommon("moreActionsFor", { name: song.title })}
@@ -503,17 +574,11 @@ export function SongsTable({
 
       <TablePagination
         currentPage={currentPage}
-
         totalPages={totalPages}
-
         setCurrentPage={setCurrentPage}
-
         totalItems={totalItems}
-
         pageSize={pageSize}
-
         setPageSize={setPageSize}
-
         search={search}
       />
 
@@ -549,35 +614,17 @@ export function SongsTable({
         allowed={features.chordproImport}
       />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!songToDelete}
         onOpenChange={(open) => !open && setSongToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("dialog.deleteConfirm", { title: songToDelete?.title ?? "" })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setSongToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {t("dialog.moveToTrash")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteConfirm", {
+          title: songToDelete?.title ?? "",
+        })}
+        confirmLabel={t("dialog.moveToTrash")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </div>
   );
 }

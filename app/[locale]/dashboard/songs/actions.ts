@@ -1,7 +1,13 @@
 "use server";
 
 import { fetchServerApi } from "@/lib/api-server";
-import { guardedAction, type ActionResult } from "@/lib/action-guard";
+import {
+  guardedAction,
+  invalidRequest,
+  type ActionResult,
+} from "@/lib/action-guard";
+import { apiPath } from "@/lib/api-endpoint";
+import { isUuid } from "@/lib/uuid";
 import { revalidateDashboard } from "@/lib/revalidate";
 import {
   CreateSongPayload,
@@ -57,9 +63,10 @@ export async function createSong(data: CreateSongPayload) {
 }
 
 export async function updateSong(id: string, data: UpdateSongPayload) {
+  if (!isUuid(id) || !data || typeof data !== "object") {
+    return invalidRequest();
+  }
   const t = await getTranslations("songs.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
 
   const payload: UpdateSongPayload = { ...data };
 
@@ -80,7 +87,7 @@ export async function updateSong(id: string, data: UpdateSongPayload) {
 
   return guardedAction(
     () =>
-      fetchServerApi(`/songs/${id}`, {
+      fetchServerApi(apiPath`/songs/${id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
@@ -90,12 +97,10 @@ export async function updateSong(id: string, data: UpdateSongPayload) {
 
 /** Moves the song to the trash (restore with `restoreTrashItem`). */
 export async function deleteSong(id: string) {
-  const t = await getTranslations("songs.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/songs/${id}`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/songs/${id}`, { method: "DELETE" }),
     revalidateSongViews,
   );
 }
@@ -104,11 +109,19 @@ export async function listSongTags() {
   return guardedAction(() => fetchServerApi<TagCount[]>("/songs/tags"));
 }
 
+/** A tag as the client sends it: non-empty text of a sane length. */
+function isTagName(value: unknown): value is string {
+  return (
+    typeof value === "string" && value.trim().length > 0 && value.length <= 100
+  );
+}
+
 /** Renames a tag on every personal song; renaming onto an existing tag merges them. */
 export async function renameSongTag(tag: string, newTag: string) {
+  if (!isTagName(tag) || !isTagName(newTag)) return invalidRequest();
   return guardedAction(
     () =>
-      fetchServerApi<unknown>(`/songs/tags/${encodeURIComponent(tag)}`, {
+      fetchServerApi<unknown>(apiPath`/songs/tags/${tag}`, {
         method: "PATCH",
         body: JSON.stringify({ new_name: newTag }),
       }),
@@ -117,9 +130,10 @@ export async function renameSongTag(tag: string, newTag: string) {
 }
 
 export async function deleteSongTag(tag: string) {
+  if (!isTagName(tag)) return invalidRequest();
   return guardedAction(
     () =>
-      fetchServerApi<unknown>(`/songs/tags/${encodeURIComponent(tag)}`, {
+      fetchServerApi<unknown>(apiPath`/songs/tags/${tag}`, {
         method: "DELETE",
       }),
     () => revalidateDashboard("/songs", "layout"),
@@ -144,6 +158,10 @@ export async function importChordPro(
   dryRun: boolean,
 ): Promise<ActionResult<ChordProPreview | Song>> {
   const t = await getTranslations("chordproImport.errors");
+  if (!payload || typeof payload !== "object") return invalidRequest();
+  if (payload.artist_id != null && !isUuid(payload.artist_id)) {
+    return invalidRequest();
+  }
   if (typeof payload.content !== "string" || !payload.content.trim()) {
     return { success: false, error: t("empty") };
   }
@@ -161,7 +179,7 @@ export async function importChordPro(
   return guardedAction(
     () =>
       fetchServerApi<ChordProPreview | Song>(
-        `/songs/import/chordpro?dry_run=${dryRun}`,
+        `/songs/import/chordpro?dry_run=${dryRun === true}`,
         { method: "POST", body: JSON.stringify(body), timeoutMs: 20_000 },
       ),
     dryRun

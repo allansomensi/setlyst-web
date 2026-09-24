@@ -12,6 +12,7 @@ import { Library, Loader2, Plus, Send } from "lucide-react";
 import { Song, Artist, SetlistSong } from "@/types/api";
 import {
   addSongToSetlist,
+  addSongsToSetlist,
   searchBandRepertoire,
   suggestSongForSetlist,
 } from "../../actions";
@@ -19,6 +20,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { filterBySearch } from "@/lib/search";
+import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -58,14 +62,16 @@ export interface AddSongDialogProps {
   excludedSongIds: string[];
   isOpen: boolean;
   onClose: () => void;
-  /** Called after a song was added (the dialog closes itself). */
+  /** Called for each song added (the dialog stays open for more). */
   onAdded?: (songId: string) => void;
   /** Band setlists: repertoire tab and suggestions. */
   band?: AddSongBandContext;
 }
 
 /**
- * Picks one song and adds it to the end of a setlist.
+ * Adds songs to the end of a setlist: several at once from the person's
+ * own songs (searchable, filterable by tag and key), or one at a time from
+ * the band repertoire.
  *
  * Band setlists get two tabs, "Repertório da banda" (the band's own
  * songs) and "Minhas músicas" (a personal song, copied into the band).
@@ -78,7 +84,7 @@ export function AddSongDialog(props: AddSongDialogProps) {
       open={props.isOpen}
       onOpenChange={(open) => !open && props.onClose()}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         {/* Remounted per open: always starts with nothing selected. */}
         {props.isOpen && <AddSongContent {...props} />}
       </DialogContent>
@@ -154,7 +160,10 @@ function AddSongContent(props: AddSongDialogProps) {
   );
 }
 
-/** Adds (or suggests) one song, with the right toast. */
+/**
+ * Adds (or suggests) one song, with the right toast. A suggestion closes
+ * the dialog; an addition keeps it open for the next song.
+ */
 function useAddOrSuggest({
   setlistId,
   band,
@@ -183,9 +192,9 @@ function useAddOrSuggest({
       }
       const result = await addSongToSetlist(setlistId, { song_id: songId });
       if (result.success) {
+        // Stays open: the next song is usually one tap away.
         toast.success(t("added"));
         onAdded?.(songId);
-        onClose();
       } else {
         toastActionError(result, result.error || t("addFailed"));
       }
@@ -195,57 +204,315 @@ function useAddOrSuggest({
   return { submit, isPending };
 }
 
+/** Most rows rendered at once; the search narrows the rest down. */
+const MAX_VISIBLE = 200;
+
+/**
+ * The person's own songs as a searchable, filterable checklist: pick as
+ * many as needed and add them in one go, in the order they were ticked.
+ * The dialog stays open afterwards, so a whole set can be built without
+ * reopening it. Suggesting (members who can't edit the setlist) picks one.
+ */
 function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
-  const { songs, artists, excludedSongIds, onClose, suggesting } = props;
+  const { songs, artists, excludedSongIds, onClose, suggesting, setlistId } =
+    props;
   const t = useTranslations("setlists.songs.addDialog");
   const tCommon = useTranslations("common");
-  const [songId, setSongId] = useState("");
+  const [query, setQuery] = useState("");
+  const [tag, setTag] = useState("");
+  const [songKey, setSongKey] = useState("");
+  // Ticked songs, in the order they were ticked (= the running order).
+  const [selected, setSelected] = useState<string[]>([]);
+  // Added while the dialog was open: hidden right away, before the page's
+  // refreshed data arrives.
+  const [justAdded, setJustAdded] = useState<string[]>([]);
   const [note, setNote] = useState("");
-  const { submit, isPending } = useAddOrSuggest(props);
+  const [isAdding, startAdding] = useTransition();
+  const suggest = useAddOrSuggest(props);
+  const isPending = isAdding || suggest.isPending;
 
-  const options = useMemo(() => {
-    const excluded = new Set(excludedSongIds);
+  const available = useMemo(() => {
+    const excluded = new Set([...excludedSongIds, ...justAdded]);
     const artistNames = new Map(artists.map((a) => [a.id, a.name]));
     return songs
       .filter((song) => !excluded.has(song.id))
       .map((song) => ({
         id: song.id,
-        label: [song.title, artistNames.get(song.artist_id)]
-          .filter(Boolean)
-          .join(" · "),
+        title: song.title,
+        artist: artistNames.get(song.artist_id) ?? "",
+        tonality: song.tonality ?? "",
+        tempo: song.tempo ?? null,
+        tags: song.tags ?? [],
       }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [songs, artists, excludedSongIds]);
+      .sort(
+        (a, b) =>
+          a.title.localeCompare(b.title) || a.artist.localeCompare(b.artist),
+      );
+  }, [songs, artists, excludedSongIds, justAdded]);
+
+  const tagOptions = useMemo(
+    () =>
+      [...new Set(available.flatMap((song) => song.tags))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [available],
+  );
+  const keyOptions = useMemo(
+    () =>
+      [...new Set(available.map((song) => song.tonality).filter(Boolean))].sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [available],
+  );
+
+  const matches = useMemo(() => {
+    const byFilters = available.filter(
+      (song) =>
+        (!tag || song.tags.includes(tag)) &&
+        (!songKey || song.tonality === songKey),
+    );
+    return filterBySearch(
+      byFilters,
+      ["title", "artist", "tonality"] as const,
+      query,
+    );
+  }, [available, tag, songKey, query]);
+  const visible = matches.slice(0, MAX_VISIBLE);
+  const filtering = query !== "" || tag !== "" || songKey !== "";
+
+  const toggle = (id: string, on: boolean) => {
+    if (suggesting) {
+      setSelected(on ? [id] : []);
+      return;
+    }
+    setSelected((prev) =>
+      on ? [...prev.filter((x) => x !== id), id] : prev.filter((x) => x !== id),
+    );
+  };
+
+  const addSelected = () => {
+    const ids = selected;
+    startAdding(async () => {
+      const result = await addSongsToSetlist(setlistId, ids);
+      if (!result.success || !result.data) {
+        if (!result.success) {
+          toastActionError(result, result.error || t("addFailed"));
+        }
+        return;
+      }
+      const { added, skipped, notAdded, stoppedBy } = result.data;
+      setJustAdded((prev) => [...prev, ...added, ...skipped]);
+      setSelected((prev) =>
+        prev.filter((id) => !added.includes(id) && !skipped.includes(id)),
+      );
+      added.forEach((id) => props.onAdded?.(id));
+      if (stoppedBy) {
+        toast.warning(
+          t("addedPartial", {
+            added: added.length,
+            rest: notAdded,
+            reason: stoppedBy,
+          }),
+          { duration: 10000 },
+        );
+      } else if (added.length > 0) {
+        toast.success(t("addedMany", { count: added.length }));
+      }
+      if (skipped.length > 0) {
+        toast.info(t("skippedNote", { count: skipped.length }));
+      }
+    });
+  };
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (songId) submit(songId, note);
+    if (isPending || selected.length === 0) return;
+    if (suggesting) {
+      suggest.submit(selected[0], note);
+      return;
+    }
+    addSelected();
   };
 
+  const clearFilters = () => {
+    setQuery("");
+    setTag("");
+    setSongKey("");
+  };
+
+  const listId = "add-song-list";
+
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
-      <div className="space-y-2 py-2">
-        <Label htmlFor="add-song-select">{t("songLabel")}</Label>
-        <NativeSelect
-          id="add-song-select"
-          value={songId}
-          onChange={(e) => setSongId(e.target.value)}
-          required
-          disabled={isPending || options.length === 0}
-        >
-          <option value="" disabled>
-            {options.length === 0 ? t("noMoreSongs") : t("selectSong")}
-          </option>
-          {options.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
-        {props.band && !suggesting && (
-          <p className="text-muted-foreground text-xs">{t("copyHint")}</p>
+    <form onSubmit={onSubmit} className="grid gap-3">
+      <SearchInput
+        value={query}
+        onChange={setQuery}
+        placeholder={t("searchMine")}
+      />
+      {(tagOptions.length > 0 || keyOptions.length > 1) && (
+        <div className="grid grid-cols-2 gap-2">
+          {tagOptions.length > 0 && (
+            <div className="space-y-1">
+              <Label htmlFor="add-song-tag" className="text-xs">
+                {t("filterTag")}
+              </Label>
+              <NativeSelect
+                id="add-song-tag"
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                disabled={isPending}
+              >
+                <option value="">{t("allTags")}</option>
+                {tagOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+          )}
+          {keyOptions.length > 1 && (
+            <div className="space-y-1">
+              <Label htmlFor="add-song-key" className="text-xs">
+                {t("filterKey")}
+              </Label>
+              <NativeSelect
+                id="add-song-key"
+                value={songKey}
+                onChange={(e) => setSongKey(e.target.value)}
+                disabled={isPending}
+              >
+                <option value="">{t("allKeys")}</option>
+                {keyOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+          )}
+        </div>
+      )}
+
+      <fieldset
+        id={listId}
+        className="max-h-[min(20rem,45dvh)] overflow-y-auto overscroll-contain rounded-lg border"
+        aria-busy={isPending || undefined}
+        disabled={isPending}
+      >
+        <legend className="sr-only">{t("listLabel")}</legend>
+        {available.length === 0 ? (
+          <p className="text-muted-foreground px-4 py-8 text-center text-sm">
+            {t("noMoreSongs")}
+          </p>
+        ) : visible.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+            <p className="text-muted-foreground text-sm">{t("noMatch")}</p>
+            {filtering && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+              >
+                {t("clearFilters")}
+              </Button>
+            )}
+          </div>
+        ) : (
+          <ul className="divide-y">
+            {visible.map((song) => {
+              const inputId = `add-song-${song.id}`;
+              const checked = selected.includes(song.id);
+              const details = [
+                song.artist,
+                song.tonality,
+                song.tempo ? `${song.tempo} BPM` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                <li key={song.id}>
+                  <label
+                    htmlFor={inputId}
+                    className={cn(
+                      "hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-3 py-2.5 pointer-coarse:py-3",
+                      checked && "bg-primary/5",
+                    )}
+                  >
+                    {suggesting ? (
+                      <input
+                        id={inputId}
+                        type="radio"
+                        name="add-song-choice"
+                        className="accent-primary size-4 shrink-0"
+                        checked={checked}
+                        onChange={(e) => toggle(song.id, e.target.checked)}
+                      />
+                    ) : (
+                      <Checkbox
+                        id={inputId}
+                        checked={checked}
+                        onCheckedChange={(value) =>
+                          toggle(song.id, value === true)
+                        }
+                      />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">
+                        {song.title}
+                      </span>
+                      {details && (
+                        <span className="text-muted-foreground block truncate text-xs">
+                          {details}
+                        </span>
+                      )}
+                    </span>
+                    {!suggesting && checked && (
+                      <span
+                        className="bg-primary text-primary-foreground flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-semibold tabular-nums"
+                        aria-hidden
+                      >
+                        {selected.indexOf(song.id) + 1}
+                      </span>
+                    )}
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </fieldset>
+
+      <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span role="status" aria-live="polite">
+          {suggesting ? null : t("selectedCount", { count: selected.length })}
+        </span>
+        {matches.length > visible.length && (
+          <span>
+            {t("showingFirst", {
+              shown: visible.length,
+              total: matches.length,
+            })}
+          </span>
+        )}
+        {!suggesting && selected.length > 0 && (
+          <Button
+            type="button"
+            variant="link"
+            size="xs"
+            className="h-auto p-0"
+            onClick={() => setSelected([])}
+            disabled={isPending}
+          >
+            {t("clearSelection")}
+          </Button>
         )}
       </div>
+
+      {props.band && !suggesting && (
+        <p className="text-muted-foreground text-xs">{t("copyHint")}</p>
+      )}
       {suggesting && (
         <NoteField value={note} onChange={setNote} disabled={isPending} />
       )}
@@ -256,15 +523,19 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
           onClick={onClose}
           disabled={isPending}
         >
-          {tCommon("cancel")}
+          {justAdded.length > 0 ? t("done") : tCommon("cancel")}
         </Button>
-        <Button type="submit" disabled={isPending || !songId}>
+        <Button type="submit" disabled={isPending || selected.length === 0}>
           {isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
           ) : suggesting ? (
             <Send className="mr-2 h-4 w-4" aria-hidden />
-          ) : null}
-          {suggesting ? t("suggestButton") : t("addButton")}
+          ) : (
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
+          )}
+          {suggesting
+            ? t("suggestButton")
+            : t("addMany", { count: selected.length })}
         </Button>
       </DialogFooter>
     </form>
@@ -311,7 +582,14 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
   const [loading, startLoading] = useTransition();
   const [note, setNote] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const { submit, isPending } = useAddOrSuggest(props);
+  const [addedIds, setAddedIds] = useState<string[]>([]);
+  const { submit, isPending } = useAddOrSuggest({
+    ...props,
+    onAdded: (songId) => {
+      setAddedIds((prev) => [...prev, songId]);
+      props.onAdded?.(songId);
+    },
+  });
 
   useEffect(() => {
     if (!band) return;
@@ -330,7 +608,7 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
     return () => window.clearTimeout(handle);
   }, [band, query]);
 
-  const excluded = new Set(excludedSongIds);
+  const excluded = new Set([...excludedSongIds, ...addedIds]);
 
   return (
     <div className="space-y-3">

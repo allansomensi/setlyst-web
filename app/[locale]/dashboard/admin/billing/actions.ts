@@ -1,6 +1,10 @@
 "use server";
 
-import { guardedAction, requireStaff } from "@/lib/action-guard";
+import {
+  guardedAction,
+  requireStaff,
+  invalidRequest,
+} from "@/lib/action-guard";
 import { fetchServerApi } from "@/lib/api-server";
 import { revalidateDashboard } from "@/lib/revalidate";
 import type { Plan } from "@/types/billing";
@@ -16,6 +20,11 @@ import type {
   UpsertPlanPayload,
 } from "@/types/staff";
 import { isUuid } from "@/lib/uuid";
+import {
+  REFUND_REASON_MAX,
+  REFUND_REASON_MIN,
+  type StaffRefundResult,
+} from "@/lib/billing-admin";
 
 /**
  * Billing administration: settings, plans, promo codes, promotions and
@@ -37,10 +46,19 @@ function revalidateBilling() {
 
 // ---------------------------------------------------------------- settings
 
-export async function saveBillingSettings(settings: BillingSettings) {
+/**
+ * `force` switches plans off even while paid subscriptions are live (the
+ * API refuses that with `BILLING_HAS_PAID_SUBSCRIPTIONS` otherwise: those
+ * customers keep being charged).
+ */
+export async function saveBillingSettings(
+  settings: BillingSettings,
+  force = false,
+) {
   return guardedAction(async () => {
     await requireStaff(true);
-    return fetchServerApi<BillingSettings>("/admin/billing/settings", {
+    const query = force === true ? "?force=true" : "";
+    return fetchServerApi<BillingSettings>(`/admin/billing/settings${query}`, {
       method: "PUT",
       body: JSON.stringify(settings),
     });
@@ -98,6 +116,7 @@ export async function updatePromoCode(
   promoId: string,
   payload: UpdatePromoCodePayload,
 ) {
+  if (!isUuid(promoId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<PromoCode>(`/admin/promo-codes/${id(promoId)}`, {
@@ -108,6 +127,7 @@ export async function updatePromoCode(
 }
 
 export async function getPromoRedemptions(promoId: string) {
+  if (!isUuid(promoId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<PromoRedemption[]>(
@@ -136,6 +156,7 @@ export async function updatePromotion(
   promotionId: string,
   payload: PromotionPayload,
 ) {
+  if (!isUuid(promotionId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<Promotion>(`/admin/promotions/${id(promotionId)}`, {
@@ -146,6 +167,7 @@ export async function updatePromotion(
 }
 
 export async function deletePromotion(promotionId: string) {
+  if (!isUuid(promotionId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     await fetchServerApi<unknown>(`/admin/promotions/${id(promotionId)}`, {
@@ -164,6 +186,7 @@ export async function grantUserPlan(
   userId: string,
   payload: { plan_code: string; days: number | null; note: string | null },
 ) {
+  if (!isUuid(userId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<AdminSubscriptionView>(
@@ -174,6 +197,7 @@ export async function grantUserPlan(
 }
 
 export async function revokeUserPlan(userId: string) {
+  if (!isUuid(userId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     await fetchServerApi<unknown>(`/admin/users/${id(userId)}/subscription`, {
@@ -182,10 +206,41 @@ export async function revokeUserPlan(userId: string) {
   }, revalidateUser);
 }
 
+/**
+ * Refunds a card subscription and cancels it now (admin only): the
+ * charges of the 7-day withdrawal window, or the latest charge outside it.
+ * The customer is e-mailed, and the audit log records `reason`.
+ */
+export async function refundUserSubscription(userId: string, reason: string) {
+  if (!isUuid(userId)) return invalidRequest<StaffRefundResult>();
+  const clean = typeof reason === "string" ? reason.trim() : "";
+  if (clean.length < REFUND_REASON_MIN || clean.length > REFUND_REASON_MAX) {
+    return invalidRequest<StaffRefundResult>();
+  }
+  return guardedAction(
+    async () => {
+      await requireStaff(true);
+      return fetchServerApi<StaffRefundResult>(
+        `/admin/users/${id(userId)}/subscription/refund`,
+        {
+          method: "POST",
+          body: JSON.stringify({ reason: clean }),
+          timeoutMs: 60_000,
+        },
+      );
+    },
+    () => {
+      revalidateUser();
+      revalidateBilling();
+    },
+  );
+}
+
 export async function adjustUserCredits(
   userId: string,
   payload: { amount: number; note: string },
 ) {
+  if (!isUuid(userId)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<AdminSubscriptionView>(

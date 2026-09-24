@@ -1,8 +1,13 @@
 "use server";
 
+import { isUuid } from "@/lib/uuid";
 import { revalidateDashboard } from "@/lib/revalidate";
 import { fetchServerApi } from "@/lib/api-server";
-import { guardedAction, requireStaff } from "@/lib/action-guard";
+import {
+  guardedAction,
+  requireStaff,
+  invalidRequest,
+} from "@/lib/action-guard";
 import type {
   AdminBandSummary,
   BandRole,
@@ -55,6 +60,7 @@ export async function updateBandAsAdmin(
   id: string,
   payload: UpdateBandPayload,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -68,6 +74,7 @@ export async function updateBandAsAdmin(
 }
 
 export async function deleteBandAsAdmin(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -84,6 +91,7 @@ export async function addBandMemberAsAdmin(
   userId: string,
   role: Exclude<BandRole, "owner">,
 ) {
+  if (!isUuid(bandId) || !isUuid(userId)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -101,6 +109,7 @@ export async function setBandMemberRoleAsAdmin(
   userId: string,
   role: Exclude<BandRole, "owner">,
 ) {
+  if (!isUuid(bandId) || !isUuid(userId)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -114,6 +123,7 @@ export async function setBandMemberRoleAsAdmin(
 }
 
 export async function removeBandMemberAsAdmin(bandId: string, userId: string) {
+  if (!isUuid(bandId) || !isUuid(userId)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -130,6 +140,7 @@ export async function transferBandOwnershipAsAdmin(
   bandId: string,
   newOwnerId: string,
 ) {
+  if (!isUuid(bandId) || !isUuid(newOwnerId)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -151,6 +162,7 @@ export async function updateSongAsAdmin(
   id: string,
   payload: UpdateSongPayload,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -164,6 +176,7 @@ export async function updateSongAsAdmin(
 }
 
 export async function deleteSongAsAdmin(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -181,6 +194,7 @@ export async function updateSetlistAsAdmin(
   id: string,
   payload: { title?: string; description?: string | null },
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -194,6 +208,7 @@ export async function updateSetlistAsAdmin(
 }
 
 export async function deleteSetlistAsAdmin(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -212,6 +227,7 @@ export async function revokeShare(
   id: string,
   reason: string,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();
@@ -231,6 +247,7 @@ export async function revokeShare(
 }
 
 export async function unlockShare(kind: "setlist" | "gig", id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();

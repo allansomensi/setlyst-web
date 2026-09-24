@@ -21,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useOfflineSync } from "@/components/providers/offline-sync-provider";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useSyncErrorText } from "@/hooks/use-sync-error-text";
+import { InstallApp } from "../../_components/install-app";
 
 /**
  * One-button "make sure everything is available offline" control for the
@@ -48,6 +50,8 @@ export function OfflineSection() {
 
   const isSyncing = status === "syncing";
   const hasFailed = status === "error";
+  const errorText = useSyncErrorText(lastError);
+  const tInstall = useTranslations("installApp");
   const totalCached =
     cachedSetlistCount + cachedSongCount + cachedGigCount + cachedBandCount;
 
@@ -136,8 +140,12 @@ export function OfflineSection() {
         )}
 
         {isOnline && hasFailed && (
-          <p className="text-destructive text-xs dark:text-red-400">
-            {lastError ? `${t("syncFailed")}: ${lastError}` : t("syncFailed")}
+          <p
+            role="status"
+            className="text-destructive text-xs dark:text-red-400"
+          >
+            <span className="font-medium">{t("syncFailed")}</span>
+            {errorText && <> · {errorText}</>}
           </p>
         )}
 
@@ -155,6 +163,13 @@ export function OfflineSection() {
             {t("downloadNeverSynced")}
           </p>
         )}
+
+        {/* The installed app opens full screen and is what keeps working
+            with no signal, so this is where it is offered. */}
+        <div className="space-y-2 border-t pt-4">
+          <p className="text-sm font-medium">{tInstall("title")}</p>
+          <InstallApp />
+        </div>
       </CardContent>
     </Card>
   );

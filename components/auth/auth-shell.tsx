@@ -34,7 +34,9 @@ export async function AuthShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="bg-muted/40 flex min-h-dvh flex-col">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+      {/* Safe areas: the installed iOS app's status bar and home
+          indicator, and the notches of a phone in landscape. */}
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-4 pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
         <Link
           href="/"
           className="focus-visible:ring-ring/50 flex items-center gap-2 rounded-lg font-semibold outline-none focus-visible:ring-3"
@@ -49,11 +51,11 @@ export async function AuthShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center p-4">
+      <main className="flex flex-1 flex-col items-center justify-center py-4 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))]">
         {children}
       </main>
 
-      <footer className="text-muted-foreground flex flex-col items-center gap-2 px-4 py-6 text-xs">
+      <footer className="text-muted-foreground flex flex-col items-center gap-2 px-4 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-xs">
         <nav aria-label={tLegal("title")}>
           <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             {AUTH_LEGAL_DOCS.map((doc) => (

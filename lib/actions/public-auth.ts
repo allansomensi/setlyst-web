@@ -1,6 +1,6 @@
 "use server";
 
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { describeApiError } from "@/lib/api-errors";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { normalizeReferralCode, sanitizeOtp } from "@/lib/auth-flow";
@@ -91,7 +91,13 @@ async function postPublic<T>(
     };
   }
 
-  const translated = describeApiError(code, meta, (k, v) => t(k, v), locale);
+  const translated = describeApiError(
+    code,
+    meta,
+    (k, v) => t(k, v),
+    locale,
+    await getTimeZone(),
+  );
   if (!translated && code) {
     console.warn("[public-auth] Untranslated API error:", res.status, code);
   }
@@ -110,6 +116,11 @@ export interface RegisterInput {
   firstName?: string;
   lastName?: string;
   acceptTerms: boolean;
+  /**
+   * The age declaration (18+, or 16-17 with a guardian's consent), given
+   * by the same consent checkbox as the terms.
+   */
+  ageConfirmed: boolean;
   marketingOptIn: boolean;
   referralCode?: string | null;
 }
@@ -138,6 +149,13 @@ export async function registerAccount(
       error: t("TERMS_NOT_ACCEPTED"),
     };
   }
+  if (input.ageConfirmed !== true) {
+    return {
+      success: false,
+      apiCode: "AGE_CONFIRMATION_REQUIRED",
+      error: t("AGE_CONFIRMATION_REQUIRED"),
+    };
+  }
 
   const locale = await getLocale();
   return postPublic("/auth/register", {
@@ -147,6 +165,7 @@ export async function registerAccount(
     first_name: input.firstName?.trim().slice(0, 50) || undefined,
     last_name: input.lastName?.trim().slice(0, 50) || undefined,
     accept_terms: true,
+    age_confirmed: true,
     marketing_opt_in: input.marketingOptIn === true,
     referral_code: normalizeReferralCode(input.referralCode) ?? undefined,
     locale,

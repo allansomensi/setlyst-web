@@ -85,6 +85,8 @@ const USERNAME_COOLDOWN_DAYS = 90;
 export function getUsernameCooldownInfo(
   usernameChangedAt: string | null,
   locale: string,
+  /** The viewer's zone; pass it on the server (`getTimeZone()`). */
+  timeZone?: string,
 ): { inCooldown: boolean; cooldownDate: string | null } {
   const cooldownUntil = usernameChangedAt
     ? new Date(
@@ -95,9 +97,10 @@ export function getUsernameCooldownInfo(
 
   const inCooldown = !!cooldownUntil && cooldownUntil.getTime() > Date.now();
   const cooldownDate = cooldownUntil
-    ? new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
-        cooldownUntil,
-      )
+    ? new Intl.DateTimeFormat(locale, {
+        dateStyle: "long",
+        ...(timeZone ? { timeZone } : {}),
+      }).format(cooldownUntil)
     : null;
 
   return { inCooldown, cooldownDate };

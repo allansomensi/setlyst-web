@@ -1,7 +1,7 @@
 import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
-import { Setlist, BandWithMembership } from "@/types/api";
+import { Setlist, BandWithMembership, QuotaReport } from "@/types/api";
 import { SetlistsTable } from "./_components/setlists-table";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
@@ -18,9 +18,11 @@ export default async function SetlistsPage() {
   // state — the person does have setlists, this fetch just didn't get
   // them this time (see <LoadErrorNotice />, which SetlistsTable shows
   // instead when `loadError` is true and the list ends up empty).
-  const [personalRes, bandsRaw] = await Promise.all([
+  const [personalRes, bandsRaw, quotas] = await Promise.all([
     fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
     fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
+    // Only for the usage chip next to "New setlist": never fatal.
+    fetchServerApi<QuotaReport>("/users/me/quotas").catch(() => null),
   ]);
 
   const personalFailed = personalRes === FETCH_FAILED;
@@ -57,6 +59,7 @@ export default async function SetlistsPage() {
         initialSetlists={setlists}
         bandsById={bandsById}
         loadError={hadError}
+        quotas={quotas}
       />
     </div>
   );

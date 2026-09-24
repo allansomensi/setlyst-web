@@ -47,6 +47,7 @@ export async function generateMetadata({
     title: t("landingTitle"),
     description: t("landingDescription"),
     absoluteTitle: true,
+    largeImage: true,
   });
 }
 

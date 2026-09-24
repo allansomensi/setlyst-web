@@ -1,5 +1,7 @@
-import { headers } from "next/headers";
+import "server-only";
+
 import { assertSafeEndpoint } from "@/lib/api-endpoint";
+import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import type { PublicPlan, ReleaseNote, UnsubscribeInfo } from "@/types/public";
 
 /**
@@ -15,20 +17,6 @@ const TIMEOUT_MS = 8_000;
 function apiBaseUrl(): string | null {
   const url = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
   return url ? url.replace(/\/$/, "") : null;
-}
-
-/**
- * Identifies the visitor to the API's per-IP rate limiter (SPEC §9 H1),
- * for the uncached calls made on the visitor's behalf.
- */
-async function clientIpHeaders(): Promise<Record<string, string>> {
-  const secret = process.env.INTERNAL_API_SECRET;
-  if (!secret) return {};
-  const h = await headers();
-  const ip =
-    h.get("x-real-ip")?.trim() ||
-    h.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return ip ? { "X-Setlyst-Internal": secret, "X-Setlyst-Client-IP": ip } : {};
 }
 
 type PublicFetchOptions = {
@@ -62,9 +50,14 @@ export async function fetchPublicApi<T>(
       headers: {
         Accept: "application/json",
         ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(forwardClientIp ? await clientIpHeaders() : {}),
+        // Identifies the visitor to the API's per-IP rate limiter (SPEC §9
+        // H1) for the uncached calls made on their behalf, with the same
+        // trusted-proxy rules as every other server call
+        // (lib/server/client-ip.ts): never the raw X-Forwarded-For.
+        ...(forwardClientIp ? await getInternalApiHeaders() : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      redirect: "error",
       signal: AbortSignal.timeout(TIMEOUT_MS),
       ...(revalidate === false
         ? { cache: "no-store" as const }

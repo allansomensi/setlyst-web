@@ -14,28 +14,52 @@ import { AppLogo } from "@/components/app-logo";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
+import { getApiBaseUrl } from "@/lib/api-server";
 import { parseApiTimestamp } from "@/lib/dates";
+import { buildInternalHeaders } from "@/lib/server/client-ip";
+import { getRequestTimeZone } from "@/lib/server/time-zone";
 import { cn } from "@/lib/utils";
 import type { ApiStatus, ServiceHealth } from "@/types/api";
 import { AutoRefresh } from "./_components/auto-refresh";
 import { RefreshStatusButton } from "./_components/refresh-button";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Status",
-  robots: { index: true, follow: false },
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ lang?: string | string[] }>;
+}): Promise<Metadata> {
+  const { lang } = await searchParams;
+  const { locale, messages } = await resolvePublicLocale(lang);
+  const t = createTranslator({ locale, messages, namespace: "status" });
+  return {
+    title: t("title"),
+    robots: { index: true, follow: false },
+  };
+}
 
 const REFRESH_SECONDS = 60;
 
+/** Every visitor shares one report per this many seconds. */
+const STATUS_CACHE_SECONDS = 15;
+
+/**
+ * The API's health report, shared by every visitor for a few seconds (a
+ * flood of anonymous hits must not become a flood of health checks).
+ * Identifies this server with the internal secret but names no visitor:
+ * the response is shared, and a per-visitor header would split the cache.
+ */
 async function fetchSystemStatus(): Promise<ApiStatus | null> {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    const res = await fetch(`${baseUrl}/status`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
+    const res = await fetch(`${getApiBaseUrl()}/status`, {
+      next: { revalidate: STATUS_CACHE_SECONDS },
+      headers: {
+        ...buildInternalHeaders(
+          process.env.INTERNAL_API_SECRET || undefined,
+          null,
+        ),
+        Accept: "application/json",
+      },
+      redirect: "error",
       signal: AbortSignal.timeout(5000),
     });
     // A 503 still carries the report (which dependency is down).
@@ -115,7 +139,10 @@ export default async function StatusPage({
     values?: Record<string, string | number>,
   ) => string;
 
-  const status = await fetchSystemStatus();
+  const [status, timeZone] = await Promise.all([
+    fetchSystemStatus(),
+    getRequestTimeZone(),
+  ]);
   const overall: ServiceHealth = status?.status ?? "down";
   const apiHealth: ServiceHealth = status ? "operational" : "down";
   const database = status?.dependencies?.database;
@@ -125,7 +152,8 @@ export default async function StatusPage({
   const OverallIcon = HEALTH_STYLES[overall].icon;
   const checkedAt = new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
-    timeStyle: "medium",
+    timeStyle: "long",
+    timeZone,
   }).format(
     status?.updated_at ? parseApiTimestamp(status.updated_at) : new Date(),
   );
@@ -149,7 +177,12 @@ export default async function StatusPage({
       health: apiHealth,
       details: status
         ? [
-            t("details.version", { version: status.version }),
+            // The public report is just `{ status }` now (the version
+            // and uptime moved to the authenticated `/status/details`);
+            // shown only when a richer report comes back.
+            ...(status.version
+              ? [t("details.version", { version: status.version })]
+              : []),
             ...(status.uptime_seconds != null
               ? [
                   t("details.uptime", {
@@ -228,9 +261,11 @@ export default async function StatusPage({
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium">{service.name}</p>
-                    <p className="text-muted-foreground truncate text-sm">
-                      {service.details.join(" · ")}
-                    </p>
+                    {service.details.length > 0 && (
+                      <p className="text-muted-foreground truncate text-sm">
+                        {service.details.join(" · ")}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Badge

@@ -35,6 +35,7 @@ import {
   EyeOff,
   Underline,
   ChevronDown,
+  Check,
   WifiOff,
   ListTree,
 } from "lucide-react";
@@ -101,6 +102,13 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const [showChords, setShowChords] = useState(true);
   const [showSections, setShowSections] = useState(true);
   const [savedLyrics, setSavedLyrics] = useState("");
+  // Someone else saved different lyrics since this editor loaded them:
+  // saving now would silently overwrite their version, so ask first.
+  const [conflict, setConflict] = useState<{
+    lyrics: string;
+    by: string | null;
+    close: boolean;
+  } | null>(null);
   // True when what's on screen came from the on-device copy rather than the
   // API. The lyrics are fully readable either way; saving is what needs a
   // connection, so the editor turns read-only instead of offering a Save
@@ -182,20 +190,74 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const isDirty = !isReadOnly && lyrics !== savedLyrics;
   const guard = useUnsavedChangesGuard(isDirty);
 
-  const handleSave = useCallback(() => {
-    if (isPending || isReadOnly || !isDirty) return;
-    startTransition(async () => {
-      const result = await updateSong(id, { lyrics });
-      if (result.success) {
-        setSavedLyrics(lyrics);
-        toast.success(t("saved"));
-        guard.release();
-        router.push(songHref);
-      } else {
-        toastActionError(result, result.error ?? t("saveFailed"));
+  /**
+   * Saves the lyrics. Ctrl/Cmd+S and "Salvar" stay in the editor (people
+   * save as they go); "Salvar e fechar" goes back to the song.
+   *
+   * The API has no version check on PATCH, so before writing, the song is
+   * read again: if its lyrics are no longer the ones this editor started
+   * from (a bandmate, or this account on another device, saved in the
+   * meantime), the save stops and asks instead of overwriting their work.
+   */
+  const save = useCallback(
+    (options: { close: boolean; force?: boolean }) => {
+      if (isPending || isReadOnly) return;
+      if (!isDirty) {
+        if (options.close) {
+          guard.release();
+          router.push(songHref);
+        }
+        return;
       }
-    });
-  }, [id, lyrics, router, t, isPending, isReadOnly, isDirty, guard, songHref]);
+      startTransition(async () => {
+        if (!options.force) {
+          const current = await fetchApi<Song>(`/songs/${id}`).catch(
+            () => null,
+          );
+          // Can't check (a blip): go ahead rather than block the save.
+          if (current && (current.lyrics ?? "") !== savedLyrics) {
+            setConflict({
+              lyrics: current.lyrics ?? "",
+              by: current.updated_by_username ?? null,
+              close: options.close,
+            });
+            return;
+          }
+        }
+        const saving = lyrics;
+        const result = await updateSong(id, { lyrics: saving });
+        if (!result.success) {
+          toastActionError(result, result.error ?? t("saveFailed"));
+          return;
+        }
+        setSavedLyrics(saving);
+        setConflict(null);
+        if (options.close) {
+          toast.success(t("saved"));
+          guard.release();
+          router.push(songHref);
+        } else {
+          toast.success(t("savedInPlace"), { duration: 2000 });
+        }
+      });
+    },
+    [
+      id,
+      lyrics,
+      savedLyrics,
+      router,
+      t,
+      isPending,
+      isReadOnly,
+      isDirty,
+      guard,
+      songHref,
+      fetchApi,
+    ],
+  );
+
+  const handleSave = useCallback(() => save({ close: false }), [save]);
+  const handleSaveAndClose = useCallback(() => save({ close: true }), [save]);
 
   // Toolbar actions
 
@@ -309,20 +371,34 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
               {t("readOnlyOffline")}
             </span>
           ) : (
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={isPending || !isDirty}
-              className="gap-1.5"
-              title={isDirty ? undefined : t("noChanges")}
-            >
-              {isPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Save className="h-3.5 w-3.5" />
-              )}
-              {isPending ? t("saving") : t("save")}
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSave}
+                disabled={isPending || !isDirty}
+                className="gap-1.5"
+                title={isDirty ? t("saveShortcut") : t("noChanges")}
+                aria-keyshortcuts="Control+S Meta+S"
+              >
+                {isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <Save className="h-3.5 w-3.5" aria-hidden />
+                )}
+                {isPending ? t("saving") : t("save")}
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveAndClose}
+                disabled={isPending}
+                className="gap-1.5"
+              >
+                <Check className="h-3.5 w-3.5" aria-hidden />
+                <span className="hidden sm:inline">{t("saveAndClose")}</span>
+                <span className="sm:hidden">{t("saveAndCloseShort")}</span>
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -458,16 +534,22 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         >
           <textarea
             ref={textareaRef}
+            aria-label={t("editorLabel", { title: songTitle })}
             className={cn(
-              "bg-background flex-1 resize-none p-4 font-mono text-sm leading-relaxed focus:outline-none",
+              // 16px on phones: anything smaller makes iOS zoom the page
+              // when the field is focused.
+              "bg-background flex-1 resize-none p-4 font-mono text-base leading-relaxed outline-none md:text-sm",
+              "focus-visible:ring-ring/40 focus-visible:ring-2 focus-visible:ring-inset",
               "placeholder:text-muted-foreground/50",
             )}
             placeholder={t("placeholder")}
             value={lyrics}
             onChange={(e) => setLyrics(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isPending}
-            readOnly={isReadOnly}
+            // Read-only (not disabled) while saving, so the caret and focus
+            // stay put after Ctrl+S.
+            readOnly={isReadOnly || isPending}
+            aria-busy={isPending || undefined}
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"
@@ -498,6 +580,57 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={conflict !== null}
+        onOpenChange={(open) => !open && !isPending && setConflict(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("conflict.title")}</DialogTitle>
+            <DialogDescription>
+              {conflict?.by
+                ? t("conflict.descriptionBy", { user: conflict.by })
+                : t("conflict.description")}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-muted-foreground text-sm">{t("conflict.hint")}</p>
+          <DialogFooter className="sm:flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => setConflict(null)}
+              disabled={isPending}
+            >
+              {t("keepEditing")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!conflict) return;
+                // Their version becomes both the text and the new baseline.
+                setLyrics(conflict.lyrics);
+                setSavedLyrics(conflict.lyrics);
+                setConflict(null);
+              }}
+              disabled={isPending}
+            >
+              {t("conflict.loadTheirs")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                save({ close: conflict?.close ?? false, force: true })
+              }
+              disabled={isPending}
+            >
+              {isPending && (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" aria-hidden />
+              )}
+              {t("conflict.overwrite")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={guard.isConfirming}

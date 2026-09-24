@@ -18,6 +18,12 @@ export const PASSWORD_ISSUES = [
   "missing_symbol",
   "contains_username",
   "too_common",
+  /**
+   * Found in a public breach corpus (the API checks Have I Been Pwned by
+   * k-anonymity). Only the API can tell: never produced by
+   * `passwordIssues`.
+   */
+  "breached",
 ] as const;
 
 export type PasswordIssue = (typeof PASSWORD_ISSUES)[number];

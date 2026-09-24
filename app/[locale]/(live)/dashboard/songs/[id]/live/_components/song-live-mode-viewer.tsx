@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Song } from "@/types/api";
 import { LiveLyricsArea } from "@/components/live/live-lyrics-area";
 import { LiveHeader } from "@/components/live/live-header";
@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSongBundle } from "@/hooks/use-offline-song-bundle";
 import { useWakeLock } from "@/hooks/use-wake-lock";
+import { markLiveModeOpened } from "@/hooks/use-onboarding";
 import { useFullscreen } from "@/hooks/use-fullscreen";
 import { useMetronome } from "@/hooks/use-metronome";
 import { useMetronomeSettings } from "@/hooks/use-metronome-settings";
@@ -48,6 +49,8 @@ export function SongLiveModeViewer({
 
   const fullscreen = useFullscreen();
   useWakeLock();
+  // For the first-run checklist on the dashboard home.
+  useEffect(() => markLiveModeOpened(), []);
 
   // Tempo comes from the song itself; with only one song on screen there
   // is nothing to follow, but the rest of the behaviour is identical to
@@ -80,6 +83,7 @@ export function SongLiveModeViewer({
 
   // Same shortcuts as the setlist viewer, minus song navigation.
   useLiveKeyboardShortcuts({
+    scrollContainerRef,
     toggleAutoScroll,
     stepScrollSpeed,
     toggleMetronome,
@@ -109,6 +113,7 @@ export function SongLiveModeViewer({
         writtenKey={song.tonality}
         semitones={transpose.semitones}
         isFullscreen={fullscreen.isFullscreen}
+        canFullscreen={fullscreen.isSupported}
         onToggleFullscreen={fullscreen.toggle}
         onOpenSettings={() => setSettingsOpen(true)}
       />
@@ -122,6 +127,7 @@ export function SongLiveModeViewer({
           fontFamily={display.fontFamily}
           fontSize={baseFontSize}
           fitToScreen={fitToScreen}
+          label={song.title}
         />
 
         <LiveActiveControls
@@ -129,7 +135,7 @@ export function SongLiveModeViewer({
           metronomeRunning={metronomeSettings.isRunning}
           metronomeBpm={metronomeSettings.bpm}
           onStopMetronome={toggleMetronome}
-          className="absolute right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] md:right-6 md:bottom-6"
+          className="absolute right-[max(0.75rem,env(safe-area-inset-right))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] md:right-[max(1.5rem,env(safe-area-inset-right))] md:bottom-6"
         />
       </div>
 

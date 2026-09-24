@@ -52,7 +52,9 @@ import {
   PaidPlanActions,
   isPaidAndLive,
   paymentsAvailable,
+  type PlanPreselection,
 } from "./paid-plan";
+import { SUPPORT_EMAIL } from "@/lib/links";
 
 interface SubscriptionSectionProps {
   billing: BillingMe | null;
@@ -67,6 +69,8 @@ interface SubscriptionSectionProps {
   /** `?checkout=` on the way back from Stripe Checkout. */
   checkoutStatus: "success" | "canceled" | null;
   readOnly: boolean;
+  /** `?plan=&interval=` from the pricing page: opens the picker on it. */
+  preselect?: PlanPreselection | null;
 }
 
 const STATUS_STYLES: Record<SubscriptionStatus, string> = {
@@ -87,6 +91,7 @@ export function SubscriptionSection({
   plans,
   checkoutStatus,
   readOnly,
+  preselect = null,
 }: SubscriptionSectionProps) {
   const t = useTranslations("billing");
 
@@ -114,6 +119,7 @@ export function SubscriptionSection({
         history={history}
         plans={plans}
         readOnly={readOnly}
+        preselect={preselect}
       />
 
       <Card>
@@ -166,12 +172,14 @@ function PlanCard({
   history,
   plans,
   readOnly,
+  preselect,
 }: {
   billing: BillingMe;
   planName: (code: string | null | undefined) => string;
   history: SubscriptionEvent[] | null;
   plans: PublicPlan[];
   readOnly: boolean;
+  preselect: PlanPreselection | null;
 }) {
   const t = useTranslations("billing");
   const tFeatures = useTranslations("pricing.features");
@@ -326,11 +334,27 @@ function PlanCard({
       </CardContent>
       {paymentsAvailable(billing) ? (
         <CardFooter>
-          <PaidPlanActions
-            billing={billing}
-            plans={plans}
-            readOnly={readOnly}
-          />
+          <div className="flex w-full flex-col gap-3">
+            <PaidPlanActions
+              billing={billing}
+              plans={plans}
+              readOnly={readOnly}
+              preselect={preselect}
+            />
+            <p className="text-muted-foreground border-t pt-3 text-xs leading-relaxed">
+              {t.rich("withdrawalRight", {
+                email: SUPPORT_EMAIL,
+                mail: (chunks) => (
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL}`}
+                    className="text-foreground font-medium underline underline-offset-2"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </p>
+          </div>
         </CardFooter>
       ) : (
         <CardFooter className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">

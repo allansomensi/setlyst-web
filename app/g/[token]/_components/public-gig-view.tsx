@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { CalendarDays, Clock, Eye, ListMusic, MapPin } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Eye,
+  Flag,
+  ListMusic,
+  MapPin,
+} from "lucide-react";
 import { PublicGig, GigStatus } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -190,12 +197,22 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
             <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {t("gigReadOnlyNotice")}
           </span>
-          <Link
-            href="/"
-            className="hover:text-foreground underline-offset-4 transition-colors hover:underline"
-          >
-            {t("madeWith")}
-          </Link>
+          <span className="flex items-center gap-3">
+            {/* Copyright and abuse notices (Copyright Policy §5). */}
+            <Link
+              href={`/${locale}/contato#report`}
+              className="hover:text-foreground flex items-center gap-1 underline-offset-4 transition-colors hover:underline"
+            >
+              <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {t("report")}
+            </Link>
+            <Link
+              href="/"
+              className="hover:text-foreground underline-offset-4 transition-colors hover:underline"
+            >
+              {t("madeWith")}
+            </Link>
+          </span>
         </div>
       </div>
     </div>

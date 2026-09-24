@@ -132,20 +132,77 @@ export interface LiveShortcutHandlers {
   shiftTranspose: (semitones: 1 | -1) => void;
   /** Fit mode has nothing to scroll: Space does nothing then. */
   fitToScreen: boolean;
+  /** The lyrics pane, scrolled by ↑/↓ and (in "page" mode) PageDown/PageUp. */
+  scrollContainerRef?: RefObject<HTMLElement | null>;
+  /**
+   * What PageDown/PageUp (what page-turner pedals send) do:
+   * - `page`: turn the page within a long song first, and only move to the
+   *   next/previous song once the end/start is on screen;
+   * - `song`: always change song.
+   */
+  pageTurn?: LivePageTurnMode;
   /** True while something else owns the keyboard (the settings sheet). */
   disabled?: boolean;
+}
+
+export type LivePageTurnMode = "page" | "song";
+
+/** How much of the visible pane one "page" turn moves: some overlap stays. */
+export const PAGE_TURN_FRACTION = 0.8;
+
+/** Slack for sub-pixel scroll positions when checking top/bottom. */
+const EDGE_TOLERANCE_PX = 2;
+
+/**
+ * Controls that use Space or the arrow keys themselves: a focused button
+ * must still activate on Space, and a slider or radio group must still move
+ * with the arrows, instead of Live Mode swallowing the key.
+ */
+const INTERACTIVE_SELECTOR =
+  "button, a[href], summary, [role=button], [role=slider], [role=switch], [role=radio], [role=checkbox], [role=tab], [role=menuitem], [role=option], [contenteditable=true]";
+
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof Element && target.closest(INTERACTIVE_SELECTOR) !== null
+  );
+}
+
+/** Scrolls the pane by a page; returns false when already at that edge. */
+export function turnPage(
+  el: HTMLElement | null | undefined,
+  direction: 1 | -1,
+): boolean {
+  if (!el) return false;
+  const atBottom =
+    el.scrollTop + el.clientHeight >= el.scrollHeight - EDGE_TOLERANCE_PX;
+  const atTop = el.scrollTop <= EDGE_TOLERANCE_PX;
+  if ((direction === 1 && atBottom) || (direction === -1 && atTop)) {
+    return false;
+  }
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  el.scrollBy({
+    top: direction * el.clientHeight * PAGE_TURN_FRACTION,
+    behavior: reduceMotion ? "auto" : "smooth",
+  });
+  return true;
 }
 
 /**
  * Live Mode's keyboard shortcuts, shared by both viewers:
  *
- *  - → / PageDown, ← / PageUp: next / previous song (when given)
+ *  - → / ←: next / previous song (when given)
+ *  - PageDown / PageUp: turn the page within the song, then change song
+ *    (or always change song, per the `pageTurn` setting)
+ *  - ↓ / ↑: scroll the song by most of a screen
  *  - Space: start or stop auto-scroll; + / -: its speed
  *  - M: metronome; C: chords; S: section labels
  *  - , / .: transpose down / up a semitone
  *
  * Ignored while typing in a field or with a modifier held (so browser
- * shortcuts keep working). Page-turner pedals send PageDown/PageUp or the
+ * shortcuts keep working), and Space/arrows are left alone on a focused
+ * control that uses them. Page-turner pedals send PageDown/PageUp or the
  * arrow keys, which is why both are mapped.
  */
 export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
@@ -160,6 +217,7 @@ export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
       const h = ref.current;
       if (
         h.disabled ||
+        event.defaultPrevented ||
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
         event.target instanceof HTMLSelectElement ||
@@ -170,22 +228,51 @@ export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
         return;
       }
 
+      const onControl = isInteractiveTarget(event.target);
+      const pane = h.scrollContainerRef?.current;
+
       switch (event.key) {
         case "ArrowRight":
-        case "PageDown":
-          if (h.onNext) {
+          if (h.onNext && !onControl) {
             event.preventDefault();
             h.onNext();
           }
           break;
         case "ArrowLeft":
-        case "PageUp":
-          if (h.onPrev) {
+          if (h.onPrev && !onControl) {
             event.preventDefault();
             h.onPrev();
           }
           break;
+        case "PageDown":
+          event.preventDefault();
+          if ((h.pageTurn ?? "page") === "page" || !h.onNext) {
+            if (turnPage(pane, 1)) break;
+          }
+          h.onNext?.();
+          break;
+        case "PageUp":
+          event.preventDefault();
+          if ((h.pageTurn ?? "page") === "page" || !h.onPrev) {
+            if (turnPage(pane, -1)) break;
+          }
+          h.onPrev?.();
+          break;
+        case "ArrowDown":
+          if (!onControl && pane) {
+            event.preventDefault();
+            turnPage(pane, 1);
+          }
+          break;
+        case "ArrowUp":
+          if (!onControl && pane) {
+            event.preventDefault();
+            turnPage(pane, -1);
+          }
+          break;
         case " ":
+          // A focused button activates on Space; don't steal that.
+          if (onControl) break;
           event.preventDefault();
           if (!h.fitToScreen) h.toggleAutoScroll();
           break;

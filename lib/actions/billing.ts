@@ -122,7 +122,7 @@ export async function changePaidPlan(
 ): Promise<ActionResult<BillingMe>> {
   const choice = planChoice(planCode, interval);
   if (!choice) return invalid();
-  return guardedAction(
+  const result = await guardedAction(
     () =>
       fetchServerApi<BillingMe>("/billing/subscription/change", {
         method: "POST",
@@ -130,7 +130,26 @@ export async function changePaidPlan(
       }),
     () => revalidateDashboard("", "layout"),
   );
+  // The bank wants the customer to confirm the charge (3-D Secure): the
+  // API answers PAYMENT_ACTION_REQUIRED with Stripe's hosted invoice page,
+  // where the browser is sent next. Only a Stripe https page is passed on.
+  if (!result.success && result.apiCode === PAYMENT_ACTION_REQUIRED) {
+    const raw = result.meta?.hosted_invoice_url;
+    let url: string | null = null;
+    try {
+      url = typeof raw === "string" ? safeRedirect({ url: raw }).url : null;
+    } catch {
+      url = null;
+    }
+    return {
+      ...result,
+      meta: url ? { hosted_invoice_url: url } : undefined,
+    };
+  }
+  return result;
 }
+
+const PAYMENT_ACTION_REQUIRED = "PAYMENT_ACTION_REQUIRED";
 
 /** Opens the Stripe billing portal (card, invoices, cancellation). */
 export async function openBillingPortal(): Promise<
@@ -143,6 +162,30 @@ export async function openBillingPortal(): Promise<
         body: JSON.stringify({}),
       }),
     ),
+  );
+}
+
+/** What `POST /billing/withdraw` answers (CONTRACTS §3). */
+export interface WithdrawalResult {
+  refunded_cents: number;
+  currency: string;
+}
+
+/**
+ * Exercises the 7-day withdrawal right (CDC art. 49): the API cancels the
+ * paid subscription immediately and refunds what was paid in the window.
+ * Refused with `WITHDRAWAL_NOT_ELIGIBLE` once the window has closed.
+ */
+export async function withdrawSubscription(): Promise<
+  ActionResult<WithdrawalResult>
+> {
+  return guardedAction(
+    () =>
+      fetchServerApi<WithdrawalResult>("/billing/withdraw", {
+        method: "POST",
+        body: JSON.stringify({}),
+      }),
+    () => revalidateDashboard("", "layout"),
   );
 }
 

@@ -35,6 +35,10 @@ import { UserAvatar } from "@/components/user-avatar";
 import { useMounted } from "@/hooks/use-mounted";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { FieldError } from "@/components/ui/field-error";
+import { DiscardChangesDialog } from "@/components/ui/discard-changes-dialog";
+import { useDialogCloseGuard } from "@/hooks/use-dialog-close-guard";
+import { fieldA11y } from "@/lib/forms";
 import { formatWallClock, parseWallClock, wallClockNow } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import {
@@ -283,19 +287,26 @@ function NoteDialog({
 }) {
   const t = useTranslations("bandNotes");
   const existing = note && note !== "new" ? note : null;
-  const [form, setForm] = useState<BandNoteInput>({
+  const [initialForm] = useState<BandNoteInput>(() => ({
     content: existing?.content ?? "",
     color: existing?.color ?? "yellow",
     is_pinned: existing?.is_pinned ?? false,
     due_at: existing?.due_at ? existing.due_at.slice(0, 16) : "",
-  });
+  }));
+  const [form, setForm] = useState<BandNoteInput>(initialForm);
+  const [contentError, setContentError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const closeGuard = useDialogCloseGuard({ isDirty, isPending, onClose });
 
   const submit = () => {
+    if (isPending) return;
     if (!form.content.trim()) {
-      toast.error(t("contentRequired"));
+      setContentError(t("contentRequired"));
+      document.getElementById("note-content")?.focus();
       return;
     }
+    setContentError(null);
     startTransition(async () => {
       const result = existing
         ? await updateBandNote(bandId, existing.id, {
@@ -316,96 +327,110 @@ function NoteDialog({
   };
 
   return (
-    <Dialog open={!!note} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{existing ? t("editTitle") : t("addTitle")}</DialogTitle>
-          <DialogDescription>{t("dialogDescription")}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="note-content">{t("contentLabel")}</Label>
-            <Textarea
-              id="note-content"
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              maxLength={MAX_LENGTH}
-              rows={5}
-              placeholder={t("contentPlaceholder")}
-              disabled={isPending}
-              aria-describedby="note-count"
-            />
-            <p
-              id="note-count"
-              className="text-muted-foreground text-right text-xs tabular-nums"
-            >
-              {t("count", { count: form.content.length, max: MAX_LENGTH })}
-            </p>
-          </div>
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">{t("colorLabel")}</legend>
-            <div
-              role="radiogroup"
-              aria-label={t("colorLabel")}
-              className="flex flex-wrap gap-2"
-            >
-              {BAND_NOTE_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  role="radio"
-                  aria-checked={form.color === color}
-                  aria-label={t(`colors.${color}`)}
-                  title={t(`colors.${color}`)}
-                  onClick={() => setForm({ ...form, color })}
-                  className={cn(
-                    "focus-visible:ring-ring/50 h-8 w-8 rounded-full border-2 transition-transform focus-visible:ring-3 focus-visible:outline-none",
-                    NOTE_STYLES[color].swatch,
-                    form.color === color
-                      ? "ring-foreground ring-offset-background scale-110 ring-2 ring-offset-2"
-                      : "hover:scale-105",
-                  )}
-                />
-              ))}
-            </div>
-          </fieldset>
-          <div className="grid gap-4 sm:grid-cols-2">
+    <>
+      <Dialog open={!!note} onOpenChange={closeGuard.onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {existing ? t("editTitle") : t("addTitle")}
+            </DialogTitle>
+            <DialogDescription>{t("dialogDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="note-due">{t("dueLabel")}</Label>
-              <Input
-                id="note-due"
-                type="datetime-local"
-                value={form.due_at}
-                onChange={(e) => setForm({ ...form, due_at: e.target.value })}
+              <Label htmlFor="note-content">{t("contentLabel")}</Label>
+              <Textarea
+                id="note-content"
+                value={form.content}
+                onChange={(e) => {
+                  setForm({ ...form, content: e.target.value });
+                  if (contentError) setContentError(null);
+                }}
+                maxLength={MAX_LENGTH}
+                rows={5}
+                placeholder={t("contentPlaceholder")}
                 disabled={isPending}
+                aria-required
+                {...fieldA11y("note-content", contentError, "note-count")}
               />
+              <FieldError fieldId="note-content" message={contentError} />
+              <p
+                id="note-count"
+                className="text-muted-foreground text-right text-xs tabular-nums"
+              >
+                {t("count", { count: form.content.length, max: MAX_LENGTH })}
+              </p>
             </div>
-            {canPin && (
-              <label className="flex items-center gap-3 self-end rounded-lg border px-3 py-2 text-sm">
-                <Switch
-                  checked={form.is_pinned}
-                  onCheckedChange={(value) =>
-                    setForm({ ...form, is_pinned: value })
-                  }
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium">{t("colorLabel")}</legend>
+              <div
+                role="radiogroup"
+                aria-label={t("colorLabel")}
+                className="flex flex-wrap gap-2"
+              >
+                {BAND_NOTE_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    role="radio"
+                    aria-checked={form.color === color}
+                    aria-label={t(`colors.${color}`)}
+                    title={t(`colors.${color}`)}
+                    onClick={() => setForm({ ...form, color })}
+                    className={cn(
+                      "focus-visible:ring-ring/50 h-8 w-8 rounded-full border-2 transition-transform focus-visible:ring-3 focus-visible:outline-none",
+                      NOTE_STYLES[color].swatch,
+                      form.color === color
+                        ? "ring-foreground ring-offset-background scale-110 ring-2 ring-offset-2"
+                        : "hover:scale-105",
+                    )}
+                  />
+                ))}
+              </div>
+            </fieldset>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="note-due">{t("dueLabel")}</Label>
+                <Input
+                  id="note-due"
+                  type="datetime-local"
+                  value={form.due_at}
+                  onChange={(e) => setForm({ ...form, due_at: e.target.value })}
                   disabled={isPending}
                 />
-                {t("pinLabel")}
-              </label>
-            )}
+              </div>
+              {canPin && (
+                <label className="flex items-center gap-3 self-end rounded-lg border px-3 py-2 text-sm">
+                  <Switch
+                    checked={form.is_pinned}
+                    onCheckedChange={(value) =>
+                      setForm({ ...form, is_pinned: value })
+                    }
+                    disabled={isPending}
+                  />
+                  {t("pinLabel")}
+                </label>
+              )}
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>
-            {t("cancel")}
-          </Button>
-          <Button onClick={submit} disabled={isPending}>
-            {isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-            )}
-            {t("save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeGuard.requestClose}
+              disabled={isPending}
+            >
+              {t("cancel")}
+            </Button>
+            <Button onClick={submit} disabled={isPending}>
+              {isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              )}
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DiscardChangesDialog {...closeGuard.discard} />
+    </>
   );
 }

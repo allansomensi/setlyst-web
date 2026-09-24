@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useSession } from "next-auth/react";
 import { offlineDb } from "@/lib/offline/db";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import type { Song } from "@/types/api";
@@ -21,21 +22,28 @@ export function useOfflineSongBundle(
   fallback: Song,
 ): SongBundleResult {
   const isOnline = useOnlineStatus();
+  // While staff view the app as someone else, nothing is mirrored (the
+  // viewed account's library must not land in the staff member's offline
+  // copy) and the mirror isn't read either (it isn't that account's).
+  const impersonating = Boolean(useSession().data?.user?.impersonator);
   // See the identical note in use-offline-setlist-bundle.ts: swallow a
   // query failure into "no cached copy" rather than letting it propagate.
   const cached = useLiveQuery(
-    () => offlineDb.songs.get(songId).catch(() => undefined),
-    [songId],
+    () =>
+      impersonating
+        ? undefined
+        : offlineDb.songs.get(songId).catch(() => undefined),
+    [songId, impersonating],
   );
 
   useEffect(() => {
-    if (!isOnline) return;
+    if (!isOnline || impersonating) return;
     offlineDb.songs
       .put({ id: fallback.id, song: fallback, syncedAt: Date.now() })
       .catch(() => {
         // Best-effort — see the analogous catch in use-offline-setlist-bundle.ts.
       });
-  }, [isOnline, fallback]);
+  }, [isOnline, impersonating, fallback]);
 
   if (!isOnline && cached) {
     return { song: cached.song, syncedAt: cached.syncedAt };

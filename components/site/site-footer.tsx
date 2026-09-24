@@ -2,13 +2,17 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { AppLogo } from "@/components/app-logo";
 import { Link } from "@/components/nav-link";
 import { getLegalText } from "@/lib/legal-content";
-import { LEGAL_DOCUMENTS, LEGAL_HREFS } from "@/lib/legal";
+import { CONTROLLER, LEGAL_DOCUMENTS, LEGAL_HREFS } from "@/lib/legal";
 import { STATUS_PATH, SUPPORT_EMAIL, WIKI_URL } from "@/lib/links";
 
 const linkClass =
   "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 rounded-sm text-sm transition-colors outline-none focus-visible:ring-3";
 
-/** Footer of the public site: product, legal and support links. */
+/**
+ * Footer of the public site: product, legal and support links, and the
+ * provider's identification (name, CPF/CNPJ, address and support e-mail)
+ * in plain view, as Decreto 7.962/2013 art. 2º requires.
+ */
 export async function SiteFooter() {
   const t = await getTranslations("site");
   const locale = await getLocale();
@@ -16,7 +20,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-muted/30 border-t print:hidden">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-10 py-12 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))] md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="space-y-3">
           <Link
             href="/"
@@ -84,6 +88,11 @@ export async function SiteFooter() {
           </h2>
           <ul className="space-y-2">
             <li>
+              <Link href="/contato" className={linkClass}>
+                {t("footer.contact")}
+              </Link>
+            </li>
+            <li>
               <a href={`mailto:${SUPPORT_EMAIL}`} className={linkClass}>
                 {SUPPORT_EMAIL}
               </a>
@@ -108,9 +117,29 @@ export async function SiteFooter() {
       </div>
 
       <div className="border-t">
-        <div className="text-muted-foreground mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>{t("footer.copyright", { year })}</p>
-          <p>{t("footer.madeIn")}</p>
+        <div className="text-muted-foreground mx-auto max-w-6xl space-y-3 pt-6 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1.5rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] text-xs sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
+          <p className="leading-relaxed">
+            {t.rich("footer.identity", {
+              name: CONTROLLER.name,
+              kind: CONTROLLER.kind,
+              taxIdLabel: CONTROLLER.taxIdLabel,
+              taxId: CONTROLLER.taxId,
+              address: CONTROLLER.address,
+              email: SUPPORT_EMAIL,
+              mail: (chunks) => (
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="hover:text-foreground underline-offset-4 hover:underline"
+                >
+                  {chunks}
+                </a>
+              ),
+            })}
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p>{t("footer.copyright", { year })}</p>
+            <p>{t("footer.madeIn")}</p>
+          </div>
         </div>
       </div>
     </footer>

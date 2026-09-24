@@ -1,6 +1,7 @@
 import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { Setlist, SetlistSong, UserPreferences } from "@/types/api";
+import { notFoundOnMissing } from "@/lib/api-not-found";
 import { LiveModeViewer } from "./_components/live-mode-viewer";
 
 export async function generateMetadata({
@@ -32,24 +33,25 @@ export default async function SetlistLivePage({
       ? resolvedSearchParams.songId
       : undefined;
 
-  const [setlist, setlistSongsRes] = await Promise.all([
+  // All three reads are independent. The preferences only seed the text
+  // size, so they must never take Live Mode down; a deleted or foreign
+  // setlist is a 404, not the generic error screen.
+  const [setlist, setlistSongsRes, preferences] = await Promise.all([
     fetchServerApi<Setlist>(`/setlists/${id}`),
     fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
-  ]);
+    fetchServerApi<UserPreferences>("/users/me/preferences", {
+      cache: "no-store",
+    }).catch(() => null),
+  ]).catch(notFoundOnMissing);
 
   const setlistSongs = setlistSongsRes.data || [];
-
-  const preferences = await fetchServerApi<UserPreferences>(
-    "/users/me/preferences",
-    { cache: "no-store" },
-  );
 
   return (
     <LiveModeViewer
       setlist={setlist}
       songs={setlistSongs}
       initialSongId={songId}
-      initialFontSize={preferences.live_mode_font_size}
+      initialFontSize={preferences?.live_mode_font_size}
     />
   );
 }

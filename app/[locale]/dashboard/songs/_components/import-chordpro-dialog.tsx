@@ -20,8 +20,6 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -31,6 +29,9 @@ import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
 import { UpgradeHint } from "@/components/content/upgrade-hint";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { FieldError } from "@/components/ui/field-error";
+import { GuardedDialog, useGuardedForm } from "@/components/ui/guarded-dialog";
+import { fieldA11y, focusFirstError, type FieldErrors } from "@/lib/forms";
 import {
   CHORDPRO_ACCEPT,
   CHORDPRO_MAX_BYTES,
@@ -74,16 +75,17 @@ const NEW_ARTIST = "__new__";
  */
 export function ImportChordProDialog(props: ImportChordProDialogProps) {
   return (
-    <Dialog
+    <GuardedDialog
       open={props.isOpen}
-      onOpenChange={(open) => !open && props.onClose()}
+      onClose={props.onClose}
+      className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl"
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        {props.isOpen && <ImportFlow {...props} />}
-      </DialogContent>
-    </Dialog>
+      <ImportFlow {...props} />
+    </GuardedDialog>
   );
 }
+
+type ImportField = "title" | "artist";
 
 function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
   const t = useTranslations("chordproImport");
@@ -103,6 +105,11 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
   const [artistChoice, setArtistChoice] = useState("");
   const [newArtistName, setNewArtistName] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [errors, setErrors] = useState<FieldErrors<ImportField>>({});
+
+  // Something read or typed that closing would throw away.
+  const isDirty = content !== null || pasted.trim() !== "";
+  const requestClose = useGuardedForm({ isDirty, isPending }, onClose);
 
   const sortedArtists = [...artists].sort((a, b) =>
     a.name.localeCompare(b.name),
@@ -163,19 +170,30 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
   const pastedTooLarge = utf8Size(pasted) > CHORDPRO_MAX_BYTES;
 
   const confirm = () => {
-    if (!content || !preview) return;
+    if (!content || !preview || isPending) return;
     const artistId =
       artistChoice && artistChoice !== NEW_ARTIST ? artistChoice : undefined;
     const artistName =
       artistChoice === NEW_ARTIST ? newArtistName.trim() : undefined;
-    if (!artistId && !artistName) {
-      toast.error(t("artistRequired"));
+
+    const nextErrors: FieldErrors<ImportField> = {};
+    if (!title.trim()) nextErrors.title = t("titleRequired");
+    if (!artistId && !artistName) nextErrors.artist = t("artistRequired");
+    if (nextErrors.title || nextErrors.artist) {
+      setErrors(nextErrors);
+      focusFirstError(nextErrors, [
+        { key: "title", id: `${inputId}-title` },
+        {
+          key: "artist",
+          id:
+            artistChoice === NEW_ARTIST
+              ? `${inputId}-new-artist`
+              : `${inputId}-artist`,
+        },
+      ]);
       return;
     }
-    if (!title.trim()) {
-      toast.error(t("titleRequired"));
-      return;
-    }
+    setErrors({});
 
     startTransition(async () => {
       const result = await importChordPro(
@@ -214,7 +232,7 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
         </DialogHeader>
         <UpgradeHint message={t("locked")} className="py-4 text-sm" />
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={requestClose}>
             {tCommon("close")}
           </Button>
         </DialogFooter>
@@ -257,18 +275,34 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
               <Input
                 id={`${inputId}-title`}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title)
+                    setErrors((p) => ({ ...p, title: undefined }));
+                }}
                 maxLength={255}
+                aria-required
                 disabled={isPending}
+                {...fieldA11y(`${inputId}-title`, errors.title)}
               />
+              <FieldError fieldId={`${inputId}-title`} message={errors.title} />
             </div>
             <div className="space-y-2">
               <Label htmlFor={`${inputId}-artist`}>{t("preview.artist")}</Label>
               <NativeSelect
                 id={`${inputId}-artist`}
                 value={artistChoice}
-                onChange={(e) => setArtistChoice(e.target.value)}
+                onChange={(e) => {
+                  setArtistChoice(e.target.value);
+                  if (errors.artist)
+                    setErrors((p) => ({ ...p, artist: undefined }));
+                }}
+                aria-required
                 disabled={isPending}
+                {...fieldA11y(
+                  `${inputId}-artist`,
+                  artistChoice === NEW_ARTIST ? null : errors.artist,
+                )}
               >
                 <option value="" disabled>
                   {t("preview.selectArtist")}
@@ -282,14 +316,28 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
               </NativeSelect>
               {artistChoice === NEW_ARTIST && (
                 <Input
+                  id={`${inputId}-new-artist`}
                   aria-label={t("preview.newArtistName")}
                   value={newArtistName}
-                  onChange={(e) => setNewArtistName(e.target.value)}
+                  onChange={(e) => {
+                    setNewArtistName(e.target.value);
+                    if (errors.artist)
+                      setErrors((p) => ({ ...p, artist: undefined }));
+                  }}
                   placeholder={t("preview.newArtistName")}
                   maxLength={255}
                   disabled={isPending}
+                  {...fieldA11y(`${inputId}-new-artist`, errors.artist)}
                 />
               )}
+              <FieldError
+                fieldId={
+                  artistChoice === NEW_ARTIST
+                    ? `${inputId}-new-artist`
+                    : `${inputId}-artist`
+                }
+                message={errors.artist}
+              />
             </div>
           </div>
 
@@ -370,7 +418,11 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
             {t("back")}
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} disabled={isPending}>
+            <Button
+              variant="outline"
+              onClick={requestClose}
+              disabled={isPending}
+            >
               {tCommon("cancel")}
             </Button>
             <Button onClick={confirm} disabled={isPending}>
@@ -508,7 +560,7 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
       </Tabs>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onClose} disabled={isPending}>
+        <Button variant="outline" onClick={requestClose} disabled={isPending}>
           {tCommon("cancel")}
         </Button>
       </DialogFooter>

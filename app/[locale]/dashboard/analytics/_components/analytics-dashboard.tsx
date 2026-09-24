@@ -21,9 +21,9 @@ import {
   formatGenre,
 } from "@/types/api";
 import { getTimeseriesMetrics } from "@/app/[locale]/dashboard/actions";
-import { ActivityChart } from "./activity-chart";
+import { LazyActivityChart as ActivityChart } from "@/app/[locale]/dashboard/_components/lazy-charts";
 import { BreakdownBars } from "./breakdown-bars";
-import { AdminMetricsCharts } from "@/app/[locale]/dashboard/_components/admin-metrics";
+import { LazyAdminMetricsCharts as AdminMetricsCharts } from "@/app/[locale]/dashboard/_components/lazy-charts";
 import { Button } from "@/components/ui/button";
 import {
   Card,

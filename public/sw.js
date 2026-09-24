@@ -34,6 +34,11 @@
  * the previous one's pages.
  */
 
+// v8: stored pages carry the time they were stored and expire after a
+// week (PAGE_MAX_AGE_MS); pages rendered while impersonating or answered
+// with the login page are never stored. Pages from v7 had no timestamp:
+// dropping them on activate removes them from disk, not only from use.
+//
 // v7: offline.html's script moved to /offline.js (strict CSP), precached
 // next to it.
 //
@@ -47,7 +52,7 @@
 // stuck in their cache needs it evicted, not just future ones avoided. Old
 // caches are deleted on activate (see the "activate" handler below) rather
 // than reused.
-const CACHE_VERSION = "setlyst-v7";
+const CACHE_VERSION = "setlyst-v8";
 const CACHE_PREFIX = "setlyst";
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
@@ -88,7 +93,55 @@ const PRIVATE_PATHS = [
   "/dashboard/admin",
   "/dashboard/settings",
   "/dashboard/profile",
+  // Band invite links: the code in the URL is a credential.
+  "/dashboard/invite",
 ];
+
+/**
+ * How long a stored page may be replayed offline. Past this, a page is as
+ * good as gone: a device left behind (a venue tablet, a band laptop) stops
+ * serving the last person's setlists and bands after a week, even if
+ * nobody ever opens the app on it again. Pages stored by earlier versions
+ * carry no timestamp and count as expired.
+ */
+const PAGE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const CACHED_AT_HEADER = "x-setlyst-cached-at";
+
+/**
+ * Set by proxy.ts on every page rendered while staff view the app as
+ * someone else: such a page is never stored.
+ */
+const IMPERSONATION_HEADER = "x-setlyst-impersonating";
+
+/** Whether a stored page is still young enough to replay (see PAGE_MAX_AGE_MS). */
+function isFreshPage(response, now = Date.now()) {
+  if (!response) return false;
+  const cachedAt = Number(response.headers.get(CACHED_AT_HEADER));
+  return (
+    Number.isFinite(cachedAt) &&
+    cachedAt > 0 &&
+    cachedAt <= now + 60_000 &&
+    now - cachedAt <= PAGE_MAX_AGE_MS
+  );
+}
+
+/**
+ * A page request that the server answered by redirecting to the login
+ * page (the session is gone): storing that answer under the requested
+ * dashboard URL would replay a login screen for it offline, or worse,
+ * the wrong page.
+ */
+function isLoginRedirect(response) {
+  if (!response || !response.redirected || !response.url) return false;
+  try {
+    const { pathname } = new URL(response.url);
+    const segments = pathname.split("/").filter(Boolean);
+    const rest = hasLocalePrefix(pathname) ? segments.slice(1) : segments;
+    return rest[0] === "login";
+  } catch {
+    return false;
+  }
+}
 
 function isPrivatePath(pathname) {
   const segments = pathname.split("/");
@@ -127,6 +180,8 @@ async function clearAllCaches() {
  */
 async function isUsableForCache(response) {
   if (!response || !response.ok) return false;
+  if (response.headers.get(IMPERSONATION_HEADER)) return false;
+  if (isLoginRedirect(response)) return false;
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("text/html")) return true;
@@ -455,7 +510,12 @@ async function findCachedLandingPath(cache, requestPathname) {
   const keys = await cache.keys();
   if (keys.length === 0) return undefined;
 
-  const cachedPaths = keys.map((key) => new URL(key.url).pathname);
+  const cachedPaths = [];
+  for (const key of keys) {
+    if (isFreshPage(await cache.match(key))) {
+      cachedPaths.push(new URL(key.url).pathname);
+    }
+  }
   const requestLocale = resolveLocaleFromPathname(requestPathname);
 
   for (const suffix of LANDING_PATH_SUFFIXES) {
@@ -508,10 +568,10 @@ function hasLocalePrefix(pathname) {
  */
 async function findCachedPage(cache, request) {
   const exact = await cache.match(request);
-  if (exact) return exact;
+  if (isFreshPage(exact)) return exact;
 
   const ignoringQuery = await cache.match(request, { ignoreSearch: true });
-  if (ignoringQuery) return ignoringQuery;
+  if (isFreshPage(ignoringQuery)) return ignoringQuery;
 
   const url = new URL(request.url);
   if (hasLocalePrefix(url.pathname)) return undefined;
@@ -520,7 +580,7 @@ async function findCachedPage(cache, request) {
     const localized = new URL(url.href);
     localized.pathname = `/${locale}${url.pathname}`;
     const match = await cache.match(localized.href, { ignoreSearch: true });
-    if (match) return match;
+    if (isFreshPage(match)) return match;
   }
 
   return undefined;
@@ -541,10 +601,13 @@ async function findCachedPage(cache, request) {
 async function cachePage(cache, request, response) {
   try {
     const body = await response.clone().blob();
+    // Stamped with the time it was stored, for PAGE_MAX_AGE_MS.
+    const headers = new Headers(response.headers);
+    headers.set(CACHED_AT_HEADER, String(Date.now()));
     const storable = new Response(body, {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers,
     });
 
     await cache.put(request, storable.clone());

@@ -120,3 +120,53 @@ export async function clearOfflineData(): Promise<void> {
     withTimeout(clearAppCaches(), 2_000),
   ]);
 }
+
+/**
+ * Called whenever the login page opens: being there means this device has
+ * no usable session (signed out, revoked, or simply expired while away,
+ * when the browser has already dropped the cookie and nothing says why).
+ * If an account's offline copy is still on the device, it goes, together
+ * with the pages the service worker kept: a shared tablet or band laptop
+ * must not keep the last person's repertoire readable offline.
+ *
+ * Returns true when something was cleared.
+ */
+export async function clearOfflineDataIfOwned(): Promise<boolean> {
+  let owned = false;
+  try {
+    const meta = await offlineDb.meta.get("global");
+    owned =
+      Boolean(meta?.userId) ||
+      (await offlineDb.setlists.count()) > 0 ||
+      (await offlineDb.songs.count()) > 0;
+  } catch {
+    // IndexedDB unusable: the page cache may still hold pages.
+  }
+  if (!owned) owned = await hasCachedPages();
+  if (owned) await clearOfflineData();
+  return owned;
+}
+
+/** Whether the service worker kept any account page (beyond the offline page). */
+async function hasCachedPages(): Promise<boolean> {
+  if (typeof window === "undefined" || !("caches" in window)) return false;
+  try {
+    const keys = await caches.keys();
+    for (const key of keys) {
+      if (!key.startsWith(APP_CACHE_PREFIX) || !key.endsWith("-pages")) {
+        continue;
+      }
+      const requests = await (await caches.open(key)).keys();
+      if (
+        requests.some((request) =>
+          new URL(request.url).pathname.includes("/dashboard"),
+        )
+      ) {
+        return true;
+      }
+    }
+  } catch {
+    // Storage unavailable: nothing readable either.
+  }
+  return false;
+}

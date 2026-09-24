@@ -11,6 +11,7 @@ import {
 import { Link } from "@/components/nav-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface LiveHeaderProps {
   closeHref: string;
@@ -23,6 +24,8 @@ interface LiveHeaderProps {
   writtenKey?: string | null;
   semitones: number;
   isFullscreen: boolean;
+  /** Hidden where the Fullscreen API isn't available (iOS Safari). */
+  canFullscreen?: boolean;
   onToggleFullscreen: () => void;
   onOpenSettings: () => void;
 }
@@ -45,13 +48,25 @@ export function LiveHeader({
   writtenKey,
   semitones,
   isFullscreen,
+  canFullscreen = true,
   onToggleFullscreen,
   onOpenSettings,
 }: LiveHeaderProps) {
   const t = useTranslations("liveMode");
 
   return (
-    <header className="bg-card/60 flex shrink-0 items-center justify-between gap-2 border-b px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 backdrop-blur-md md:gap-4 md:px-6 md:py-3">
+    <header
+      className={cn(
+        "bg-card/60 flex shrink-0 items-center justify-between gap-2 border-b backdrop-blur-md md:gap-4",
+        // Each side keeps its own minimum and never drops below the
+        // safe-area inset (notch, status bar, landscape corners). The
+        // breakpoint variants restate the insets instead of a plain
+        // `md:py-3`, which used to override the top inset on iPad.
+        "[--px:0.5rem] [--py:0.5rem] md:[--px:1.5rem] md:[--py:0.75rem]",
+        "pt-[max(var(--py),env(safe-area-inset-top))] pb-(--py)",
+        "pr-[max(var(--px),env(safe-area-inset-right))] pl-[max(var(--px),env(safe-area-inset-left))]",
+      )}
+    >
       <div className="flex min-w-0 items-center gap-1 md:gap-3">
         <Button
           variant="ghost"
@@ -113,20 +128,23 @@ export function LiveHeader({
           </Badge>
         )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleFullscreen}
-          className="hidden h-10 w-10 md:inline-flex"
-          aria-label={t("fullscreen")}
-          title={t("fullscreen")}
-        >
-          {isFullscreen ? (
-            <Minimize className="h-5 w-5" />
-          ) : (
-            <Maximize className="h-5 w-5" />
-          )}
-        </Button>
+        {canFullscreen && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleFullscreen}
+            className="h-10 w-10"
+            aria-label={t("fullscreen")}
+            aria-pressed={isFullscreen}
+            title={t("fullscreen")}
+          >
+            {isFullscreen ? (
+              <Minimize className="h-5 w-5" />
+            ) : (
+              <Maximize className="h-5 w-5" />
+            )}
+          </Button>
+        )}
 
         <Button
           variant="outline"

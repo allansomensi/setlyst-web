@@ -1,4 +1,5 @@
 import { entityTitle } from "@/lib/page-metadata";
+import { notFoundOnMissing } from "@/lib/api-not-found";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import { BandWithMembership, Setlist } from "@/types/api";
@@ -35,7 +36,7 @@ export default async function BandSetlistsPage({
   const [band, setlistsRes] = await Promise.all([
     fetchServerApi<BandWithMembership>(`/bands/${id}`),
     fetchAllServerPages<Setlist>(`/bands/${id}/setlists`),
-  ]);
+  ]).catch(notFoundOnMissing);
 
   const setlists = setlistsRes.data || [];
   const canManage = canManageBandSetlists(band);

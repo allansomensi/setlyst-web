@@ -1,7 +1,16 @@
 import "server-only";
 
 import { headers } from "next/headers";
-import { buildInternalHeaders, resolveClientIp } from "@/lib/server/client-ip";
+import {
+  buildInternalHeaders,
+  clientIpTrustWarning,
+  resolveClientIp,
+} from "@/lib/server/client-ip";
+
+// Once per server process: a self-hosted deployment that forgot to say
+// how many proxies it runs gets told at startup, not by its users.
+const trustWarning = clientIpTrustWarning();
+if (trustWarning) console.warn(trustWarning);
 
 /**
  * `X-Setlyst-Internal` + `X-Setlyst-Client-IP` for a server-to-API call

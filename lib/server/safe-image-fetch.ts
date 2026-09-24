@@ -19,7 +19,8 @@ import { BlockList, isIP } from "node:net";
  *    (the check runs inside the socket's own DNS lookup, so a second,
  *    different answer can't slip in between check and connect);
  *  - redirects are followed by hand (at most 3), each target re-validated;
- *  - 5 s for the whole exchange, at most 3 MB, counted while streaming;
+ *  - 5 s for the whole exchange, at most 1 MB (plenty for an avatar or a
+ *    logo), counted while streaming;
  *  - the `Content-Type` must be an allowed raster type and the first bytes
  *    must match one (PNG, JPEG, WebP, GIF, AVIF). SVG is never served: it
  *    can carry script.
@@ -40,7 +41,7 @@ export type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number];
 
 export const IMAGE_FETCH_LIMITS = {
   timeoutMs: 5_000,
-  maxBytes: 3 * 1024 * 1024,
+  maxBytes: 1024 * 1024,
   maxRedirects: 3,
 } as const;
 

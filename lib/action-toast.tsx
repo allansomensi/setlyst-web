@@ -2,7 +2,7 @@
 
 import { toast } from "@/lib/toast";
 import { secureSignOut } from "@/lib/client-logout";
-import { Clock, Eye, KeyRound, LogOut } from "lucide-react";
+import { Clock, Eye, KeyRound, Lock, LogOut, MailWarning } from "lucide-react";
 import type { ActionErrorCode } from "@/lib/action-guard";
 import { isNoChangeError } from "@/lib/api-errors";
 
@@ -10,6 +10,40 @@ import { isNoChangeError } from "@/lib/api-errors";
 const RATE_LIMIT_MIN_DURATION_MS = 6000;
 /** Never keep a notice up longer than this, whatever the server asked. */
 const RATE_LIMIT_MAX_DURATION_MS = 15000;
+
+/**
+ * API codes meaning "your plan doesn't allow this": the toast offers the
+ * way to a bigger plan instead of just saying no.
+ */
+const UPGRADE_CODES = new Set(["QUOTA_EXCEEDED", "FEATURE_NOT_IN_PLAN"]);
+
+const PLANS_PATH = "/dashboard/settings?section=subscription";
+
+/**
+ * Localized label and in-app navigation for the "See plans" action,
+ * installed by <ActionToastSetup /> (dashboard layout): this module runs
+ * outside React and can't read translations or the router itself.
+ */
+let upgradeAction: {
+  label: string;
+  navigate: (href: string) => void;
+} | null = null;
+
+export function registerUpgradeAction(action: typeof upgradeAction) {
+  upgradeAction = action;
+}
+
+/**
+ * The "resend verification e-mail" action offered on `EMAIL_NOT_VERIFIED`
+ * (2FA setup, avatar and band logo changes, band creation, public
+ * sharing, backup import all need a verified address). Installed by
+ * <ActionToastSetup />, which owns the verification dialog it opens.
+ */
+let verifyEmailAction: { label: string; open: () => void } | null = null;
+
+export function registerVerifyEmailAction(action: typeof verifyEmailAction) {
+  verifyEmailAction = action;
+}
 
 function localePrefix(): string {
   if (typeof window === "undefined") return "";
@@ -42,10 +76,33 @@ export function toastActionError(result: object, message: string) {
     return;
   }
 
-  const { code, retryAfterSeconds } = result as {
+  const { code, retryAfterSeconds, apiCode } = result as {
     code?: ActionErrorCode;
     retryAfterSeconds?: number;
+    apiCode?: string;
   };
+
+  if (apiCode === "EMAIL_NOT_VERIFIED" && verifyEmailAction) {
+    const { label, open } = verifyEmailAction;
+    toast.error(message, {
+      id: "email-not-verified",
+      icon: <MailWarning className="h-4 w-4" />,
+      duration: 10000,
+      action: { label, onClick: open },
+    });
+    return;
+  }
+
+  if (apiCode && UPGRADE_CODES.has(apiCode) && upgradeAction) {
+    const { label, navigate } = upgradeAction;
+    toast.error(message, {
+      id: `upgrade-${apiCode}`,
+      icon: <Lock className="h-4 w-4" />,
+      duration: 10000,
+      action: { label, onClick: () => navigate(PLANS_PATH) },
+    });
+    return;
+  }
 
   switch (code) {
     case "rate_limited": {

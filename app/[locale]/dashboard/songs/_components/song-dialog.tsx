@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useCallback, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { FileEdit, Loader2, Plus } from "lucide-react";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -30,6 +30,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/lib/toast";
+import { FieldError } from "@/components/ui/field-error";
+import { DiscardChangesDialog } from "@/components/ui/discard-changes-dialog";
+import { useDialogCloseGuard } from "@/hooks/use-dialog-close-guard";
+import { fieldA11y, focusFirstError, type FieldErrors } from "@/lib/forms";
 import { toastActionError } from "@/lib/action-toast";
 import { isNoChangeError } from "@/lib/api-errors";
 import { TagInput } from "@/components/tags/tag-input";
@@ -75,6 +79,20 @@ interface SongDialogProps {
 }
 
 type SongTab = "basic" | "music" | "links" | "tags";
+
+type SongField = "title" | "artist" | "duration" | "links";
+
+/** Validation order = focus order; each field with the tab it lives on. */
+const FIELD_ORDER: readonly {
+  key: SongField;
+  id: string | readonly string[];
+  tab: SongTab;
+}[] = [
+  { key: "title", id: "song-title", tab: "basic" },
+  { key: "artist", id: ["song-artist", "song-new-artist"], tab: "basic" },
+  { key: "duration", id: "song-duration", tab: "basic" },
+  { key: "links", id: "song-links-error-anchor", tab: "links" },
+];
 
 /** Everything the form edits, as typed (strings for the number fields). */
 interface SongFormState {
@@ -136,6 +154,9 @@ export function SongDialog({
 
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState<SongFormState>(() => initialState(song));
+  // What the form opened with, to tell whether closing loses anything.
+  const [initialForm] = useState<SongFormState>(() => initialState(song));
+  const [errors, setErrors] = useState<FieldErrors<SongField>>({});
   const [tab, setTab] = useState<SongTab>("basic");
   const [linkIssues, setLinkIssues] = useState<Record<string, LinkDraftIssue>>(
     {},
@@ -149,39 +170,59 @@ export function SongDialog({
     ...createdArtists.filter((a) => !artists.some((b) => b.id === a.id)),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
+  const FIELD_OF: Partial<Record<keyof SongFormState, SongField>> = {
+    title: "title",
+    artistId: "artist",
+    duration: "duration",
+    links: "links",
+  };
+
   const set = <K extends keyof SongFormState>(
     key: K,
     value: SongFormState[K],
-  ) => setForm((prev) => ({ ...prev, [key]: value }));
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    // Editing a field clears its error; the rest stay until the next try.
+    const field = FIELD_OF[key];
+    if (field && errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
 
   const durationValid = isValidDurationInput(form.duration);
 
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const closeGuard = useDialogCloseGuard({
+    isDirty,
+    isPending,
+    onClose: useCallback(() => onClose(), [onClose]),
+  });
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // A double Enter / double tap must not create the song twice.
+    if (isPending) return;
 
-    if (!form.title.trim()) {
-      setTab("basic");
-      toast.error(t("titleRequired"));
-      return;
-    }
-    if (!form.artistId) {
-      setTab("basic");
-      toast.error(t("artistRequired"));
-      return;
-    }
-    if (!durationValid) {
-      setTab("basic");
-      toast.error(t("durationInvalid"));
-      return;
-    }
+    const nextErrors: FieldErrors<SongField> = {};
+    if (!form.title.trim()) nextErrors.title = t("titleRequired");
+    if (!form.artistId) nextErrors.artist = t("artistRequired");
+    if (!durationValid) nextErrors.duration = t("durationInvalid");
     const links = draftsToLinks(form.links);
     if (!links.ok) {
       setLinkIssues(links.issues);
-      setTab("links");
-      toast.error(t("linksInvalid"));
+      nextErrors.links = t("linksInvalid");
+    } else {
+      setLinkIssues({});
+    }
+
+    const first = FIELD_ORDER.find(({ key }) => nextErrors[key]);
+    if (first || !links.ok) {
+      setErrors(nextErrors);
+      if (first) setTab(first.tab);
+      focusFirstError(nextErrors, FIELD_ORDER);
       return;
     }
-    setLinkIssues({});
+    setErrors({});
 
     const data = {
       title: form.title,
@@ -237,335 +278,357 @@ export function SongDialog({
   const notesLength = form.performanceNotes.length;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <form onSubmit={handleSubmit} noValidate>
-          <DialogHeader>
-            <DialogTitle>
-              {isEditing ? t("editTitle") : t("addTitle")}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditing ? t("editDescription") : t("addDescription")}
-            </DialogDescription>
-          </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={closeGuard.onOpenChange}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+          <form onSubmit={handleSubmit} noValidate>
+            <DialogHeader>
+              <DialogTitle>
+                {isEditing ? t("editTitle") : t("addTitle")}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditing ? t("editDescription") : t("addDescription")}
+              </DialogDescription>
+            </DialogHeader>
 
-          <Tabs
-            value={tab}
-            onValueChange={(value) => setTab(value as SongTab)}
-            className="py-4"
-          >
-            <TabsList className="w-full sm:w-fit">
-              <TabsTrigger value="basic">{t("tabs.basic")}</TabsTrigger>
-              <TabsTrigger value="music">{t("tabs.music")}</TabsTrigger>
-              <TabsTrigger value="links">
-                {t("tabs.links")}
-                {form.links.length > 0 && (
-                  <span className="text-muted-foreground text-xs tabular-nums">
-                    {form.links.length}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="tags">
-                {t("tabs.tags")}
-                {form.tags.length > 0 && (
-                  <span className="text-muted-foreground text-xs tabular-nums">
-                    {form.tags.length}
-                  </span>
-                )}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="basic" className="space-y-4 pt-2">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="song-title">{t("titleLabel")} *</Label>
-                  <Input
-                    id="song-title"
-                    value={form.title}
-                    onChange={(e) => set("title", e.target.value)}
-                    required
-                    disabled={isPending}
-                    maxLength={255}
-                    placeholder={t("titlePlaceholder")}
-                  />
-                </div>
-                <ArtistField
-                  artists={artistOptions}
-                  value={form.artistId}
-                  onChange={(id) => set("artistId", id)}
-                  onCreated={(artist) => {
-                    setCreatedArtists((prev) => [...prev, artist]);
-                    set("artistId", artist.id);
-                  }}
-                  disabled={isPending}
-                  locked={lockArtist}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="song-genre">{t("genreLabel")}</Label>
-                  <NativeSelect
-                    id="song-genre"
-                    value={form.genre}
-                    onChange={(e) => set("genre", e.target.value as Genre | "")}
-                    disabled={isPending}
-                  >
-                    <option value="">{t("noneOption")}</option>
-                    {GENRES.map((g) => (
-                      <option key={g} value={g}>
-                        {formatGenre(g)}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="song-duration">{t("durationLabel")}</Label>
-                  <Input
-                    id="song-duration"
-                    value={form.duration}
-                    onChange={(e) =>
-                      set("duration", sanitizeDurationInput(e.target.value))
-                    }
-                    disabled={isPending}
-                    placeholder={t("durationPlaceholder")}
-                    inputMode="numeric"
-                    aria-invalid={!durationValid}
-                    aria-describedby={
-                      durationValid ? undefined : "song-duration-error"
-                    }
-                  />
-                  {!durationValid && (
-                    <p
-                      id="song-duration-error"
-                      className="text-destructive text-xs"
-                    >
-                      {t("durationInvalid")}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {isEditing && (
-                <div className="bg-muted/50 flex items-center justify-between gap-3 rounded-lg border border-dashed px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium">{t("lyricsTitle")}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {song.lyrics
-                        ? t("lyricsLines", {
-                            count: song.lyrics.split("\n").length,
-                          })
-                        : t("noLyrics")}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => {
-                      onClose();
-                      router.push(`/dashboard/songs/${song.id}/lyrics`);
-                    }}
-                  >
-                    <FileEdit className="h-3.5 w-3.5" aria-hidden />
-                    {t("editLyrics")}
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="music" className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <div className="space-y-2">
-                  <Label htmlFor="song-tonality">{t("keyLabel")}</Label>
-                  <NativeSelect
-                    id="song-tonality"
-                    value={form.tonality}
-                    onChange={(e) =>
-                      set("tonality", e.target.value as Tonality | "")
-                    }
-                    disabled={isPending}
-                  >
-                    <option value="">{t("noneOption")}</option>
-                    {TONALITIES.map((key) => (
-                      <option key={key} value={key}>
-                        {key}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="song-tempo">{t("bpmLabel")}</Label>
-                  <Input
-                    id="song-tempo"
-                    type="number"
-                    inputMode="numeric"
-                    value={form.tempo}
-                    onChange={(e) => set("tempo", e.target.value)}
-                    disabled={isPending}
-                    placeholder={t("bpmPlaceholder")}
-                    min={1}
-                    max={500}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="song-time-signature">
-                    {t("timeSignatureLabel")}
-                  </Label>
-                  <NativeSelect
-                    id="song-time-signature"
-                    value={form.timeSignature}
-                    onChange={(e) => set("timeSignature", e.target.value)}
-                    disabled={isPending}
-                  >
-                    <option value="">{t("noneOption")}</option>
-                    {TIME_SIGNATURES.map((ts) => (
-                      <option key={ts} value={ts}>
-                        {ts}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="song-capo">{t("capoLabel")}</Label>
-                  <NativeSelect
-                    id="song-capo"
-                    value={form.capo}
-                    onChange={(e) => set("capo", e.target.value)}
-                    disabled={isPending}
-                  >
-                    <option value="">{t("noneOption")}</option>
-                    {Array.from(
-                      { length: MAX_CAPO - MIN_CAPO + 1 },
-                      (_, i) => MIN_CAPO + i,
-                    ).map((fret) => (
-                      <option key={fret} value={String(fret)}>
-                        {fret === 0
-                          ? tFields("capo.none")
-                          : tFields("capo.fret", { fret })}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="song-tuning">{t("tuningLabel")}</Label>
-                <Input
-                  id="song-tuning"
-                  list="song-tuning-suggestions"
-                  value={form.tuning}
-                  onChange={(e) => set("tuning", e.target.value)}
-                  disabled={isPending}
-                  maxLength={MAX_TUNING_LENGTH}
-                  placeholder={t("tuningPlaceholder")}
-                  autoComplete="off"
-                />
-                <datalist id="song-tuning-suggestions">
-                  {TUNING_SUGGESTIONS.map((key) => (
-                    <option
-                      key={key}
-                      value={tFields(`tuning.suggestions.${key}`)}
-                    />
-                  ))}
-                </datalist>
-                <p className="text-muted-foreground text-xs">
-                  {t("tuningHint")}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <span
-                  id="song-energy-label"
-                  className="text-sm leading-none font-medium"
-                >
-                  {t("energyLabel")}
-                </span>
-                <p className="text-muted-foreground text-xs">
-                  {t("energyHint")}
-                </p>
-                <EnergyPicker
-                  id="song-energy"
-                  value={form.energy}
-                  onChange={(value) => set("energy", value)}
-                  disabled={isPending}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="song-notes">{t("notesLabel")}</Label>
-                <Textarea
-                  id="song-notes"
-                  value={form.performanceNotes}
-                  onChange={(e) => set("performanceNotes", e.target.value)}
-                  disabled={isPending}
-                  maxLength={MAX_PERFORMANCE_NOTES_LENGTH}
-                  placeholder={t("notesPlaceholder")}
-                  rows={4}
-                  aria-describedby="song-notes-count"
-                />
-                <p
-                  id="song-notes-count"
-                  className="text-muted-foreground text-right text-xs tabular-nums"
-                >
-                  {t("charCount", {
-                    count: notesLength,
-                    max: MAX_PERFORMANCE_NOTES_LENGTH,
-                  })}
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="links" className="pt-2">
-              <LinksEditor
-                idPrefix="song-links"
-                value={form.links}
-                onChange={(links) => {
-                  set("links", links);
-                  setLinkIssues({});
-                }}
-                issues={linkIssues}
-                disabled={isPending}
-              />
-            </TabsContent>
-
-            <TabsContent value="tags" className="space-y-2 pt-2">
-              <Label htmlFor="song-tags">{t("tagsLabel")}</Label>
-              <TagInput
-                id="song-tags"
-                value={form.tags}
-                onChange={(tags) => set("tags", tags)}
-                suggestions={tagSuggestions}
-                disabled={isPending}
-              />
-              <p className="text-muted-foreground text-xs">{t("tagsHint")}</p>
-            </TabsContent>
-          </Tabs>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isPending}
+            <Tabs
+              value={tab}
+              onValueChange={(value) => setTab(value as SongTab)}
+              className="py-4"
             >
-              {tCommon("cancel")}
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              )}
-              {tCommon("save")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <TabsList className="w-full sm:w-fit">
+                <TabsTrigger value="basic">{t("tabs.basic")}</TabsTrigger>
+                <TabsTrigger value="music">{t("tabs.music")}</TabsTrigger>
+                <TabsTrigger value="links">
+                  {t("tabs.links")}
+                  {form.links.length > 0 && (
+                    <span className="text-muted-foreground text-xs tabular-nums">
+                      {form.links.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="tags">
+                  {t("tabs.tags")}
+                  {form.tags.length > 0 && (
+                    <span className="text-muted-foreground text-xs tabular-nums">
+                      {form.tags.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basic" className="space-y-4 pt-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="song-title">{t("titleLabel")} *</Label>
+                    <Input
+                      id="song-title"
+                      value={form.title}
+                      onChange={(e) => set("title", e.target.value)}
+                      required
+                      aria-required
+                      disabled={isPending}
+                      maxLength={255}
+                      placeholder={t("titlePlaceholder")}
+                      {...fieldA11y("song-title", errors.title)}
+                    />
+                    <FieldError fieldId="song-title" message={errors.title} />
+                  </div>
+                  <ArtistField
+                    artists={artistOptions}
+                    value={form.artistId}
+                    onChange={(id) => set("artistId", id)}
+                    onCreated={(artist) => {
+                      setCreatedArtists((prev) => [...prev, artist]);
+                      set("artistId", artist.id);
+                    }}
+                    disabled={isPending}
+                    locked={lockArtist}
+                    error={errors.artist}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="song-genre">{t("genreLabel")}</Label>
+                    <NativeSelect
+                      id="song-genre"
+                      value={form.genre}
+                      onChange={(e) =>
+                        set("genre", e.target.value as Genre | "")
+                      }
+                      disabled={isPending}
+                    >
+                      <option value="">{t("noneOption")}</option>
+                      {GENRES.map((g) => (
+                        <option key={g} value={g}>
+                          {formatGenre(g)}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="song-duration">{t("durationLabel")}</Label>
+                    <Input
+                      id="song-duration"
+                      value={form.duration}
+                      onChange={(e) =>
+                        set("duration", sanitizeDurationInput(e.target.value))
+                      }
+                      disabled={isPending}
+                      placeholder={t("durationPlaceholder")}
+                      inputMode="numeric"
+                      {...fieldA11y(
+                        "song-duration",
+                        errors.duration ??
+                          (durationValid ? null : t("durationInvalid")),
+                      )}
+                    />
+                    <FieldError
+                      fieldId="song-duration"
+                      message={
+                        errors.duration ??
+                        (durationValid ? null : t("durationInvalid"))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="bg-muted/50 flex items-center justify-between gap-3 rounded-lg border border-dashed px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium">{t("lyricsTitle")}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {song.lyrics
+                          ? t("lyricsLines", {
+                              count: song.lyrics.split("\n").length,
+                            })
+                          : t("noLyrics")}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => {
+                        onClose();
+                        router.push(`/dashboard/songs/${song.id}/lyrics`);
+                      }}
+                    >
+                      <FileEdit className="h-3.5 w-3.5" aria-hidden />
+                      {t("editLyrics")}
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="music" className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="song-tonality">{t("keyLabel")}</Label>
+                    <NativeSelect
+                      id="song-tonality"
+                      value={form.tonality}
+                      onChange={(e) =>
+                        set("tonality", e.target.value as Tonality | "")
+                      }
+                      disabled={isPending}
+                    >
+                      <option value="">{t("noneOption")}</option>
+                      {TONALITIES.map((key) => (
+                        <option key={key} value={key}>
+                          {key}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="song-tempo">{t("bpmLabel")}</Label>
+                    <Input
+                      id="song-tempo"
+                      type="number"
+                      inputMode="numeric"
+                      value={form.tempo}
+                      onChange={(e) => set("tempo", e.target.value)}
+                      disabled={isPending}
+                      placeholder={t("bpmPlaceholder")}
+                      min={1}
+                      max={500}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="song-time-signature">
+                      {t("timeSignatureLabel")}
+                    </Label>
+                    <NativeSelect
+                      id="song-time-signature"
+                      value={form.timeSignature}
+                      onChange={(e) => set("timeSignature", e.target.value)}
+                      disabled={isPending}
+                    >
+                      <option value="">{t("noneOption")}</option>
+                      {TIME_SIGNATURES.map((ts) => (
+                        <option key={ts} value={ts}>
+                          {ts}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="song-capo">{t("capoLabel")}</Label>
+                    <NativeSelect
+                      id="song-capo"
+                      value={form.capo}
+                      onChange={(e) => set("capo", e.target.value)}
+                      disabled={isPending}
+                    >
+                      <option value="">{t("noneOption")}</option>
+                      {Array.from(
+                        { length: MAX_CAPO - MIN_CAPO + 1 },
+                        (_, i) => MIN_CAPO + i,
+                      ).map((fret) => (
+                        <option key={fret} value={String(fret)}>
+                          {fret === 0
+                            ? tFields("capo.none")
+                            : tFields("capo.fret", { fret })}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="song-tuning">{t("tuningLabel")}</Label>
+                  <Input
+                    id="song-tuning"
+                    list="song-tuning-suggestions"
+                    value={form.tuning}
+                    onChange={(e) => set("tuning", e.target.value)}
+                    disabled={isPending}
+                    maxLength={MAX_TUNING_LENGTH}
+                    placeholder={t("tuningPlaceholder")}
+                    autoComplete="off"
+                  />
+                  <datalist id="song-tuning-suggestions">
+                    {TUNING_SUGGESTIONS.map((key) => (
+                      <option
+                        key={key}
+                        value={tFields(`tuning.suggestions.${key}`)}
+                      />
+                    ))}
+                  </datalist>
+                  <p className="text-muted-foreground text-xs">
+                    {t("tuningHint")}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <span
+                    id="song-energy-label"
+                    className="text-sm leading-none font-medium"
+                  >
+                    {t("energyLabel")}
+                  </span>
+                  <p className="text-muted-foreground text-xs">
+                    {t("energyHint")}
+                  </p>
+                  <EnergyPicker
+                    id="song-energy"
+                    value={form.energy}
+                    onChange={(value) => set("energy", value)}
+                    disabled={isPending}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="song-notes">{t("notesLabel")}</Label>
+                  <Textarea
+                    id="song-notes"
+                    value={form.performanceNotes}
+                    onChange={(e) => set("performanceNotes", e.target.value)}
+                    disabled={isPending}
+                    maxLength={MAX_PERFORMANCE_NOTES_LENGTH}
+                    placeholder={t("notesPlaceholder")}
+                    rows={4}
+                    aria-describedby="song-notes-count"
+                  />
+                  <p
+                    id="song-notes-count"
+                    className="text-muted-foreground text-right text-xs tabular-nums"
+                  >
+                    {t("charCount", {
+                      count: notesLength,
+                      max: MAX_PERFORMANCE_NOTES_LENGTH,
+                    })}
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="links" className="space-y-3 pt-2">
+                {/* Focus target when a link is invalid: the summary is read
+                  first, then each row shows its own problem. */}
+                <div
+                  id="song-links-error-anchor"
+                  tabIndex={-1}
+                  className="outline-none"
+                >
+                  <FieldError fieldId="song-links" message={errors.links} />
+                </div>
+                <LinksEditor
+                  idPrefix="song-links"
+                  value={form.links}
+                  onChange={(links) => {
+                    set("links", links);
+                    setLinkIssues({});
+                  }}
+                  issues={linkIssues}
+                  disabled={isPending}
+                />
+              </TabsContent>
+
+              <TabsContent value="tags" className="space-y-2 pt-2">
+                <Label htmlFor="song-tags">{t("tagsLabel")}</Label>
+                <TagInput
+                  id="song-tags"
+                  value={form.tags}
+                  onChange={(tags) => set("tags", tags)}
+                  suggestions={tagSuggestions}
+                  disabled={isPending}
+                />
+                <p className="text-muted-foreground text-xs">{t("tagsHint")}</p>
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeGuard.requestClose}
+                disabled={isPending}
+              >
+                {tCommon("cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending}
+                aria-busy={isPending || undefined}
+              >
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                )}
+                {tCommon("save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <DiscardChangesDialog {...closeGuard.discard} />
+    </>
   );
 }
 
@@ -581,6 +644,7 @@ function ArtistField({
   onCreated,
   disabled,
   locked = false,
+  error,
 }: {
   artists: Artist[];
   value: string;
@@ -588,6 +652,7 @@ function ArtistField({
   onCreated: (artist: Artist) => void;
   disabled: boolean;
   locked?: boolean;
+  error?: string;
 }) {
   const t = useTranslations("songs.dialog");
   const tCommon = useTranslations("common");
@@ -634,6 +699,7 @@ function ArtistField({
             placeholder={t("newArtistPlaceholder")}
             disabled={disabled || isSaving}
             autoFocus={artists.length > 0}
+            {...fieldA11y("song-new-artist", error)}
           />
           <Button
             type="button"
@@ -648,6 +714,7 @@ function ArtistField({
             )}
           </Button>
         </div>
+        <FieldError fieldId="song-new-artist" message={error} />
         {artists.length === 0 ? (
           <p className="text-muted-foreground text-xs">{t("noArtistsYet")}</p>
         ) : (
@@ -684,7 +751,9 @@ function ArtistField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required
+        aria-required
         disabled={disabled || locked}
+        {...fieldA11y("song-artist", error)}
       >
         <option value="" disabled>
           {t("selectArtist")}
@@ -695,6 +764,7 @@ function ArtistField({
           </option>
         ))}
       </NativeSelect>
+      <FieldError fieldId="song-artist" message={error} />
     </div>
   );
 }

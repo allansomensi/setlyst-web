@@ -35,6 +35,7 @@ import { toast } from "@/lib/toast";
 import {
   attemptsLeftOf,
   parseSignInError,
+  parseUrlSignInError,
   twoFactorChallengeOf,
   waitSecondsOf,
   type SignInError,
@@ -43,8 +44,11 @@ import {
 import { isCompleteRecoveryCode, sanitizeRecoveryCode } from "@/lib/auth-flow";
 import { describeApiError } from "@/lib/api-errors";
 import { safeCallbackPath } from "@/lib/links";
-import { takeGoogleTwoFactorChallenge } from "@/lib/actions/google-auth";
-import { clearOfflineData } from "@/lib/offline/owner";
+import {
+  takeGoogleSignInError,
+  takeGoogleTwoFactorChallenge,
+} from "@/lib/actions/google-auth";
+import { clearOfflineDataIfOwned } from "@/lib/offline/owner";
 
 const NOTICES = [
   "registered",
@@ -81,7 +85,11 @@ type Step = "credentials" | "twoFactor" | "loadingChallenge";
 
 interface InitialState {
   step: Step;
-  error: SignInError | null;
+  /**
+   * `?google_error=CODE`: a bare, known code only (anyone can write such
+   * a link). The details wait in an httpOnly cookie; see the effect below.
+   */
+  googleError: SignInError | null;
   oauthFailed: boolean;
 }
 
@@ -91,11 +99,10 @@ interface InitialState {
  * cookie (see takeGoogleTwoFactorChallenge), never in the URL.
  */
 function readInitialState(params: URLSearchParams): InitialState {
-  const googleError = params.get("google_error");
   const nextAuthError = params.get("error");
   return {
     step: params.get("step") === "2fa" ? "loadingChallenge" : "credentials",
-    error: googleError ? parseSignInError(googleError) : null,
+    googleError: parseUrlSignInError(params.get("google_error")),
     oauthFailed: Boolean(nextAuthError && OAUTH_ERRORS.includes(nextAuthError)),
   };
 }
@@ -177,12 +184,36 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   // Arriving from Google: its outcome is shown once...
   const [error, setError] = useState<string | null>(() =>
-    initial.error
-      ? describe(initial.error)
+    initial.googleError
+      ? describe(initial.googleError)
       : initial.oauthFailed
         ? tGoogle("failed")
         : null,
   );
+  const googleErrorRequest = useRef<ReturnType<
+    typeof takeGoogleSignInError
+  > | null>(null);
+
+  // ...with its details (a suspension's end date and reason, a wait),
+  // which Google's callback left server-side in a cookie read once.
+  // Without it (expired, another tab took it), the bare code stands.
+  useEffect(() => {
+    if (!initial.googleError) return;
+    let cancelled = false;
+    googleErrorRequest.current ??= takeGoogleSignInError();
+    googleErrorRequest.current
+      .then((detailed) => {
+        if (!cancelled && detailed) setError(describe(detailed));
+      })
+      .catch(() => {
+        // The message from the bare code is already shown.
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Runs once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ...and the one-shot parameters leave the address bar (and history)
   // right away.
@@ -202,15 +233,13 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Arriving because the session ended (revoked, or expired while away):
-  // the offline copy of the account's data goes too, as on a sign-out.
-  // A shared device must not keep it readable until the next sign-in.
+  // Being on the login page means there is no usable session: signed
+  // out, revoked, or expired while away (then the browser has already
+  // dropped the cookie and nothing says why). Whatever an account left
+  // for offline use goes, as on a sign-out: a shared device must not keep
+  // it readable until the next sign-in.
   useEffect(() => {
-    if (reason === "session" || reason === "expired") {
-      void clearOfflineData();
-    }
-    // Runs once, on arrival.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    void clearOfflineDataIfOwned();
   }, []);
 
   // Back from Google on an account with two-factor authentication: the
@@ -602,7 +631,14 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
         <p className="text-muted-foreground text-sm">
           {t("noAccount")}{" "}
           <Link
-            href="/register"
+            href={
+              callbackPath
+                ? {
+                    pathname: "/register",
+                    query: { callbackUrl: callbackPath },
+                  }
+                : "/register"
+            }
             className="text-primary font-medium hover:underline"
           >
             {t("signUp")}

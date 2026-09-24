@@ -20,11 +20,13 @@ import {
   ORIENTATIONS,
   PAPER_FORMATS,
   PDF_PRESETS,
+  PUBLIC_PDF_PRESETS,
   type PdfExportOptions,
 } from "@/lib/pdf-export-options";
 
 type Preset = keyof typeof PDF_PRESETS;
 const PRESETS = Object.keys(PDF_PRESETS) as Preset[];
+const PUBLIC_PRESETS = Object.keys(PUBLIC_PDF_PRESETS) as Preset[];
 
 export function ToggleRow({
   label,
@@ -105,22 +107,27 @@ export function Choice<T extends string | number>({
 /**
  * Every PDF export option, grouped in tabs, with one-click presets. A
  * controlled component: the export dialog and Settings (saved defaults)
- * both render it.
+ * both render it. `allowLyrics={false}` (public share pages) hides the
+ * lyrics tab and the songbook preset: a public link's PDF never carries
+ * lyrics or chords.
  */
 export function PdfOptionsEditor({
   value,
   onChange,
   disabled,
+  allowLyrics = true,
 }: {
   value: PdfExportOptions;
   onChange: (next: PdfExportOptions) => void;
   disabled?: boolean;
+  allowLyrics?: boolean;
 }) {
   const t = useTranslations("pdfOptions");
   const set = <K extends keyof PdfExportOptions>(
     key: K,
     next: PdfExportOptions[K],
   ) => onChange({ ...value, [key]: next });
+  const presets = allowLyrics ? PRESETS : PUBLIC_PRESETS;
 
   return (
     <div className="space-y-4">
@@ -128,8 +135,13 @@ export function PdfOptionsEditor({
         <p className="text-muted-foreground text-xs font-medium">
           {t("presets.title")}
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {PRESETS.map((preset) => (
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-2",
+            allowLyrics ? "sm:grid-cols-4" : "sm:grid-cols-3",
+          )}
+        >
+          {presets.map((preset) => (
             <button
               key={preset}
               type="button"
@@ -151,7 +163,9 @@ export function PdfOptionsEditor({
       <Tabs defaultValue="content">
         <TabsList className="w-full">
           <TabsTrigger value="content">{t("tabs.content")}</TabsTrigger>
-          <TabsTrigger value="lyrics">{t("tabs.lyrics")}</TabsTrigger>
+          {allowLyrics && (
+            <TabsTrigger value="lyrics">{t("tabs.lyrics")}</TabsTrigger>
+          )}
           <TabsTrigger value="layout">{t("tabs.layout")}</TabsTrigger>
         </TabsList>
 
@@ -169,35 +183,37 @@ export function PdfOptionsEditor({
           </div>
         </TabsContent>
 
-        <TabsContent value="lyrics" className="mt-3 space-y-2">
-          <ToggleRow
-            label={t("toggles.include_lyrics")}
-            hint={t("hints.include_lyrics")}
-            checked={value.include_lyrics}
-            onChange={(next) => set("include_lyrics", next)}
-            disabled={disabled}
-          />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Choice
-              label={t("chords.label")}
-              value={value.chords}
-              options={CHORD_MODES}
-              onChange={(next) => set("chords", next)}
-              render={(mode) => t(`chords.${mode}`)}
-              disabled={disabled || !value.include_lyrics}
+        {allowLyrics && (
+          <TabsContent value="lyrics" className="mt-3 space-y-2">
+            <ToggleRow
+              label={t("toggles.include_lyrics")}
+              hint={t("hints.include_lyrics")}
+              checked={value.include_lyrics}
+              onChange={(next) => set("include_lyrics", next)}
+              disabled={disabled}
             />
-            <div className="flex items-end">
-              <div className="w-full">
-                <ToggleRow
-                  label={t("toggles.page_break_per_song")}
-                  checked={value.page_break_per_song}
-                  onChange={(next) => set("page_break_per_song", next)}
-                  disabled={disabled || !value.include_lyrics}
-                />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Choice
+                label={t("chords.label")}
+                value={value.chords}
+                options={CHORD_MODES}
+                onChange={(next) => set("chords", next)}
+                render={(mode) => t(`chords.${mode}`)}
+                disabled={disabled || !value.include_lyrics}
+              />
+              <div className="flex items-end">
+                <div className="w-full">
+                  <ToggleRow
+                    label={t("toggles.page_break_per_song")}
+                    checked={value.page_break_per_song}
+                    onChange={(next) => set("page_break_per_song", next)}
+                    disabled={disabled || !value.include_lyrics}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         <TabsContent value="layout" className="mt-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-3">

@@ -29,13 +29,8 @@ import {
   ZOOM_MAX,
   ZOOM_MIN,
   type LiveControls,
+  type LivePageTurnMode,
 } from "@/hooks/use-live-controls";
-
-const FONT_LABELS: Record<LiveFontFamily, string> = {
-  sans: "Sans",
-  mono: "Mono",
-  serif: "Serif",
-};
 
 const FONT_CLASS: Record<LiveFontFamily, string> = {
   sans: "font-sans",
@@ -70,6 +65,11 @@ interface LiveSettingsSheetProps {
    * larger screens have the button in the header.
    */
   fullscreen?: { active: boolean; onToggle: () => void } | null;
+  /** What a page-turner pedal does (setlist viewer only). */
+  pageTurn?: {
+    mode: LivePageTurnMode;
+    onChange: (mode: LivePageTurnMode) => void;
+  };
 }
 
 /**
@@ -107,8 +107,10 @@ export function LiveSettingsSheet({
   metronome,
   hasNavigation = false,
   fullscreen,
+  pageTurn,
 }: LiveSettingsSheetProps) {
   const t = useTranslations("liveMode");
+  const tFonts = useTranslations("settings.display.live.fonts");
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -216,7 +218,7 @@ export function LiveSettingsSheet({
                           : "text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      {FONT_LABELS[font]}
+                      {tFonts(font)}
                     </button>
                   ))}
                 </div>
@@ -264,6 +266,49 @@ export function LiveSettingsSheet({
               )}
             </Section>
 
+            {pageTurn && (
+              <Section title={t("pageTurn.title")}>
+                <div
+                  role="radiogroup"
+                  aria-label={t("pageTurn.title")}
+                  className="space-y-1"
+                >
+                  {(["page", "song"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="radio"
+                      aria-checked={pageTurn.mode === mode}
+                      onClick={() => pageTurn.onChange(mode)}
+                      className="hover:bg-muted/50 focus-visible:ring-ring/50 -mx-2 flex w-[calc(100%+1rem)] items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors outline-none focus-visible:ring-3"
+                    >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2",
+                          pageTurn.mode === mode
+                            ? "border-primary"
+                            : "border-muted-foreground/40",
+                        )}
+                      >
+                        {pageTurn.mode === mode && (
+                          <span className="bg-primary size-2.5 rounded-full" />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium">
+                          {t(`pageTurn.${mode}`)}
+                        </span>
+                        <span className="text-muted-foreground block text-xs leading-snug">
+                          {t(`pageTurn.${mode}Help`)}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Section>
+            )}
+
             <Section title={t("sheet.transpose")}>{transpose}</Section>
 
             <Section title={t("sheet.metronome")}>{metronome}</Section>
@@ -277,6 +322,17 @@ export function LiveSettingsSheet({
                 {hasNavigation && (
                   <Shortcut keys={["←", "→"]} label={t("sheet.keyNav")} />
                 )}
+                <Shortcut keys={["↑", "↓"]} label={t("sheet.keyPage")} />
+                <Shortcut
+                  keys={["PgUp", "PgDn"]}
+                  label={
+                    hasNavigation && pageTurn?.mode === "song"
+                      ? t("sheet.keyNav")
+                      : hasNavigation
+                        ? t("sheet.keyPageThenSong")
+                        : t("sheet.keyPage")
+                  }
+                />
                 <Shortcut keys={["Space"]} label={t("sheet.keyScroll")} />
                 <Shortcut keys={["+", "−"]} label={t("sheet.keySpeed")} />
                 <Shortcut keys={["M"]} label={t("sheet.keyMetronome")} />

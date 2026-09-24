@@ -2,7 +2,7 @@ import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { ListMusic, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +66,7 @@ export default async function AdminBandDetailPage({
   const t = await getTranslations("staff.bandDetail");
   const tNav = await getTranslations("nav");
   const locale = await getLocale();
+  const timeZone = await getTimeZone();
   const { band, members } = detail;
 
   return (
@@ -92,7 +93,7 @@ export default async function AdminBandDetailPage({
             <p className="text-muted-foreground text-sm">
               {t("meta", {
                 members: band.member_count,
-                created: formatApiDateTime(band.created_at, locale),
+                created: formatApiDateTime(band.created_at, locale, timeZone),
               })}
             </p>
             <AuditStamp

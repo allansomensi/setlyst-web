@@ -2,6 +2,7 @@
 
 import { getTranslations } from "next-intl/server";
 import { fetchServerApi } from "@/lib/api-server";
+import { apiPath } from "@/lib/api-endpoint";
 import {
   guardedAction,
   invalidRequest,
@@ -88,7 +89,7 @@ export async function updateTour(
   if (data.end_date) payload.end_date = data.end_date;
   return guardedAction(
     () =>
-      fetchServerApi<Tour>(`/tours/${id}`, {
+      fetchServerApi<Tour>(apiPath`/tours/${id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
@@ -100,7 +101,7 @@ export async function updateTour(
 export async function deleteTour(id: string): Promise<ActionResult<void>> {
   if (!isUuid(id)) return invalidRequest();
   return guardedAction(
-    () => fetchServerApi<void>(`/tours/${id}`, { method: "DELETE" }),
+    () => fetchServerApi<void>(apiPath`/tours/${id}`, { method: "DELETE" }),
     revalidateTourViews,
   );
 }

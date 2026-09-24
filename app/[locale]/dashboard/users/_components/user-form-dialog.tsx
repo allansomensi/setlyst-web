@@ -221,22 +221,25 @@ function UserForm({
         </div>
       )}
 
-      <div className="space-y-1.5">
-        <Label htmlFor="user-email">
-          {t("email")}{" "}
-          <span className="text-muted-foreground font-normal">
-            ({tCommon("optional")})
-          </span>
-        </Label>
-        <Input
-          id="user-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="off"
-          maxLength={254}
-        />
-      </div>
+      {/* Changing an existing account's e-mail is admin-only. */}
+      {(!isEditing || actorRole === "admin") && (
+        <div className="space-y-1.5">
+          <Label htmlFor="user-email">
+            {t("email")}{" "}
+            <span className="text-muted-foreground font-normal">
+              ({tCommon("optional")})
+            </span>
+          </Label>
+          <Input
+            id="user-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="off"
+            maxLength={254}
+          />
+        </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">

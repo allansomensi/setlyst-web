@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Download,
   FileJson,
+  Info,
   ListMusic,
   Loader2,
   Music,
@@ -15,6 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -155,7 +157,19 @@ export function BackupSection() {
           toast.error(t("backupTooLarge", { size: 10 }));
           return;
         }
-        toast.error(
+        // Through toastActionError so EMAIL_NOT_VERIFIED gets its
+        // "resend verification e-mail" action, and a busy server
+        // (SERVICE_BUSY, TOO_MANY_ATTEMPTS) a warning with the wait.
+        const retry = body.meta?.retry_after_seconds;
+        toastActionError(
+          {
+            apiCode: body.code,
+            code:
+              body.code === "TOO_MANY_ATTEMPTS" || body.code === "SERVICE_BUSY"
+                ? "rate_limited"
+                : undefined,
+            retryAfterSeconds: typeof retry === "number" ? retry : undefined,
+          },
           describeApiError(
             body.code,
             body.meta,
@@ -220,6 +234,9 @@ export function BackupSection() {
         },
       ]
     : [];
+  // Tours in the file the plan doesn't allow: left out (their gigs were
+  // imported without a tour).
+  const skippedTours = importResult?.skipped_tours ?? 0;
 
   return (
     <Card>
@@ -364,6 +381,24 @@ export function BackupSection() {
                 </div>
               ))}
             </dl>
+            {skippedTours > 0 && (
+              <p className="mt-3 flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>
+                  {t.rich("backupSkippedTours", {
+                    count: skippedTours,
+                    link: (chunks) => (
+                      <Link
+                        href="/dashboard/settings?section=subscription"
+                        className="font-medium underline underline-offset-4"
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
+                </span>
+              </p>
+            )}
           </div>
         )}
       </CardContent>

@@ -7,8 +7,20 @@ import {
   type ActionResult,
 } from "@/lib/action-guard";
 import { revalidateDashboard } from "@/lib/revalidate";
-import { sanitizeOtp, sanitizeRecoveryCode } from "@/lib/auth-flow";
+import {
+  reauthBody,
+  sanitizeOtp,
+  sanitizeRecoveryCode,
+  type ReauthProof,
+} from "@/lib/auth-flow";
 import type { RecoveryCodes, TwoFactorSetup } from "@/types/account";
+import { getServerSession } from "next-auth";
+import { getTranslations } from "next-intl/server";
+import { authOptions } from "@/lib/auth";
+import {
+  clearPendingGoogleLink,
+  readPendingGoogleLink,
+} from "@/lib/server/google-link";
 
 /**
  * Two-factor authentication and linked sign-in providers of the
@@ -19,8 +31,8 @@ import type { RecoveryCodes, TwoFactorSetup } from "@/types/account";
  * An app code (6 digits) or, where accepted, a recovery code
  * (`XXXX-XXXX`), normalized; null when it is neither.
  */
-function secondFactor(code: string, allowRecovery: boolean): string | null {
-  const raw = (code ?? "").trim();
+function secondFactor(code: unknown, allowRecovery: boolean): string | null {
+  const raw = typeof code === "string" ? code.trim() : "";
   const digits = sanitizeOtp(raw);
   if (/^\d[\d\s]*$/.test(raw) && digits.length === 6) return digits;
   if (!allowRecovery) return null;
@@ -28,15 +40,33 @@ function secondFactor(code: string, allowRecovery: boolean): string | null {
   return /^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(recovery) ? recovery : null;
 }
 
-/** Starts the setup: a new secret, valid until confirmed (15 minutes). */
+/**
+ * E-mails a 6-digit code proving it's really the account holder, for
+ * accounts without a password (Google-only) about to make a sensitive
+ * change. The code then goes in the change itself as `reauthCode`.
+ */
+export async function requestReauthCode(): Promise<ActionResult> {
+  return guardedAction(async () => {
+    await fetchServerApi<unknown>("/users/me/reauth/code", {
+      method: "POST",
+      body: "{}",
+    });
+  });
+}
+
+/**
+ * Starts the setup: a new secret, valid until confirmed (15 minutes).
+ * Needs the password, or an e-mailed code on accounts without one.
+ */
 export async function startTwoFactorSetup(
-  password?: string,
+  proof: ReauthProof = {},
 ): Promise<ActionResult<TwoFactorSetup>> {
-  if (password && password.length > 256) return invalidRequest();
+  const reauth = reauthBody(proof);
+  if (!reauth) return invalidRequest();
   return guardedAction(() =>
     fetchServerApi<TwoFactorSetup>("/users/me/2fa/setup", {
       method: "POST",
-      body: JSON.stringify({ password: password || undefined }),
+      body: JSON.stringify(reauth),
     }),
   );
 }
@@ -57,22 +87,21 @@ export async function enableTwoFactor(
   );
 }
 
-/** Turns two-factor off (password when set, plus a code). */
-export async function disableTwoFactor(input: {
-  password?: string;
-  code: string;
-}): Promise<ActionResult> {
-  const clean = secondFactor(input.code, true);
-  if (!clean) return invalidRequest();
-  if (input.password && input.password.length > 256) return invalidRequest();
+/**
+ * Turns two-factor off: the password (or an e-mailed code on accounts
+ * without one), plus a code from the app or a recovery code.
+ */
+export async function disableTwoFactor(
+  input: ReauthProof & { code: string },
+): Promise<ActionResult> {
+  const clean = secondFactor(input?.code, true);
+  const reauth = reauthBody(input);
+  if (!clean || !reauth) return invalidRequest();
   return guardedAction(
     async () => {
       await fetchServerApi("/users/me/2fa/disable", {
         method: "POST",
-        body: JSON.stringify({
-          password: input.password || undefined,
-          code: clean,
-        }),
+        body: JSON.stringify({ ...reauth, code: clean }),
       });
     },
     () => revalidateDashboard("/settings"),
@@ -95,16 +124,78 @@ export async function regenerateRecoveryCodes(
   );
 }
 
-/** Unlinks Google (refused with `PASSWORD_NOT_SET` without a password). */
-export async function unlinkGoogle(): Promise<ActionResult> {
+/**
+ * Unlinks Google (refused with `PASSWORD_NOT_SET` without a password),
+ * with the password (or an e-mailed code) as proof.
+ */
+export async function unlinkGoogle(
+  proof: ReauthProof = {},
+): Promise<ActionResult> {
+  const reauth = reauthBody(proof);
+  if (!reauth) return invalidRequest();
   return guardedAction(
     async () => {
       await fetchServerApi("/users/me/identities/google", {
         method: "DELETE",
+        body: JSON.stringify(reauth),
       });
     },
     () => revalidateDashboard("/settings"),
   );
+}
+
+/**
+ * Links the Google account chosen with "Vincular conta Google"
+ * (`POST /users/me/identities/google`): the ID token kept server-side
+ * after the Google round trip (lib/auth.ts), plus the password or an
+ * e-mailed code as proof. `GOOGLE_LINK_EXPIRED` (web-only code) when
+ * there is no pending link for this account any more: start again.
+ */
+export async function linkGoogle(
+  proof: ReauthProof = {},
+): Promise<ActionResult> {
+  const reauth = reauthBody(proof);
+  if (!reauth) return invalidRequest();
+  const session = await getServerSession(authOptions);
+  if (session?.user.impersonator) return invalidRequest();
+  const link = await readPendingGoogleLink(session?.user.id);
+  if (!link) {
+    const t = await getTranslations("security.google.status");
+    return {
+      success: false,
+      apiCode: "GOOGLE_LINK_EXPIRED",
+      error: t("expired"),
+    };
+  }
+  const result = await guardedAction(
+    async () => {
+      await fetchServerApi("/users/me/identities/google", {
+        method: "POST",
+        body: JSON.stringify({ id_token: link.idToken, ...reauth }),
+      });
+    },
+    () => revalidateDashboard("/settings"),
+  );
+  // A wrong password or code can be retried with the same token; anything
+  // else (linked, token refused, Google account taken) ends this attempt.
+  const retryable =
+    !result.success &&
+    (result.code === "rate_limited" ||
+      [
+        "REAUTH_REQUIRED",
+        "WRONG_PASSWORD",
+        "INVALID_CODE",
+        "CODE_EXPIRED",
+        "INVALID_TWO_FACTOR_CODE",
+        "EMAIL_NOT_VERIFIED",
+      ].includes(result.apiCode ?? ""));
+  if (!retryable) await clearPendingGoogleLink();
+  return result;
+}
+
+/** Drops a pending "link Google" (the person closed the confirmation). */
+export async function cancelGoogleLink(): Promise<void> {
+  await clearPendingGoogleLink();
 }
 
 /**

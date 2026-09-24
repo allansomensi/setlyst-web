@@ -110,6 +110,7 @@ describe("Google intent", () => {
         locale: "pt-BR",
         referralCode: "abc",
         acceptTerms: true,
+        ageConfirmed: true,
         marketingOptIn: false,
         callbackPath: "/pt-BR/dashboard/songs",
       }),
@@ -121,6 +122,7 @@ describe("Google intent", () => {
       locale: "pt-BR",
       referralCode: "ABC",
       acceptTerms: true,
+      ageConfirmed: true,
       marketingOptIn: false,
       callbackPath: "/pt-BR/dashboard/songs",
     });

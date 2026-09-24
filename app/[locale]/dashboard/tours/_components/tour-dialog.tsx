@@ -10,8 +10,6 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -19,6 +17,9 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { FieldError } from "@/components/ui/field-error";
+import { GuardedDialog, useGuardedForm } from "@/components/ui/guarded-dialog";
+import { fieldA11y, focusFirstError, type FieldErrors } from "@/lib/forms";
 import type { Tour } from "@/types/content";
 import { createTour, updateTour } from "../actions";
 
@@ -37,16 +38,22 @@ interface TourDialogProps {
 /** Creates or edits a tour: name, dates, description and (on create) the band. */
 export function TourDialog(props: TourDialogProps) {
   return (
-    <Dialog
+    <GuardedDialog
       open={props.isOpen}
-      onOpenChange={(open) => !open && props.onClose()}
+      onClose={props.onClose}
+      className="max-h-[90dvh] overflow-y-auto sm:max-w-lg"
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        {props.isOpen && <TourForm {...props} />}
-      </DialogContent>
-    </Dialog>
+      <TourForm {...props} />
+    </GuardedDialog>
   );
 }
+
+type TourField = "name" | "start" | "end";
+const FIELD_ORDER = [
+  { key: "name", id: "tour-name" },
+  { key: "start", id: "tour-start" },
+  { key: "end", id: "tour-end" },
+] as const satisfies readonly { key: TourField; id: string }[];
 
 function TourForm({
   tour,
@@ -64,15 +71,36 @@ function TourForm({
   const [start, setStart] = useState(tour?.start_date ?? "");
   const [end, setEnd] = useState(tour?.end_date ?? "");
   const [bandId, setBandId] = useState(fixedBandId ?? "");
+  const [errors, setErrors] = useState<FieldErrors<TourField>>({});
   const isEditing = !!tour;
   const datesInvalid = !!start && !!end && end < start;
 
+  const isDirty =
+    name !== (tour?.name ?? "") ||
+    description !== (tour?.description ?? "") ||
+    start !== (tour?.start_date ?? "") ||
+    end !== (tour?.end_date ?? "") ||
+    bandId !== (fixedBandId ?? "");
+  const requestClose = useGuardedForm({ isDirty, isPending }, onClose);
+
+  const clearError = (field: TourField) =>
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (datesInvalid) {
-      toast.error(t("datesInvalid"));
+    if (isPending) return;
+
+    const nextErrors: FieldErrors<TourField> = {};
+    if (!name.trim()) nextErrors.name = t("nameRequired");
+    if (!start) nextErrors.start = t("dateRequired");
+    if (!end) nextErrors.end = t("dateRequired");
+    else if (datesInvalid) nextErrors.end = t("datesInvalid");
+    if (Object.values(nextErrors).some(Boolean)) {
+      setErrors(nextErrors);
+      focusFirstError(nextErrors, FIELD_ORDER);
       return;
     }
+    setErrors({});
     startTransition(async () => {
       const result = isEditing
         ? await updateTour(tour.id, {
@@ -101,7 +129,7 @@ function TourForm({
   };
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} noValidate>
       <DialogHeader>
         <DialogTitle>{isEditing ? t("editTitle") : t("addTitle")}</DialogTitle>
         <DialogDescription>{t("description")}</DialogDescription>
@@ -112,12 +140,18 @@ function TourForm({
           <Input
             id="tour-name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              clearError("name");
+            }}
             maxLength={120}
             required
+            aria-required
             disabled={isPending}
             placeholder={t("namePlaceholder")}
+            {...fieldA11y("tour-name", errors.name)}
           />
+          <FieldError fieldId="tour-name" message={errors.name} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -126,10 +160,16 @@ function TourForm({
               id="tour-start"
               type="date"
               value={start}
-              onChange={(e) => setStart(e.target.value)}
+              onChange={(e) => {
+                setStart(e.target.value);
+                clearError("start");
+              }}
               required
+              aria-required
               disabled={isPending}
+              {...fieldA11y("tour-start", errors.start)}
             />
+            <FieldError fieldId="tour-start" message={errors.start} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="tour-end">{t("endLabel")} *</Label>
@@ -138,21 +178,23 @@ function TourForm({
               type="date"
               value={end}
               min={start || undefined}
-              onChange={(e) => setEnd(e.target.value)}
+              onChange={(e) => {
+                setEnd(e.target.value);
+                clearError("end");
+              }}
               required
+              aria-required
               disabled={isPending}
-              aria-invalid={datesInvalid}
-              aria-describedby={datesInvalid ? "tour-dates-error" : undefined}
+              {...fieldA11y(
+                "tour-end",
+                errors.end ?? (datesInvalid ? t("datesInvalid") : null),
+              )}
+            />
+            <FieldError
+              fieldId="tour-end"
+              message={errors.end ?? (datesInvalid ? t("datesInvalid") : null)}
             />
           </div>
-          {datesInvalid && (
-            <p
-              id="tour-dates-error"
-              className="text-destructive col-span-2 text-xs"
-            >
-              {t("datesInvalid")}
-            </p>
-          )}
         </div>
         {!isEditing && !fixedBandId && bands.length > 0 && (
           <div className="space-y-2">
@@ -189,7 +231,7 @@ function TourForm({
         <Button
           type="button"
           variant="outline"
-          onClick={onClose}
+          onClick={requestClose}
           disabled={isPending}
         >
           {tCommon("cancel")}

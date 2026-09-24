@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 /**
  * Tracks and toggles document fullscreen.
@@ -38,10 +38,22 @@ export function useFullscreen() {
     }
   }, []);
 
-  /** Whether the browser offers fullscreen at all — used to hide a dead control. */
-  const isSupported =
-    typeof document !== "undefined" &&
-    typeof document.documentElement?.requestFullscreen === "function";
+  /**
+   * Whether the browser offers fullscreen at all — used to hide a dead
+   * control. Read through useSyncExternalStore so the server render (which
+   * can't know) and hydration agree, then the real answer applies.
+   */
+  const isSupported = useSyncExternalStore(
+    noopSubscribe,
+    detectSupport,
+    () => false,
+  );
 
   return { isFullscreen, toggle, isSupported };
+}
+
+const noopSubscribe = () => () => {};
+
+function detectSupport(): boolean {
+  return typeof document.documentElement?.requestFullscreen === "function";
 }

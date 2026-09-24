@@ -8,6 +8,11 @@
  */
 
 import { safeCallbackPath } from "@/lib/links";
+import {
+  isSignInErrorCode,
+  sanitizeSignInMeta,
+  type SignInError,
+} from "@/lib/sign-in-errors";
 
 // ---------------------------------------------------------------------
 // Referral codes
@@ -93,6 +98,11 @@ export interface GoogleIntent {
   locale: string;
   referralCode: string | null;
   acceptTerms: boolean;
+  /**
+   * The age declaration (18+, or 16-17 with a guardian's consent) that is
+   * part of the consent checkbox. Only meaningful with `acceptTerms`.
+   */
+  ageConfirmed: boolean;
   marketingOptIn: boolean;
   /** Where to land after a successful sign-in (app-relative path). */
   callbackPath: string | null;
@@ -127,6 +137,7 @@ export function parseGoogleIntent(
       typeof v.referralCode === "string" ? v.referralCode : null,
     ),
     acceptTerms: v.acceptTerms === true,
+    ageConfirmed: v.acceptTerms === true && v.ageConfirmed === true,
     marketingOptIn: v.marketingOptIn === true,
     callbackPath,
   };
@@ -221,6 +232,157 @@ export function parseGoogleTwoFactor(
         ? safeCallbackPath(v.callbackPath)
         : null,
   };
+}
+
+// ---------------------------------------------------------------------
+// Google sign-in failures
+// ---------------------------------------------------------------------
+
+/**
+ * Why a Google sign-in failed (a suspension with its end date and reason,
+ * a lockout...), handed from the OAuth callback to the login page in a
+ * short-lived httpOnly cookie that is read once. The URL only says *that*
+ * something failed (`?google_error=CODE`), so a crafted link can't put
+ * text of its choosing on the login page.
+ */
+export const GOOGLE_ERROR_COOKIE = "setlyst_google_error";
+export const GOOGLE_ERROR_MAX_AGE = 60 * 5; // 5 minutes
+
+/** Cookie value for a failed Google sign-in (see parseGoogleSignInError). */
+export function serializeGoogleSignInError(
+  code: string,
+  meta?: Record<string, unknown> | null,
+): string {
+  return JSON.stringify({ code, meta: sanitizeSignInMeta(meta) });
+}
+
+/** Parses the error cookie; unknown codes and malformed values are ignored. */
+export function parseGoogleSignInError(
+  raw: string | null | undefined,
+): SignInError | null {
+  if (!raw || raw.length > 4096) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  if (!isSignInErrorCode(v.code) || v.code === "TWO_FACTOR_REQUIRED") {
+    return null;
+  }
+  return { code: v.code, meta: sanitizeSignInMeta(v.meta) };
+}
+
+// ---------------------------------------------------------------------
+// Linking Google from the settings
+// ---------------------------------------------------------------------
+
+/**
+ * "Vincular conta Google" in the settings: after the Google round trip,
+ * the ID token waits in a short-lived httpOnly cookie while the person
+ * confirms it's them (password, or a code e-mailed to accounts without
+ * one). The confirmation then sends both to
+ * `POST /users/me/identities/google`. The token never reaches the
+ * browser's JavaScript or a URL, and the cookie names the account it was
+ * obtained for, so it can't be applied to another session.
+ */
+export const GOOGLE_LINK_COOKIE = "setlyst_google_link";
+/** Google ID tokens live an hour; the confirmation has 10 minutes. */
+export const GOOGLE_LINK_MAX_AGE = 60 * 10;
+
+export interface PendingGoogleLink {
+  /** The Setlyst account that started the link. */
+  userId: string;
+  idToken: string;
+  /** Epoch milliseconds after which the link must be started again. */
+  expiresAt: number;
+}
+
+/** Three base64url segments: the shape of a JWT (Google's ID token). */
+const JWT_SHAPE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
+/** Cookie value for a pending link (see parseGoogleLink). */
+export function serializeGoogleLink(
+  userId: string,
+  idToken: string,
+  now: number = Date.now(),
+): string {
+  return JSON.stringify({
+    user: userId,
+    token: idToken,
+    exp: now + GOOGLE_LINK_MAX_AGE * 1000,
+  });
+}
+
+/** Parses the pending-link cookie; malformed or expired values are ignored. */
+export function parseGoogleLink(
+  raw: string | null | undefined,
+  now: number = Date.now(),
+): PendingGoogleLink | null {
+  if (!raw || raw.length > 8192) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  const userId = typeof v.user === "string" ? v.user : "";
+  const idToken = typeof v.token === "string" ? v.token : "";
+  const expiresAt = typeof v.exp === "number" ? v.exp : NaN;
+  if (!userId || userId.length > 64) return null;
+  if (idToken.length < 20 || !JWT_SHAPE.test(idToken)) return null;
+  if (!Number.isFinite(expiresAt) || expiresAt <= now) return null;
+  return { userId, idToken, expiresAt };
+}
+
+// ---------------------------------------------------------------------
+// Step-up re-authentication
+// ---------------------------------------------------------------------
+
+/**
+ * Proof of identity for a sensitive change (e-mail, two-factor, linked
+ * sign-ins, account deletion): the password on accounts that have one, a
+ * 6-digit code sent to the account's e-mail on accounts that don't
+ * (Google-only). Exactly one is sent.
+ */
+export interface ReauthProof {
+  password?: string;
+  reauthCode?: string;
+}
+
+/**
+ * The API body fields for a proof (`password` or `reauth_code`), or null
+ * when the proof is malformed. An empty proof is valid (`{}`): the API
+ * then answers `REAUTH_REQUIRED` with the method it expects.
+ */
+export function reauthBody(
+  proof: ReauthProof | null | undefined,
+): { password?: string; reauth_code?: string } | null {
+  const password = typeof proof?.password === "string" ? proof.password : "";
+  const rawCode =
+    typeof proof?.reauthCode === "string" ? proof.reauthCode.trim() : "";
+  if (password.length > 256) return null;
+  if (password) return { password };
+  if (!rawCode) return {};
+  const code = sanitizeOtp(rawCode);
+  return code.length === 6 && /^[\d\s-]+$/.test(rawCode)
+    ? { reauth_code: code }
+    : null;
+}
+
+/** How the API asks to prove it's really the account holder. */
+export type ReauthMethod = "password" | "email_code";
+
+/** `meta.method` of a `REAUTH_REQUIRED` error, when it names one. */
+export function reauthMethodOf(
+  meta: Record<string, unknown> | null | undefined,
+): ReauthMethod | null {
+  const method = meta?.method;
+  return method === "password" || method === "email_code" ? method : null;
 }
 
 // ---------------------------------------------------------------------

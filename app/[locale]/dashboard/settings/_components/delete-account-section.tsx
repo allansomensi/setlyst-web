@@ -22,7 +22,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PasswordInput } from "@/components/auth/password-input";
+import {
+  ReauthProofField,
+  useReauthProof,
+} from "@/components/auth/reauth-proof";
 import { deleteOwnAccount } from "@/lib/actions/account";
 import { toastActionError } from "@/lib/action-toast";
 import { secureSignOut } from "@/lib/client-logout";
@@ -30,7 +33,8 @@ import { toast } from "@/lib/toast";
 
 /**
  * "Excluir minha conta" (LGPD art. 18, VI): what happens, then a typed
- * confirmation (the username) and the password when the account has one.
+ * confirmation (the username) and proof it's the account holder: the
+ * password, or a code e-mailed on accounts without one.
  */
 export function DeleteAccountSection({
   username,
@@ -45,19 +49,18 @@ export function DeleteAccountSection({
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
-  const [password, setPassword] = useState("");
+  const reauth = useReauthProof(passwordSet);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const matches = confirmation.trim() === username;
-  const canDelete =
-    matches && (!passwordSet || password.length > 0) && !pending;
+  const canDelete = matches && reauth.complete && !pending;
 
   const close = () => {
     if (pending) return;
     setOpen(false);
     setConfirmation("");
-    setPassword("");
+    reauth.reset();
     setError(null);
   };
 
@@ -68,10 +71,14 @@ export function DeleteAccountSection({
     setError(null);
     const result = await deleteOwnAccount({
       confirmation: confirmation.trim(),
-      password: passwordSet ? password : undefined,
+      ...reauth.proof,
     });
     if (!result.success) {
       setPending(false);
+      if (reauth.handleFailure(result)) {
+        setError(result.error);
+        return;
+      }
       if (result.code) {
         toastActionError(result, result.error);
         return;
@@ -97,6 +104,7 @@ export function DeleteAccountSection({
           <li>{t("consequenceContent")}</li>
           <li>{t("consequenceBands")}</li>
           <li>{t("consequenceBilling")}</li>
+          <li>{t("consequenceRefund")}</li>
           <li>{t("consequenceIrreversible")}</li>
         </ul>
       </CardContent>
@@ -122,6 +130,12 @@ export function DeleteAccountSection({
             <DialogTitle>{t("dialogTitle")}</DialogTitle>
             <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
+          {/* Consumer-law note (CDC art. 49 / Subscription Terms §8): a
+              recent charge can still be withdrawn with a full refund, which
+              has to happen before the account is gone. */}
+          <p className="bg-muted/50 text-muted-foreground rounded-md border p-3 text-sm">
+            {t("consequenceRefund")}
+          </p>
           <form onSubmit={submit} className="space-y-4" noValidate>
             <input
               type="text"
@@ -158,20 +172,12 @@ export function DeleteAccountSection({
                 className="h-10 font-mono"
               />
             </div>
-            {passwordSet && (
-              <div className="space-y-2">
-                <Label htmlFor="delete-password">{t("password")}</Label>
-                <PasswordInput
-                  id="delete-password"
-                  autoComplete="current-password"
-                  maxLength={256}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={pending}
-                  className="h-10"
-                />
-              </div>
-            )}
+            <ReauthProofField
+              state={reauth}
+              id="delete-account"
+              passwordLabel={t("password")}
+              disabled={pending}
+            />
             {error && (
               <p role="alert" className="text-destructive text-sm font-medium">
                 {error}

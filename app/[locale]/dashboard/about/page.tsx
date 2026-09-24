@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
 import { getFormatter, getTranslations } from "next-intl/server";
+import { authOptions } from "@/lib/auth";
+import { isStaffRole } from "@/lib/staff-permissions";
 import {
   Activity,
   BookOpen,
@@ -62,9 +65,14 @@ export default async function AboutPage() {
   const t = await getTranslations("about");
   const tNav = await getTranslations("nav");
 
-  const commits = await Promise.all(
-    REPOSITORIES.map((repo) => getLatestCommit(repo.name)),
-  );
+  // The repositories and their latest commits (raw, English, with
+  // gitmoji) are for the team; everyone else gets the version and the
+  // changelog ("What's new").
+  const session = await getServerSession(authOptions);
+  const isStaff = isStaffRole(session?.user?.role);
+  const commits = isStaff
+    ? await Promise.all(REPOSITORIES.map((repo) => getLatestCommit(repo.name)))
+    : [];
 
   // Set by Vercel on every deployment: which commit this very build is.
   const deployedSha = process.env.VERCEL_GIT_COMMIT_SHA;
@@ -142,41 +150,43 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* Repositories + last commit */}
-      <section className="space-y-3">
-        <SectionTitle>{t("repositories")}</SectionTitle>
-        <div className="grid gap-3 md:grid-cols-2">
-          {REPOSITORIES.map((repo, index) => (
-            <RepositoryCard
-              key={repo.name}
-              name={repo.name}
-              icon={REPO_ICONS[repo.kind]}
-              description={t(`repo.${repo.kind}`)}
-              stack={TECH_STACK[repo.kind]}
-              commit={commits[index]}
-              isDeployed={
-                repo.kind === "web" &&
-                !!deployedSha &&
-                commits[index]?.sha === deployedSha
-              }
-            />
-          ))}
-        </div>
-        {deployedSha && (
-          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-            <GitCommitHorizontal className="h-3.5 w-3.5" />
-            {t("deployedBuild")}{" "}
-            <a
-              href={`${repoUrl("setlyst-web")}/commit/${deployedSha}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-foreground font-mono hover:underline"
-            >
-              {deployedSha.slice(0, 7)}
-            </a>
-          </p>
-        )}
-      </section>
+      {/* Repositories + last commit (staff only) */}
+      {isStaff && (
+        <section className="space-y-3">
+          <SectionTitle>{t("repositories")}</SectionTitle>
+          <div className="grid gap-3 md:grid-cols-2">
+            {REPOSITORIES.map((repo, index) => (
+              <RepositoryCard
+                key={repo.name}
+                name={repo.name}
+                icon={REPO_ICONS[repo.kind]}
+                description={t(`repo.${repo.kind}`)}
+                stack={TECH_STACK[repo.kind]}
+                commit={commits[index]}
+                isDeployed={
+                  repo.kind === "web" &&
+                  !!deployedSha &&
+                  commits[index]?.sha === deployedSha
+                }
+              />
+            ))}
+          </div>
+          {deployedSha && (
+            <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+              <GitCommitHorizontal className="h-3.5 w-3.5" />
+              {t("deployedBuild")}{" "}
+              <a
+                href={`${repoUrl("setlyst-web")}/commit/${deployedSha}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground font-mono hover:underline"
+              >
+                {deployedSha.slice(0, 7)}
+              </a>
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Author */}
       <section className="space-y-3">

@@ -24,7 +24,20 @@ export type SignInErrorCode =
   /** Not a failure: the password was right, a code must follow. */
   | "TWO_FACTOR_REQUIRED"
   | "INVALID_TWO_FACTOR_CODE"
-  | "CODE_EXPIRED";
+  | "CODE_EXPIRED"
+  // Google sign-in outcomes (lib/auth.ts, completeGoogleSignIn).
+  | "EMAIL_TAKEN"
+  | "EMAIL_REQUIRED"
+  | "INVALID_GOOGLE_TOKEN"
+  | "GOOGLE_SIGNIN_DISABLED"
+  | "TERMS_NOT_ACCEPTED"
+  | "AGE_CONFIRMATION_REQUIRED"
+  /**
+   * The address belongs to an account Google can't vouch for (not Gmail,
+   * not the address's own Workspace): sign in with the password, then
+   * link Google from the settings.
+   */
+  | "ACCOUNT_LINK_REQUIRED";
 
 export interface SignInError {
   code: SignInErrorCode;
@@ -43,7 +56,77 @@ const KNOWN: readonly SignInErrorCode[] = [
   "TWO_FACTOR_REQUIRED",
   "INVALID_TWO_FACTOR_CODE",
   "CODE_EXPIRED",
+  "EMAIL_TAKEN",
+  "EMAIL_REQUIRED",
+  "INVALID_GOOGLE_TOKEN",
+  "GOOGLE_SIGNIN_DISABLED",
+  "TERMS_NOT_ACCEPTED",
+  "AGE_CONFIRMATION_REQUIRED",
+  "ACCOUNT_LINK_REQUIRED",
 ];
+
+export function isSignInErrorCode(value: unknown): value is SignInErrorCode {
+  return typeof value === "string" && KNOWN.includes(value as SignInErrorCode);
+}
+
+/** Longest ban reason shown (the API caps it well below this). */
+const MAX_REASON_LENGTH = 500;
+
+/**
+ * Only the meta fields the login page knows how to show, each with the
+ * type it must have: a server-issued error can't smuggle anything else
+ * into the page.
+ */
+export function sanitizeSignInMeta(
+  meta: unknown,
+): Record<string, unknown> | null {
+  if (!meta || typeof meta !== "object") return null;
+  const source = meta as Record<string, unknown>;
+  const clean: Record<string, unknown> = {};
+
+  const until = source.until;
+  if (
+    typeof until === "string" &&
+    until.length <= 40 &&
+    /^[0-9T:.+\-Z ]+$/i.test(until)
+  ) {
+    clean.until = until;
+  }
+  const retry = source.retry_after_seconds;
+  if (typeof retry === "number" && Number.isFinite(retry) && retry > 0) {
+    clean.retry_after_seconds = retry;
+  }
+  const left = source.attempts_left;
+  if (typeof left === "number" && Number.isInteger(left) && left >= 0) {
+    clean.attempts_left = left;
+  }
+  const reason = source.reason;
+  if (typeof reason === "string" && reason.trim()) {
+    clean.reason = reason.trim().slice(0, MAX_REASON_LENGTH);
+  }
+  for (const key of ["challenge_token", "challenge_expires_at"] as const) {
+    const value = source[key];
+    if (typeof value === "string" && value.length <= 256) clean[key] = value;
+  }
+
+  return Object.keys(clean).length > 0 ? clean : null;
+}
+
+/**
+ * A sign-in error named in a URL (`/login?google_error=CODE`). Anyone can
+ * write such a link, so only a bare, known code is accepted and it never
+ * carries meta: no attacker-chosen "reason" or date can reach the page.
+ * The details of a real Google failure travel in an httpOnly cookie
+ * instead (see `takeGoogleSignInError`).
+ */
+export function parseUrlSignInError(
+  value: string | null | undefined,
+): SignInError | null {
+  if (!value) return null;
+  const code = value.trim();
+  if (!isSignInErrorCode(code) || code === "TWO_FACTOR_REQUIRED") return null;
+  return { code, meta: null };
+}
 
 /** The JSON message `authorize` throws (see `parseSignInError`). */
 export function encodeSignInError(

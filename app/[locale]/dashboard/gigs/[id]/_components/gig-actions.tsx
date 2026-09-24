@@ -19,15 +19,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Pencil, Share2, Trash2, Loader2, MoreVertical } from "lucide-react";
+  CalendarPlus,
+  Pencil,
+  Share2,
+  Trash2,
+  MoreVertical,
+} from "lucide-react";
+import { gigToIcs } from "@/lib/ics";
+import { sanitizeFilename, saveBlob } from "@/lib/download";
+import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
 
@@ -82,17 +84,57 @@ export function GigActions({
     });
   };
 
+  /**
+   * "Add to calendar": an .ics file the phone or computer opens in its
+   * calendar app, at the venue's wall-clock time.
+   */
+  const addToCalendar = () => {
+    const ics = gigToIcs(gig, {
+      url: `${window.location.origin}${window.location.pathname}`,
+    });
+    if (!ics) {
+      toast.error(t("calendarFailed"));
+      return;
+    }
+    saveBlob(
+      new Blob([ics], { type: "text/calendar;charset=utf-8" }),
+      `${sanitizeFilename(gig.venue) || "gig"}.ics`,
+    );
+  };
+
   if (!canManage) {
     return (
-      <Button
-        variant="outline"
-        size="lg"
-        className="gap-2"
-        onClick={() => setIsShareOpen(true)}
-      >
-        <Share2 className="h-4 w-4" />
-        {t("shareBtn")}
-      </Button>
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          size="lg"
+          className="gap-2"
+          onClick={addToCalendar}
+        >
+          <CalendarPlus className="h-4 w-4" aria-hidden />
+          {t("addToCalendar")}
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="gap-2"
+          onClick={() => setIsShareOpen(true)}
+        >
+          <Share2 className="h-4 w-4" aria-hidden />
+          {t("shareBtn")}
+        </Button>
+        <ShareGigDialog
+          gigId={gig.id}
+          shareToken={gig.share_token}
+          shareLock={
+            gig.share_locked_at
+              ? { reason: gig.share_lock_reason ?? null }
+              : null
+          }
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+        />
+      </div>
     );
   }
 
@@ -109,6 +151,10 @@ export function GigActions({
           <DropdownMenuItem onClick={() => setIsShareOpen(true)}>
             <Share2 className="mr-2 h-4 w-4" />
             {t("shareBtn")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={addToCalendar}>
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            {t("addToCalendar")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
@@ -151,31 +197,15 @@ export function GigActions({
         onClose={() => setIsShareOpen(false)}
       />
 
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.deleteTitle")}</DialogTitle>
-            <DialogDescription>{t("dialog.deleteConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleteOpen(false)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {tCommon("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmActionDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteConfirm")}
+        confirmLabel={tCommon("delete")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </div>
   );
 }

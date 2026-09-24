@@ -5,6 +5,11 @@ type PlatformRole = "user" | "moderator" | "admin";
 declare module "next-auth" {
   interface Session {
     error?: "TokenExpired";
+    /**
+     * Why the last "view as" request was refused (an API error code such
+     * as `INSUFFICIENT_ROLE`), reported once by the update that tried it.
+     */
+    impersonationError?: string;
     user: {
       id: string;
       role: PlatformRole;
@@ -62,6 +67,8 @@ declare module "next-auth/jwt" {
     apiToken: string;
     apiTokenExpires?: number;
     error?: "TokenExpired";
+    /** See `Session.impersonationError`; cleared on the next read. */
+    impersonationError?: string;
     isFirstLogin?: boolean;
     mustChangePassword?: boolean;
     language?: string;

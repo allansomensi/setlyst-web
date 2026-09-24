@@ -50,7 +50,7 @@ export function BreakDialog({
 
   const save = (event: FormEvent) => {
     event.preventDefault();
-    if (!draft) return;
+    if (isPending || !draft) return;
     const payload = {
       label: label.trim(),
       duration_minutes: duration ? Number(duration) : null,
@@ -70,7 +70,10 @@ export function BreakDialog({
   };
 
   return (
-    <Dialog open={draft !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={draft !== null}
+      onOpenChange={(open) => !open && !isPending && onClose()}
+    >
       <DialogContent>
         <form onSubmit={save} className="grid gap-4">
           <DialogHeader>

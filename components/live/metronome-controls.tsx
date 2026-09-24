@@ -232,6 +232,7 @@ export function MetronomeControls({
         onClick={cycleBeatsPerBar}
         className="h-10 px-3 font-mono text-xs font-bold"
         title={t("beatsPerBarTitle")}
+        aria-label={`${t("beatsPerBarTitle")}: ${beatsPerBar}/4`}
       >
         {beatsPerBar}/4
       </Button>
@@ -244,6 +245,10 @@ export function MetronomeControls({
         onClick={() => onAudioEnabledChange(!audioEnabled)}
         className="h-10 w-10"
         title={audioEnabled ? t("muteClick") : t("unmuteClick")}
+        // One fixed name with a pressed state: a label that flips between
+        // "mute" and "unmute" on top of aria-pressed reads as a double
+        // negative to screen readers.
+        aria-label={t("clickSound")}
         aria-pressed={audioEnabled}
       >
         {audioEnabled ? (

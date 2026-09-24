@@ -4,7 +4,7 @@ import { Layers } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { DragHandle } from "./drag-handle";
+import { DragHandle, MoveButtons, type RowMove } from "./drag-handle";
 import { MarkerActions } from "./marker-actions";
 import type { BlockRow as BlockRowData } from "./types";
 import { useSortableRow } from "./use-sortable-row";
@@ -15,16 +15,20 @@ export function SortableBlockRow({
   onEdit,
   onDelete,
   actionsDisabled,
+  move,
 }: {
   row: BlockRowData;
   isReordering: boolean;
   onEdit: () => void;
   onDelete: () => void;
   actionsDisabled: boolean;
+  /** Reorder mode: move one step up/down without dragging. */
+  move?: RowMove;
 }) {
   const t = useTranslations("setlists.songs");
   const { attributes, listeners, setNodeRef, isDragging, style } =
     useSortableRow(row.id);
+  const label = row.name;
 
   // Same cells (and the same responsive hiding) as a song row, so the
   // columns line up at every width; the name sits in the title column.
@@ -39,7 +43,11 @@ export function SortableBlockRow({
     >
       <TableCell className="w-12">
         {isReordering ? (
-          <DragHandle attributes={attributes} listeners={listeners} />
+          <DragHandle
+            attributes={attributes}
+            listeners={listeners}
+            label={label}
+          />
         ) : (
           <Layers className="text-primary h-4 w-4" aria-hidden />
         )}
@@ -58,6 +66,7 @@ export function SortableBlockRow({
       <TableCell className="hidden sm:table-cell" />
       <TableCell />
       <TableCell className="text-right">
+        {isReordering && move && <MoveButtons label={label} move={move} />}
         {!isReordering && (
           <MarkerActions
             onEdit={onEdit}

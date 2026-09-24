@@ -3,7 +3,7 @@ import { fetchAllServerPages, fetchServerApi } from "@/lib/api-server";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import { getEntitlements, hasFeature } from "@/lib/entitlements";
-import type { BandWithMembership } from "@/types/api";
+import type { BandWithMembership, QuotaReport } from "@/types/api";
 import type { Tour } from "@/types/content";
 import { ToursView } from "./_components/tours-view";
 
@@ -13,10 +13,12 @@ export async function generateMetadata() {
 }
 
 export default async function ToursPage() {
-  const [personalRes, bandsRes, entitlements] = await Promise.all([
+  const [personalRes, bandsRes, entitlements, quotas] = await Promise.all([
     fetchOrFailed(fetchAllServerPages<Tour>("/tours?status=all")),
     fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
     getEntitlements(),
+    // Only for the usage chip next to "New tour": never fatal.
+    fetchServerApi<QuotaReport>("/users/me/quotas").catch(() => null),
   ]);
   const bands = bandsRes === FETCH_FAILED ? [] : bandsRes;
   const bandTours = await Promise.all(
@@ -45,6 +47,7 @@ export default async function ToursPage() {
         .map((b) => ({ id: b.id, name: b.name }))}
       canCreate={hasFeature(entitlements, "tours")}
       loadError={failed}
+      quotas={quotas}
     />
   );
 }

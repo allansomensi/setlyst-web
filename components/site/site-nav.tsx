@@ -97,9 +97,12 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
       <div
         id={panelId}
         hidden={!open}
-        className="bg-background absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b shadow-lg"
+        className="bg-background absolute inset-x-0 top-full max-h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain border-b pb-[env(safe-area-inset-bottom)] shadow-lg"
       >
-        <nav aria-label={t("mainNav")} className="mx-auto max-w-6xl px-4 py-4">
+        <nav
+          aria-label={t("mainNav")}
+          className="mx-auto max-w-6xl py-4 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))]"
+        >
           <ul className="grid gap-1">
             {SITE_NAV.map((item) => (
               <li key={item.key}>

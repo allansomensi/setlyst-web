@@ -51,3 +51,25 @@ describe("pdfOptionsToQuery", () => {
     expect(query.has("subtitle")).toBe(false);
   });
 });
+
+describe("public share PDFs", () => {
+  it("never carry lyrics", async () => {
+    const {
+      PDF_PRESETS,
+      PUBLIC_PDF_PRESETS,
+      PUBLIC_SETLIST_PDF_QUERY_KEYS,
+      withoutLyrics,
+    } = await import("@/lib/pdf-export-options");
+    const options = withoutLyrics({
+      ...DEFAULT_PDF_OPTIONS,
+      ...PDF_PRESETS.songbook,
+    });
+    expect(options.include_lyrics).toBe(false);
+    expect(options.page_break_per_song).toBe(false);
+    expect(Object.keys(PUBLIC_PDF_PRESETS)).not.toContain("songbook");
+    expect(PUBLIC_SETLIST_PDF_QUERY_KEYS.has("include_lyrics")).toBe(false);
+    expect(PUBLIC_SETLIST_PDF_QUERY_KEYS.has("chords")).toBe(false);
+    expect(PUBLIC_SETLIST_PDF_QUERY_KEYS.has("show_bpm")).toBe(true);
+    expect(PUBLIC_SETLIST_PDF_QUERY_KEYS.has("lang")).toBe(true);
+  });
+});

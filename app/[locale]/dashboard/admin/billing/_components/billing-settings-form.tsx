@@ -100,6 +100,9 @@ export function BillingSettingsForm({
   const [settings, setSettings] = useState(initial);
   const [confirming, setConfirming] = useState(false);
   const [typed, setTyped] = useState("");
+  // Set when switching plans off was refused because paid subscriptions
+  // are live: the dialog then says so and a second confirmation forces it.
+  const [liveWarning, setLiveWarning] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const dirty = JSON.stringify(settings) !== JSON.stringify(initial);
@@ -143,12 +146,19 @@ export function BillingSettingsForm({
         ...settings,
         rewards: settings.rewards.map((r) => ({ ...r, id: r.id.trim() })),
       };
-      const result = await saveBillingSettings(payload);
+      const force = liveWarning !== null && !payload.enforced;
+      const result = await saveBillingSettings(payload, force);
       if (!result.success) {
+        if (result.apiCode === "BILLING_HAS_PAID_SUBSCRIPTIONS") {
+          setLiveWarning(result.error);
+          setConfirming(true);
+          return;
+        }
         toastActionError(result, result.error);
         return;
       }
       setConfirming(false);
+      setLiveWarning(null);
       setTyped("");
       toast.success(t("saved"));
       router.refresh();
@@ -161,6 +171,7 @@ export function BillingSettingsForm({
     }
     if (enforcementChanged) {
       setTyped("");
+      setLiveWarning(null);
       setConfirming(true);
       return;
     }
@@ -452,7 +463,10 @@ export function BillingSettingsForm({
 
       <ConfirmDialog
         open={confirming}
-        onOpenChange={setConfirming}
+        onOpenChange={(open) => {
+          setConfirming(open);
+          if (!open) setLiveWarning(null);
+        }}
         title={
           settings.enforced
             ? t("enforce.confirmOnTitle")
@@ -476,10 +490,23 @@ export function BillingSettingsForm({
                 <li key={key}>{t(`enforce.consequences.${key}`)}</li>
               ))}
             </ul>
+            {liveWarning && !settings.enforced && (
+              <div
+                role="alert"
+                className="border-destructive/40 bg-destructive/10 text-destructive flex gap-2 rounded-lg border p-3"
+              >
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <p>{liveWarning}</p>
+              </div>
+            )}
           </div>
         }
         confirmLabel={
-          settings.enforced ? t("enforce.confirmOn") : t("enforce.confirmOff")
+          settings.enforced
+            ? t("enforce.confirmOn")
+            : liveWarning
+              ? t("enforce.confirmOffForce")
+              : t("enforce.confirmOff")
         }
         destructive
         pending={pending}

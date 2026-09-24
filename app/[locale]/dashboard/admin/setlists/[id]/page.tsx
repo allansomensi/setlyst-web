@@ -2,7 +2,7 @@ import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { Coffee, Layers } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -64,6 +64,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
   const t = await getTranslations("staff.setlistDetail");
   const tNav = await getTranslations("nav");
   const locale = await getLocale();
+  const timeZone = await getTimeZone();
   const { setlist, items } = detail;
   // Song numbers skip blocks and breaks, like the setlist itself.
   const songNumbers = items.reduce<number[]>((acc, item, index) => {
@@ -132,7 +133,11 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
             <CardDescription>
               {setlist.share_locked_at
                 ? t("lockedDescription", {
-                    date: formatApiDateTime(setlist.share_locked_at, locale),
+                    date: formatApiDateTime(
+                      setlist.share_locked_at,
+                      locale,
+                      timeZone,
+                    ),
                   })
                 : setlist.share_token
                   ? t("publicDescription")

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { useRouter, usePathname } from "@/i18n/routing";
+import { LOCALE_NAMES } from "@/i18n/locales";
+import { routing, useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
@@ -152,9 +153,12 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
+                    {/* Each language named in itself (i18n/locales.ts). */}
+                    {routing.locales.map((code) => (
+                      <SelectItem key={code} value={code} lang={code}>
+                        {LOCALE_NAMES[code]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

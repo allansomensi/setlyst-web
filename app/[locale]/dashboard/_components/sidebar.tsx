@@ -13,7 +13,7 @@ import { LogoutButton } from "./logout-button";
 import { HelpMenu } from "./help-menu";
 import { WhatsNewLink } from "./whats-new-link";
 import { TrialStatus } from "./trial/trial-status";
-import type { TrialInfo } from "@/lib/trial";
+import type { AccountPlanStatus } from "@/lib/trial";
 import { ROLE_TEXT_STYLES } from "@/components/role-badge";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/api";
@@ -26,10 +26,10 @@ export interface SidebarUser {
 
 export function Sidebar({
   user,
-  trial = null,
+  planStatus = null,
 }: {
   user?: SidebarUser;
-  trial?: TrialInfo | null;
+  planStatus?: AccountPlanStatus | null;
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const t = useTranslations("nav");
@@ -93,7 +93,7 @@ export function Sidebar({
 
       <div className="border-sidebar-border shrink-0 border-t p-3">
         <TrialStatus
-          trial={trial}
+          status={planStatus}
           collapsed={isCollapsed}
           className={cn("mb-2", isCollapsed && "mx-auto")}
         />

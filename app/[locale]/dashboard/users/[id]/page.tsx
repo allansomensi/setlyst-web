@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { Ban, Flag, KeyRound } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -25,7 +25,7 @@ import { authOptions } from "@/lib/auth";
 import { formatApiDate, formatApiDateTime } from "@/lib/dates";
 import { pickLocalized } from "@/lib/localized";
 import { getPlanOptions } from "@/lib/staff-data";
-import { canManageUser, isStaffRole } from "@/lib/staff-permissions";
+import { canAdministerUser, isStaffRole } from "@/lib/staff-permissions";
 import { moderationQueueHref } from "@/lib/moderation";
 import type {
   AdminUserOverview,
@@ -93,10 +93,13 @@ export default async function UserDetailPage({ params }: { params: Params }) {
   const t = await getTranslations("staff.userDetail");
   const tNav = await getTranslations("nav");
   const locale = await getLocale();
+  const timeZone = await getTimeZone();
   const actor = { id: session.user.id, role: session.user.role };
   const isAdmin = actor.role === "admin";
   const { user, usage, quota_settings: quotaSettings, bands } = overview;
-  const manageable = canManageUser(actor, user);
+  // Deleting and "view as" are admin-only (and so is the audit log); the
+  // rest of what staff may do is in UserActionsMenu.
+  const administrable = canAdministerUser(actor, user);
 
   const [
     history,
@@ -107,7 +110,7 @@ export default async function UserDetailPage({ params }: { params: Params }) {
     planOptions,
   ] = await Promise.all([
     getUsernameHistory(user.id),
-    getUserAuditTrail(user.id),
+    isAdmin ? getUserAuditTrail(user.id) : Promise.resolve([]),
     isAdmin
       ? fetchServerApi<QuotaLimits>("/admin/settings/quotas").catch(() => null)
       : Promise.resolve(null),
@@ -153,7 +156,7 @@ export default async function UserDetailPage({ params }: { params: Params }) {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          {manageable && (
+          {administrable && (
             <ViewAsButton
               userId={user.id}
               username={user.username}
@@ -170,14 +173,14 @@ export default async function UserDetailPage({ params }: { params: Params }) {
           <AlertTitle>
             {user.banned_until
               ? t("bannedUntil", {
-                  date: formatApiDateTime(user.banned_until, locale),
+                  date: formatApiDateTime(user.banned_until, locale, timeZone),
                 })
               : t("bannedPermanent")}
           </AlertTitle>
           <AlertDescription>
             {t("bannedBy", {
               username: user.banned_by_username ?? "—",
-              date: formatApiDateTime(user.banned_at, locale),
+              date: formatApiDateTime(user.banned_at, locale, timeZone),
             })}
             {user.ban_reason && (
               <> {t("reason", { reason: user.ban_reason })}</>
@@ -209,11 +212,17 @@ export default async function UserDetailPage({ params }: { params: Params }) {
                   value={
                     user.created_by_username
                       ? t("createdBy", {
-                          date: formatApiDate(user.created_at, locale),
+                          date: formatApiDate(user.created_at, locale, {
+                            dateStyle: "medium",
+                            timeZone,
+                          }),
                           username: user.created_by_username,
                         })
                       : t("selfRegistered", {
-                          date: formatApiDate(user.created_at, locale),
+                          date: formatApiDate(user.created_at, locale, {
+                            dateStyle: "medium",
+                            timeZone,
+                          }),
                         })
                   }
                 />
@@ -221,7 +230,7 @@ export default async function UserDetailPage({ params }: { params: Params }) {
                   label={t("lastLogin")}
                   value={
                     user.last_login_at
-                      ? formatApiDateTime(user.last_login_at, locale)
+                      ? formatApiDateTime(user.last_login_at, locale, timeZone)
                       : t("never")
                   }
                 />
@@ -229,7 +238,11 @@ export default async function UserDetailPage({ params }: { params: Params }) {
                   label={t("passwordChanged")}
                   value={
                     user.password_changed_at
-                      ? formatApiDateTime(user.password_changed_at, locale)
+                      ? formatApiDateTime(
+                          user.password_changed_at,
+                          locale,
+                          timeZone,
+                        )
                       : t("never")
                   }
                 />
@@ -237,7 +250,10 @@ export default async function UserDetailPage({ params }: { params: Params }) {
                   label={t("usernameChanged")}
                   value={
                     user.username_changed_at
-                      ? formatApiDate(user.username_changed_at, locale)
+                      ? formatApiDate(user.username_changed_at, locale, {
+                          dateStyle: "medium",
+                          timeZone,
+                        })
                       : t("never")
                   }
                 />
@@ -246,10 +262,14 @@ export default async function UserDetailPage({ params }: { params: Params }) {
                   value={
                     user.updated_by_username
                       ? t("modifiedBy", {
-                          date: formatApiDateTime(user.updated_at, locale),
+                          date: formatApiDateTime(
+                            user.updated_at,
+                            locale,
+                            timeZone,
+                          ),
                           username: user.updated_by_username,
                         })
-                      : formatApiDateTime(user.updated_at, locale)
+                      : formatApiDateTime(user.updated_at, locale, timeZone)
                   }
                 />
                 <Field
@@ -260,29 +280,31 @@ export default async function UserDetailPage({ params }: { params: Params }) {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("activity")}</CardTitle>
-              <CardDescription>{t("activityDescription")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {auditTrail.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  {t("noActivity")}
-                </p>
-              ) : (
-                <div className="divide-y">
-                  {auditTrail.map((entry) => (
-                    <AuditEntry
-                      key={entry.id}
-                      entry={entry}
-                      showTarget={false}
-                    />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {isAdmin && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("activity")}</CardTitle>
+                <CardDescription>{t("activityDescription")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {auditTrail.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    {t("noActivity")}
+                  </p>
+                ) : (
+                  <div className="divide-y">
+                    {auditTrail.map((entry) => (
+                      <AuditEntry
+                        key={entry.id}
+                        entry={entry}
+                        showTarget={false}
+                      />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -305,7 +327,10 @@ export default async function UserDetailPage({ params }: { params: Params }) {
                       >
                         <span className="font-mono">{entry.old_username}</span>
                         <span className="text-muted-foreground text-xs">
-                          {formatApiDate(entry.changed_at, locale)}
+                          {formatApiDate(entry.changed_at, locale, {
+                            dateStyle: "medium",
+                            timeZone,
+                          })}
                         </span>
                       </li>
                     ))}
@@ -396,7 +421,9 @@ export default async function UserDetailPage({ params }: { params: Params }) {
         </div>
       </div>
 
-      {manageable && <DangerZone userId={user.id} username={user.username} />}
+      {administrable && (
+        <DangerZone userId={user.id} username={user.username} />
+      )}
     </div>
   );
 }

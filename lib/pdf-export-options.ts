@@ -193,6 +193,38 @@ export const PDF_PRESETS: Record<
   },
 };
 
+// ---------------------------------------------------------------------
+// Public share links (`/s/{token}`)
+// ---------------------------------------------------------------------
+
+/**
+ * Options that only make sense with lyrics: a public link's PDF never
+ * includes lyrics or chords (Terms §"Links públicos", Copyright Policy §4;
+ * the API forces `include_lyrics=false` on the public export too).
+ */
+const LYRICS_ONLY_KEYS = ["include_lyrics", "chords", "page_break_per_song"];
+
+/** The presets a public share page offers: everything but the songbook. */
+export const PUBLIC_PDF_PRESETS = Object.fromEntries(
+  Object.entries(PDF_PRESETS).filter(([key]) => key !== "songbook"),
+) as Omit<typeof PDF_PRESETS, "songbook">;
+
+/** `options` with every lyrics option turned off (public share PDFs). */
+export function withoutLyrics(options: PdfExportOptions): PdfExportOptions {
+  return { ...options, include_lyrics: false, page_break_per_song: false };
+}
+
+/**
+ * Query keys the `/api/export/public/setlists/[token]/pdf` route forwards:
+ * the setlist keys without the lyrics ones (the route then sends
+ * `include_lyrics=false` explicitly).
+ */
+export const PUBLIC_SETLIST_PDF_QUERY_KEYS: ReadonlySet<string> = new Set(
+  [...Object.keys(DEFAULT_PDF_OPTIONS), "lang", "subtitle"].filter(
+    (key) => !LYRICS_ONLY_KEYS.includes(key),
+  ),
+);
+
 /**
  * Query keys the `/api/export/setlists/[id]/pdf` route handler forwards to
  * the API (anything else is dropped).

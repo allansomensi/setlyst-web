@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import {
   CheckCircle2,
   Clock,
   Info,
   KeyRound,
+  Link2,
   Link2Off,
   Loader2,
   LogOut,
+  ShieldAlert,
   TriangleAlert,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,6 +31,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -35,9 +40,18 @@ import {
   PasswordNotSetNotice,
 } from "@/components/auth/change-password-form";
 import { GoogleButton, GoogleLogo } from "@/components/auth/google-button";
+import {
+  ReauthProofField,
+  useReauthProof,
+} from "@/components/auth/reauth-proof";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { revokeAllSessions, unlinkGoogle } from "@/lib/actions/security";
+import {
+  cancelGoogleLink,
+  linkGoogle,
+  revokeAllSessions,
+  unlinkGoogle,
+} from "@/lib/actions/security";
 import { secureSignOut } from "@/lib/client-logout";
 import { toastActionError } from "@/lib/action-toast";
 import { formatApiDate, formatApiDateTime } from "@/lib/dates";
@@ -47,7 +61,13 @@ import { TwoFactorCard } from "./two-factor-card";
 
 /** Outcome of a "link Google" round trip (`?google=` on return). */
 export type GoogleLinkStatus =
-  "linked" | "mismatch" | "no_account" | "unverified" | "failed";
+  /** A Google account was chosen: confirm it's you to link it. */
+  | "confirm"
+  | "linked"
+  | "mismatch"
+  /** The chosen Google account waited too long (or was already used). */
+  | "expired"
+  | "failed";
 
 interface SecuritySectionProps {
   username: string;
@@ -72,6 +92,7 @@ export function SecuritySection({
 }: SecuritySectionProps) {
   const t = useTranslations("security");
   const locale = useLocale();
+  const timeZone = useTimeZone();
 
   if (!security) {
     return (
@@ -86,6 +107,10 @@ export function SecuritySection({
 
   return (
     <div className="space-y-4">
+      <StaffTwoFactorNotice
+        twoFactorEnabled={security.two_factor_enabled}
+        readOnly={readOnly}
+      />
       {readOnly && (
         <Alert variant="info">
           <Info />
@@ -130,7 +155,7 @@ export function SecuritySection({
               </dt>
               <dd className="font-medium">
                 {security.last_login_at
-                  ? formatApiDateTime(security.last_login_at, locale)
+                  ? formatApiDateTime(security.last_login_at, locale, timeZone)
                   : t("activity.never")}
               </dd>
             </div>
@@ -150,6 +175,76 @@ export function SecuritySection({
         </CardContent>
       </Card>
       <SessionsCard readOnly={readOnly} />
+    </div>
+  );
+}
+
+/**
+ * Two-factor authentication is mandatory for staff accounts: until it is
+ * on, the API refuses everything else (STAFF_TWO_FACTOR_REQUIRED) and the
+ * app sends the account here (`?reason=staff2fa`). Says why, and brings
+ * the section into view. Once 2FA is on (maybe from another device), the
+ * session's copy of the flag is refreshed so the redirect stops.
+ */
+function StaffTwoFactorNotice({
+  twoFactorEnabled,
+  readOnly,
+}: {
+  twoFactorEnabled: boolean;
+  readOnly: boolean;
+}) {
+  const t = useTranslations("security.staff2fa");
+  const params = useSearchParams();
+  const { data: session, update } = useSession();
+  const router = useAppRouter();
+  const ref = useRef<HTMLDivElement>(null);
+  const refreshed = useRef(false);
+
+  const role = session?.user?.role;
+  const isStaff = role === "admin" || role === "moderator";
+  const redirected = params.get("reason") === "staff2fa";
+  const show = !readOnly && isStaff && !twoFactorEnabled;
+
+  useEffect(() => {
+    if (!redirected) return;
+    const section = document.getElementById("security");
+    (section ?? ref.current)?.scrollIntoView({ block: "start" });
+  }, [redirected]);
+
+  useEffect(() => {
+    if (
+      readOnly ||
+      !isStaff ||
+      !twoFactorEnabled ||
+      session?.user?.twoFactorEnabled !== false ||
+      refreshed.current
+    ) {
+      return;
+    }
+    refreshed.current = true;
+    void update({ refreshAccount: true })
+      .then(() => router.refresh())
+      .catch(() => null);
+  }, [
+    isStaff,
+    readOnly,
+    router,
+    session?.user?.twoFactorEnabled,
+    twoFactorEnabled,
+    update,
+  ]);
+
+  if (!show) return null;
+
+  return (
+    <div ref={ref}>
+      <Alert variant="warning">
+        <ShieldAlert />
+        <AlertDescription>
+          <p className="font-medium">{t("title")}</p>
+          <p>{t("description")}</p>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
@@ -307,21 +402,101 @@ function GoogleCard({
   const t = useTranslations("security.google");
   const locale = useLocale();
   const router = useAppRouter();
+  const tCommon = useTranslations("common");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [needsPassword, setNeedsPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const reauth = useReauthProof(passwordSet);
+  // Back from Google with an account chosen: ask for the proof right away.
+  const [linkOpen, setLinkOpen] = useState(
+    status === "confirm" && !linked && googleEnabled,
+  );
+  const [linkOutcome, setLinkOutcome] = useState<GoogleLinkStatus | null>(null);
 
-  // "linked" is only claimed when the API agrees: a Google account that
-  // belongs to someone else may still come back as a challenge.
-  const outcome: GoogleLinkStatus | null =
-    status === "linked" && !linked ? "mismatch" : status;
+  // "linked" is only claimed when the API agrees.
+  const fromUrl: GoogleLinkStatus | null =
+    status === "confirm"
+      ? null
+      : status === "linked" && !linked
+        ? null
+        : status;
+  const outcome = linkOutcome ?? fromUrl;
 
-  const unlink = async () => {
+  /** Drops `?google=` so a reload doesn't replay the outcome. */
+  const clearStatusParam = () => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("google")) return;
+    url.searchParams.delete("google");
+    window.history.replaceState(null, "", url);
+  };
+
+  const closeLink = () => {
+    if (pending) return;
+    setLinkOpen(false);
+    setError(null);
+    reauth.reset();
+    clearStatusParam();
+    void cancelGoogleLink();
+  };
+
+  const link = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (pending || !reauth.complete) return;
     setPending(true);
-    const result = await unlinkGoogle();
+    setError(null);
+    const result = await linkGoogle(reauth.proof);
     setPending(false);
-    setConfirmOpen(false);
     if (!result.success) {
+      if (reauth.handleFailure(result)) {
+        setError(result.error);
+        return;
+      }
+      setLinkOpen(false);
+      reauth.reset();
+      clearStatusParam();
+      switch (result.apiCode) {
+        case "ALREADY_EXISTS":
+          setLinkOutcome("mismatch");
+          return;
+        case "GOOGLE_LINK_EXPIRED":
+        case "INVALID_GOOGLE_TOKEN":
+          setLinkOutcome("expired");
+          return;
+        default:
+          toastActionError(result, result.error);
+          return;
+      }
+    }
+    setLinkOpen(false);
+    reauth.reset();
+    clearStatusParam();
+    setLinkOutcome(null);
+    toast.success(t("status.linked"));
+    router.refresh();
+  };
+
+  const closeDialog = () => {
+    if (pending) return;
+    setConfirmOpen(false);
+    setError(null);
+    reauth.reset();
+  };
+
+  const unlink = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (pending || !reauth.complete) return;
+    setPending(true);
+    setError(null);
+    const result = await unlinkGoogle(reauth.proof);
+    setPending(false);
+    if (!result.success) {
+      if (reauth.handleFailure(result)) {
+        setError(result.error);
+        return;
+      }
+      setConfirmOpen(false);
+      reauth.reset();
       if (result.apiCode === "PASSWORD_NOT_SET") {
         setNeedsPassword(true);
         return;
@@ -329,6 +504,8 @@ function GoogleCard({
       toastActionError(result, result.error);
       return;
     }
+    setConfirmOpen(false);
+    reauth.reset();
     toast.success(t("unlinked"));
     router.refresh();
   };
@@ -411,16 +588,110 @@ function GoogleCard({
         ) : null}
       </CardFooter>
 
-      <ConfirmDialog
+      <Dialog
+        open={linkOpen}
+        onOpenChange={(next) => (next ? setLinkOpen(true) : closeLink())}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="size-5" aria-hidden />
+              {t("linkTitle")}
+            </DialogTitle>
+            <DialogDescription>
+              {passwordSet ? t("linkDescription") : t("linkDescriptionCode")}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={link} className="space-y-4" noValidate>
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              value={username}
+              readOnly
+              hidden
+            />
+            <ReauthProofField
+              state={reauth}
+              id="link-google"
+              passwordLabel={t("unlinkPassword")}
+              disabled={pending}
+              autoFocus
+            />
+            {error && (
+              <p role="alert" className="text-destructive text-sm font-medium">
+                {error}
+              </p>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeLink}
+                disabled={pending}
+              >
+                {tCommon("cancel")}
+              </Button>
+              <Button type="submit" disabled={pending || !reauth.complete}>
+                {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {t("linkConfirm")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title={t("unlinkTitle")}
-        description={t("unlinkDescription")}
-        confirmLabel={t("unlink")}
-        onConfirm={() => void unlink()}
-        pending={pending}
-        destructive
-      />
+        onOpenChange={(next) => (next ? setConfirmOpen(true) : closeDialog())}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("unlinkTitle")}</DialogTitle>
+            <DialogDescription>{t("unlinkDescription")}</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={unlink} className="space-y-4" noValidate>
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              value={username}
+              readOnly
+              hidden
+            />
+            <ReauthProofField
+              state={reauth}
+              id="unlink-google"
+              passwordLabel={t("unlinkPassword")}
+              disabled={pending}
+              autoFocus
+            />
+            {error && (
+              <p role="alert" className="text-destructive text-sm font-medium">
+                {error}
+              </p>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeDialog}
+                disabled={pending}
+              >
+                {tCommon("cancel")}
+              </Button>
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={pending || !reauth.complete}
+              >
+                {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {t("unlink")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

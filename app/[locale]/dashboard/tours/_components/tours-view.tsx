@@ -8,6 +8,15 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { UpgradeHint } from "@/components/content/upgrade-hint";
+import { EmptyState } from "@/components/ui/empty-state";
+import {
+  QuotaChip,
+  QuotaLimitNotice,
+  quotaState,
+  quotaUsageOf,
+} from "@/components/quota-usage-list";
+import { useOfflineDisabled } from "@/components/offline-disabled";
+import type { QuotaReport } from "@/types/api";
 import { useMounted } from "@/hooks/use-mounted";
 import { groupTours, localToday, type TourPhase } from "@/lib/tours";
 import type { Tour } from "@/types/content";
@@ -22,6 +31,8 @@ interface ToursViewProps {
   creatableBands: Array<{ id: string; name: string }>;
   canCreate: boolean;
   loadError: boolean;
+  /** `GET /users/me/quotas`, for the usage chip next to "New tour". */
+  quotas?: QuotaReport | null;
 }
 
 /** Every tour the person can see, grouped into current, upcoming and past. */
@@ -31,8 +42,13 @@ export function ToursView({
   creatableBands,
   canCreate,
   loadError,
+  quotas = null,
 }: ToursViewProps) {
   const t = useTranslations("tours");
+  const offlineDisabled = useOfflineDisabled();
+  const quota = quotaUsageOf(quotas, "tours");
+  const quotaFull = quotaState(quota).full;
+  const createDisabled = !canCreate || quotaFull || offlineDisabled.disabled;
   const mounted = useMounted();
   const [filter, setFilter] = useState("all");
   const [isCreating, setIsCreating] = useState(false);
@@ -56,11 +72,22 @@ export function ToursView({
           <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <div className="flex flex-col items-start gap-1 sm:items-end">
-          <Button onClick={() => setIsCreating(true)} disabled={!canCreate}>
-            <Plus className="mr-2 h-4 w-4" aria-hidden />
-            {t("newTour")}
-          </Button>
-          {!canCreate && <UpgradeHint message={t("locked")} />}
+          <div className="flex flex-wrap items-center gap-2">
+            {canCreate && <QuotaChip usage={quota} resource="tours" />}
+            <Button
+              onClick={() => setIsCreating(true)}
+              title={offlineDisabled.title}
+              disabled={createDisabled}
+            >
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              {t("newTour")}
+            </Button>
+          </div>
+          {!canCreate ? (
+            <UpgradeHint message={t("locked")} />
+          ) : (
+            <QuotaLimitNotice usage={quota} resource="tours" />
+          )}
         </div>
       </div>
 
@@ -87,13 +114,24 @@ export function ToursView({
       {loadError && tours.length === 0 ? (
         <LoadErrorNotice />
       ) : visible.length === 0 ? (
-        <div className="bg-card flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-14 text-center">
-          <Route className="text-muted-foreground h-8 w-8" aria-hidden />
-          <p className="font-medium">{t("emptyTitle")}</p>
-          <p className="text-muted-foreground max-w-md text-sm">
-            {t("emptyHint")}
-          </p>
-        </div>
+        <EmptyState
+          icon={Route}
+          title={t("emptyTitle")}
+          description={t("emptyHint")}
+          className="bg-card rounded-xl border border-dashed"
+          actions={
+            canCreate ? (
+              <Button
+                onClick={() => setIsCreating(true)}
+                title={offlineDisabled.title}
+                disabled={createDisabled}
+              >
+                <Plus className="mr-2 h-4 w-4" aria-hidden />
+                {t("newTour")}
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         mounted &&
         PHASES.map((phase) =>

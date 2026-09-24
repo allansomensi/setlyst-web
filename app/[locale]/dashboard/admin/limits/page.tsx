@@ -9,6 +9,7 @@ import { fetchServerApi } from "@/lib/api-server";
 import { authOptions } from "@/lib/auth";
 import type { QuotaLimits } from "@/types/api";
 import { DefaultLimitsForm } from "./_components/default-limits-form";
+import { requireStaffPage } from "@/lib/staff-guard";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AdminLimitsPage() {
+  await requireStaffPage("limits");
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user.role === "admin";
   const t = await getTranslations("staff.limits");

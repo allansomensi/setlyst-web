@@ -52,7 +52,10 @@ export interface ClientIpTrust {
   /**
    * How many reverse proxies we control sit in front of this server, each
    * appending the address it saw to `X-Forwarded-For`. The visitor is the
-   * entry this many positions from the right. 0 disables the header.
+   * entry this many positions from the right. 0 (the default) disables the
+   * header: with no proxy of ours in front, Next.js keeps whatever
+   * `X-Forwarded-For` the client sent, so even the rightmost entry would
+   * be attacker-chosen.
    */
   trustedProxyHops: number;
   /** A proxy we control overwrites `x-real-ip` (never forwards the client's). */
@@ -66,18 +69,40 @@ export function clientIpTrustFromEnv(
   env: Record<string, string | undefined> = process.env,
 ): ClientIpTrust {
   const rawHops = env.TRUSTED_PROXY_HOPS?.trim();
-  let hops = 1;
+  let hops = 0;
   if (rawHops !== undefined && rawHops !== "") {
     const parsed = /^\d+$/.test(rawHops) ? Number(rawHops) : NaN;
     hops = Number.isFinite(parsed)
       ? Math.min(parsed, MAX_TRUSTED_PROXY_HOPS)
-      : 1;
+      : 0;
   }
   return {
     vercel: Boolean(env.VERCEL),
     trustedProxyHops: hops,
     trustXRealIp: env.TRUST_X_REAL_IP?.trim().toLowerCase() === "true",
   };
+}
+
+/**
+ * A warning for the server log when the internal secret is configured but
+ * nothing says how to find the visitor's address (self-hosted, with
+ * neither `TRUSTED_PROXY_HOPS` nor `TRUST_X_REAL_IP`): every visitor then
+ * shares this server's rate-limit bucket at the API. Null when all is
+ * well.
+ */
+export function clientIpTrustWarning(
+  env: Record<string, string | undefined> = process.env,
+): string | null {
+  if (!env.INTERNAL_API_SECRET || env.VERCEL) return null;
+  if (env.TRUSTED_PROXY_HOPS?.trim()) return null;
+  if (env.TRUST_X_REAL_IP?.trim().toLowerCase() === "true") return null;
+  return (
+    "[client-ip] INTERNAL_API_SECRET is set but neither TRUSTED_PROXY_HOPS " +
+    "nor TRUST_X_REAL_IP is: visitor addresses are not forwarded to the " +
+    "API (all visitors share this server's rate limits). Set " +
+    "TRUSTED_PROXY_HOPS to the number of reverse proxies in front of " +
+    "Next.js."
+  );
 }
 
 /**

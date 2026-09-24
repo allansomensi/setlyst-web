@@ -7,8 +7,10 @@ import { isServiceWorkerEnabled } from "@/lib/offline/sw-enabled";
 import { parseSignInError } from "@/lib/sign-in-errors";
 import {
   assignableRoles,
+  canAdministerUser,
   canChangeRole,
   canManageUser,
+  hasStaffCapability,
 } from "@/lib/staff-permissions";
 import { normalizeTag, normalizeTags, tagIssue } from "@/lib/tags";
 import { DEFAULT_UI_SETTINGS, normalizeUiSettings } from "@/lib/ui-settings";
@@ -29,11 +31,26 @@ describe("staff permissions", () => {
     expect(canManageUser(admin, admin)).toBe(false);
   });
 
-  it("reserves role changes for admins, never on themselves", () => {
+  it("reserves role changes for admins, never on themselves or other admins", () => {
     expect(canChangeRole(admin, user)).toBe(true);
-    expect(canChangeRole(admin, { id: "a2", role: "admin" })).toBe(true);
+    expect(canChangeRole(admin, moderator)).toBe(true);
+    // The API refuses admin-on-admin changes (INSUFFICIENT_ROLE).
+    expect(canChangeRole(admin, { id: "a2", role: "admin" })).toBe(false);
     expect(canChangeRole(admin, admin)).toBe(false);
     expect(canChangeRole(moderator, user)).toBe(false);
+  });
+
+  it("keeps deletion, temporary passwords and view-as for admins", () => {
+    expect(canAdministerUser(admin, user)).toBe(true);
+    expect(canAdministerUser(admin, moderator)).toBe(true);
+    expect(canAdministerUser(admin, { id: "a2", role: "admin" })).toBe(false);
+    expect(canAdministerUser(moderator, user)).toBe(false);
+    expect(hasStaffCapability("moderator", "audit")).toBe(false);
+    expect(hasStaffCapability("moderator", "announcements")).toBe(true);
+    expect(hasStaffCapability("moderator", "announcements.publish")).toBe(
+      false,
+    );
+    expect(hasStaffCapability("admin", "announcements.publish")).toBe(true);
   });
 
   it("limits the roles each actor can create", () => {

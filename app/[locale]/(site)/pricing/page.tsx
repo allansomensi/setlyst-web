@@ -27,6 +27,7 @@ export async function generateMetadata({
     path: "/pricing",
     title: t("pricingTitle"),
     description: t("pricingDescription"),
+    largeImage: true,
   });
 }
 

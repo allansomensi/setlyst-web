@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { trialInfo } from "@/lib/trial";
+import {
+  accountPlanStatus,
+  trialInfo,
+  withdrawalOpen,
+  type BillingState,
+} from "@/lib/trial";
 import type { BillingMe } from "@/types/billing";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -60,5 +65,75 @@ describe("trialInfo", () => {
     paid.subscription!.status = "active";
     expect(trialInfo(paid, "Pro", now)).toBeNull();
     expect(trialInfo(billing(), "Pro", now + 31 * DAY)).toBeNull();
+  });
+});
+
+const PLAN = {
+  code: "pro",
+} as unknown as NonNullable<BillingMe["plan"]>;
+
+describe("accountPlanStatus", () => {
+  it("is a trial, then a trial ending in its last week", () => {
+    expect(accountPlanStatus(billing({ plan: PLAN }), "Pro", now)?.kind).toBe(
+      "trial",
+    );
+    expect(
+      accountPlanStatus(billing({ plan: PLAN }), "Pro", now + 25 * DAY)?.kind,
+    ).toBe("trial_ending");
+  });
+
+  it("is expired once no plan is in effect", () => {
+    const ended = billing();
+    ended.subscription!.status = "expired";
+    const status = accountPlanStatus(ended, "Pro", now + 31 * DAY);
+    expect(status).toEqual({
+      kind: "expired",
+      planName: "Pro",
+      endedAt: "2026-10-01T12:00:00",
+      wasTrial: true,
+    });
+  });
+
+  it("is past_due with the date the payment failed", () => {
+    const state: BillingState = {
+      ...billing({ plan: PLAN }),
+      past_due_since: "2026-09-10T08:00:00",
+    };
+    state.subscription = {
+      ...state.subscription!,
+      status: "past_due",
+      source: "payment",
+    };
+    expect(accountPlanStatus(state, "Pro", now)).toEqual({
+      kind: "past_due",
+      planName: "Pro",
+      since: "2026-09-10T08:00:00",
+    });
+  });
+
+  it("says nothing when there is nothing to flag", () => {
+    expect(accountPlanStatus(null, "Pro", now)).toBeNull();
+    expect(
+      accountPlanStatus(billing({ enforced: false }), "Pro", now),
+    ).toBeNull();
+    expect(
+      accountPlanStatus(billing({ subscription: null }), "Pro", now),
+    ).toBeNull();
+    const active = billing({ plan: PLAN });
+    active.subscription!.status = "active";
+    expect(accountPlanStatus(active, "Pro", now)).toBeNull();
+  });
+});
+
+describe("withdrawalOpen", () => {
+  it("is open only until the deadline the API sends", () => {
+    const state: BillingState = {
+      ...billing(),
+      withdrawal_eligible_until: "2026-09-05T12:00:00",
+    };
+    expect(withdrawalOpen(state, now)).toBe(true);
+    expect(withdrawalOpen(state, now + 5 * DAY)).toBe(false);
+    expect(withdrawalOpen(billing(), now)).toBe(false);
+    expect(withdrawalOpen(null, now)).toBe(false);
   });
 });

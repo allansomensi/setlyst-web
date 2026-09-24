@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getSession } from "next-auth/react";
 import { credentialsSignIn } from "@/lib/credentials-sign-in";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Gift, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "@/i18n/routing";
 import { Link } from "@/components/nav-link";
@@ -42,6 +42,15 @@ interface RegisterFormProps {
   /** Name of the plan chosen on the pricing page, if any. */
   planName: string | null;
   billingEnforced: boolean;
+  /**
+   * Where the visitor was going (an invite link, Live Mode...): carried
+   * through sign-up and back to the login page, so it isn't lost.
+   */
+  callbackPath: string | null;
+}
+
+function stripLocale(path: string, locale: string): string {
+  return path.startsWith(`/${locale}/`) ? path.slice(locale.length + 1) : path;
 }
 
 export function RegisterForm({
@@ -50,8 +59,10 @@ export function RegisterForm({
   referralFromLink,
   planName,
   billingEnforced,
+  callbackPath,
 }: RegisterFormProps) {
   const t = useTranslations("auth.register");
+  const locale = useLocale();
   const tPassword = useTranslations("passwordPolicy");
   const router = useRouter();
 
@@ -122,6 +133,7 @@ export function RegisterForm({
       firstName: form.first_name,
       lastName: form.last_name,
       acceptTerms: true,
+      ageConfirmed: true,
       marketingOptIn: marketing,
       referralCode: normalizeReferralCode(referral),
     });
@@ -141,11 +153,21 @@ export function RegisterForm({
     const session = login && !login.error ? await getSession() : null;
 
     if (!session) {
-      router.push("/login?registered=true");
+      // Signing in has to happen by hand (e-mail confirmation first, a
+      // hiccup): the login page still knows where to go afterwards.
+      router.push({
+        pathname: "/login",
+        query: {
+          registered: "true",
+          ...(callbackPath ? { callbackUrl: callbackPath } : {}),
+        },
+      });
       return;
     }
     toast.success(t("success", { email }));
-    router.replace("/dashboard");
+    router.replace(
+      callbackPath ? stripLocale(callbackPath, locale) : "/dashboard",
+    );
     router.refresh();
   };
 
@@ -188,6 +210,7 @@ export function RegisterForm({
               referralCode={normalizeReferralCode(referral)}
               acceptTerms={accepted}
               marketingOptIn={marketing}
+              callbackPath={callbackPath}
               disabled={pending}
             />
             <AuthDivider label={t("divider")} />
@@ -424,7 +447,11 @@ export function RegisterForm({
         <p className="text-muted-foreground text-sm">
           {t("alreadyHaveAccount")}{" "}
           <Link
-            href="/login"
+            href={
+              callbackPath
+                ? { pathname: "/login", query: { callbackUrl: callbackPath } }
+                : "/login"
+            }
             className="text-primary font-medium hover:underline"
           >
             {t("signIn")}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import type { Announcements, ScreenReaderInstructions } from "@dnd-kit/core";
 import { useTranslations } from "next-intl";
 import {
   Check,
@@ -32,14 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +49,13 @@ import { BreakDialog, type BreakDraft } from "./break-dialog";
 import { SortableBlockRow } from "./rows/block-row";
 import { SortableBreakRow } from "./rows/break-row";
 import { SortableSongRow } from "./rows/song-row";
-import { itemsToRows, songNumbersOf, type SongRow } from "./rows/types";
+import {
+  itemsToRows,
+  songNumbersOf,
+  type Row,
+  type SongRow,
+} from "./rows/types";
+import type { RowMove } from "./rows/drag-handle";
 import { useSetlistReorder } from "./use-setlist-reorder";
 
 interface SetlistSongsManagerProps {
@@ -119,6 +119,74 @@ export function SetlistSongsManager({
   const [dialogSession, setDialogSession] = useState(0);
 
   const busy = isPending || reorder.isSaving;
+
+  // Screen-reader support for reordering: dnd-kit's default announcements
+  // are English and name rows by their UUID. These use the song (or block,
+  // break) name and its position in the running order.
+  const labelOf = (row: Row | undefined): string =>
+    !row
+      ? ""
+      : row.kind === "song"
+        ? row.song.title
+        : row.kind === "block"
+          ? row.name
+          : row.label || t("breakDefaultLabel");
+  const rowById = (id: string | number) =>
+    displayRows.find((row) => row.id === String(id));
+  const positionOf = (id: string | number) =>
+    displayRows.findIndex((row) => row.id === String(id)) + 1;
+  const total = displayRows.length;
+  const screenReaderInstructions: ScreenReaderInstructions = {
+    draggable: t("dnd.instructions"),
+  };
+  const announcements: Announcements = {
+    onDragStart: ({ active }) =>
+      t("dnd.pickedUp", {
+        title: labelOf(rowById(active.id)),
+        position: positionOf(active.id),
+        total,
+      }),
+    onDragOver: ({ active, over }) =>
+      over
+        ? t("dnd.movedOver", {
+            title: labelOf(rowById(active.id)),
+            position: positionOf(over.id),
+            total,
+          })
+        : undefined,
+    onDragEnd: ({ active, over }) =>
+      t("dnd.dropped", {
+        title: labelOf(rowById(active.id)),
+        position: positionOf(over?.id ?? active.id),
+        total,
+      }),
+    onDragCancel: ({ active }) =>
+      t("dnd.cancelled", {
+        title: labelOf(rowById(active.id)),
+        position: positionOf(active.id),
+      }),
+  };
+
+  // What the "Move up/down" buttons did, for screen readers.
+  const [moveAnnouncement, setMoveAnnouncement] = useState("");
+  const moveOf = (row: Row, index: number): RowMove | undefined =>
+    reorder.isReordering
+      ? {
+          canUp: index > 0 && !busy,
+          canDown: index < displayRows.length - 1 && !busy,
+          onMove: (delta) => {
+            const to = reorder.move(row.id, delta);
+            if (to === null) return;
+            setMoveAnnouncement(
+              t("dnd.moved", {
+                title: labelOf(row),
+                position: to + 1,
+                total,
+              }),
+            );
+          },
+        }
+      : undefined;
 
   const openBlockDialog = (draft: BlockDraft) => {
     setDialogSession((n) => n + 1);
@@ -289,6 +357,7 @@ export function SetlistSongsManager({
           sensors={reorder.sensors}
           collisionDetection={closestCenter}
           onDragEnd={reorder.onDragEnd}
+          accessibility={{ announcements, screenReaderInstructions }}
         >
           <Table>
             <TableHeader>
@@ -324,7 +393,8 @@ export function SetlistSongsManager({
                   items={displayRows.map((row) => row.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {displayRows.map((row) => {
+                  {displayRows.map((row, index) => {
+                    const move = moveOf(row, index);
                     if (row.kind === "song") {
                       return (
                         <SortableSongRow
@@ -335,6 +405,7 @@ export function SetlistSongsManager({
                           onPlay={handlePlay}
                           isReordering={reorder.isReordering}
                           actionsDisabled={actionsDisabled}
+                          move={move}
                         />
                       );
                     }
@@ -349,6 +420,7 @@ export function SetlistSongsManager({
                           }
                           onDelete={() => setMarkerToDelete(row.id)}
                           actionsDisabled={actionsDisabled}
+                          move={move}
                         />
                       );
                     }
@@ -369,6 +441,7 @@ export function SetlistSongsManager({
                         }
                         onDelete={() => setMarkerToDelete(row.id)}
                         actionsDisabled={actionsDisabled}
+                        move={move}
                       />
                     );
                   })}
@@ -378,6 +451,10 @@ export function SetlistSongsManager({
           </Table>
         </DndContext>
       </div>
+
+      <p role="status" aria-live="polite" className="sr-only">
+        {reorder.isReordering ? moveAnnouncement : ""}
+      </p>
 
       <AddSongDialog
         isOpen={isAddOpen}
@@ -408,62 +485,26 @@ export function SetlistSongsManager({
       />
 
       {/* Remove song confirmation */}
-      <Dialog
+      <ConfirmActionDialog
         open={!!songToRemove}
         onOpenChange={(open) => !open && setSongToRemove(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("removeTitle")}</DialogTitle>
-            <DialogDescription>{t("removeConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setSongToRemove(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmRemove}
-              disabled={isPending}
-            >
-              {tCommon("remove")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("removeTitle")}
+        description={t("removeConfirm")}
+        confirmLabel={tCommon("remove")}
+        onConfirm={confirmRemove}
+        pending={isPending}
+      />
 
       {/* Marker (block/break) delete confirmation */}
-      <Dialog
+      <ConfirmActionDialog
         open={!!markerToDelete}
         onOpenChange={(open) => !open && setMarkerToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
-            <DialogDescription>{t("markerDeleteConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setMarkerToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteMarker}
-              disabled={isPending}
-            >
-              {tCommon("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={tCommon("delete")}
+        description={t("markerDeleteConfirm")}
+        confirmLabel={tCommon("delete")}
+        onConfirm={confirmDeleteMarker}
+        pending={isPending}
+      />
     </div>
   );
 }

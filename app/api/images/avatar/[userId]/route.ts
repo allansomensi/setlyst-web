@@ -3,7 +3,11 @@ import { authOptions } from "@/lib/auth";
 import { apiPath } from "@/lib/api-endpoint";
 import { fetchServerApi } from "@/lib/api-server";
 import { isUuid } from "@/lib/server/api-route";
-import { noImage, serveRemoteImage } from "@/lib/server/image-proxy";
+import {
+  limitImageRequests,
+  noImage,
+  serveRemoteImage,
+} from "@/lib/server/image-proxy";
 
 /**
  * `GET /api/images/avatar/{userId}` — a user's avatar, fetched from the
@@ -19,6 +23,9 @@ export async function GET(
 
   const session = await getServerSession(authOptions);
   if (!session?.user || session.error) return noImage(401);
+
+  const limited = limitImageRequests(session.user.id);
+  if (limited) return limited;
 
   let avatarUrl: string | null = null;
   try {

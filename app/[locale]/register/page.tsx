@@ -7,6 +7,7 @@ import { getPublicPlans } from "@/lib/public-api";
 import { pickLocalized } from "@/lib/localized";
 import { isBillingEnforced } from "@/lib/pricing";
 import { REFERRAL_COOKIE, normalizeReferralCode } from "@/lib/auth-flow";
+import { safeCallbackPath } from "@/lib/links";
 import { RegisterForm } from "./_components/register-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -54,6 +55,7 @@ export default async function RegisterPage({
         referralFromLink={fromLink}
         planName={planName}
         billingEnforced={isBillingEnforced()}
+        callbackPath={safeCallbackPath(firstParam(params.callbackUrl))}
       />
     </AuthShell>
   );

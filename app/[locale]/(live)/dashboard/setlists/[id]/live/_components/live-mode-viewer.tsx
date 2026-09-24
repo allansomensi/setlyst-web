@@ -19,7 +19,9 @@ import { Link } from "@/components/nav-link";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSetlistBundle } from "@/hooks/use-offline-setlist-bundle";
 import { useWakeLock } from "@/hooks/use-wake-lock";
+import { markLiveModeOpened } from "@/hooks/use-onboarding";
 import { useFullscreen } from "@/hooks/use-fullscreen";
+import { useLivePageTurn } from "@/hooks/use-live-page-turn";
 import { useMetronome } from "@/hooks/use-metronome";
 import { useMetronomeSettings } from "@/hooks/use-metronome-settings";
 import { MetronomeFlash } from "@/components/live/metronome-flash";
@@ -72,6 +74,8 @@ export function LiveModeViewer({
 
   const fullscreen = useFullscreen();
   useWakeLock();
+  // For the first-run checklist on the dashboard home.
+  useEffect(() => markLiveModeOpened(), []);
 
   const scrollContainerRef = useRef<HTMLElement>(null);
 
@@ -160,6 +164,20 @@ export function LiveModeViewer({
     }
   }, [safeIndex]);
 
+  // Remember the song on screen in the URL (`?songId=`, which this page
+  // already opens at), so a reload, the OS killing the tab or an accidental
+  // tap on close-and-back returns the performer to the same song instead
+  // of song 1. replaceState: moving through the set must not fill the
+  // Back history with one entry per song.
+  const currentSongId = currentSong?.id;
+  useEffect(() => {
+    if (!currentSongId) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("songId") === currentSongId) return;
+    url.searchParams.set("songId", currentSongId);
+    window.history.replaceState(null, "", url);
+  }, [currentSongId]);
+
   // First-run hint for the swipe gesture — touch screens only, once.
 
   useEffect(() => {
@@ -192,9 +210,13 @@ export function LiveModeViewer({
 
   // Keyboard shortcuts
 
+  const [pageTurn, setPageTurn] = useLivePageTurn();
+
   useLiveKeyboardShortcuts({
     onNext: handleNext,
     onPrev: handlePrev,
+    scrollContainerRef,
+    pageTurn,
     toggleAutoScroll,
     stepScrollSpeed,
     toggleMetronome,
@@ -243,6 +265,7 @@ export function LiveModeViewer({
         writtenKey={currentSong.tonality}
         semitones={transpose.semitones}
         isFullscreen={fullscreen.isFullscreen}
+        canFullscreen={fullscreen.isSupported}
         onToggleFullscreen={fullscreen.toggle}
         onOpenSettings={() => setSettingsOpen(true)}
       />
@@ -257,6 +280,7 @@ export function LiveModeViewer({
           fontSize={baseFontSize}
           fitToScreen={fitToScreen}
           songKey={currentSong.id}
+          label={currentSong.title}
           direction={direction}
           swipe={{
             canNext,
@@ -283,7 +307,7 @@ export function LiveModeViewer({
           metronomeRunning={metronomeSettings.isRunning}
           metronomeBpm={metronomeSettings.bpm}
           onStopMetronome={toggleMetronome}
-          className="absolute right-3 bottom-3 md:right-6 md:bottom-5"
+          className="absolute right-[max(0.75rem,env(safe-area-inset-right))] bottom-3 md:right-[max(1.5rem,env(safe-area-inset-right))] md:bottom-5"
         />
       </div>
 
@@ -300,7 +324,7 @@ export function LiveModeViewer({
           value={progress}
           className="h-1 rounded-none bg-transparent"
         />
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 p-2 md:grid-cols-3 md:gap-4 md:p-4">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] md:grid-cols-3 md:gap-4 md:py-4 md:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1rem,env(safe-area-inset-left))]">
           <div>
             <Button
               variant="outline"
@@ -354,6 +378,7 @@ export function LiveModeViewer({
         metronomeRunning={metronomeSettings.isRunning}
         onToggleMetronome={toggleMetronome}
         hasNavigation
+        pageTurn={{ mode: pageTurn, onChange: setPageTurn }}
         fullscreen={
           fullscreen.isSupported
             ? { active: fullscreen.isFullscreen, onToggle: fullscreen.toggle }

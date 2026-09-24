@@ -15,11 +15,75 @@ import {
 } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { getDashboardMetrics } from "./actions";
-import { UserMetricsCharts } from "./_components/user-metrics";
-import { AdminMetricsCharts } from "./_components/admin-metrics";
+import {
+  LazyAdminMetricsCharts,
+  LazyUserMetricsCharts,
+} from "./_components/lazy-charts";
 import { PinnedItems } from "./_components/pins/pinned-items";
-import { fetchServerApi } from "@/lib/api-server";
+import {
+  NextGigCard,
+  type NextGigCandidate,
+} from "./_components/next-gig-card";
+import { OnboardingChecklist } from "./_components/onboarding-checklist";
+import { fetchAllServerPages, fetchServerApi } from "@/lib/api-server";
+import { parseWallClock } from "@/lib/dates";
+import { setlistDisplayTitle } from "@/lib/repertoire";
+import type { BandWithMembership, Gig, Setlist } from "@/types/api";
 import type { PinnedItem } from "@/types/content";
+
+/** How many upcoming shows the server hands the "next show" card. */
+const NEXT_GIG_CANDIDATES = 3;
+
+/**
+ * The next few shows (personal and every band's), soonest first, for the
+ * "next show" card. The server's clock isn't the viewer's, so this keeps
+ * anything from a day and a half back and the card picks after mount.
+ * Never fatal: the home page works without it.
+ */
+async function upcomingGigs(
+  repertoireName: string,
+): Promise<NextGigCandidate[]> {
+  try {
+    const [personal, bands] = await Promise.all([
+      fetchAllServerPages<Gig>("/gigs").catch(() => null),
+      fetchServerApi<BandWithMembership[]>("/bands").catch(() => []),
+    ]);
+    const bandGigs = await Promise.all(
+      bands.map((band) =>
+        fetchAllServerPages<Gig>(`/bands/${band.id}/gigs`).catch(() => null),
+      ),
+    );
+    const bandNames = new Map(bands.map((band) => [band.id, band.name]));
+    const cutoff = Date.now() - 36 * 60 * 60 * 1000;
+    const at = (gig: Gig) => parseWallClock(gig.scheduled_at).getTime();
+    const gigs = [
+      ...(personal?.data ?? []),
+      ...bandGigs.flatMap((res) => res?.data ?? []),
+    ]
+      .filter((gig) => gig.status !== "cancelled" && at(gig) >= cutoff)
+      .sort((a, b) => at(a) - at(b))
+      .slice(0, NEXT_GIG_CANDIDATES);
+
+    return await Promise.all(
+      gigs.map(async (gig) => {
+        const setlist = gig.setlist_id
+          ? await fetchServerApi<Setlist>(`/setlists/${gig.setlist_id}`).catch(
+              () => null,
+            )
+          : null;
+        return {
+          gig,
+          setlistTitle: setlist
+            ? setlistDisplayTitle(setlist, repertoireName)
+            : null,
+          bandName: gig.band_id ? (bandNames.get(gig.band_id) ?? null) : null,
+        };
+      }),
+    );
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata() {
   return staticTitle("dashboard");
@@ -33,9 +97,12 @@ export default async function DashboardPage() {
 
   const userRole = session?.user?.role;
 
-  const [metrics, pins] = await Promise.all([
+  const tSetlists = await getTranslations("setlists");
+
+  const [metrics, pins, nextGigs] = await Promise.all([
     getDashboardMetrics(),
     fetchServerApi<PinnedItem[]>("/users/me/pins").catch(() => null),
+    upcomingGigs(tSetlists("repertoire.name")),
   ]);
 
   const quickLinks = [
@@ -103,6 +170,18 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {metrics && metrics.scope === "user" && (
+        <OnboardingChecklist
+          counts={{
+            songs: metrics.total_songs,
+            songsWithLyrics: metrics.songs_with_lyrics,
+            setlists: metrics.total_setlists,
+          }}
+        />
+      )}
+
+      {nextGigs.length > 0 && <NextGigCard candidates={nextGigs} />}
+
       {pins && <PinnedItems initial={pins} />}
 
       <section className="space-y-3">
@@ -135,11 +214,11 @@ export default async function DashboardPage() {
       </section>
 
       {metrics && metrics.scope === "admin" && (
-        <AdminMetricsCharts data={metrics} />
+        <LazyAdminMetricsCharts data={metrics} />
       )}
 
       {metrics && metrics.scope === "user" && (
-        <UserMetricsCharts data={metrics} />
+        <LazyUserMetricsCharts data={metrics} />
       )}
     </div>
   );

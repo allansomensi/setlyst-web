@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslations } from "next-intl";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -19,6 +17,9 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { LinksEditor } from "@/components/content/links-editor";
+import { FieldError } from "@/components/ui/field-error";
+import { GuardedDialog, useGuardedForm } from "@/components/ui/guarded-dialog";
+import { fieldA11y, focusFirstError, type FieldErrors } from "@/lib/forms";
 import {
   draftsToLinks,
   newLinkDraft,
@@ -40,18 +41,26 @@ interface SetlistDialogProps {
  */
 export function SetlistDialog(props: SetlistDialogProps) {
   return (
-    <Dialog
+    <GuardedDialog
       open={props.isOpen}
-      onOpenChange={(open) => !open && props.onClose()}
+      onClose={props.onClose}
+      className="max-h-[90dvh] overflow-y-auto sm:max-w-xl"
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        {props.isOpen && (
-          <SetlistForm key={props.setlist?.id ?? "new"} {...props} />
-        )}
-      </DialogContent>
-    </Dialog>
+      <SetlistForm key={props.setlist?.id ?? "new"} {...props} />
+    </GuardedDialog>
   );
 }
+
+/** What a list of link rows says, ignoring their React keys. */
+function linksSignature(links: LinkDraft[]): string {
+  return JSON.stringify(links.map(({ url, label }) => [url, label]));
+}
+
+type SetlistField = "title" | "links";
+const FIELD_ORDER = [
+  { key: "title", id: "setlist-title" },
+  { key: "links", id: "setlist-links-error-anchor" },
+] as const satisfies readonly { key: SetlistField; id: string }[];
 
 function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
   const t = useTranslations("setlists.dialog");
@@ -67,17 +76,36 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
   const [linkIssues, setLinkIssues] = useState<Record<string, LinkDraftIssue>>(
     {},
   );
+  const [errors, setErrors] = useState<FieldErrors<SetlistField>>({});
+  const [initialLinks] = useState(() => linksSignature(links));
   const isEditing = !!setlist;
   const isRepertoire = !!setlist?.is_repertoire;
 
+  const isDirty =
+    title !== (setlist?.title ?? "") ||
+    description !== (setlist?.description ?? "") ||
+    linksSignature(links) !== initialLinks;
+  const requestClose = useGuardedForm({ isDirty, isPending }, onClose);
+
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
+    if (isPending) return;
+
+    const nextErrors: FieldErrors<SetlistField> = {};
+    if (!isRepertoire && !title.trim()) {
+      nextErrors.title = t("titleRequired");
+    }
     const checked = draftsToLinks(links);
     if (!checked.ok) {
       setLinkIssues(checked.issues);
-      toast.error(t("linksInvalid"));
+      nextErrors.links = t("linksInvalid");
+    }
+    if (!checked.ok || nextErrors.title) {
+      setErrors(nextErrors);
+      focusFirstError(nextErrors, FIELD_ORDER);
       return;
     }
+    setErrors({});
 
     startTransition(async () => {
       const result = isEditing
@@ -107,7 +135,7 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
       <DialogHeader>
         <DialogTitle>{isEditing ? t("editTitle") : t("addTitle")}</DialogTitle>
         <DialogDescription>
@@ -128,13 +156,20 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
             <Input
               id="setlist-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (errors.title)
+                  setErrors((prev) => ({ ...prev, title: undefined }));
+              }}
               required
+              aria-required
               disabled={isPending}
               maxLength={255}
               placeholder={t("titlePlaceholder")}
+              {...fieldA11y("setlist-title", errors.title)}
             />
           )}
+          <FieldError fieldId="setlist-title" message={errors.title} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="setlist-description">{t("descriptionLabel")}</Label>
@@ -151,12 +186,21 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
           <legend className="text-sm leading-none font-medium">
             {t("linksLabel")}
           </legend>
+          <div
+            id="setlist-links-error-anchor"
+            tabIndex={-1}
+            className="outline-none"
+          >
+            <FieldError fieldId="setlist-links" message={errors.links} />
+          </div>
           <LinksEditor
             idPrefix="setlist-links"
             value={links}
             onChange={(next) => {
               setLinks(next);
               setLinkIssues({});
+              if (errors.links)
+                setErrors((prev) => ({ ...prev, links: undefined }));
             }}
             issues={linkIssues}
             disabled={isPending}
@@ -167,7 +211,7 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={onClose}
+          onClick={requestClose}
           disabled={isPending}
         >
           {tCommon("cancel")}

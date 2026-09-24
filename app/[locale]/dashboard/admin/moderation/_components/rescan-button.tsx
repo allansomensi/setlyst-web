@@ -27,8 +27,16 @@ export function RescanButton() {
       }
       setOpen(false);
       const flagged = result.data?.flagged ?? 0;
+      const background = result.data?.images_in_background === true;
       toast.success(
-        flagged > 0 ? t("done", { count: flagged }) : t("doneNone"),
+        flagged > 0
+          ? t("done", { count: flagged })
+          : background
+            ? t("doneNoneUsernames")
+            : t("doneNone"),
+        background
+          ? { description: t("imagesInBackground"), duration: 10000 }
+          : undefined,
       );
       router.refresh();
       window.dispatchEvent(new Event(MODERATION_CHANGED_EVENT));

@@ -65,6 +65,19 @@ export function useSetlistReorder(setlistId: string, baseRows: Row[]) {
     });
   };
 
+  /**
+   * Moves a row one step up or down (the "Move up/down" buttons, the
+   * alternative to dragging). Returns its new 0-based index, or null when
+   * it was already at that end.
+   */
+  const move = (id: string, delta: -1 | 1): number | null => {
+    const from = draft.findIndex((row) => row.id === id);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= draft.length) return null;
+    setDraft(arrayMove(draft, from, to));
+    return to;
+  };
+
   const save = () => {
     const order = draft;
     startSaving(async () => {
@@ -90,6 +103,7 @@ export function useSetlistReorder(setlistId: string, baseRows: Row[]) {
     start,
     cancel,
     save,
+    move,
     onDragEnd,
   };
 }

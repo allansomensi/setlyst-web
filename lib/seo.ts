@@ -49,6 +49,7 @@ export function publicPageMetadata({
   title,
   description,
   absoluteTitle = false,
+  largeImage = false,
 }: {
   locale: string;
   /** Locale-less path (`/pricing`). */
@@ -57,6 +58,11 @@ export function publicPageMetadata({
   description: string;
   /** Skip the root "· Setlyst" template (the landing page). */
   absoluteTitle?: boolean;
+  /**
+   * Show the large link preview card (the site's Open Graph image) on
+   * X/Twitter: the landing and pricing pages, which people share.
+   */
+  largeImage?: boolean;
 }): Metadata {
   const url = `/${locale}${path === "/" ? "" : path}`;
   return {
@@ -74,6 +80,10 @@ export function publicPageMetadata({
         .filter(([code]) => code !== locale)
         .map(([, og]) => og),
     },
-    twitter: { card: "summary", title, description },
+    twitter: {
+      card: largeImage ? "summary_large_image" : "summary",
+      title,
+      description,
+    },
   };
 }

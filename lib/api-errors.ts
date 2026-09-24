@@ -83,12 +83,16 @@ export const TRANSLATED_CODES = [
   "USERNAME_COOLDOWN",
   "USERNAME_TAKEN",
   "INVALID_IMAGE_URL",
+  "AGE_CONFIRMATION_REQUIRED",
+  "REAUTH_REQUIRED",
+  "ACCOUNT_LINK_REQUIRED",
   // Staff and permissions
   "INSUFFICIENT_ROLE",
   "CANNOT_TARGET_SELF",
   "LAST_ADMIN",
   "SHARE_LOCKED",
   "FORBIDDEN",
+  "STAFF_TWO_FACTOR_REQUIRED",
   // Bands
   "INVITE_INVALID",
   "ALREADY_MEMBER",
@@ -114,6 +118,9 @@ export const TRANSLATED_CODES = [
   "SUBSCRIPTION_CANCELING",
   "PAYMENT_DECLINED",
   "PAYMENT_PROVIDER_ERROR",
+  "WITHDRAWAL_NOT_ELIGIBLE",
+  "PAYMENT_ACTION_REQUIRED",
+  "BILLING_HAS_PAID_SUBSCRIPTIONS",
   // Content
   "INVALID_LINK",
   "REPERTOIRE_PROTECTED",
@@ -124,6 +131,8 @@ export const TRANSLATED_CODES = [
   "CHORDPRO_INVALID",
   "CHORDPRO_TOO_LARGE",
   "PAYLOAD_TOO_LARGE",
+  "PDF_TOO_LARGE",
+  "IMPORT_IN_PROGRESS",
   // Announcements
   "NOT_DISMISSIBLE",
   "ANNOUNCEMENT_LOCKED",
@@ -195,9 +204,13 @@ export type Translate = (
   values?: Record<string, string | number>,
 ) => string;
 
-function formatDate(value: unknown, locale: string): string | null {
+function formatDate(
+  value: unknown,
+  locale: string,
+  timeZone: string | undefined,
+): string | null {
   if (typeof value !== "string") return null;
-  return formatApiDateTime(value, locale) || null;
+  return formatApiDateTime(value, locale, timeZone) || null;
 }
 
 /**
@@ -219,12 +232,18 @@ export function weakPasswordIssues(meta: ErrorMeta): PasswordIssue[] {
  * A translated message for `code`, or `null` when the code has no
  * dedicated translation (the caller then falls back to the API's own
  * message or a generic one).
+ *
+ * `timeZone` is the viewer's zone for the dates some messages carry (a
+ * suspension's end, a lockout, a username cooldown). Server code must pass
+ * it (`getTimeZone()` from next-intl): the server's own zone is UTC. In the
+ * browser it defaults to the browser's zone.
  */
 export function describeApiError(
   code: string | null | undefined,
   meta: ErrorMeta,
   t: Translate,
   locale: string,
+  timeZone?: string,
 ): string | null {
   if (!code || !(TRANSLATED_CODES as readonly string[]).includes(code)) {
     return null;
@@ -232,7 +251,7 @@ export function describeApiError(
 
   switch (code as TranslatedCode) {
     case "ACCOUNT_BANNED": {
-      const until = formatDate(meta?.until, locale);
+      const until = formatDate(meta?.until, locale, timeZone);
       const reason =
         typeof meta?.reason === "string" && meta.reason.trim()
           ? meta.reason.trim()
@@ -253,7 +272,7 @@ export function describeApiError(
       });
     }
     case "USERNAME_COOLDOWN": {
-      const date = formatDate(meta?.eligible_at, locale);
+      const date = formatDate(meta?.eligible_at, locale, timeZone);
       return date
         ? t("USERNAME_COOLDOWN", { date })
         : t("USERNAME_COOLDOWN_GENERIC");
@@ -271,8 +290,17 @@ export function describeApiError(
       return seconds ? `${t(code)} ${describeWait(seconds, t)}` : t(code);
     }
     case "ACCOUNT_LOCKED": {
-      const until = formatDate(meta?.until, locale);
+      const until = formatDate(meta?.until, locale, timeZone);
       return until ? t("ACCOUNT_LOCKED_UNTIL", { date: until }) : t(code);
+    }
+    case "REAUTH_REQUIRED": {
+      // Which proof the API expects: the password, or a code sent to the
+      // account's e-mail (accounts without a password).
+      return meta?.method === "email_code"
+        ? t("REAUTH_REQUIRED_EMAIL_CODE")
+        : meta?.method === "password"
+          ? t("REAUTH_REQUIRED_PASSWORD")
+          : t(code);
     }
     case "INVALID_CODE": {
       const left = meta?.attempts_left;
@@ -293,6 +321,12 @@ export function describeApiError(
         ? t(`plans.${planCode}`)
         : planCode;
       return `${base} ${t("availableFrom", { plan })}`;
+    }
+    case "BILLING_HAS_PAID_SUBSCRIPTIONS": {
+      const live = meta?.live;
+      return typeof live === "number" && Number.isInteger(live) && live > 0
+        ? t("BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT", { count: live })
+        : t(code);
     }
     case "INSUFFICIENT_CREDITS": {
       const balance = meta?.balance;

@@ -88,7 +88,7 @@ export function AnnouncementModalContent({
         </div>
       </div>
 
-      <div className="bg-muted/40 max-h-[50vh] overflow-y-auto rounded-lg border px-4 py-3">
+      <div className="bg-muted/40 max-h-[50dvh] overflow-y-auto rounded-lg border px-4 py-3">
         <AnnouncementBody body={announcement.body || t("emptyBody")} />
       </div>
 

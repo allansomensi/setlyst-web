@@ -1,4 +1,5 @@
 import { entityTitle } from "@/lib/page-metadata";
+import { notFoundOnMissing } from "@/lib/api-not-found";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import { BandWithMembership, Gig, Setlist } from "@/types/api";
@@ -37,7 +38,7 @@ export default async function BandGigsPage({
     fetchServerApi<BandWithMembership>(`/bands/${id}`),
     fetchAllServerPages<Gig>(`/bands/${id}/gigs`),
     fetchAllServerPages<Setlist>(`/bands/${id}/setlists`),
-  ]);
+  ]).catch(notFoundOnMissing);
 
   const gigs = gigsRes.data || [];
   const setlists = setlistsRes.data || [];

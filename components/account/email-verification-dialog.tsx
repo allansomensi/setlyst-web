@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Loader2, MailCheck, Send } from "lucide-react";
@@ -25,6 +25,12 @@ interface EmailVerificationDialogProps {
   onOpenChange: (open: boolean) => void;
   email: string;
   onVerified?: () => void;
+  /**
+   * Send a code as soon as the dialog opens (the "resend verification
+   * e-mail" action of an EMAIL_NOT_VERIFIED error), instead of waiting
+   * for "Enviar código".
+   */
+  autoSend?: boolean;
 }
 
 /**
@@ -37,6 +43,7 @@ export function EmailVerificationDialog({
   onOpenChange,
   email,
   onVerified,
+  autoSend = false,
 }: EmailVerificationDialogProps) {
   const t = useTranslations("emailVerification");
   const router = useAppRouter();
@@ -102,6 +109,20 @@ export function EmailVerificationDialog({
     }
     await finish();
   };
+
+  // One automatic send per opening; a later send is the person's call.
+  const autoSent = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      autoSent.current = false;
+      return;
+    }
+    if (!autoSend || autoSent.current) return;
+    autoSent.current = true;
+    void send();
+    // `send` is recreated every render; the ref guards the single call.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, autoSend]);
 
   return (
     <Dialog

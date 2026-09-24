@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { PublicSetlist } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, Download, Eye, Music } from "lucide-react";
+import { Clock, Download, Eye, Flag, Music } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { formatDuration } from "@/lib/utils";
 import { apiPath } from "@/lib/api-endpoint";
@@ -31,6 +31,7 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
   const t = useTranslations("publicPage");
   const tTable = useTranslations("setlists.songs.table");
   const tSetlists = useTranslations("setlists");
+  const locale = useLocale();
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
 
   // Same-origin proxy (app/api/export/public/...); built with apiPath so a
@@ -177,17 +178,29 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
             <Eye className="h-3.5 w-3.5 shrink-0" />
             {t("readOnlyNotice")}
           </span>
-          <Link
-            href="/"
-            className="hover:text-foreground underline-offset-4 transition-colors hover:underline"
-          >
-            {t("madeWith")}
-          </Link>
+          <span className="flex items-center gap-3">
+            {/* Copyright and abuse notices (Copyright Policy §5). */}
+            <Link
+              href={`/${locale}/contato#report`}
+              className="hover:text-foreground flex items-center gap-1 underline-offset-4 transition-colors hover:underline"
+            >
+              <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {t("report")}
+            </Link>
+            <Link
+              href="/"
+              className="hover:text-foreground underline-offset-4 transition-colors hover:underline"
+            >
+              {t("madeWith")}
+            </Link>
+          </span>
         </div>
       </div>
 
       <ExportPdfDialog
         endpoint={pdfEndpoint}
+        publicLink
+        publicNotice={t("pdfPublicNotice")}
         setlistTitle={setlist.title}
         isOpen={isPdfDialogOpen}
         onClose={() => setIsPdfDialogOpen(false)}

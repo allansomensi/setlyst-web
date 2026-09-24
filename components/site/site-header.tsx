@@ -17,8 +17,11 @@ export async function SiteHeader() {
   const signedIn = await isSignedIn();
 
   return (
-    <header className="bg-background/80 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur print:hidden">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
+    // Safe areas (installed iOS app, notched phones in landscape): the
+    // header's background runs under the status bar area, its content
+    // stays clear of it and of the side notches.
+    <header className="bg-background/80 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b pt-[env(safe-area-inset-top)] backdrop-blur print:hidden">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
         <Link
           href="/"
           className="focus-visible:ring-ring/50 -ml-1 flex items-center gap-2 rounded-lg px-1 py-1 font-semibold tracking-tight outline-none focus-visible:ring-3"

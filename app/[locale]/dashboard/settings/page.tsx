@@ -6,7 +6,9 @@ import { fetchServerApi } from "@/lib/api-server";
 import { getMe, getMyBilling, getMyPreferences } from "@/lib/server-data";
 import { getPublicPlans } from "@/lib/public-api";
 import { pickLocalized } from "@/lib/localized";
+import type { BillingInterval } from "@/lib/pricing";
 import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
+import { readPendingGoogleLink } from "@/lib/server/google-link";
 import type { PaginatedResponse, QuotaReport } from "@/types/api";
 import type {
   CommunicationSettings,
@@ -41,10 +43,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const GOOGLE_STATUSES: readonly GoogleLinkStatus[] = [
+  "confirm",
   "linked",
   "mismatch",
-  "no_account",
-  "unverified",
+  "expired",
   "failed",
 ];
 
@@ -115,9 +117,18 @@ export default async function SettingsPage({
   const googleParam = Array.isArray(params.google)
     ? params.google[0]
     : params.google;
-  const googleStatus = GOOGLE_STATUSES.includes(googleParam as GoogleLinkStatus)
+  let googleStatus = GOOGLE_STATUSES.includes(googleParam as GoogleLinkStatus)
     ? (googleParam as GoogleLinkStatus)
     : null;
+  // Back from Google to confirm a link: only when the token is still
+  // waiting for this account (a reload after it was used, or a crafted
+  // link, just says it expired).
+  if (
+    googleStatus === "confirm" &&
+    (readOnly || !(await readPendingGoogleLink(session?.user.id)))
+  ) {
+    googleStatus = "expired";
+  }
 
   const checkoutParam = Array.isArray(params.checkout)
     ? params.checkout[0]
@@ -125,6 +136,22 @@ export default async function SettingsPage({
   const checkoutStatus =
     checkoutParam === "success" || checkoutParam === "canceled"
       ? checkoutParam
+      : null;
+
+  // A plan chosen on the pricing page (signed-in visitors land here with
+  // `?section=subscription&plan=<code>&interval=<monthly|yearly>`).
+  const planParam = Array.isArray(params.plan) ? params.plan[0] : params.plan;
+  const intervalParam = Array.isArray(params.interval)
+    ? params.interval[0]
+    : params.interval;
+  const preselect =
+    planParam && /^[a-z0-9_-]{2,32}$/.test(planParam)
+      ? {
+          plan: planParam,
+          interval: (intervalParam === "yearly"
+            ? "yearly"
+            : "monthly") as BillingInterval,
+        }
       : null;
 
   const username = me?.username ?? session?.user.name ?? "";
@@ -214,6 +241,7 @@ export default async function SettingsPage({
               plans={plans ?? []}
               checkoutStatus={checkoutStatus}
               readOnly={readOnly}
+              preselect={preselect}
             />
           </section>
 

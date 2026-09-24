@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useSession } from "next-auth/react";
 import { offlineDb } from "@/lib/offline/db";
 import { cacheSetlistDetailData } from "@/lib/offline/write";
 import { useOnlineStatus } from "@/hooks/use-online-status";
@@ -35,19 +36,26 @@ export function useOfflineSetlistDetail(
   fallback: SetlistDetail,
 ): SetlistDetailResult {
   const isOnline = useOnlineStatus();
+  // While staff view the app as someone else, nothing is mirrored (the
+  // viewed account's library must not land in the staff member's offline
+  // copy) and the mirror isn't read either (it isn't that account's).
+  const impersonating = Boolean(useSession().data?.user?.impersonator);
   const cached = useLiveQuery(
-    () => offlineDb.setlists.get(setlist.id).catch(() => undefined),
-    [setlist.id],
+    () =>
+      impersonating
+        ? undefined
+        : offlineDb.setlists.get(setlist.id).catch(() => undefined),
+    [setlist.id, impersonating],
   );
 
   useEffect(() => {
-    if (!isOnline) return;
+    if (!isOnline || impersonating) return;
     cacheSetlistDetailData(setlist, fallback.songs, fallback.items).catch(
       () => {
         // Best-effort — see the analogous note in use-offline-setlist-bundle.ts.
       },
     );
-  }, [isOnline, setlist, fallback.songs, fallback.items]);
+  }, [isOnline, impersonating, setlist, fallback.songs, fallback.items]);
 
   if (!isOnline && cached) {
     return {

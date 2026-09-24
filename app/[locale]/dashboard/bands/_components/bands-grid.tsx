@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { BandWithMembership } from "@/types/api";
+import { useSearchParams } from "next/navigation";
+import { useSyncSearchParams } from "@/hooks/use-url-state";
+import { BandWithMembership, QuotaReport } from "@/types/api";
 import {
   deleteBand,
   leaveBand,
@@ -23,14 +25,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  QuotaChip,
+  QuotaLimitNotice,
+  quotaState,
+  quotaUsageOf,
+} from "@/components/quota-usage-list";
+import { useOfflineDisabled } from "@/components/offline-disabled";
+import { foldForSearch } from "@/lib/search";
 import {
   MoreHorizontal,
   Pencil,
@@ -39,6 +43,7 @@ import {
   LogOut,
   Users,
   Star,
+  SearchX,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
@@ -56,15 +61,27 @@ interface BandsGridProps {
    * account. See components/load-error-notice.tsx.
    */
   loadError?: boolean;
+  /** `GET /users/me/quotas`, for the usage chip next to "New band". */
+  quotas?: QuotaReport | null;
 }
 
-export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
+export function BandsGrid({
+  initialBands,
+  loadError,
+  quotas = null,
+}: BandsGridProps) {
   const t = useTranslations("bands");
   const tCommon = useTranslations("common");
+  const offlineDisabled = useOfflineDisabled();
+  const quota = quotaUsageOf(quotas, "bands_owned");
+  const quotaFull = quotaState(quota).full;
   const { data: session } = useSession();
 
   const [isPending, startTransition] = useTransition();
-  const [search, setSearch] = useState("");
+  // In the URL (`?q=`), so Back from a band returns to the same search.
+  const initialSearch = useSearchParams()?.get("q") ?? "";
+  const [search, setSearch] = useState(initialSearch);
+  useSyncSearchParams({ q: search.trim() || null });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBand, setEditingBand] = useState<BandWithMembership | null>(
     null,
@@ -80,12 +97,12 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
   );
 
   const bands = useMemo(() => {
-    if (!search.trim()) return initialBands;
-    const term = search.toLowerCase();
-    return initialBands.filter(
-      (band) =>
-        band.name.toLowerCase().includes(term) ||
-        band.description?.toLowerCase().includes(term),
+    const term = foldForSearch(search.trim());
+    if (!term) return initialBands;
+    return initialBands.filter((band) =>
+      [band.name, band.description].some((value) =>
+        foldForSearch(value ?? "").includes(term),
+      ),
     );
   }, [initialBands, search]);
 
@@ -138,11 +155,23 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
           <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("addBand")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <QuotaChip usage={quota} resource="bands_owned" />
+          <Button
+            onClick={() => handleOpenDialog()}
+            {...offlineDisabled}
+            disabled={offlineDisabled.disabled || quotaFull}
+          >
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
+            {t("addBand")}
+          </Button>
+        </div>
       </div>
+      <QuotaLimitNotice
+        usage={quota}
+        resource="bands_owned"
+        className="-mt-3"
+      />
 
       <SearchInput
         value={search}
@@ -152,14 +181,36 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
       />
 
       {bands.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center gap-2 px-4 py-16 text-center">
+        <Card className="flex flex-col items-center justify-center gap-2 px-4 py-6 text-center">
           {loadError ? (
             <LoadErrorNotice />
+          ) : search ? (
+            <EmptyState
+              compact
+              icon={SearchX}
+              title={t("emptySearch", { search })}
+              actions={
+                <Button variant="outline" onClick={() => setSearch("")}>
+                  {tCommon("clearSearch")}
+                </Button>
+              }
+            />
           ) : (
-            <div className="text-muted-foreground flex flex-col items-center gap-2">
-              <Users className="h-8 w-8" />
-              <p>{search ? t("emptySearch", { search }) : t("empty")}</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title={t("emptyState.title")}
+              description={t("emptyState.description")}
+              actions={
+                <Button
+                  onClick={() => handleOpenDialog()}
+                  {...offlineDisabled}
+                  disabled={offlineDisabled.disabled || quotaFull}
+                >
+                  <Plus className="mr-2 h-4 w-4" aria-hidden />
+                  {t("addBand")}
+                </Button>
+              }
+            />
           )}
         </Card>
       ) : (
@@ -178,10 +229,13 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                   data-no-row-click
                   onClick={() => handleToggleFavorite(band)}
                   disabled={favoritePendingId === band.id}
-                  className="text-muted-foreground absolute top-3 right-3 hover:text-yellow-500 disabled:opacity-50"
+                  className="text-muted-foreground focus-visible:ring-ring/50 absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-md outline-none hover:text-yellow-500 focus-visible:ring-3 disabled:opacity-50 pointer-coarse:size-10"
                   title={band.is_favorite ? t("unfavorite") : t("favorite")}
+                  aria-label={t("favoriteNamed", { name: band.name })}
+                  aria-pressed={!!band.is_favorite}
                 >
                   <Star
+                    aria-hidden
                     className={cn(
                       "h-4 w-4",
                       band.is_favorite && "fill-yellow-400 text-yellow-500",
@@ -193,7 +247,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                   id={band.id}
                   name={band.name}
                   pinned={!!band.is_pinned}
-                  className="absolute top-1.5 right-9 h-7 w-7"
+                  className="absolute top-1.5 right-10 pointer-coarse:right-12"
                 />
 
                 <Link
@@ -226,7 +280,7 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="h-8 w-8 p-0"
+                        size="icon"
                         data-no-row-click
                         aria-label={tCommon("moreActionsFor", {
                           name: band.name,
@@ -283,65 +337,29 @@ export function BandsGrid({ initialBands, loadError }: BandsGridProps) {
         band={editingBand}
       />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!bandToDelete}
         onOpenChange={(open) => !open && setBandToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tCommon("delete")}</DialogTitle>
-            <DialogDescription>
-              {t("dialog.deleteConfirm", { name: bandToDelete?.name ?? "" })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setBandToDelete(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {tCommon("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={tCommon("delete")}
+        description={t("dialog.deleteConfirm", {
+          name: bandToDelete?.name ?? "",
+        })}
+        confirmLabel={tCommon("delete")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!bandToLeave}
         onOpenChange={(open) => !open && setBandToLeave(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.leaveTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("dialog.leaveConfirm", { name: bandToLeave?.name ?? "" })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setBandToLeave(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmLeave}
-              disabled={isPending}
-            >
-              {t("menu.leave")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("dialog.leaveTitle")}
+        description={t("dialog.leaveConfirm", {
+          name: bandToLeave?.name ?? "",
+        })}
+        confirmLabel={t("menu.leave")}
+        onConfirm={confirmLeave}
+        pending={isPending}
+      />
     </div>
   );
 }

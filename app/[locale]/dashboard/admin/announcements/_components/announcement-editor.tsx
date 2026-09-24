@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,7 @@ import {
   type AnnouncementForm,
 } from "@/lib/announcements";
 import { pickLocalized } from "@/lib/localized";
+import { hasStaffCapability } from "@/lib/staff-permissions";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import {
@@ -255,7 +257,16 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
   const audience = useAudienceCount(form);
   const guard = useUnsavedChangesGuard(isDirty && !pending);
 
-  const can = (field: AnnouncementField) => isFieldEditable(status, field);
+  // Publishing and e-mailing an announcement are admin-only (the API
+  // answers INSUFFICIENT_ROLE): moderators draft, an admin publishes.
+  const { data: session } = useSession();
+  const canPublish = hasStaffCapability(
+    session?.user?.role,
+    "announcements.publish",
+  );
+  const can = (field: AnnouncementField) =>
+    isFieldEditable(status, field) &&
+    (field !== "send_email" || canPublish || form.send_email);
   const set = <K extends keyof AnnouncementForm>(
     key: K,
     value: AnnouncementForm[K],
@@ -482,7 +493,12 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
                 : t("save")}
             </Button>
           )}
-          {(status === null || status === "draft") && (
+          {(status === null || status === "draft") && !canPublish && (
+            <p className="text-muted-foreground max-w-56 text-xs">
+              {t("publishAdminOnly")}
+            </p>
+          )}
+          {(status === null || status === "draft") && canPublish && (
             <Button
               onClick={() => {
                 setShowErrors(true);
@@ -667,9 +683,11 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
               icon={Mail}
               label={t("channels.email")}
               hint={
-                form.level === "critical"
-                  ? t("channels.emailCriticalHint")
-                  : t("channels.emailHint")
+                !canPublish
+                  ? t("channels.emailAdminOnly")
+                  : form.level === "critical"
+                    ? t("channels.emailCriticalHint")
+                    : t("channels.emailHint")
               }
               checked={form.send_email}
               onChange={(v) => set("send_email", v)}

@@ -1,8 +1,11 @@
+import "server-only";
+
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { ApiError } from "@/lib/api-server";
 import { describeApiError } from "@/lib/api-errors";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 
 export type ActionErrorCode =
   "rate_limited" | "password_change_required" | "session_revoked" | "read_only";
@@ -90,6 +93,7 @@ async function toFailure(
       error.meta,
       (key, values) => tGeneric(key, values),
       await getLocale(),
+      await getTimeZone(),
     );
     if (translated) {
       return {
@@ -117,6 +121,7 @@ async function toFailure(
     error.meta,
     (key, values) => tGeneric(key, values),
     await getLocale(),
+    await getTimeZone(),
   );
   if (translated) return { ...base, error: translated };
 
@@ -189,13 +194,33 @@ export async function guardedAction<T>(
     };
   }
 
+  let failure: unknown;
   try {
     const result = await fn();
     revalidateFn?.();
     return { success: true, data: result };
   } catch (error) {
-    return toFailure(error);
+    failure = error;
   }
+
+  // A staff account without two-factor authentication can't do anything
+  // until it turns it on: take it to the security settings, which say so.
+  // Outside the try: `redirect` works by throwing.
+  if (isStaffTwoFactorRequired(failure)) {
+    redirect(`/${await getLocale()}${STAFF_TWO_FACTOR_PATH}`);
+  }
+  return toFailure(failure);
+}
+
+/** Where a staff account is sent to turn on two-factor authentication. */
+export const STAFF_TWO_FACTOR_PATH =
+  "/dashboard/settings?section=security&reason=staff2fa";
+
+/** The API refused because a staff account must enable two-factor first. */
+export function isStaffTwoFactorRequired(error: unknown): boolean {
+  return (
+    error instanceof ApiError && error.code === "STAFF_TWO_FACTOR_REQUIRED"
+  );
 }
 
 /**

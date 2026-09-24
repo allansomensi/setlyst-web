@@ -6,6 +6,7 @@ import { getApiBaseUrl } from "@/lib/api-server";
 import { getApiToken } from "@/lib/server/api-token";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { isUuid } from "@/lib/uuid";
+import { isSameOriginRequest, pickQuery } from "@/lib/server/request-guards";
 
 /**
  * Building blocks for the app's own route handlers (`app/api/export/*`,
@@ -14,7 +15,7 @@ import { isUuid } from "@/lib/uuid";
  * only the server can read (see lib/server/api-token.ts).
  */
 
-export { isUuid };
+export { isUuid, isSameOriginRequest, pickQuery };
 
 const NO_STORE = "private, no-store";
 
@@ -36,44 +37,6 @@ export const unauthorized = () =>
   jsonError(401, "SESSION_REVOKED", "Sign in again.");
 export const badRequest = (message = "Invalid request.") =>
   jsonError(400, "BAD_REQUEST", message);
-
-/**
- * Refuses a state-changing request that didn't come from one of our own
- * pages. The session cookie is `SameSite=Lax`, which already keeps it off
- * cross-site POSTs; this is the second lock on the same door.
- */
-export function isSameOriginRequest(request: Request): boolean {
-  const site = request.headers.get("sec-fetch-site");
-  if (site) return site === "same-origin" || site === "none";
-
-  const origin = request.headers.get("origin");
-  if (!origin) return false;
-  try {
-    const host =
-      request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-    return new URL(origin).host === host;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Copies only the allowed query keys (each value capped in length) into a
- * fresh query string. Unknown keys are dropped rather than rejected, so an
- * older client never breaks on a key the server stopped accepting.
- */
-export function pickQuery(
-  source: URLSearchParams,
-  allowed: ReadonlySet<string>,
-  maxValueLength = 200,
-): URLSearchParams {
-  const result = new URLSearchParams();
-  for (const [key, value] of source) {
-    if (!allowed.has(key) || result.has(key)) continue;
-    result.set(key, value.slice(0, maxValueLength));
-  }
-  return result;
-}
 
 interface ForwardOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";

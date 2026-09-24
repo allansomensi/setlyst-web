@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useSession } from "next-auth/react";
 import { offlineDb } from "@/lib/offline/db";
 import { cacheSetlistLiveData } from "@/lib/offline/write";
 import { useOnlineStatus } from "@/hooks/use-online-status";
@@ -45,18 +46,25 @@ export function useOfflineSetlistBundle(
   fallback: SetlistBundleFallback,
 ): SetlistBundleResult {
   const isOnline = useOnlineStatus();
+  // While staff view the app as someone else, nothing is mirrored (the
+  // viewed account's library must not land in the staff member's offline
+  // copy) and the mirror isn't read either (it isn't that account's).
+  const impersonating = Boolean(useSession().data?.user?.impersonator);
   // Swallows a query failure into "no cached copy" instead of letting
   // dexie-react-hooks re-throw it on the next render — see the identical
   // note in offline-sync-provider.tsx. Falling back to `fallback` (the
   // server-rendered props) is always a safe, correct result even if the
   // offline mirror itself is broken.
   const cached = useLiveQuery(
-    () => offlineDb.setlists.get(setlistId).catch(() => undefined),
-    [setlistId],
+    () =>
+      impersonating
+        ? undefined
+        : offlineDb.setlists.get(setlistId).catch(() => undefined),
+    [setlistId, impersonating],
   );
 
   useEffect(() => {
-    if (!isOnline) return;
+    if (!isOnline || impersonating) return;
     // Merges rather than replaces: this screen doesn't know the setlist's
     // block/break markers, and writing the whole row would drop them. See
     // lib/offline/write.ts.
@@ -68,7 +76,7 @@ export function useOfflineSetlistBundle(
     // Re-runs whenever the data this component actually has changes, not on
     // every render (isOnline flips are the only other thing that should
     // re-trigger this, to catch up the moment connectivity returns).
-  }, [isOnline, fallback.setlist, fallback.songs]);
+  }, [isOnline, impersonating, fallback.setlist, fallback.songs]);
 
   if (!isOnline && cached) {
     return {

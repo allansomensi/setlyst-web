@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 import { Check, Sparkles, Tag } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Badge } from "@/components/ui/badge";
@@ -76,9 +77,22 @@ export function IntervalToggle({
  * `GET /public/plans`; promotions show the discounted price with the
  * original struck through.
  */
-export function PricingPlans({ plans }: { plans: PublicPlan[] }) {
+export function PricingPlans({
+  plans,
+  signedIn,
+}: {
+  plans: PublicPlan[];
+  /**
+   * Whether the visitor has a session (lib/site-session.ts, from a server
+   * page). When not given, the client session decides, so the page itself
+   * can stay static.
+   */
+  signedIn?: boolean;
+}) {
   const t = useTranslations("pricing");
   const locale = useLocale();
+  const { status } = useSession();
+  const hasSession = signedIn ?? status === "authenticated";
   const [interval, setInterval] = useState<BillingInterval>("monthly");
   const savings = maxYearlySavings(plans);
   const dateFormat = new Intl.DateTimeFormat(locale, {
@@ -227,7 +241,25 @@ export function PricingPlans({ plans }: { plans: PublicPlan[] }) {
                 className="mt-6 h-10 w-full"
               >
                 <Link
-                  href={{ pathname: "/register", query: { plan: plan.code } }}
+                  // Signed in: straight to the plan picker in Settings, with
+                  // this plan and interval preselected (see PaidPlanActions).
+                  // Sending an account holder to /register only bounced them
+                  // to the dashboard and lost the choice.
+                  href={
+                    hasSession
+                      ? {
+                          pathname: "/dashboard/settings",
+                          query: {
+                            section: "subscription",
+                            plan: plan.code,
+                            interval,
+                          },
+                        }
+                      : {
+                          pathname: "/register",
+                          query: { plan: plan.code, interval },
+                        }
+                  }
                 >
                   {t("cta", { plan: name })}
                 </Link>

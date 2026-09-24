@@ -7,7 +7,6 @@ import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toastActionError } from "@/lib/action-toast";
 import type { AdminBandSummary, UpdateBandPayload } from "@/types/api";
@@ -57,16 +56,6 @@ export function BandAdminForm({
     });
   };
 
-  const toggleSetlists = (value: boolean) => {
-    startTransition(async () => {
-      const result = await updateBandAsAdmin(band.id, {
-        members_can_manage_setlists: value,
-      });
-      if (!result.success) toastActionError(result, result.error);
-      else toast.success(t("saved"));
-    });
-  };
-
   return (
     <form onSubmit={save} className="space-y-4">
       <fieldset disabled={!canEdit || isPending} className="space-y-4">
@@ -109,21 +98,6 @@ export function BandAdminForm({
             <p className="text-destructive text-xs">{t("logoInvalid")}</p>
           )}
         </div>
-        <label className="flex items-start justify-between gap-3 rounded-lg border p-3">
-          <span className="space-y-0.5">
-            <span className="block text-sm font-medium">
-              {t("membersManageSetlists")}
-            </span>
-            <span className="text-muted-foreground block text-xs">
-              {t("membersManageSetlistsHint")}
-            </span>
-          </span>
-          <Switch
-            checked={band.members_can_manage_setlists}
-            onCheckedChange={toggleSetlists}
-            disabled={!canEdit || isPending}
-          />
-        </label>
       </fieldset>
       {canEdit && (
         <div className="flex justify-end">

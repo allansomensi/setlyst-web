@@ -5,7 +5,8 @@ import { ThemeSync } from "@/components/providers/theme-sync";
 import { AuthProvider } from "@/components/providers/session_provider";
 import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@/components/analytics";
+import { TimeZoneCookie } from "@/components/time-zone-cookie";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { getMyPreferences } from "@/lib/server-data";
@@ -72,6 +73,7 @@ export default async function LocaleLayout({
           </ThemeProvider>
         </OfflineSyncProvider>
       </AuthProvider>
+      <TimeZoneCookie />
       <Analytics />
     </NextIntlClientProvider>
   );

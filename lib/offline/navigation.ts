@@ -53,11 +53,16 @@ export function isKnownOffline(): boolean {
 /**
  * Adds the current locale prefix to an app-internal path, so the URL handed
  * to the browser matches what the offline cache actually holds. Paths that
- * already carry a locale, and anything that isn't a root-relative in-app
- * path (absolute URLs, protocol-relative URLs), are returned untouched.
+ * already carry a locale, and absolute URLs, are returned untouched.
+ *
+ * A protocol-relative `//host` (or `/\host`, which browsers read the same
+ * way) is never an in-app path: it becomes the site root instead, so this
+ * helper can't be turned into an open redirect by whatever fed it the
+ * href.
  */
 export function localizeHref(href: string, locale: string): string {
-  if (!href.startsWith("/") || href.startsWith("//")) return href;
+  if (/^[/\\][/\\]/.test(href)) return "/";
+  if (!href.startsWith("/")) return href;
 
   const pathname = href.split(/[?#]/)[0];
   const firstSegment = pathname.split("/")[1] ?? "";

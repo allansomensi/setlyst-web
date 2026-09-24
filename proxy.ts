@@ -6,6 +6,9 @@ import { routing } from "./i18n/routing";
 import {
   classifyPath,
   getLocaleSegment,
+  isStaffTwoFactorExempt,
+  loginCallbackOf,
+  signedInRedirectPath,
   stripLocale,
 } from "./lib/route-access";
 import { buildCsp, cspEnvironment, generateNonce } from "./lib/csp";
@@ -56,6 +59,18 @@ function resolvePreferredLocale(
 }
 
 const CSP_ENV = cspEnvironment();
+
+/**
+ * Marks every page rendered while a staff member views the app as someone
+ * else. The service worker refuses to store such a response (public/sw.js),
+ * so the viewed account's pages never end up in the staff member's
+ * offline cache.
+ */
+const IMPERSONATION_HEADER = "x-setlyst-impersonating";
+
+function isStaffRole(role: unknown): boolean {
+  return role === "admin" || role === "moderator";
+}
 
 /**
  * Public pages outside the locale segment (share links, status page,
@@ -142,7 +157,10 @@ async function route(
       `/${locale ?? DEFAULT_LOCALE}/login`,
       req.nextUrl.origin,
     );
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      loginCallbackOf(pathname, req.nextUrl.search),
+    );
     // A session that existed and ran out: the login page clears the
     // offline copy of the account's data (see LoginForm).
     if (token) loginUrl.searchParams.set("reason", "expired");
@@ -161,15 +179,46 @@ async function route(
     );
   }
 
+  // Two-factor authentication is mandatory for staff: until it's on, the
+  // API refuses everything but the account's own security endpoints
+  // (STAFF_TWO_FACTOR_REQUIRED), so the dashboard would be a wall of
+  // errors. Such an account is kept on the security settings, which
+  // explain why.
+  if (
+    isProtected &&
+    session &&
+    !session.impersonator &&
+    isStaffRole(session.role) &&
+    session.twoFactorEnabled === false &&
+    !isStaffTwoFactorExempt(pathWithoutLocale)
+  ) {
+    const target = new URL(
+      `/${locale ?? DEFAULT_LOCALE}/dashboard/settings`,
+      req.nextUrl.origin,
+    );
+    target.searchParams.set("section", "security");
+    target.searchParams.set("reason", "staff2fa");
+    return NextResponse.redirect(target);
+  }
+
   if (isChangePassword && session && !session.mustChangePassword) {
     return NextResponse.redirect(
       new URL(`/${locale ?? DEFAULT_LOCALE}/dashboard`, req.nextUrl.origin),
     );
   }
 
+  // Already signed in: straight to where the sign-in would have led (an
+  // invite link, Live Mode...), not blindly to the dashboard.
   if (isAuthPage && session) {
     return NextResponse.redirect(
-      new URL(`/${locale ?? DEFAULT_LOCALE}/dashboard`, req.nextUrl.origin),
+      new URL(
+        signedInRedirectPath(
+          req.nextUrl.searchParams.get("callbackUrl"),
+          locale ?? DEFAULT_LOCALE,
+          LOCALES,
+        ),
+        req.nextUrl.origin,
+      ),
     );
   }
 
@@ -193,7 +242,11 @@ async function route(
     return response;
   }
 
-  return intlMiddleware(req);
+  const response = intlMiddleware(req);
+  if (isProtected && session?.impersonator) {
+    response.headers.set(IMPERSONATION_HEADER, "1");
+  }
+  return response;
 }
 
 export const config = {

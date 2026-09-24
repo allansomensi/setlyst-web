@@ -55,7 +55,7 @@ export function SongPdfDialog(props: SongPdfDialogProps) {
       open={props.isOpen}
       onOpenChange={(open) => !open && props.onClose()}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         {props.isOpen && <SongPdfForm {...props} />}
       </DialogContent>
     </Dialog>

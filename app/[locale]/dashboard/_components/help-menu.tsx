@@ -8,6 +8,7 @@ import {
   Info,
   CircleHelp,
   Lock,
+  Mail,
   Megaphone,
   ShieldCheck,
 } from "lucide-react";
@@ -21,11 +22,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { STATUS_PATH, WIKI_URL } from "@/lib/links";
+import { STATUS_PATH, SUPPORT_EMAIL, WIKI_URL } from "@/lib/links";
 
 /**
- * Everything "about the platform" behind one icon: documentation, system
- * status, the legal documents and the About page.
+ * Everything "about the platform" behind one icon: talking to support,
+ * documentation, system status, the legal documents and the About page.
  */
 export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations("nav");
@@ -42,11 +43,22 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
           aria-label={t("help")}
           title={t("help")}
         >
-          <CircleHelp className="h-4 w-4" />
+          <CircleHelp className="h-4 w-4" aria-hidden />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="w-56">
         <DropdownMenuLabel>{t("help")}</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <a href={`mailto:${SUPPORT_EMAIL}`} onClick={onNavigate}>
+            <Mail className="mr-2 h-4 w-4" aria-hidden />
+            <span className="min-w-0">
+              <span className="block">{t("contactSupport")}</span>
+              <span className="text-muted-foreground block truncate text-xs">
+                {SUPPORT_EMAIL}
+              </span>
+            </span>
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a
             href={WIKI_URL}

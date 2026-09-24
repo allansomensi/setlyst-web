@@ -5,7 +5,9 @@ import { fetchServerApi } from "@/lib/api-server";
 import { guardedAction, type ActionResult } from "@/lib/action-guard";
 import { revalidateDashboard } from "@/lib/revalidate";
 import { LEGAL_VERSION } from "@/lib/legal";
-import { sanitizeOtp } from "@/lib/auth-flow";
+import { reauthBody, sanitizeOtp, type ReauthProof } from "@/lib/auth-flow";
+import { apiPath } from "@/lib/api-endpoint";
+import { isUuid } from "@/lib/uuid";
 import type { User } from "@/types/api";
 import {
   REPORT_REASONS,
@@ -30,8 +32,8 @@ async function invalid<T>(): Promise<ActionResult<T>> {
   return { success: false, error: t("rejected") };
 }
 
-function sixDigits(code: string): string | null {
-  const clean = sanitizeOtp(code ?? "");
+function sixDigits(code: unknown): string | null {
+  const clean = sanitizeOtp(typeof code === "string" ? code : "");
   return clean.length === 6 ? clean : null;
 }
 
@@ -61,23 +63,29 @@ export async function verifyEmail(code: string): Promise<ActionResult<User>> {
 }
 
 /**
- * Starts an e-mail change: a code goes to the NEW address. `password` is
- * required when the account has one.
+ * Starts an e-mail change: a code goes to the NEW address. Needs proof of
+ * identity: the password when the account has one, otherwise a code sent
+ * to the current address (`reauthCode`); plus a two-factor `code` when
+ * two-factor authentication is on.
  */
-export async function startEmailChange(input: {
-  newEmail: string;
-  password?: string;
-}): Promise<ActionResult<CodeSentResponse>> {
-  const email = input.newEmail?.trim() ?? "";
+export async function startEmailChange(
+  input: ReauthProof & { newEmail: string; code?: string },
+): Promise<ActionResult<CodeSentResponse>> {
+  const email =
+    typeof input?.newEmail === "string" ? input.newEmail.trim() : "";
   if (!EMAIL_PATTERN.test(email) || email.length > 254) return invalid();
-  if (input.password && input.password.length > 256) return invalid();
+  const reauth = reauthBody(input);
+  if (!reauth) return invalid();
+  let code: string | undefined;
+  if (input.code !== undefined && input.code !== "") {
+    const clean = sixDigits(input.code);
+    if (!clean) return invalid();
+    code = clean;
+  }
   return guardedAction(() =>
     fetchServerApi<CodeSentResponse>("/users/me/email/change", {
       method: "POST",
-      body: JSON.stringify({
-        new_email: email,
-        password: input.password || undefined,
-      }),
+      body: JSON.stringify({ new_email: email, ...reauth, code }),
     }),
   );
 }
@@ -146,14 +154,14 @@ export async function reportUser(input: {
 }): Promise<ActionResult<{ id: string }>> {
   const details = input.details?.trim() ?? "";
   if (
-    !/^[0-9a-f-]{36}$/i.test(input.userId ?? "") ||
+    !isUuid(input?.userId) ||
     !(REPORT_REASONS as readonly string[]).includes(input.reason) ||
     details.length > 500
   ) {
     return invalid();
   }
   return guardedAction(() =>
-    fetchServerApi<{ id: string }>(`/users/${input.userId}/report`, {
+    fetchServerApi<{ id: string }>(apiPath`/users/${input.userId}/report`, {
       method: "POST",
       body: JSON.stringify({
         reason: input.reason,
@@ -167,20 +175,18 @@ export async function reportUser(input: {
  * Deletes the signed-in account for good (LGPD art. 18, VI). The caller
  * signs out right after.
  */
-export async function deleteOwnAccount(input: {
-  confirmation: string;
-  password?: string;
-}): Promise<ActionResult> {
-  const confirmation = input.confirmation?.trim() ?? "";
+export async function deleteOwnAccount(
+  input: ReauthProof & { confirmation: string },
+): Promise<ActionResult> {
+  const confirmation =
+    typeof input?.confirmation === "string" ? input.confirmation.trim() : "";
   if (!confirmation || confirmation.length > 64) return invalid();
-  if (input.password && input.password.length > 256) return invalid();
+  const reauth = reauthBody(input);
+  if (!reauth) return invalid();
   return guardedAction(async () => {
     await fetchServerApi("/users/me", {
       method: "DELETE",
-      body: JSON.stringify({
-        confirmation,
-        password: input.password || undefined,
-      }),
+      body: JSON.stringify({ confirmation, ...reauth }),
     });
   });
 }

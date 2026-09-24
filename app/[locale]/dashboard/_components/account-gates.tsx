@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import {
+  Download,
   ExternalLink,
   FileCheck2,
   Loader2,
   LogOut,
   MailWarning,
+  Trash2,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,7 +50,10 @@ export interface AccountGatesProps {
  * Account prompts mounted once by the dashboard layout:
  *
  * - a blocking modal until the Terms of Use / Privacy Policy in force are
- *   accepted (it can't be dismissed; "Sair" signs out);
+ *   accepted (it can't be dismissed; "Sair" signs out). Not accepting is
+ *   a real option (Terms "Alterações", LGPD portability): the modal links
+ *   to exporting the account's data and to deleting the account, and on
+ *   the settings page, where both live, it steps aside for a banner;
  * - a dismissible banner (for this browser session) while the e-mail
  *   address isn't verified, or when the account has none.
  */
@@ -187,15 +193,27 @@ function EmailBanner({
 // Terms re-acceptance
 // ---------------------------------------------------------------------
 
+/** Where exporting the data and deleting the account live. */
+const DATA_SETTINGS_HREF = "/dashboard/settings?section=data";
+
 function TermsGate() {
   const t = useTranslations("terms.gate");
   const locale = useLocale();
   const router = useAppRouter();
+  const pathname = usePathname();
   const { update } = useSession();
-  const [open, setOpen] = useState(true);
+  const [accepted, setAccepted] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [checked, setChecked] = useState(false);
   const [pending, setPending] = useState(false);
   const [leaving, setLeaving] = useState(false);
+
+  // On the settings page the person may be exporting their data or
+  // deleting the account instead of accepting: a banner reminds them, and
+  // the modal opens on request. Anywhere else it blocks.
+  const onSettings = /\/dashboard\/settings\/?$/.test(pathname ?? "");
+  const open = !accepted && (onSettings ? reviewOpen : true);
+  const blocking = !onSettings;
 
   const effective = formatApiDay(LEGAL_VERSION, locale);
 
@@ -209,7 +227,7 @@ function TermsGate() {
       return;
     }
     await update({ refreshAccount: true }).catch(() => null);
-    setOpen(false);
+    setAccepted(true);
     toast.success(t("accepted"));
     router.refresh();
   };
@@ -217,6 +235,11 @@ function TermsGate() {
   const leave = async () => {
     setLeaving(true);
     await secureSignOut({ callbackUrl: `/${locale}/login` });
+  };
+
+  const goToData = () => {
+    setReviewOpen(false);
+    router.push(DATA_SETTINGS_HREF);
   };
 
   const docLink = (href: string) =>
@@ -235,66 +258,112 @@ function TermsGate() {
     };
 
   return (
-    <Dialog open={open} onOpenChange={() => undefined}>
-      <DialogContent
-        showCloseButton={false}
-        onEscapeKeyDown={(event) => event.preventDefault()}
-        onPointerDownOutside={(event) => event.preventDefault()}
-        onInteractOutside={(event) => event.preventDefault()}
-        className="sm:max-w-lg"
+    <>
+      {onSettings && !accepted && (
+        <div
+          role="region"
+          aria-label={t("title")}
+          className="border-primary/30 bg-primary/5 flex flex-wrap items-center gap-3 border-b px-4 py-2.5 text-sm md:px-8"
+        >
+          <FileCheck2 className="text-primary size-4 shrink-0" aria-hidden />
+          <p className="min-w-0 flex-1">{t("banner")}</p>
+          <Button size="sm" className="h-7" onClick={() => setReviewOpen(true)}>
+            {t("review")}
+          </Button>
+        </div>
+      )}
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!blocking && !pending) setReviewOpen(next);
+        }}
       >
-        <DialogHeader>
-          <div className="bg-primary/10 text-primary mb-1 flex size-10 items-center justify-center rounded-full">
-            <FileCheck2 className="size-5" />
+        <DialogContent
+          showCloseButton={!blocking}
+          onEscapeKeyDown={(event) => blocking && event.preventDefault()}
+          onPointerDownOutside={(event) => blocking && event.preventDefault()}
+          onInteractOutside={(event) => blocking && event.preventDefault()}
+          className="sm:max-w-lg"
+        >
+          <DialogHeader>
+            <div className="bg-primary/10 text-primary mb-1 flex size-10 items-center justify-center rounded-full">
+              <FileCheck2 className="size-5" />
+            </div>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>
+              {t("description", { date: effective })}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ul className="text-muted-foreground list-disc space-y-1.5 pl-5 text-sm">
+            <li>{t.rich("readTerms", { link: docLink(LEGAL_HREFS.terms) })}</li>
+            <li>
+              {t.rich("readPrivacy", { link: docLink(LEGAL_HREFS.privacy) })}
+            </li>
+          </ul>
+
+          <label className="bg-muted/40 flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 text-sm">
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={(event) => setChecked(event.target.checked)}
+              disabled={pending || leaving}
+              className="border-input accent-primary focus-visible:ring-ring/50 mt-0.5 size-4 shrink-0 cursor-pointer rounded outline-none focus-visible:ring-3"
+            />
+            <span className="leading-snug">{t("checkbox")}</span>
+          </label>
+
+          <div className="text-muted-foreground space-y-2 text-sm">
+            <p>{t("alternatives")}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={goToData}
+                disabled={pending || leaving}
+              >
+                <Download className="mr-2 h-4 w-4" aria-hidden />
+                {t("exportData")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={goToData}
+                disabled={pending || leaving}
+              >
+                <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                {t("deleteAccount")}
+              </Button>
+            </div>
           </div>
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>
-            {t("description", { date: effective })}
-          </DialogDescription>
-        </DialogHeader>
 
-        <ul className="text-muted-foreground list-disc space-y-1.5 pl-5 text-sm">
-          <li>{t.rich("readTerms", { link: docLink(LEGAL_HREFS.terms) })}</li>
-          <li>
-            {t.rich("readPrivacy", { link: docLink(LEGAL_HREFS.privacy) })}
-          </li>
-        </ul>
-
-        <label className="bg-muted/40 flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 text-sm">
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={(event) => setChecked(event.target.checked)}
-            disabled={pending || leaving}
-            className="border-input accent-primary focus-visible:ring-ring/50 mt-0.5 size-4 shrink-0 cursor-pointer rounded outline-none focus-visible:ring-3"
-          />
-          <span className="leading-snug">{t("checkbox")}</span>
-        </label>
-
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => void leave()}
-            disabled={pending || leaving}
-          >
-            {leaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <LogOut className="mr-2 h-4 w-4" />
-            )}
-            {t("signOut")}
-          </Button>
-          <Button
-            type="button"
-            onClick={() => void accept()}
-            disabled={!checked || pending || leaving}
-          >
-            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t("accept")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => void leave()}
+              disabled={pending || leaving}
+            >
+              {leaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="mr-2 h-4 w-4" />
+              )}
+              {t("signOut")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void accept()}
+              disabled={!checked || pending || leaving}
+            >
+              {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t("accept")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

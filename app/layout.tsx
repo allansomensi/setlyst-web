@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
+// Inter is the UI face (`--font-sans`); Geist Mono is `--font-mono` (chords,
+// BPM, keys). Geist Sans used to be loaded and preloaded too, unused.
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -63,10 +64,21 @@ export const metadata: Metadata = {
   },
   // Lets iOS treat an added-to-home-screen Setlyst as a standalone app,
   // the way the web manifest already does on Android.
+  //
+  // Status bar: "default" on purpose. "black-translucent" draws the page
+  // under the status bar with *white* text whatever the theme, so the
+  // clock and battery vanish over the light theme (the default for most
+  // people); iOS reads this once, at install, so it can't follow the
+  // theme toggle. "default" gives an opaque bar iOS keeps legible; its
+  // light strip over the dark theme is the lesser evil. Every top-level
+  // surface (dashboard, Live Mode, public site header, auth screens,
+  // share pages, toasts) already pads for env(safe-area-inset-*), so
+  // switching to "black-translucent" is this one line if that trade-off
+  // is ever preferred; the insets also cover notched phones in landscape.
   appleWebApp: {
     capable: true,
     title: APP_NAME,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   formatDetection: {
     telephone: false,
@@ -104,7 +116,6 @@ export default async function RootLayout({
       lang={locale}
       className={cn(
         "h-full antialiased",
-        geistSans.variable,
         geistMono.variable,
         "font-sans",
         inter.variable,

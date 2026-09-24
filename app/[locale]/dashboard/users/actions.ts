@@ -2,7 +2,13 @@
 
 import { revalidateDashboard } from "@/lib/revalidate";
 import { fetchServerApi } from "@/lib/api-server";
-import { guardedAction, requireStaff } from "@/lib/action-guard";
+import {
+  guardedAction,
+  invalidRequest,
+  requireStaff,
+} from "@/lib/action-guard";
+import { apiPath } from "@/lib/api-endpoint";
+import { isUuid } from "@/lib/uuid";
 import type {
   AdminUserOverview,
   AuditLogEntry,
@@ -23,8 +29,9 @@ import type {
  * reaching admin-only endpoints by accident.
  */
 
+/** Callers check `isUuid(id)` first; `apiPath` keeps it one segment anyway. */
 const userPath = (id: string, suffix = "") =>
-  `/users/${encodeURIComponent(id)}${suffix}`;
+  `${apiPath`/users/${id}`}${suffix}`;
 
 function revalidateUser(id?: string) {
   revalidateDashboard("/users", "page");
@@ -59,11 +66,29 @@ export async function createUser(data: CreateUserPayload) {
   );
 }
 
+/** Text fields of a staff edit: a string, or absent. */
+const UPDATE_TEXT_FIELDS = [
+  "username",
+  "email",
+  "first_name",
+  "last_name",
+] as const satisfies readonly (keyof UpdateUserPayload)[];
+
 /**
  * Staff edit. For email and names, an empty string clears the field (the
  * API stores `NULL`); `undefined` leaves it unchanged.
  */
 export async function updateUser(id: string, data: UpdateUserPayload) {
+  if (
+    !isUuid(id) ||
+    !data ||
+    typeof data !== "object" ||
+    UPDATE_TEXT_FIELDS.some(
+      (key) => data[key] !== undefined && typeof data[key] !== "string",
+    )
+  ) {
+    return invalidRequest();
+  }
   const payload: UpdateUserPayload = {
     username: data.username?.trim() || undefined,
     email: data.email === undefined ? undefined : data.email.trim(),
@@ -87,6 +112,7 @@ export async function updateUser(id: string, data: UpdateUserPayload) {
 }
 
 export async function setUserRole(id: string, role: UserRole) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -100,6 +126,7 @@ export async function setUserRole(id: string, role: UserRole) {
 }
 
 export async function setUserStatus(id: string, status: User["status"]) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();
@@ -118,6 +145,7 @@ export async function banUser(
   durationHours: number | null,
   reason: string,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();
@@ -134,6 +162,7 @@ export async function banUser(
 }
 
 export async function unbanUser(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();
@@ -153,6 +182,7 @@ export async function resetUserPassword(
   newPassword: string,
   requireChange = true,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();
@@ -169,6 +199,7 @@ export async function resetUserPassword(
 }
 
 export async function revokeUserSessions(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff();
     await fetchServerApi<unknown>(userPath(id, "/sessions/revoke"), {
@@ -183,6 +214,7 @@ export async function updateUserQuotas(
   overrides: QuotaOverrides,
   unlimited: boolean,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
@@ -200,16 +232,14 @@ export async function addUserToBand(
   bandId: string,
   role: "member" | "moderator" | "admin",
 ) {
+  if (!isUuid(userId) || !isUuid(bandId)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff(true);
-      await fetchServerApi<unknown>(
-        `/admin/bands/${encodeURIComponent(bandId)}/members`,
-        {
-          method: "POST",
-          body: JSON.stringify({ user_id: userId, role }),
-        },
-      );
+      await fetchServerApi<unknown>(apiPath`/admin/bands/${bandId}/members`, {
+        method: "POST",
+        body: JSON.stringify({ user_id: userId, role }),
+      });
     },
     () => {
       revalidateUser(userId);
@@ -219,6 +249,7 @@ export async function addUserToBand(
 }
 
 export async function deleteUser(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     async () => {
       await requireStaff();
@@ -229,6 +260,7 @@ export async function deleteUser(id: string) {
 }
 
 export async function getUserOverview(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff();
     return fetchServerApi<AdminUserOverview>(userPath(id, "/overview"));
@@ -238,6 +270,7 @@ export async function getUserOverview(id: string) {
 export async function getUsernameHistory(
   userId: string,
 ): Promise<UsernameHistoryEntry[]> {
+  if (!isUuid(userId)) return [];
   try {
     return await fetchServerApi<UsernameHistoryEntry[]>(
       userPath(userId, "/username-history"),
@@ -251,6 +284,7 @@ export async function getUsernameHistory(
 export async function getUserAuditTrail(
   userId: string,
 ): Promise<AuditLogEntry[]> {
+  if (!isUuid(userId)) return [];
   try {
     const page = await fetchServerApi<PaginatedResponse<AuditLogEntry>>(
       `/admin/audit-logs?target_id=${encodeURIComponent(userId)}&per_page=20`,

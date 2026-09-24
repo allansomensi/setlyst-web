@@ -5,6 +5,8 @@
  * unit tested (lib/__tests__/route-access.test.ts).
  */
 
+import { safeCallbackPath } from "./links";
+
 export type RouteKind =
   /** Signed-in area (`/dashboard/**`). */
   | "protected"
@@ -13,8 +15,8 @@ export type RouteKind =
   /** Sign-in and sign-up: signed-in visitors are sent to the dashboard. */
   | "auth"
   /**
-   * The public site: landing, pricing, changelog, legal texts, community
-   * guidelines, unsubscribe. Open to everyone; signed-in visitors are
+   * The public site: landing, pricing, changelog, contact, legal texts,
+   * community guidelines, unsubscribe. Open to everyone; signed-in visitors are
    * never redirected away.
    */
   | "public"
@@ -22,7 +24,13 @@ export type RouteKind =
   | "other";
 
 /** Public site paths, without the locale prefix. */
-const PUBLIC_EXACT = new Set(["/", "/pricing", "/changelog", "/unsubscribe"]);
+const PUBLIC_EXACT = new Set([
+  "/",
+  "/pricing",
+  "/changelog",
+  "/contato",
+  "/unsubscribe",
+]);
 const PUBLIC_PREFIXES = ["/legal", "/community-guidelines"];
 
 function matchesSegment(path: string, prefix: string): boolean {
@@ -71,4 +79,52 @@ export function classifyPath(pathWithoutLocale: string): RouteKind {
 /** Whether the public site may be served for this path without a session. */
 export function isPublicPath(pathWithoutLocale: string): boolean {
   return classifyPath(pathWithoutLocale) === "public";
+}
+
+/** Longest `callbackUrl` kept (safeCallbackPath refuses longer ones). */
+const MAX_CALLBACK_LENGTH = 2048;
+
+/**
+ * The `callbackUrl` the login page receives when a signed-out visitor
+ * opens a protected page: the path *and* its query (`?songId=` in Live
+ * Mode, `?checkout=` in settings), so signing in lands exactly where the
+ * person was going. A query too long to carry is dropped, keeping the
+ * page.
+ */
+export function loginCallbackOf(pathname: string, search: string): string {
+  const full = `${pathname}${search}`;
+  return full.length <= MAX_CALLBACK_LENGTH ? full : pathname;
+}
+
+/**
+ * Where a signed-in visitor of the login or sign-up page is sent: the
+ * `callbackUrl` it carries, when it is a safe in-app path that isn't
+ * itself a sign-in page (which would loop), otherwise the dashboard.
+ * A path without a locale gets `locale`.
+ */
+export function signedInRedirectPath(
+  callbackUrl: string | null | undefined,
+  locale: string,
+  locales: readonly string[],
+): string {
+  const fallback = `/${locale}/dashboard`;
+  const safe = safeCallbackPath(callbackUrl);
+  if (!safe) return fallback;
+
+  const [pathname] = safe.split(/[?#]/, 1);
+  const kind = classifyPath(stripLocale(pathname, locales));
+  if (kind === "auth") return fallback;
+
+  return getLocaleSegment(pathname, locales) ? safe : `/${locale}${safe}`;
+}
+
+/**
+ * Dashboard paths a staff account without two-factor authentication can
+ * still open: the settings page, where it is turned on.
+ */
+export function isStaffTwoFactorExempt(pathWithoutLocale: string): boolean {
+  return (
+    pathWithoutLocale === "/dashboard/settings" ||
+    pathWithoutLocale.startsWith("/dashboard/settings/")
+  );
 }

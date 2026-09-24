@@ -1,6 +1,10 @@
 "use server";
 
-import { guardedAction, requireStaff } from "@/lib/action-guard";
+import {
+  guardedAction,
+  requireStaff,
+  invalidRequest,
+} from "@/lib/action-guard";
 import { fetchServerApi } from "@/lib/api-server";
 import { revalidateDashboard } from "@/lib/revalidate";
 import type {
@@ -34,6 +38,7 @@ export async function createAnnouncement(payload: AnnouncementPayload) {
 }
 
 export async function updateAnnouncement(id: string, patch: AnnouncementPatch) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff();
     return fetchServerApi<AdminAnnouncement>(path(id), {
@@ -44,6 +49,7 @@ export async function updateAnnouncement(id: string, patch: AnnouncementPatch) {
 }
 
 export async function publishAnnouncement(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff();
     return fetchServerApi<AdminAnnouncement>(path(id, "/publish"), {
@@ -54,6 +60,7 @@ export async function publishAnnouncement(id: string) {
 }
 
 export async function archiveAnnouncement(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff();
     return fetchServerApi<AdminAnnouncement>(path(id, "/archive"), {
@@ -64,6 +71,7 @@ export async function archiveAnnouncement(id: string) {
 
 /** Deletes a draft (published ones are archived by the API instead). */
 export async function deleteAnnouncement(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff();
     await fetchServerApi<unknown>(path(id), { method: "DELETE" });

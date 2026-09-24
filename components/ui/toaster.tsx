@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { Toaster as SonnerToaster, type ToasterProps } from "sonner";
 import { toast, toastIdFromElement } from "@/lib/toast";
 
@@ -24,10 +25,13 @@ function isSelectingTextIn(element: Element): boolean {
 /**
  * The app's toast host.
  *
- * There is no close button: a click or tap anywhere on a toast dismisses
- * it (swiping still works too), except on the toast's own buttons and
- * while text inside it is being selected, so an error message can still be
- * copied. The theme follows next-themes unless one is passed.
+ * A click or tap anywhere on a toast dismisses it (swiping still works
+ * too), except on the toast's own buttons and while text inside it is
+ * being selected, so an error message can still be copied. Error toasts
+ * also get a close button (see lib/toast.ts), so keyboard users can
+ * dismiss them, and stay up longer. The theme follows next-themes unless
+ * one is passed; the labels are localized; the stack clears the notch /
+ * status bar of the installed app.
  *
  * Sonner portals its toasts outside this subtree, hence the document-level
  * listener. Toasts are matched to their id through the tag added by
@@ -35,6 +39,7 @@ function isSelectingTextIn(element: Element): boolean {
  */
 export function Toaster({ theme, ...props }: ToasterProps) {
   const { resolvedTheme } = useTheme();
+  const t = useTranslations("common");
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -63,7 +68,18 @@ export function Toaster({ theme, ...props }: ToasterProps) {
           ? resolvedTheme
           : "system")
       }
-      toastOptions={{ className: "cursor-pointer select-text" }}
+      duration={6000}
+      containerAriaLabel={t("notifications")}
+      offset={{ top: "max(24px, env(safe-area-inset-top))" }}
+      mobileOffset={{
+        top: "max(16px, env(safe-area-inset-top))",
+        left: "max(16px, env(safe-area-inset-left))",
+        right: "max(16px, env(safe-area-inset-right))",
+      }}
+      toastOptions={{
+        className: "cursor-pointer select-text",
+        closeButtonAriaLabel: t("close"),
+      }}
       {...props}
     />
   );

@@ -1,7 +1,13 @@
 "use server";
 
 import { fetchServerApi } from "@/lib/api-server";
-import { guardedAction, ActionResult } from "@/lib/action-guard";
+import {
+  guardedAction,
+  invalidRequest,
+  ActionResult,
+} from "@/lib/action-guard";
+import { apiPath } from "@/lib/api-endpoint";
+import { isUuid } from "@/lib/uuid";
 import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 import { Gig, GigStatus } from "@/types/api";
@@ -19,6 +25,11 @@ function revalidateGigViews(bandId?: string | null) {
  * The API's `NaiveDateTime` deserializer expects seconds, so pad it here
  * rather than relying on every caller to remember to.
  */
+/** An optional id: absent, empty, or a UUID. */
+function isOptionalId(value: unknown): boolean {
+  return value === undefined || value === null || value === "" || isUuid(value);
+}
+
 function normalizeScheduledAt(value: string): string {
   return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value) ? `${value}:00` : value;
 }
@@ -33,6 +44,14 @@ export async function createGig(data: {
   status?: GigStatus;
   notes?: string;
 }) {
+  if (
+    !data ||
+    !isOptionalId(data.band_id) ||
+    !isOptionalId(data.setlist_id) ||
+    !isOptionalId(data.tour_id)
+  ) {
+    return invalidRequest();
+  }
   const t = await getTranslations("gigs.errors");
   const venue = data.venue?.trim();
 
@@ -86,9 +105,15 @@ export async function updateGig(
   data: UpdateGigInput,
   bandId?: string,
 ) {
+  if (
+    !isUuid(id) ||
+    !data ||
+    !isOptionalId(data.setlist_id) ||
+    !isOptionalId(data.tour_id)
+  ) {
+    return invalidRequest();
+  }
   const t = await getTranslations("gigs.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
 
   const payload: UpdateGigInput = {};
 
@@ -125,7 +150,7 @@ export async function updateGig(
 
   return guardedAction(
     () =>
-      fetchServerApi(`/gigs/${id}`, {
+      fetchServerApi(apiPath`/gigs/${id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
@@ -135,23 +160,19 @@ export async function updateGig(
 
 /** Moves the gig to the trash. */
 export async function deleteGig(id: string, bandId?: string) {
-  const t = await getTranslations("gigs.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/gigs/${id}`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/gigs/${id}`, { method: "DELETE" }),
     () => revalidateGigViews(bandId),
   );
 }
 
 export async function enableGigSharing(id: string): Promise<ActionResult<Gig>> {
-  const t = await getTranslations("gigs.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi<Gig>(`/gigs/${id}/share`, { method: "POST" }),
+    () => fetchServerApi<Gig>(apiPath`/gigs/${id}/share`, { method: "POST" }),
     () => revalidateDashboard("/gigs/[id]"),
   );
 }
@@ -159,12 +180,10 @@ export async function enableGigSharing(id: string): Promise<ActionResult<Gig>> {
 export async function disableGigSharing(
   id: string,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("gigs.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/gigs/${id}/share`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/gigs/${id}/share`, { method: "DELETE" }),
     () => revalidateDashboard("/gigs/[id]"),
   );
 }

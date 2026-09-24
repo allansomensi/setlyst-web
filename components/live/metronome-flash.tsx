@@ -7,6 +7,12 @@ import type { MetronomeController } from "@/hooks/use-metronome";
 const MAX_FLASH_MS = 150;
 /** Fraction of the beat a pulse may occupy, so pulses never run together. */
 const FLASH_DUTY = 0.34;
+/**
+ * WCAG 2.3.1 (three flashes): never more than three pulses in any second.
+ * Above 180 BPM only the downbeat flashes, and even downbeats are skipped
+ * if they come faster than that (a fast tempo in 1/4 or 2/4).
+ */
+const MIN_FLASH_GAP_MS = 1000 / 3;
 
 interface MetronomeFlashProps {
   metronome: MetronomeController;
@@ -42,8 +48,15 @@ export function MetronomeFlash({ metronome, isRunning }: MetronomeFlashProps) {
     if (!element) return;
 
     let animation: Animation | null = null;
+    let lastFlashAt = -Infinity;
 
     const unsubscribe = metronome.subscribe(({ beat, intervalMs }) => {
+      const now = performance.now();
+      const tooFast = intervalMs < MIN_FLASH_GAP_MS;
+      if (tooFast && beat !== 0) return;
+      if (now - lastFlashAt < MIN_FLASH_GAP_MS - 5) return;
+      lastFlashAt = now;
+
       element.dataset.accent = beat === 0 ? "true" : "false";
 
       // A pulse must always finish inside its own beat — at 200 BPM the

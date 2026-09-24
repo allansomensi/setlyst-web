@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { usePageSize } from "@/hooks/use-page-size";
+import { useSyncSearchParams } from "@/hooks/use-url-state";
 import { filterBySearch } from "@/lib/search";
 
 export type SortDirection = "asc" | "desc" | null;
@@ -11,17 +13,47 @@ export interface SortConfig {
   direction: SortDirection;
 }
 
+export interface TableControlsOptions {
+  /**
+   * Keep search, sort and page in the query string (`q`, `sort`, `dir`,
+   * `page`), so Back from a row lands on the same view. On by default.
+   */
+  syncUrl?: boolean;
+  /** Prefix for the query keys, for a page with more than one table. */
+  paramPrefix?: string;
+}
+
+function parseSort(key: string | null, dir: string | null): SortConfig {
+  if (!key || (dir !== "asc" && dir !== "desc")) {
+    return { key: null, direction: null };
+  }
+  return { key, direction: dir };
+}
+
 export function useTableControls<T>(
   data: T[],
   searchableKeys: readonly (keyof T)[],
+  { syncUrl = true, paramPrefix = "" }: TableControlsOptions = {},
 ) {
+  const params = useSearchParams();
+  const param = (name: string) =>
+    syncUrl ? (params?.get(`${paramPrefix}${name}`) ?? null) : null;
+
   const [itemsPerPage, setItemsPerPage] = usePageSize();
-  const [search, setSearch] = useState("");
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: null,
-    direction: null,
+  const [search, setSearch] = useState(() => param("q") ?? "");
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const key = param("sort");
+    // Only columns the rows actually have; anything else is ignored.
+    const known =
+      key !== null && data.length > 0 && typeof data[0] === "object"
+        ? key in (data[0] as object)
+        : key !== null;
+    return known ? parseSort(key, param("dir")) : parseSort(null, null);
   });
-  const [requestedPage, setCurrentPage] = useState(1);
+  const [requestedPage, setCurrentPage] = useState(() => {
+    const page = Number(param("page"));
+    return Number.isInteger(page) && page > 1 ? page : 1;
+  });
 
   const handleSearch = useCallback((term: string) => {
     setSearch(term);
@@ -74,6 +106,16 @@ export function useTableControls<T>(
       setCurrentPage(1);
     },
     [setItemsPerPage],
+  );
+
+  useSyncSearchParams(
+    {
+      [`${paramPrefix}q`]: search.trim() || null,
+      [`${paramPrefix}sort`]: sortConfig.direction ? sortConfig.key : null,
+      [`${paramPrefix}dir`]: sortConfig.direction,
+      [`${paramPrefix}page`]: currentPage > 1 ? String(currentPage) : null,
+    },
+    syncUrl,
   );
 
   const processedData = useMemo(() => {

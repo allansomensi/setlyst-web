@@ -10,7 +10,12 @@ import {
   Lock,
   Sparkles,
   TriangleAlert,
+  Undo2,
 } from "lucide-react";
+import { Link } from "@/components/nav-link";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { LEGAL_HREFS } from "@/lib/legal";
+import { withdrawalOpen, type BillingState } from "@/lib/trial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +33,7 @@ import {
   changePaidPlan,
   openBillingPortal,
   startCheckout,
+  withdrawSubscription,
 } from "@/lib/actions/billing";
 import { toastActionError } from "@/lib/action-toast";
 import { formatApiDate, parseApiTimestamp } from "@/lib/dates";
@@ -65,6 +71,12 @@ export function paymentsAvailable(billing: BillingMe): boolean {
 
 type PickerMode = "checkout" | "change";
 
+/** A plan (and interval) chosen before arriving here, e.g. on /pricing. */
+export interface PlanPreselection {
+  plan: string;
+  interval: BillingInterval;
+}
+
 // ---------------------------------------------------------------------
 // Plan card footer
 // ---------------------------------------------------------------------
@@ -76,20 +88,74 @@ export function PaidPlanActions({
   billing,
   plans,
   readOnly,
+  preselect = null,
 }: {
-  billing: BillingMe;
+  billing: BillingState;
   plans: PublicPlan[];
   readOnly: boolean;
+  preselect?: PlanPreselection | null;
 }) {
   const t = useTranslations("billing.checkout");
   const locale = useLocale();
-  const [picker, setPicker] = useState<PickerMode | null>(null);
+  const router = useAppRouter();
+  const paidNow = isPaidAndLive(billing.subscription);
+  // Arrived with a plan already chosen (`?plan=&interval=` from the
+  // pricing page): the picker starts open on it. Not when the plan can't be
+  // bought, or while a pending payment / cancellation blocks changes.
+  const [picker, setPicker] = useState<PickerMode | null>(() => {
+    if (!preselect || readOnly) return null;
+    const buyable = plans.some(
+      (plan) =>
+        plan.code === preselect.plan &&
+        (plan.price_monthly_cents > 0 || plan.price_yearly_cents > 0),
+    );
+    const blocked =
+      paidNow &&
+      (billing.subscription?.status === "past_due" ||
+        billing.subscription?.cancel_at_period_end);
+    if (!buyable || blocked) return null;
+    return paidNow ? "change" : "checkout";
+  });
   const [portalPending, setPortalPending] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawPending, setWithdrawPending] = useState(false);
   const subscription = billing.subscription;
   const paying = isPaidAndLive(subscription);
   const purchasable = plans.filter(
     (plan) => plan.price_monthly_cents > 0 || plan.price_yearly_cents > 0,
   );
+  const canWithdraw = paying && withdrawalOpen(billing);
+
+  // Drop `?plan=&interval=` once used, so a reload doesn't reopen it.
+  useEffect(() => {
+    if (!preselect) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("plan");
+    url.searchParams.delete("interval");
+    window.history.replaceState(null, "", url);
+  }, [preselect]);
+
+  const withdraw = async () => {
+    if (withdrawPending) return;
+    setWithdrawPending(true);
+    const result = await withdrawSubscription();
+    setWithdrawPending(false);
+    if (!result.success || !result.data) {
+      if (!result.success) toastActionError(result, result.error);
+      return;
+    }
+    setWithdrawOpen(false);
+    toast.success(
+      t("withdraw.done", {
+        amount: formatMoney(
+          result.data.refunded_cents,
+          result.data.currency.toUpperCase(),
+          locale,
+        ),
+      }),
+    );
+    router.refresh();
+  };
 
   const goToPortal = async () => {
     if (portalPending) return;
@@ -115,7 +181,13 @@ export function PaidPlanActions({
       {paying && subscription?.status === "past_due" && (
         <Alert variant="warning">
           <TriangleAlert />
-          <AlertDescription>{t("pastDue")}</AlertDescription>
+          <AlertDescription>
+            {billing.past_due_since
+              ? t("pastDueSince", {
+                  date: formatApiDate(billing.past_due_since, locale),
+                })
+              : t("pastDue")}
+          </AlertDescription>
         </Alert>
       )}
       {paying && subscription?.cancel_at_period_end && (
@@ -170,12 +242,45 @@ export function PaidPlanActions({
         <p className="text-muted-foreground text-xs">{changeBlocked}</p>
       )}
 
+      {canWithdraw && billing.withdrawal_eligible_until && (
+        <div className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground text-sm">
+            {t("withdraw.eligible", {
+              date: formatApiDate(billing.withdrawal_eligible_until, locale, {
+                dateStyle: "long",
+              }),
+            })}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => setWithdrawOpen(true)}
+            disabled={readOnly}
+            className="shrink-0"
+          >
+            <Undo2 className="mr-2 size-4" aria-hidden />
+            {t("withdraw.button")}
+          </Button>
+        </div>
+      )}
+
+      <ConfirmActionDialog
+        open={withdrawOpen}
+        onOpenChange={setWithdrawOpen}
+        title={t("withdraw.confirmTitle")}
+        description={t("withdraw.confirmDescription")}
+        confirmLabel={t("withdraw.confirm")}
+        cancelLabel={t("withdraw.keep")}
+        onConfirm={withdraw}
+        pending={withdrawPending}
+      />
+
       <PlanPickerDialog
         open={picker !== null}
         mode={picker ?? "checkout"}
         onOpenChange={(open) => !open && setPicker(null)}
         plans={purchasable}
         subscription={subscription}
+        preselect={preselect}
       />
     </div>
   );
@@ -191,12 +296,14 @@ function PlanPickerDialog({
   onOpenChange,
   plans,
   subscription,
+  preselect,
 }: {
   open: boolean;
   mode: PickerMode;
   onOpenChange: (open: boolean) => void;
   plans: PublicPlan[];
   subscription: Subscription | null;
+  preselect: PlanPreselection | null;
 }) {
   const [pending, setPending] = useState(false);
   return (
@@ -208,6 +315,7 @@ function PlanPickerDialog({
             mode={mode}
             plans={plans}
             subscription={subscription}
+            preselect={preselect}
             pending={pending}
             setPending={setPending}
             close={() => onOpenChange(false)}
@@ -222,6 +330,7 @@ function PlanPickerBody({
   mode,
   plans,
   subscription,
+  preselect,
   pending,
   setPending,
   close,
@@ -229,6 +338,7 @@ function PlanPickerBody({
   mode: PickerMode;
   plans: PublicPlan[];
   subscription: Subscription | null;
+  preselect: PlanPreselection | null;
   pending: boolean;
   setPending: (pending: boolean) => void;
   close: () => void;
@@ -242,16 +352,20 @@ function PlanPickerBody({
     mode === "change" ? (subscription?.billing_interval ?? null) : null;
 
   const [interval, setInterval] = useState<BillingInterval>(
-    currentInterval ?? "monthly",
+    preselect?.interval ?? currentInterval ?? "monthly",
   );
   // When the picker opened (for the trial carry-over hint).
   const [openedAt] = useState(() => Date.now());
   const [selected, setSelected] = useState<string | null>(
     () =>
+      (preselect && plans.some((p) => p.code === preselect.plan)
+        ? preselect.plan
+        : null) ??
       (subscription?.plan_code &&
       plans.some((p) => p.code === subscription.plan_code)
         ? subscription.plan_code
-        : (plans.find((p) => p.highlighted) ?? plans[0])?.code) ?? null,
+        : (plans.find((p) => p.highlighted) ?? plans[0])?.code) ??
+      null,
   );
 
   const chosen = plans.find((p) => p.code === selected) ?? null;
@@ -294,11 +408,24 @@ function PlanPickerBody({
       return;
     }
     const result = await changePaidPlan(chosen.code, interval);
-    setPending(false);
     if (!result.success) {
+      // The bank asks for confirmation (3-D Secure): finish on Stripe's
+      // invoice page; the new plan applies once the charge is confirmed.
+      const confirmUrl = result.meta?.hosted_invoice_url;
+      if (
+        result.apiCode === "PAYMENT_ACTION_REQUIRED" &&
+        typeof confirmUrl === "string"
+      ) {
+        toast.info(t("actionRequired"), { duration: 10000 });
+        // Stays "pending" while the browser leaves for Stripe.
+        window.location.assign(confirmUrl);
+        return;
+      }
+      setPending(false);
       toastActionError(result, result.error);
       return;
     }
+    setPending(false);
     toast.success(
       t("changed", {
         plan: pickLocalized(chosen.name, locale) || chosen.code,
@@ -417,15 +544,53 @@ function PlanPickerBody({
               </li>
             )}
             <li>{t("renews")}</li>
+            <li>{t("withdrawalNotice")}</li>
             <li>{t("stripeNote")}</li>
           </>
         ) : (
           <>
+            {chosen && !unchanged && (
+              <li className="text-foreground">
+                {t("newPrice", {
+                  price: formatMoney(
+                    planPrice({ ...chosen, promotion: null }, interval).cents,
+                    chosen.currency,
+                    locale,
+                  ),
+                  per: tPricing(`per.${interval}`),
+                })}
+              </li>
+            )}
             <li>{t("prorated")}</li>
             <li>{t("declinedKeeps")}</li>
           </>
         )}
       </ul>
+
+      {mode === "checkout" && (
+        <p className="text-muted-foreground border-t pt-3 text-xs leading-relaxed">
+          {t.rich("legalConsent", {
+            terms: (chunks) => (
+              <Link
+                href={LEGAL_HREFS.subscription}
+                target="_blank"
+                className="text-foreground font-medium underline underline-offset-2"
+              >
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link
+                href={LEGAL_HREFS.privacy}
+                target="_blank"
+                className="text-foreground font-medium underline underline-offset-2"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
+      )}
 
       <DialogFooter>
         <Button variant="outline" onClick={close} disabled={pending}>

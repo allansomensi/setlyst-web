@@ -7,6 +7,7 @@ import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
 import { fetchServerApi } from "@/lib/api-server";
 import type { AuditLogEntry, PaginatedResponse } from "@/types/api";
+import { requireStaffPage } from "@/lib/staff-guard";
 
 const CATEGORIES = [
   "user.",
@@ -33,6 +34,7 @@ export default async function AdminAuditPage({
 }: {
   searchParams: ListSearchParams;
 }) {
+  await requireStaffPage("audit");
   const t = await getTranslations("staff.auditPage");
   const { query, page } = adminListQuery(await searchParams, [
     "q",

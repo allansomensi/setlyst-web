@@ -2,7 +2,12 @@
 
 import { fetchServerApi } from "@/lib/api-server";
 import { apiPath } from "@/lib/api-endpoint";
-import { guardedAction, ActionResult } from "@/lib/action-guard";
+import {
+  guardedAction,
+  invalidRequest,
+  ActionResult,
+} from "@/lib/action-guard";
+import { isUuid } from "@/lib/uuid";
 import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 import {
@@ -41,12 +46,10 @@ export async function updateBand(
     name?: string;
     description?: string;
     logo_url?: string | null;
-    members_can_manage_setlists?: boolean;
   },
 ): Promise<ActionResult<void>> {
+  if (!isUuid(id)) return invalidRequest();
   const t = await getTranslations("bands.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
 
   const payload: typeof data = {};
 
@@ -66,13 +69,9 @@ export async function updateBand(
     payload.logo_url = data.logo_url ? data.logo_url.trim() || null : null;
   }
 
-  if (data.members_can_manage_setlists !== undefined) {
-    payload.members_can_manage_setlists = data.members_can_manage_setlists;
-  }
-
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${id}`, {
+      fetchServerApi(apiPath`/bands/${id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
@@ -84,12 +83,10 @@ export async function updateBand(
 }
 
 export async function deleteBand(id: string): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/bands/${id}`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/bands/${id}`, { method: "DELETE" }),
     () => revalidateDashboard("/bands"),
   );
 }
@@ -98,13 +95,11 @@ export async function transferBandOwnership(
   id: string,
   newOwnerId: string,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!id || !newOwnerId) return { success: false, error: t("invalidId") };
+  if (!isUuid(id) || !isUuid(newOwnerId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${id}/transfer-ownership`, {
+      fetchServerApi(apiPath`/bands/${id}/transfer-ownership`, {
         method: "POST",
         body: JSON.stringify({ new_owner_id: newOwnerId }),
       }),
@@ -117,13 +112,11 @@ export async function updateBandMemberRole(
   userId: string,
   role: BandRole,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId || !userId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId) || !isUuid(userId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${bandId}/members/${userId}`, {
+      fetchServerApi(apiPath`/bands/${bandId}/members/${userId}`, {
         method: "PATCH",
         body: JSON.stringify({ role }),
       }),
@@ -136,13 +129,11 @@ export async function updateBandMemberTitle(
   userId: string,
   title: string | null,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId || !userId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId) || !isUuid(userId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${bandId}/members/${userId}/title`, {
+      fetchServerApi(apiPath`/bands/${bandId}/members/${userId}/title`, {
         method: "PATCH",
         body: JSON.stringify({ title }),
       }),
@@ -154,13 +145,11 @@ export async function removeBandMember(
   bandId: string,
   userId: string,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId || !userId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId) || !isUuid(userId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${bandId}/members/${userId}`, {
+      fetchServerApi(apiPath`/bands/${bandId}/members/${userId}`, {
         method: "DELETE",
       }),
     () => {
@@ -181,13 +170,11 @@ export async function createBandInvite(
   bandId: string,
   data: { role?: BandRole; max_uses?: number; expires_in_hours?: number },
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${bandId}/invites`, {
+      fetchServerApi(apiPath`/bands/${bandId}/invites`, {
         method: "POST",
         body: JSON.stringify(data),
       }),
@@ -199,13 +186,11 @@ export async function revokeBandInvite(
   bandId: string,
   inviteId: string,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId || !inviteId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId) || !isUuid(inviteId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${bandId}/invites/${inviteId}`, {
+      fetchServerApi(apiPath`/bands/${bandId}/invites/${inviteId}`, {
         method: "DELETE",
       }),
     () => revalidateDashboard("/bands/[id]", "layout"),
@@ -232,12 +217,10 @@ export async function acceptBandInvite(
 export async function getBandRolePermissions(
   bandId: string,
 ): Promise<ActionResult<BandRolePermission[]>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId)) return invalidRequest();
 
   return guardedAction(() =>
-    fetchServerApi<BandRolePermission[]>(`/bands/${bandId}/permissions`),
+    fetchServerApi<BandRolePermission[]>(apiPath`/bands/${bandId}/permissions`),
   );
 }
 
@@ -245,13 +228,11 @@ export async function updateBandRolePermissions(
   bandId: string,
   permissions: BandRolePermissionEntry[],
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!bandId) return { success: false, error: t("invalidId") };
+  if (!isUuid(bandId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/bands/${bandId}/permissions`, {
+      fetchServerApi(apiPath`/bands/${bandId}/permissions`, {
         method: "PUT",
         body: JSON.stringify({ permissions }),
       }),
@@ -260,12 +241,10 @@ export async function updateBandRolePermissions(
 }
 
 export async function favoriteBand(id: string): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/bands/${id}/favorite`, { method: "POST" }),
+    () => fetchServerApi(apiPath`/bands/${id}/favorite`, { method: "POST" }),
     () => {
       revalidateDashboard("/bands");
       revalidateDashboard("");
@@ -274,12 +253,10 @@ export async function favoriteBand(id: string): Promise<ActionResult<void>> {
 }
 
 export async function unfavoriteBand(id: string): Promise<ActionResult<void>> {
-  const t = await getTranslations("bands.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/bands/${id}/favorite`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/bands/${id}/favorite`, { method: "DELETE" }),
     () => {
       revalidateDashboard("/bands");
       revalidateDashboard("");

@@ -24,8 +24,12 @@ function revalidatePins(type: PinItemType) {
   for (const path of PIN_VIEWS[type]) revalidateDashboard(path);
 }
 
-function isValidItem(type: string, id: string): boolean {
-  return (PIN_ITEM_TYPES as readonly string[]).includes(type) && isUuid(id);
+function isValidItem(type: unknown, id: unknown): boolean {
+  return (
+    typeof type === "string" &&
+    (PIN_ITEM_TYPES as readonly string[]).includes(type) &&
+    isUuid(id)
+  );
 }
 
 /** Pins an item to the home page (idempotent; at most 12). */
@@ -62,17 +66,23 @@ export async function unpinItem(
 export async function reorderPins(
   items: Array<{ item_type: PinItemType; item_id: string }>,
 ): Promise<ActionResult<void>> {
+  // Client input: checked for shape before anything reads it.
   if (
+    !Array.isArray(items) ||
     items.length > 12 ||
-    items.some((i) => !isValidItem(i.item_type, i.item_id))
+    items.some(
+      (i) =>
+        !i || typeof i !== "object" || !isValidItem(i.item_type, i.item_id),
+    )
   ) {
     return invalidRequest();
   }
+  const clean = items.map(({ item_type, item_id }) => ({ item_type, item_id }));
   return guardedAction(
     () =>
       fetchServerApi<void>("/users/me/pins/order", {
         method: "PUT",
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items: clean }),
       }),
     () => revalidateDashboard(""),
   );

@@ -53,7 +53,10 @@ export function AvatarCard({
     startTransition(async () => {
       const result = await updateAvatar(next);
       if (!result.success) {
-        if ("code" in result && result.code) {
+        if (
+          ("code" in result && result.code) ||
+          result.apiCode === "EMAIL_NOT_VERIFIED"
+        ) {
           toastActionError(result, result.error);
           return;
         }

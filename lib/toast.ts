@@ -36,8 +36,14 @@ export const toast = Object.assign(show, {
     sonner.info(message, tagged(data)),
   warning: (message: Message, data?: ExternalToast) =>
     sonner.warning(message, tagged(data)),
+  // Errors are what people need to read (and may want to copy): longer
+  // on screen, and a close button so they can be dismissed from the
+  // keyboard too.
   error: (message: Message, data?: ExternalToast) =>
-    sonner.error(message, tagged(data)),
+    sonner.error(
+      message,
+      tagged({ duration: 8000, closeButton: true, ...data }),
+    ),
   message: (message: Message, data?: ExternalToast) =>
     sonner.message(message, tagged(data)),
   loading: (message: Message, data?: ExternalToast) =>

@@ -1,7 +1,7 @@
 import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
-import { Gig, Setlist, BandWithMembership } from "@/types/api";
+import { Gig, Setlist, BandWithMembership, QuotaReport } from "@/types/api";
 import { GigsTable } from "./_components/gigs-table";
 import { BandOption, TourOption } from "./_components/gigs-dialog";
 import type { Tour } from "@/types/content";
@@ -21,13 +21,20 @@ export default async function GigsPage({
   // timeout) shouldn't take the whole page down when the others loaded
   // fine. `hadError` is what tells GigsTable an empty `gigs` array means
   // "this fetch failed," not "you have no shows" — see LoadErrorNotice.
-  const [personalGigsRes, personalSetlistsRes, bandsRaw, personalToursRes] =
-    await Promise.all([
-      fetchOrFailed(fetchAllServerPages<Gig>("/gigs")),
-      fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
-      fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
-      fetchOrFailed(fetchAllServerPages<Tour>("/tours?status=all")),
-    ]);
+  const [
+    personalGigsRes,
+    personalSetlistsRes,
+    bandsRaw,
+    personalToursRes,
+    quotas,
+  ] = await Promise.all([
+    fetchOrFailed(fetchAllServerPages<Gig>("/gigs")),
+    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
+    fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
+    fetchOrFailed(fetchAllServerPages<Tour>("/tours?status=all")),
+    // Only for the usage chip next to "New show": never fatal.
+    fetchServerApi<QuotaReport>("/users/me/quotas").catch(() => null),
+  ]);
 
   const personalGigsFailed = personalGigsRes === FETCH_FAILED;
   const personalSetlistsFailed = personalSetlistsRes === FETCH_FAILED;
@@ -126,6 +133,7 @@ export default async function GigsPage({
         loadError={hadError}
         tours={tours}
         tourFilter={tourFilter}
+        quotas={quotas}
       />
     </div>
   );

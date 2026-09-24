@@ -6,6 +6,11 @@ import {
   jsonError,
   pickQuery,
 } from "@/lib/server/api-route";
+import {
+  CLIENT_API_QUERY_KEYS,
+  clientApiEndpoint,
+  isAllowedClientApiRoute,
+} from "@/lib/server/client-api-routes";
 
 /**
  * The browser's door to the API for the few calls that run client-side
@@ -14,32 +19,8 @@ import {
  * the token itself never reaches the page (audit M6).
  *
  * Deliberately an allowlist, not an open proxy: only the method + path
- * shapes below are forwarded. Extend `ROUTES` when a client component
- * needs another endpoint; prefer a server action for mutations.
+ * shapes in lib/server/client-api-routes.ts are forwarded.
  */
-
-const ID = "[0-9a-fA-F-]{36}";
-
-const ROUTES: ReadonlyArray<{ method: string; pattern: RegExp }> = [
-  { method: "GET", pattern: /^\/notifications$/ },
-  { method: "GET", pattern: /^\/notifications\/unread-count$/ },
-  { method: "PATCH", pattern: new RegExp(`^/notifications/${ID}/read$`) },
-  { method: "PATCH", pattern: /^\/notifications\/read-all$/ },
-  { method: "GET", pattern: /^\/users\/me\/preferences$/ },
-  { method: "GET", pattern: /^\/(songs|artists|setlists|gigs|bands)$/ },
-  { method: "GET", pattern: new RegExp(`^/songs/${ID}$`) },
-  { method: "GET", pattern: new RegExp(`^/setlists/${ID}/(items|songs)$`) },
-  { method: "GET", pattern: new RegExp(`^/bands/${ID}/(gigs|setlists)$`) },
-];
-
-const QUERY_KEYS = new Set([
-  "page",
-  "per_page",
-  "q",
-  "status",
-  "scope",
-  "type",
-]);
 
 /** Largest JSON body forwarded (none of the allowed calls need more). */
 const MAX_BODY_BYTES = 64 * 1024;
@@ -49,10 +30,10 @@ async function handle(
   { params }: { params: Promise<{ path: string[] }> },
 ): Promise<Response> {
   const { path } = await params;
-  const endpoint = `/${path.map(encodeURIComponent).join("/")}`;
+  const endpoint = clientApiEndpoint(path);
   const method = request.method.toUpperCase();
 
-  if (!ROUTES.some((r) => r.method === method && r.pattern.test(endpoint))) {
+  if (!isAllowedClientApiRoute(method, endpoint)) {
     return jsonError(404, "NOT_FOUND", "Unknown endpoint.");
   }
 
@@ -60,7 +41,7 @@ async function handle(
     return jsonError(403, "FORBIDDEN", "Cross-site request refused.");
   }
 
-  const query = pickQuery(request.nextUrl.searchParams, QUERY_KEYS);
+  const query = pickQuery(request.nextUrl.searchParams, CLIENT_API_QUERY_KEYS);
   const target = query.size ? `${endpoint}?${query}` : endpoint;
 
   let body: string | undefined;

@@ -31,7 +31,15 @@
     "clearSearch": "Clear search",
     "remove": "Remove",
     "moreActionsFor": "More actions: {name}",
-    "copyManually": "Couldn't copy. Select the text and copy it manually."
+    "copyManually": "Couldn't copy. Select the text and copy it manually.",
+    "discardChanges": {
+      "title": "Discard changes?",
+      "description": "What you've filled in here hasn't been saved and will be lost.",
+      "keepEditing": "Keep editing",
+      "discard": "Discard"
+    },
+    "skipToContent": "Skip to content",
+    "notifications": "Notifications"
   },
   "pagination": {
     "previous": "Previous",
@@ -77,7 +85,8 @@
     "whatsNew": "What's new",
     "whatsNewUnread": "What's new (there are updates you haven't seen)",
     "profile": "My account",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "contactSupport": "Contact support"
   },
   "auth": {
     "login": {
@@ -179,6 +188,43 @@
     "shortcuts": "Shortcuts",
     "tours": {
       "description": "Seasons of gigs with dates and setlists"
+    },
+    "nextGig": {
+      "title": "Next gig",
+      "openLive": "Open Live Mode",
+      "noSetlist": "No setlist linked yet",
+      "setlistLinked": "Setlist linked",
+      "linkSetlist": "Link a setlist"
+    },
+    "onboarding": {
+      "title": "Get ready for your first show",
+      "description": "A few steps to have your songs on stage with you.",
+      "dismiss": "Hide these steps",
+      "progress": "{done} of {total} done",
+      "stepDone": "done",
+      "stepTodo": "to do",
+      "steps": {
+        "song": {
+          "title": "Add your first song",
+          "hint": "Title, artist, key and BPM."
+        },
+        "lyrics": {
+          "title": "Write the lyrics with chords",
+          "hint": "Open the song and choose Edit lyrics, or import a ChordPro file."
+        },
+        "setlist": {
+          "title": "Build a setlist",
+          "hint": "Put songs in the order you'll play them, with blocks and breaks."
+        },
+        "live": {
+          "title": "Try Live Mode",
+          "hint": "Open a setlist and press Live Mode: big lyrics, auto-scroll and metronome."
+        },
+        "install": {
+          "title": "Install the app",
+          "hint": "Opens full screen and keeps working with no signal at the venue."
+        }
+      }
     }
   },
   "artists": {
@@ -212,6 +258,10 @@
     "errors": {
       "nameLength": "Artist name must be between 1 and 255 characters.",
       "invalidId": "Invalid artist ID."
+    },
+    "emptyState": {
+      "title": "No artists yet",
+      "description": "Artists are created as you add songs, or you can add them here."
     }
   },
   "songs": {
@@ -221,7 +271,7 @@
     "export": "Export",
     "exportChordpro": "ChordPro (.cho)",
     "exportSuccess": "Songs exported.",
-    "searchPlaceholder": "Search by title, genre, artist…",
+    "searchPlaceholder": "Search by title, artist, tag or a line of the lyrics…",
     "lyricsTag": "lyrics",
     "table": {
       "title": "Title",
@@ -311,7 +361,7 @@
       "invalidId": "Invalid song ID."
     },
     "tagFilterLabel": "Tags:",
-    "clearTagFilter": "Clear",
+    "clearTagFilter": "Show all songs",
     "filterByTag": "Show songs tagged “{tag}”",
     "manageTags": "Tags",
     "emptyTagFilter": "No songs tagged “{tag}”.",
@@ -342,6 +392,10 @@
         "high": "High",
         "veryHigh": "Very high"
       }
+    },
+    "emptyState": {
+      "title": "Your repertoire starts here",
+      "description": "Add a song with its key, BPM and lyrics with chords, or import ChordPro files you already have."
     }
   },
   "lyrics": {
@@ -425,6 +479,19 @@
     "render": {
       "capo": "Capo {fret}",
       "repeatChorus": "Repeat chorus"
+    },
+    "savedInPlace": "Saved",
+    "saveAndClose": "Save and close",
+    "saveAndCloseShort": "Done",
+    "saveShortcut": "Save (Ctrl+S)",
+    "editorLabel": "Lyrics and chords of {title}",
+    "conflict": {
+      "title": "These lyrics changed in the meantime",
+      "description": "Someone saved a different version of these lyrics after you opened the editor.",
+      "descriptionBy": "@{user} saved a different version of these lyrics after you opened the editor.",
+      "hint": "Saving now replaces that version with yours. If you're not sure, copy your text somewhere first and load the saved version.",
+      "loadTheirs": "Load the saved version",
+      "overwrite": "Replace with mine"
     }
   },
   "setlists": {
@@ -568,7 +635,8 @@
       "deleteTitle": "Delete setlist",
       "moveToTrash": "Move to trash",
       "restored": "Setlist restored.",
-      "duplicatedSkipped": "Setlist duplicated. {count, plural, one {# band song was left out} other {# band songs were left out}}: band songs don't go into personal setlists."
+      "duplicatedSkipped": "Setlist duplicated. {count, plural, one {# band song was left out} other {# band songs were left out}}: band songs don't go into personal setlists.",
+      "titleRequired": "Enter the setlist title."
     },
     "songs": {
       "title": "Songs in this Setlist",
@@ -621,7 +689,23 @@
         "addNamed": "Add “{title}”",
         "suggestShort": "Suggest",
         "addShort": "Add",
-        "repertoireMore": "Showing {shown} of {total}. Refine the search to find others."
+        "repertoireMore": "Showing {shown} of {total}. Refine the search to find others.",
+        "searchMine": "Search by title, artist or key",
+        "filterTag": "Tag",
+        "allTags": "All tags",
+        "filterKey": "Key",
+        "allKeys": "All keys",
+        "listLabel": "Songs you can add",
+        "noMatch": "No song matches the search or filters.",
+        "clearFilters": "Clear filters",
+        "selectedCount": "{count, plural, =0 {No songs selected} one {# song selected} other {# songs selected}}",
+        "clearSelection": "Clear selection",
+        "showingFirst": "Showing the first {shown} of {total}. Refine the search to find the others.",
+        "addMany": "{count, plural, =0 {Add songs} one {Add # song} other {Add # songs}}",
+        "addedMany": "{count, plural, one {# song added} other {# songs added}} to the setlist.",
+        "addedPartial": "{added, plural, one {# song added} other {# songs added}}; {rest, plural, one {# more wasn't} other {# more weren't}}: {reason}",
+        "skippedNote": "{count, plural, one {# song was} other {# songs were}} already in the setlist.",
+        "done": "Done"
       },
       "addSection": "Add section",
       "addBlock": "Add block",
@@ -652,7 +736,19 @@
       "removeTitle": "Remove song",
       "playSong": "Open “{title}” in Live Mode",
       "dragHandle": "Drag to reorder (or Space and arrow keys)",
-      "suggestSong": "Suggest a song"
+      "suggestSong": "Suggest a song",
+      "dragHandleFor": "Drag to reorder “{title}” (or Space and the arrow keys)",
+      "moveUp": "Move “{title}” up",
+      "moveDown": "Move “{title}” down",
+      "dnd": {
+        "roleDescription": "reorderable item",
+        "instructions": "To pick up an item, press Space or Enter. Move it with the up and down arrow keys, press Space or Enter again to drop it, or Escape to cancel.",
+        "pickedUp": "Picked up “{title}”, at position {position} of {total}.",
+        "movedOver": "“{title}” moved to position {position} of {total}.",
+        "dropped": "“{title}” dropped at position {position} of {total}.",
+        "cancelled": "Move cancelled. “{title}” is back at position {position}.",
+        "moved": "“{title}” is now at position {position} of {total}."
+      }
     },
     "errors": {
       "titleLength": "Setlist title must be between 1 and 255 characters.",
@@ -691,6 +787,10 @@
       "tooltip": "Collects every song of the band",
       "explanation": "The repertoire collects every song of the band. Any song added to a band setlist lands here automatically, and you build new setlists from it.",
       "editHint": "The repertoire can't be renamed. You can change its description and links."
+    },
+    "emptyState": {
+      "title": "No setlists yet",
+      "description": "A setlist is the running order of a show: songs, blocks and breaks, with the total time and Live Mode on stage."
     }
   },
   "gigs": {
@@ -743,7 +843,8 @@
       "restored": "Gig restored.",
       "tourLabel": "Tour",
       "noTourOption": "No tour",
-      "currentTour": "Current tour"
+      "currentTour": "Current tour",
+      "venueRequired": "Enter where the gig is."
     },
     "errors": {
       "venueLength": "Venue must be between 1 and 255 characters.",
@@ -776,7 +877,13 @@
     "linkSetlistAction": "Link a setlist",
     "noSetlistsAvailable": "Create a setlist first to link it to this gig.",
     "tourFilter": "Showing the gigs of the tour “{name}”.",
-    "clearTourFilter": "Show all"
+    "clearTourFilter": "Show all",
+    "emptyState": {
+      "title": "No gigs on the calendar",
+      "description": "Add a gig with its date and venue and link the setlist you'll play."
+    },
+    "addToCalendar": "Add to calendar",
+    "calendarFailed": "Couldn't create the calendar file for this gig."
   },
   "liveMode": {
     "noSongs": "No songs in this setlist",
@@ -810,7 +917,8 @@
       "tapTempoTitle": "Tap a few times to set the tempo",
       "beatsPerBarTitle": "Beats per bar",
       "muteClick": "Mute the click",
-      "unmuteClick": "Play an audible click"
+      "unmuteClick": "Play an audible click",
+      "clickSound": "Audible click"
     },
     "transpose": {
       "up": "Up a semitone (.)",
@@ -852,10 +960,19 @@
       "keyTranspose": "Transpose down / up",
       "sections": "Sections",
       "keyChords": "Show / hide chords",
-      "keySections": "Show / hide sections"
+      "keySections": "Show / hide sections",
+      "keyPage": "Scroll up / down one screen",
+      "keyPageThenSong": "Turn the page, then change song"
     },
     "active": {
       "pauseScroll": "Pause auto-scroll"
+    },
+    "pageTurn": {
+      "title": "Page turner / Page Down",
+      "page": "Turn the page, then next song",
+      "pageHelp": "On a long song, each press scrolls one screen; at the end of the song it moves to the next one.",
+      "song": "Next song right away",
+      "songHelp": "Each press changes song, wherever you are in the lyrics."
     }
   },
   "offlineSync": {
@@ -882,7 +999,14 @@
     "progressSetlists": "Saving setlists ({completed} of {total})…",
     "progressPages": "Saving pages for offline use…",
     "readOnlyNotice": "You're offline. Everything can be read, but creating and editing need a connection.",
-    "actionNeedsConnection": "Needs a connection"
+    "actionNeedsConnection": "Needs a connection",
+    "errors": {
+      "network": "No connection to the server. Check your internet and try again.",
+      "storage_full": "This device is out of storage space. Free up some space and try again.",
+      "session": "Your session expired. Sign in again to update the offline copy.",
+      "server": "Setlyst is having trouble right now. It will try again automatically.",
+      "unknown": "Something went wrong. Try again in a moment."
+    }
   },
   "users": {
     "title": "Users",
@@ -1242,6 +1366,7 @@
     "backupImportSuccess": "Backup imported.",
     "backupImportSuccessTitle": "Backup imported",
     "backupImportResultDescription": "Items added or updated in your account:",
+    "backupSkippedTours": "{count, plural, one {# tour wasn't imported} other {# tours weren't imported}} because your plan doesn't include tours; their gigs were imported without a tour. <link>See plans</link>",
     "backupInvalidFile": "Invalid or corrupted backup file.",
     "backupExportActionTitle": "Export data",
     "backupExportActionDesc": "Download a copy of your whole repertoire as a JSON file.",
@@ -1538,7 +1663,12 @@
       "autoAcceptInvalid": "Enter a number from 1 to 100.",
       "thresholdSaved": "Setting saved.",
       "saveSettings": "Save"
-    }
+    },
+    "emptyState": {
+      "title": "Play together with your band",
+      "description": "Create a band to share setlists, the repertoire and the gig calendar, or join one with an invite link."
+    },
+    "favoriteNamed": "Favorite {name}"
   },
   "notifications": {
     "title": "Notifications",
@@ -1610,6 +1740,12 @@
       "two_factor_enabled": "Two-step verification was turned on for your account.",
       "two_factor_disabled": "Two-step verification was turned off for your account.",
       "recovery_codes_regenerated": "New recovery codes were generated for your account.",
+      "google_linked": "A Google account was linked to your account. If it wasn't you, unlink it and change your password now.",
+      "google_unlinked": "The Google account was unlinked from your account.",
+      "password_reset_by_staff": "Our team set a temporary password for your account. You'll be asked to choose a new one at your next sign-in.",
+      "email_changed_by_staff": "Our team changed your account's e-mail address. If you didn't ask for this, contact support.",
+      "login_locked": "Sign-in to your account was temporarily locked after several wrong passwords. If it wasn't you, change your password.",
+      "reauth_sessions_revoked": "Too many wrong confirmations: we signed your account out on every device. If it wasn't you, change your password.",
       "other": "There was a security change on your account."
     }
   },
@@ -1654,7 +1790,29 @@
     "readOnlyNotice": "Read-only view of a setlist shared via Setlyst.",
     "madeWith": "Made with Setlyst",
     "gigNoSetlist": "No setlist has been linked to this gig yet.",
-    "gigReadOnlyNotice": "Read-only view of a gig shared via Setlyst."
+    "gigReadOnlyNotice": "Read-only view of a gig shared via Setlyst.",
+    "report": "Report content",
+    "metaSummary": "{count, plural, =1 {# song} other {# songs}} · {minutes} min",
+    "pdfPublicNotice": "The PDF of a public link only includes the running order and technical information, without lyrics or chords.",
+    "status": {
+      "gone": {
+        "title": {
+          "setlist": "This setlist link is turned off or doesn't exist",
+          "gig": "This gig link is turned off or doesn't exist"
+        },
+        "description": "Whoever shared it may have stopped sharing or created a new link. Ask them to send it again."
+      },
+      "unavailable": {
+        "title": {
+          "setlist": "This setlist is temporarily unavailable",
+          "gig": "This gig is temporarily unavailable"
+        },
+        "description": "The link is probably fine: we just couldn't load it right now. Try again in a moment."
+      },
+      "retry": "Try again",
+      "about": "What is Setlyst?",
+      "reference": "Reference:"
+    }
   },
   "apiErrors": {
     "generic": "Something went wrong. Please try again.",
@@ -1711,7 +1869,8 @@
       "missing_digit": "Add a number.",
       "missing_symbol": "Add a symbol (e.g. ! @ # -).",
       "contains_username": "Don't include your username.",
-      "too_common": "This password is too common."
+      "too_common": "This password is too common.",
+      "breached": "This password has appeared in data breaches; choose another one."
     },
     "rejected": "Couldn't complete this action. Check the details and try again.",
     "ACCOUNT_LOCKED": "Too many sign-in attempts. The account is temporarily locked.",
@@ -1805,7 +1964,19 @@
       "multiple_songs": "The file has more than one song; import one at a time.",
       "missing_title": "The file doesn't have the song's title.",
       "invalid_characters": "The file contains invalid characters."
-    }
+    },
+    "AGE_CONFIRMATION_REQUIRED": "To create an account, confirm that you are 18 or older, or 16 or 17 with your legal guardian's permission.",
+    "REAUTH_REQUIRED": "Confirm it's you to continue.",
+    "REAUTH_REQUIRED_PASSWORD": "Enter your password to confirm it's you.",
+    "REAUTH_REQUIRED_EMAIL_CODE": "Confirm it's you with the code we send to your e-mail.",
+    "ACCOUNT_LINK_REQUIRED": "An account with this e-mail already exists. Sign in with your password and link Google in Settings › Security.",
+    "PDF_TOO_LARGE": "This setlist is too large to export with lyrics. Export it without lyrics or split it into smaller setlists.",
+    "STAFF_TWO_FACTOR_REQUIRED": "Staff accounts must turn on two-step verification. Set it up in Settings → Security to continue.",
+    "WITHDRAWAL_NOT_ELIGIBLE": "This subscription is no longer within the 7-day withdrawal period.",
+    "BILLING_HAS_PAID_SUBSCRIPTIONS": "Paid subscriptions are live and keep being charged. Confirm again to switch plans off anyway.",
+    "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {# paid subscription is live and keeps being charged.} other {# paid subscriptions are live and keep being charged.}} Confirm again to switch plans off anyway.",
+    "IMPORT_IN_PROGRESS": "Another backup import is already running for this account. Wait for it to finish and try again.",
+    "PAYMENT_ACTION_REQUIRED": "Your bank needs you to confirm this payment. We'll take you to the confirmation page; the new plan applies once it's confirmed."
   },
   "downloads": {
     "failed": "Couldn't download the file. Try again.",
@@ -1977,11 +2148,18 @@
     "toc": "On this page",
     "languageNote": "If the versions of this document in other languages differ, the Portuguese (Brazil) version prevails.",
     "consent": {
-      "terms": "I have read and accept the <terms>Terms of Use</terms> and the <privacy>Privacy Policy</privacy>.",
+      "terms": "I have read and accept the <terms>Terms of Use</terms> and I am aware of the <privacy>Privacy Policy</privacy>. I also declare that I am 18 or older, or 16 or 17 with my legal guardian's permission.",
       "marketing": "I want to receive Setlyst news and offers by e-mail. I can unsubscribe at any time.",
-      "required": "To continue, accept the Terms of Use and the Privacy Policy.",
+      "required": "To continue, accept the Terms of Use and confirm your age.",
       "newTab": "(opens in a new tab)"
-    }
+    },
+    "history": "Version history",
+    "historyIntro": "What changed in each version of this document, newest first. Previous versions remain available for consultation.",
+    "historyCurrent": "In force",
+    "historyVersion": "Version {version}, in force since {date}",
+    "historyView": "Read this version",
+    "archivedNotice": "You are reading a previous version of this document, in force from {from} to {until}. <current>Read the version in force</current>.",
+    "archivedTitle": "{title}, version {version}"
   },
   "staff": {
     "status": {
@@ -2250,7 +2428,24 @@
         "moderation_band_logo_removed": "Band logo removed",
         "moderation_username_reset": "Username reset",
         "moderation_rescan": "Moderation rescan",
-        "finance_synced": "Finance synced with Stripe"
+        "finance_synced": "Finance synced with Stripe",
+        "user_login_succeeded": "Signed in",
+        "user_identity_linked": "Google account linked",
+        "user_identity_unlinked": "Google account unlinked",
+        "user_recovery_codes_regenerated": "Recovery codes regenerated",
+        "user_second_factor_failed": "Wrong verification code",
+        "user_reauth_failed": "Identity confirmation failed",
+        "user_reauth_sessions_revoked": "Signed out after failed confirmations",
+        "user_password_reset_failed": "Wrong password reset code",
+        "user_email_change_started": "E-mail change started",
+        "user_email_detached": "Unverified e-mail released",
+        "user_security_reset": "Security settings reset",
+        "user_communication_changed": "Communication preferences changed",
+        "user_unverified_purged": "Unverified account removed",
+        "user_impersonated_read": "Viewed by staff (as the user)",
+        "staff_content_viewed": "Private content viewed by staff",
+        "billing_subscription_withdrawn": "Subscription withdrawn (refunded)",
+        "billing_subscription_refunded": "Subscription refunded and canceled"
       }
     },
     "lists": {
@@ -2285,8 +2480,6 @@
       "description": "Description",
       "logo": "Logo URL",
       "logoInvalid": "Use an https:// address.",
-      "membersManageSetlists": "Members can manage setlists",
-      "membersManageSetlistsHint": "When off, only the band's admins and moderators can.",
       "saved": "Band updated."
     },
     "bandMembers": {
@@ -2528,7 +2721,9 @@
       "band_tours": "Tours per band",
       "band_notes": "Reminders per band",
       "pins": "Pinned items"
-    }
+    },
+    "chipLabel": "{resource}: {used} of {limit} on your plan",
+    "fullHint": "You've reached your plan's limit for {resource}."
   },
   "tags": {
     "placeholder": "e.g. ballad, opener, romantic",
@@ -2723,7 +2918,55 @@
       "docs": "Documentation",
       "status": "System status",
       "copyright": "© {year} Setlyst",
-      "madeIn": "Made in Caxias do Sul, Brazil"
+      "madeIn": "Made in Caxias do Sul, Brazil",
+      "contact": "Contact",
+      "identity": "Setlyst is provided by {name}, {kind, select, company {a company} other {an individual}}, {taxIdLabel} {taxId}, {address}. Support: <mail>{email}</mail>."
+    }
+  },
+  "contact": {
+    "metaTitle": "Contact",
+    "metaDescription": "Contact Setlyst: support, privacy and personal data, copyright and content reports. We reply within 5 business days.",
+    "eyebrow": "Contact",
+    "title": "Contact Setlyst",
+    "description": "Official support, privacy and copyright channels. We reply within 5 business days.",
+    "provider": {
+      "heading": "Who provides Setlyst",
+      "body": "{name}, {kind, select, company {a company} other {an individual}}, {taxIdLabel} {taxId}.",
+      "address": "Address: {address}"
+    },
+    "channels": {
+      "heading": "Contact channels",
+      "support": {
+        "title": "Support",
+        "body": "Questions, account, subscription, cancellation, withdrawal, refunds and complaints."
+      },
+      "privacy": {
+        "title": "Privacy and personal data",
+        "body": "Data subject requests (LGPD) and communications from the ANPD. Channel under the responsibility of {name}."
+      },
+      "copyright": {
+        "title": "Copyright and reports",
+        "body": "Infringement notices, counter-notices and reports about content shown on public links. Permanently available channel."
+      },
+      "security": {
+        "title": "Security",
+        "body": "Vulnerability reports, with the subject “Security”, as described in the <policy>Security Policy</policy>.",
+        "subject": "Security"
+      }
+    },
+    "deadlines": {
+      "heading": "Response times",
+      "general": "We reply to every message within 5 business days.",
+      "copyright": "Complete copyright notices are reviewed and, when upheld, the content is made unavailable to the public within 2 business days.",
+      "privacy": "Data subject requests are answered within 15 days."
+    },
+    "report": {
+      "heading": "How to report a copyright infringement",
+      "intro": "Send the notice to <mail>{email}</mail>, with the subject “Copyright”. So that we can locate the content unambiguously and assess the request, include:",
+      "outro": "Incomplete notices may be returned with a request for the missing information. The full procedure, including counter-notices, is in the <policy>Copyright Policy</policy>.",
+      "other": "To report other content that breaks the <guidelines>Community Guidelines</guidelines>, write to <mail>{email}</mail> with the subject “Report”, giving the address of the public link and the reason.",
+      "subject": "Copyright",
+      "otherSubject": "Report"
     }
   },
   "landing": {
@@ -2970,17 +3213,17 @@
     "preReleaseNote": "During the pre-release period, every feature is available free of charge.",
     "trialNote": "30 days of the Pro plan free, no card required.",
     "unavailable": "The plans could not be loaded right now. Please try again in a few minutes.",
-    "pricesNote": "Prices in Brazilian reais (BRL). Cancel at any time, with no fee.",
+    "pricesNote": "Final prices in Brazilian reais (BRL), taxes included and no additional fees. Cancel at any time, with no fee.",
     "faqTitle": "Questions about plans and billing",
     "faq": {
       "free": {
         "q": "Do I have to pay to use it now?",
-        "aPreRelease": "No. During the pre-release period, every feature is available free of charge. We will give at least 30 days' notice before billing starts, and no plan is ever taken out without your confirmation.",
+        "aPreRelease": "No. During the pre-release period, every feature is available free of charge. We will give at least 30 days' notice by e-mail and in the platform before billing starts, and no plan is ever taken out or charged without your express confirmation.",
         "aEnforced": "Every new account gets 30 free days of the Pro plan, with no card required. After that, you choose a plan to keep the paid features."
       },
       "trialEnd": {
         "q": "What happens when the trial ends?",
-        "a": "Nothing is charged automatically. Your content stays saved and available to view and export, and your features become those of an account without a plan until you choose one."
+        "a": "If you have not subscribed to a plan, nothing is charged: your content stays saved and your features become those of an account without a plan. If you subscribed during the trial, the first charge happens on the date shown when you subscribed, and we let you know by e-mail 7 days before."
       },
       "cancel": {
         "q": "Can I cancel at any time?",
@@ -2988,7 +3231,7 @@
       },
       "withdrawal": {
         "q": "How does the right of withdrawal work?",
-        "a": "Under article 49 of the Brazilian Consumer Protection Code, you can withdraw within 7 days of subscribing and get a full refund of what you paid, even if you have already used the plan."
+        "a": "Under article 49 of the Brazilian Consumer Protection Code, you can withdraw within 7 days of subscribing (or of the first charge, if you subscribed during the trial), with the button in Settings › Subscription or by e-mail, and get a full refund of what you paid, even if you have already used the plan. Details in the <subscription>Subscription Terms</subscription>."
       },
       "limits": {
         "q": "What if I go over my plan's limits?",
@@ -3170,6 +3413,8 @@
     "haveCode": "I already have a code",
     "confirm": "Confirm",
     "verified": "Email confirmed.",
+    "resendAction": "Resend verification e-mail",
+    "addAction": "Add an e-mail",
     "banner": {
       "label": "Email confirmation",
       "title": "Confirm your email.",
@@ -3206,6 +3451,7 @@
       "consequenceContent": "Your personal songs, artists, setlists, gigs and tours are deleted.",
       "consequenceBands": "Bands you lead are handed over to their longest-standing member. Bands with no other members are deleted.",
       "consequenceBilling": "Credits, referrals and your current plan are lost.",
+      "consequenceRefund": "If you subscribed or were charged less than 7 days ago, you can withdraw with a full refund before deleting your account, in Settings › Subscription. Outside that period, the time already paid is not refunded, except any balance in reais from a plan change, which can be refunded on request.",
       "consequenceIrreversible": "This can't be undone. We'll send a confirmation to your email.",
       "backupHint": "Before continuing, you can export a backup above.",
       "action": "Delete my account",
@@ -3224,10 +3470,15 @@
       "description": "The Terms of Use and the Privacy Policy were updated on {date}. To keep using Setlyst, please read and accept the new version.",
       "readTerms": "Read the <link>Terms of Use</link>.",
       "readPrivacy": "Read the <link>Privacy Policy</link>.",
-      "checkbox": "I've read and accept the Terms of Use and the Privacy Policy.",
+      "checkbox": "I have read and accept the Terms of Use and I am aware of the Privacy Policy.",
+      "alternatives": "If you don't agree, you can export your data, cancel your subscription (in Settings › Subscription) and close your account. None of that requires accepting the new version.",
+      "exportData": "Export my data",
+      "deleteAccount": "Close my account",
       "signOut": "Sign out",
       "accept": "Accept and continue",
-      "accepted": "Terms accepted."
+      "accepted": "Terms accepted.",
+      "banner": "You haven't accepted the new Terms of Use yet. You can export your data or close your account here; to keep using Setlyst, accept the new version.",
+      "review": "Review and accept"
     }
   },
   "security": {
@@ -3247,13 +3498,17 @@
       "linked": "Linked",
       "notLinked": "Not linked",
       "descriptionLinked": "You can sign in to Setlyst with this Google account.",
-      "descriptionNotLinked": "Link it to sign in with one click. Use a Google account with the same, already confirmed, email as this account.",
+      "descriptionNotLinked": "Link it to sign in with one click. You'll pick the Google account and confirm it's you.",
       "account": "Account",
       "noEmail": "No email",
       "since": "Linked on",
       "lastUsed": "Last used",
       "never": "Never",
       "link": "Link Google account",
+      "linkTitle": "Link this Google account?",
+      "linkDescription": "Confirm your password to link the Google account you picked. You'll then be able to sign in with it too.",
+      "linkDescriptionCode": "To confirm it's you, we'll send a code to your account's e-mail. You'll then be able to sign in with the Google account you picked too.",
+      "linkConfirm": "Link",
       "unlink": "Unlink",
       "unlinkTitle": "Unlink the Google account?",
       "unlinkDescription": "You'll no longer sign in with Google and will use only your username or email and password.",
@@ -3261,10 +3516,10 @@
       "status": {
         "linked": "Google account linked.",
         "mismatch": "This Google account belongs to another Setlyst account. Nothing changed in yours.",
-        "no_account": "We couldn't link it: this Google account's email is different from this account's email. Change the account's email or use another Google account.",
-        "unverified": "We couldn't link it: confirm this account's email before linking Google.",
+        "expired": "The time to confirm the link ran out. Click “Link Google account” to start again.",
         "failed": "We couldn't link the Google account. Please try again."
-      }
+      },
+      "unlinkPassword": "Confirm your password"
     },
     "activity": {
       "title": "Account activity",
@@ -3281,6 +3536,21 @@
       "confirmTitle": "Sign out of all devices?",
       "confirmDescription": "Every session will end, including this one. You will need to sign in again on each device.",
       "confirm": "Sign out of all"
+    },
+    "reauth": {
+      "explanation": "Your account signs in with Google and has no password. To confirm it's you, we'll send a 6-digit code to your e-mail.",
+      "send": "Send code to my e-mail",
+      "codeSent": "We sent a 6-digit code to your e-mail. It expires in a few minutes.",
+      "codeLabel": "Code from the e-mail",
+      "resend": "Send a new code",
+      "resendIn": "New code in {time}",
+      "sendFailed": "We couldn't send the code. Check your connection and try again.",
+      "twoFactorLabel": "Code from your authenticator app",
+      "setupDescription": "For your security, confirm it's you before setting up two-step verification."
+    },
+    "staff2fa": {
+      "title": "Two-step verification is required for staff accounts",
+      "description": "Your account has access to the staff console, so it must be protected with two-step verification. Turn it on below to use the rest of Setlyst."
     }
   },
   "communication": {
@@ -3383,6 +3653,11 @@
         "resumed": "{plan} subscription resumed",
         "renewed": "{plan} renewed",
         "canceled": "{plan} subscription ended",
+        "withdrawn": "Withdrew from the {plan} subscription, with a full refund",
+        "refunded": "{plan} subscription refunded and ended",
+        "disputed": "{plan} charge disputed with the card issuer; subscription ended",
+        "duplicate_canceled": "Duplicate {plan} subscription canceled and refunded",
+        "grant_restored": "{plan} plan granted by staff restored",
         "other": "Subscription updated"
       }
     },
@@ -3470,11 +3745,11 @@
       "secure": "Card payments, processed securely by Stripe.",
       "subscribe": "Subscribe to a plan",
       "changePlan": "Change plan",
-      "manage": "Manage payment",
-      "pastDue": "We couldn't charge your card. Update your payment method under \"Manage payment\" to keep your plan.",
-      "canceling": "Your subscription was canceled and ends on {date}. Everything stays available until then. To keep subscribing, resume it under \"Manage payment\".",
+      "manage": "Manage payment and invoices",
+      "pastDue": "We couldn't charge your card. Update your payment method under \"Manage payment and invoices\" to keep your plan.",
+      "canceling": "Your subscription was canceled and ends on {date}. Everything stays available until then. To keep subscribing, resume it under \"Manage payment and invoices\".",
       "changeBlockedPastDue": "Settle the pending payment before changing plans.",
-      "changeBlockedCanceling": "Resume your subscription under \"Manage payment\" before changing plans.",
+      "changeBlockedCanceling": "Resume your subscription under \"Manage payment and invoices\" before changing plans.",
       "pickTitle": "Choose your plan",
       "pickDescription": "You'll pay on Stripe's secure page and come right back here.",
       "changeTitle": "Change plan",
@@ -3484,7 +3759,7 @@
       "notAvailable": "Not available",
       "trialCarries": "Your trial carries on: the first charge happens on {date}.",
       "promotionFirstCharge": "{percent}% off the first charge.",
-      "renews": "The subscription renews automatically. Cancel anytime under \"Manage payment\"; the plan stays active until the end of the paid period.",
+      "renews": "The subscription renews automatically at the end of each period. Cancel anytime under \"Manage payment and invoices\"; the plan stays active until the end of the paid period.",
       "stripeNote": "Stripe shows the exact amount before you confirm.",
       "prorated": "The price difference is prorated and charged (or credited) right away.",
       "declinedKeeps": "If the card is declined, your current plan stays as it is.",
@@ -3495,8 +3770,23 @@
       "returnCanceled": "Payment not completed. Nothing was charged.",
       "returnActive": "Payment confirmed. Your plan is active!",
       "returnWaiting": "Payment received. Activating your plan, this takes a few seconds…",
-      "returnSlow": "Confirmation is taking longer than usual. Your plan shows up here as soon as Stripe confirms it; reload the page in a few minutes."
-    }
+      "returnSlow": "Confirmation is taking longer than usual. Your plan shows up here as soon as Stripe confirms it; reload the page in a few minutes.",
+      "pastDueSince": "We couldn't charge your card on {date}. Update your payment method under \"Manage payment and invoices\" to keep your plan; paid features pause if the payment isn't settled.",
+      "withdrawalNotice": "You can withdraw within 7 days of the first payment and get a full refund.",
+      "legalConsent": "By continuing, you agree to the <terms>Subscription Terms</terms> and acknowledge the <privacy>Privacy Policy</privacy>.",
+      "newPrice": "From now on you pay {price} {per}.",
+      "withdraw": {
+        "eligible": "You're within the 7-day withdrawal period (until {date}): you can cancel and get everything you paid back.",
+        "button": "Withdraw from the subscription (full refund)",
+        "confirmTitle": "Withdraw from the subscription?",
+        "confirmDescription": "Your subscription is canceled right away and the full amount paid is refunded to your card (it may take a few days to show up, depending on your bank). Paid features stop now; everything you created stays saved.",
+        "confirm": "Withdraw and get a refund",
+        "keep": "Keep my subscription",
+        "done": "Subscription canceled. A refund of {amount} is on its way to your card."
+      },
+      "actionRequired": "Your bank asked to confirm the charge. Taking you to the confirmation page…"
+    },
+    "withdrawalRight": "Right of withdrawal: you can cancel a new subscription within 7 days of the first payment and get a full refund, with the button above while it's available or by writing to <mail>{email}</mail>."
   },
   "announcements": {
     "pageTitle": "Announcements",
@@ -3581,6 +3871,7 @@
       "saveDraft": "Save draft",
       "save": "Save changes",
       "publish": "Publish",
+      "publishAdminOnly": "Only admins publish announcements. Save the draft and ask an admin.",
       "fixErrors": "Check the highlighted fields before continuing.",
       "saveFailed": "The announcement couldn't be saved.",
       "saved": "Announcement saved.",
@@ -3631,6 +3922,7 @@
         "notificationHint": "Shows in the bell. Respects each person's preferences.",
         "email": "E-mail",
         "emailHint": "Sent to people with a verified e-mail who accept announcement e-mails.",
+        "emailAdminOnly": "Only admins can send announcements by e-mail.",
         "emailCriticalHint": "Critical level: sent to every verified e-mail in the audience."
       },
       "behavior": {
@@ -3740,7 +4032,9 @@
       "description": "Every username, profile picture and band logo goes through the automatic checks again. This may take a moment.",
       "confirm": "Rescan",
       "done": "{count, plural, =0 {No new attention points found.} one {# new attention point found.} other {# new attention points found.}}",
-      "doneNone": "Rescan finished. No new points."
+      "doneNone": "Rescan finished. No new points.",
+      "doneNoneUsernames": "Usernames checked. Nothing new.",
+      "imagesInBackground": "Profile photos and logos are still being reviewed in the background; anything found shows up in the queue within a few minutes."
     },
     "card": {
       "imageUnavailable": "The image couldn't be loaded",
@@ -3998,6 +4292,7 @@
         },
         "confirmOn": "Turn billing on",
         "confirmOff": "Turn billing off",
+        "confirmOffForce": "Switch off anyway",
         "typeToConfirm": "Type {word} to confirm"
       },
       "trial": {
@@ -4254,6 +4549,18 @@
       "grantButton": "Grant plan",
       "creditsButton": "Adjust credits",
       "revokeButton": "End subscription",
+      "refundButton": "Refund and cancel subscription",
+      "refundTitle": "Refund and cancel the subscription?",
+      "refundDescription": "@{username}'s {plan} subscription is canceled now and the money goes back to the card.",
+      "refundWindow": "Within the 7-day withdrawal window every charge in it is refunded; outside it, only the latest charge.",
+      "refundNow": "The account loses the paid plan immediately. This can't be undone.",
+      "refundNotice": "The account holder gets a confirmation e-mail, and the reason is kept in the audit log.",
+      "refundReason": "Reason",
+      "refundReasonPlaceholder": "e.g. duplicate charge, withdrawal requested by e-mail",
+      "refundReasonHint": "3 to 500 characters. Kept in the audit log; not shown to the account holder.",
+      "refundConfirm": "Refund and cancel",
+      "refunded": "{amount} refunded and subscription canceled.",
+      "refundedNothing": "Subscription canceled. There was no charge to refund.",
       "history": "History",
       "historyEmpty": "No subscription events.",
       "by": "by @{username}",
@@ -4274,7 +4581,18 @@
         "trial_started": "Trial started",
         "trial_extended": "Trial extended",
         "revoked": "Subscription ended",
-        "expired": "Subscription expired"
+        "expired": "Subscription expired",
+        "subscribed": "Subscribed",
+        "plan_changed": "Plan changed",
+        "payment_failed": "Payment failed",
+        "cancel_scheduled": "Cancellation scheduled",
+        "resumed": "Subscription resumed",
+        "canceled": "Subscription canceled",
+        "withdrawn": "Withdrawn with refund",
+        "refunded": "Refunded by staff",
+        "disputed": "Card dispute",
+        "duplicate_canceled": "Duplicate subscription canceled",
+        "grant_restored": "Granted plan restored"
       },
       "grantTitle": "Grant plan",
       "grantDescription": "Complimentary for @{username}. If they already have the same plan, it is extended.",
@@ -4641,7 +4959,9 @@
       "descriptionPlaceholder": "e.g. Logistics, lodging, production contacts",
       "created": "Tour created.",
       "updated": "Tour updated.",
-      "saveFailed": "Couldn't save the tour."
+      "saveFailed": "Couldn't save the tour.",
+      "nameRequired": "Enter the tour name.",
+      "dateRequired": "Choose a date."
     },
     "errors": {
       "nameLength": "The tour name must have 1 to 120 characters.",
@@ -4756,6 +5076,26 @@
       "whereToSee": "The days left are always shown in the menu and in Settings › Subscription.",
       "seePlans": "See plans",
       "start": "Start using Setlyst"
+    },
+    "status": {
+      "choosePlan": "Choose a plan",
+      "dismiss": "Hide this notice",
+      "ending": {
+        "banner": "Your {plan} trial {days, plural, =0 {ends today} =1 {ends tomorrow} other {ends in # days}}. Choose a plan to keep every feature; what you created stays saved either way."
+      },
+      "expired": {
+        "chip": "Trial ended",
+        "chipDetail": "Choose a plan",
+        "banner": "Your {plan} period has ended, so paid features are paused. Everything you created is still here — choose a plan to unlock them again.",
+        "chipPlan": "Plan ended"
+      },
+      "pastDue": {
+        "chip": "Payment failed",
+        "chipDetail": "Update your card",
+        "banner": "We couldn't charge your card. Update your payment method to keep your plan.",
+        "bannerSince": "We couldn't charge your card on {date}. Update your payment method to keep your plan.",
+        "action": "Update payment"
+      }
     }
   },
   "finance": {
@@ -4834,5 +5174,19 @@
     "description": "This address doesn't exist or is no longer available. Check the link or go back to a page you know.",
     "dashboard": "Go to my dashboard",
     "home": "Back to the home page"
+  },
+  "installApp": {
+    "button": "Install the app",
+    "why": "It opens full screen, from the home screen, and works offline.",
+    "done": "Setlyst installed. Open it from your home screen or app list.",
+    "installed": "You're using the installed app.",
+    "howTo": "How to install on iPhone or iPad",
+    "ios": {
+      "step1": "In Safari, tap the Share button (the square with an arrow).",
+      "step2": "Choose “Add to Home Screen”.",
+      "step3": "Tap “Add”. Setlyst then opens like an app, full screen."
+    },
+    "browserMenu": "To install, open your browser's menu and choose “Install app” or “Add to Home screen”.",
+    "title": "App on this device"
   }
 }

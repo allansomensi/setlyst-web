@@ -7,6 +7,7 @@ import { PublicGigView } from "./_components/public-gig-view";
 import { PublicShell } from "@/components/public/public-shell";
 import { getNonce } from "@/lib/server/nonce";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
+import { isGoneShareLinkError } from "@/lib/api-not-found";
 
 export async function generateMetadata({
   params,
@@ -54,8 +55,11 @@ export default async function PublicGigPage({
     // Encoded rather than interpolated raw: this token arrives from a link
     // a stranger can craft. See lib/api-endpoint.ts.
     gig = await fetchServerApi<PublicGig>(apiPath`/public/gigs/${token}`);
-  } catch {
-    notFound();
+  } catch (error) {
+    // Only a link that doesn't exist (any more) is a 404; an outage goes
+    // to error.tsx ("temporarily unavailable", with a retry).
+    if (isGoneShareLinkError(error)) notFound();
+    throw error;
   }
 
   const [{ locale, messages }, nonce] = await Promise.all([

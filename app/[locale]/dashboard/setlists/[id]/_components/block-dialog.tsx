@@ -48,7 +48,7 @@ export function BlockDialog({
 
   const save = (event: FormEvent) => {
     event.preventDefault();
-    if (!draft || !trimmed) return;
+    if (isPending || !draft || !trimmed) return;
     startTransition(async () => {
       const result = draft.id
         ? await updateSetlistBlock(setlistId, draft.id, trimmed)
@@ -64,7 +64,10 @@ export function BlockDialog({
   };
 
   return (
-    <Dialog open={draft !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={draft !== null}
+      onOpenChange={(open) => !open && !isPending && onClose()}
+    >
       <DialogContent>
         <form onSubmit={save} className="grid gap-4">
           <DialogHeader>

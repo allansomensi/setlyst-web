@@ -27,7 +27,7 @@ export const TERMS: LegalTexts = {
         heading: "Aceitação",
         blocks: [
           `Estes Termos de Uso regulam o acesso e o uso do Setlyst, plataforma on-line de organização de repertório, letras, cifras, setlists e apresentações ao vivo, oferecida por ${who} (“Setlyst”, “nós”).`,
-          "Ao criar uma conta ou usar a plataforma, você declara que leu, entendeu e aceita estes Termos, a Política de Privacidade, a Política de Cookies, as Diretrizes da Comunidade e a Política de Direitos Autorais. Se você contratar um plano pago, também se aplicam os Termos de Assinatura.",
+          "Ao criar uma conta, você declara que leu, entendeu e aceita estes Termos, a Política de Cookies, as Diretrizes da Comunidade e a Política de Direitos Autorais, e que está ciente da Política de Privacidade, que informa como os seus dados pessoais são tratados. Essa declaração é feita na caixa de aceite do cadastro (“Li e aceito os Termos de Uso e estou ciente da Política de Privacidade”), acompanhada da declaração de idade prevista em “Cadastro e conta”, e fica registrada com a versão dos documentos e a data do aceite. O uso da plataforma sem conta, como a abertura de um link público, também está sujeito a estes Termos no que for aplicável. Se você contratar um plano pago, também se aplicam os Termos de Assinatura, aceitos no momento da contratação.",
           "Se você não concordar com algum destes documentos, não crie uma conta nem use a plataforma.",
         ],
       },
@@ -61,7 +61,7 @@ export const TERMS: LegalTexts = {
         heading: "Cadastro e conta",
         blocks: [
           "Para usar a plataforma é necessário criar uma conta com nome de usuário, e-mail válido e senha, ou por meio do login com Google. As informações fornecidas devem ser verdadeiras e mantidas atualizadas.",
-          "A plataforma é destinada a pessoas com 18 anos ou mais. Adolescentes de 16 e 17 anos podem usá-la somente com o consentimento e a supervisão de pai, mãe ou responsável legal, que responde pelos atos praticados na conta. Não é permitido o uso por menores de 16 anos.",
+          "A plataforma é destinada a pessoas com 18 anos ou mais. Adolescentes de 16 e 17 anos podem usá-la somente assistidos por pai, mãe ou responsável legal, que deve conhecer e concordar com estes Termos e responde pelos atos praticados na conta (arts. 4º, I, e 1.634, VII, do Código Civil). Não é permitido o uso por menores de 16 anos. A contratação de plano pago é restrita a maiores de 18 anos ou ao responsável legal do adolescente, com meio de pagamento de titularidade deste. Ao criar a conta você declara atender a essas condições; constatada declaração falsa, a conta poderá ser encerrada, com reembolso proporcional de valores pagos por período não usufruído.",
           "Cada conta é pessoal e intransferível. Não é permitido criar contas em nome de outra pessoa, manter contas para contornar sanções ou comercializar contas.",
           "O nome de usuário e a imagem de perfil devem respeitar as Diretrizes da Comunidade. O Setlyst pode redefinir nomes de usuário que as violem.",
         ],
@@ -72,6 +72,14 @@ export const TERMS: LegalTexts = {
         blocks: [
           "Você é responsável por manter sua senha em sigilo e por toda atividade realizada na sua conta. Recomendamos ativar a verificação em duas etapas nas configurações de segurança.",
           `Se suspeitar de acesso não autorizado, altere a senha imediatamente e avise-nos pelo e-mail ${SUPPORT_EMAIL}. A equipe do Setlyst nunca pede a sua senha.`,
+        ],
+      },
+      {
+        id: "communications",
+        heading: "Comunicações eletrônicas",
+        blocks: [
+          "Você concorda em receber por e-mail as comunicações essenciais sobre a conta, a segurança e a assinatura, que não podem ser desativadas enquanto a conta existir.",
+          "As demais comunicações, como novidades e ofertas, dependem da sua autorização e podem ser desativadas em Configurações ou pelo link presente nos próprios e-mails.",
         ],
       },
       {
@@ -106,17 +114,19 @@ export const TERMS: LegalTexts = {
         id: "third-party-content",
         heading: "Material protegido de terceiros",
         blocks: [
-          "Letras, cifras e arranjos de outros artistas costumam ser obras protegidas pela Lei 9.610/1998. Ao inserir esse material, você declara ter o direito de usá-lo ou fazê-lo para fins de estudo, ensaio e execução, sendo o único responsável por esse uso.",
+          "Ao inserir letras, cifras, arranjos ou qualquer obra, você declara e garante que é o autor ou titular dos direitos, possui autorização dos titulares, que a obra está em domínio público ou que o uso se enquadra nas limitações do art. 46 da Lei 9.610/1998. Você é o único responsável pelo conteúdo que insere e se compromete a ressarcir o Setlyst pelos valores que este venha a ser condenado a pagar, por decisão definitiva, em razão de conteúdo inserido por você em violação a estes Termos, assegurado o seu direito de defesa.",
           "Compartilhar publicamente obras protegidas pode depender de autorização dos titulares. Os procedimentos de notificação e retirada estão descritos na Política de Direitos Autorais.",
+          "A autorização para execução pública das obras em apresentações (art. 68 da Lei 9.610/1998) não é concedida pelo Setlyst e cabe a quem promove a apresentação.",
         ],
       },
       {
         id: "public-links",
         heading: "Links públicos de compartilhamento",
         blocks: [
-          "Você pode gerar links públicos de setlists e shows. Qualquer pessoa com o link consegue ver o conteúdo compartilhado, inclusive letras e cifras, sem precisar de conta.",
+          "Você pode gerar links públicos de setlists e shows. Links públicos exibem apenas a ordem das músicas e informações técnicas (título, artista, tom, andamento e duração), além do título, da descrição e dos links de referência da setlist e, nos shows, do local, da data e da situação, sem letras nem cifras. O PDF que pode ser baixado a partir de um link público também não inclui letras nem cifras. Qualquer pessoa com o link consegue ver esse conteúdo, sem precisar de conta.",
           "Você pode revogar um link a qualquer momento. Cópias ou capturas feitas por terceiros enquanto o link esteve ativo fogem ao controle do Setlyst.",
           "A Equipe pode bloquear links públicos que violem estes Termos ou direitos de terceiros.",
+          "Qualquer pessoa pode denunciar um link público pela opção “Denunciar conteúdo” exibida na própria página ou pela página de Contato.",
         ],
       },
       {
@@ -160,7 +170,7 @@ export const TERMS: LegalTexts = {
         heading: "Planos e assinatura",
         blocks: [
           "O Setlyst oferece os planos Básico, Intermediário e Pro, com limites e recursos descritos na página de Planos. As condições de contratação, período de teste, renovação, cancelamento, reembolso, créditos e indicações estão nos Termos de Assinatura.",
-          "Toda conta nova começa com um período de teste gratuito do plano Pro. Recursos pagos só são cobrados após a contratação expressa de um plano.",
+          "Toda conta nova começa com um período de teste gratuito do plano Pro. Nenhum valor é cobrado sem a contratação expressa de um plano; se a contratação ocorrer durante o teste, a cobrança começa ao fim do teste, conforme os Termos de Assinatura.",
         ],
       },
       {
@@ -193,13 +203,22 @@ export const TERMS: LegalTexts = {
           "Você pode excluir a sua conta a qualquer momento em Configurações. Antes, recomendamos exportar um backup do seu conteúdo.",
           "A exclusão remove os seus dados pessoais e o seu conteúdo pessoal, observados os prazos de guarda obrigatória e de cópias de segurança descritos na Política de Privacidade. O conteúdo adicionado a bandas permanece com a banda.",
           "O Setlyst pode encerrar contas que violem gravemente estes Termos, com aviso prévio sempre que a situação permitir.",
+          "Salvo em caso de conteúdo ilícito ou ordem judicial, você terá 30 dias após o encerramento para exportar o seu conteúdo, e os valores pagos por período não usufruído serão reembolsados proporcionalmente quando o encerramento não decorrer de violação destes Termos por você.",
         ],
       },
       {
         id: "changes",
         heading: "Alterações destes Termos",
         blocks: [
-          "Estes Termos podem ser atualizados. A data de vigência aparece no topo do documento. Mudanças relevantes serão comunicadas por e-mail ou aviso na plataforma, e o uso continuado depende do aceite da nova versão.",
+          "O Setlyst poderá alterar estes Termos para refletir mudanças legais, técnicas ou do serviço. Alterações relevantes serão comunicadas por e-mail e na plataforma com antecedência mínima de 15 dias da entrada em vigor, acompanhadas de resumo do que mudou; as versões anteriores permanecem disponíveis para consulta. Alterações exigidas por lei, por ordem de autoridade ou para corrigir falha de segurança podem valer de imediato. Se você não concordar com a nova versão, poderá exportar seus dados e encerrar a conta; se tiver plano pago em curso, poderá cancelá-lo com reembolso proporcional ao período não usufruído. Nenhuma alteração modifica o preço ou as condições de um período de assinatura já pago.",
+          "A versão vigente, a data de vigência e o histórico de versões, com o resumo de cada alteração, aparecem neste documento.",
+        ],
+      },
+      {
+        id: "assignment",
+        heading: "Cessão",
+        blocks: [
+          "O Setlyst poderá ceder a sua posição nestes Termos e nos Termos de Assinatura a pessoa jurídica constituída ou controlada pelo seu atual titular, ou a quem o suceder na exploração da plataforma, mediante aviso com 30 dias de antecedência, mantidas as condições da assinatura em curso; você poderá encerrar a conta, sem ônus, caso não concorde.",
         ],
       },
       {
@@ -214,7 +233,7 @@ export const TERMS: LegalTexts = {
         id: "contact",
         heading: "Contato",
         blocks: [
-          `Dúvidas, solicitações e reclamações podem ser enviadas para ${SUPPORT_EMAIL}. Respondemos em até 5 dias úteis.`,
+          `Dúvidas, solicitações e reclamações podem ser enviadas para ${SUPPORT_EMAIL}. A página de Contato reúne também os canais de privacidade e de direitos autorais. Respondemos em até 5 dias úteis.`,
         ],
       },
     ],
@@ -230,7 +249,7 @@ export const TERMS: LegalTexts = {
         heading: "Acceptance",
         blocks: [
           `These Terms of Use govern access to and use of Setlyst, an online platform for organising repertoire, lyrics, chords, setlists and live performances, provided by ${whoEn} (“Setlyst”, “we”).`,
-          "By creating an account or using the platform, you declare that you have read, understood and accept these Terms, the Privacy Policy, the Cookie Policy, the Community Guidelines and the Copyright Policy. If you subscribe to a paid plan, the Subscription Terms also apply.",
+          "When you create an account, you declare that you have read, understood and accept these Terms, the Cookie Policy, the Community Guidelines and the Copyright Policy, and that you are aware of the Privacy Policy, which explains how your personal data is processed. This declaration is made in the acceptance box at sign-up (“I have read and accept the Terms of Use and I am aware of the Privacy Policy”), together with the age declaration described in “Registration and account”, and is recorded with the version of the documents and the date of acceptance. Using the platform without an account, such as opening a public link, is also subject to these Terms where applicable. If you subscribe to a paid plan, the Subscription Terms, accepted when you subscribe, also apply.",
           "If you do not agree with any of these documents, do not create an account or use the platform.",
         ],
       },
@@ -264,7 +283,7 @@ export const TERMS: LegalTexts = {
         heading: "Registration and account",
         blocks: [
           "Using the platform requires an account with a username, a valid e-mail address and a password, or signing in with Google. The information you provide must be accurate and kept up to date.",
-          "The platform is intended for people aged 18 or over. Teenagers aged 16 and 17 may use it only with the consent and supervision of a parent or legal guardian, who is responsible for the account. Use by anyone under 16 is not allowed.",
+          "The platform is intended for people aged 18 or over. Teenagers aged 16 and 17 may use it only when assisted by a parent or legal guardian, who must know and agree to these Terms and is responsible for the acts performed on the account (articles 4, I, and 1,634, VII, of the Brazilian Civil Code). Use by anyone under 16 is not allowed. Subscribing to a paid plan is restricted to people aged 18 or over or to the teenager's legal guardian, using a payment method held by the guardian. By creating the account you declare that you meet these conditions; if the declaration is found to be false, the account may be closed, with a pro-rata refund of amounts paid for any period not used.",
           "Each account is personal and non-transferable. You may not create accounts on behalf of someone else, keep accounts to get around sanctions or trade accounts.",
           "Usernames and profile pictures must follow the Community Guidelines. Setlyst may reset usernames that break them.",
         ],
@@ -275,6 +294,14 @@ export const TERMS: LegalTexts = {
         blocks: [
           "You are responsible for keeping your password confidential and for all activity in your account. We recommend turning on two-step verification in the security settings.",
           `If you suspect unauthorised access, change your password immediately and let us know at ${SUPPORT_EMAIL}. The Setlyst team will never ask for your password.`,
+        ],
+      },
+      {
+        id: "communications",
+        heading: "Electronic communications",
+        blocks: [
+          "You agree to receive by e-mail the essential communications about your account, security and subscription, which cannot be turned off while the account exists.",
+          "Other communications, such as product news and offers, depend on your authorisation and can be turned off in Settings or through the link in the e-mails themselves.",
         ],
       },
       {
@@ -309,17 +336,19 @@ export const TERMS: LegalTexts = {
         id: "third-party-content",
         heading: "Third-party protected material",
         blocks: [
-          "Lyrics, chords and arrangements by other artists are usually works protected by Brazilian Law 9,610/1998. By entering such material you declare that you have the right to use it or that you do so for study, rehearsal and performance, and you are solely responsible for that use.",
+          "By entering lyrics, chords, arrangements or any other work, you declare and warrant that you are the author or rights holder, that you have the rights holders' authorisation, that the work is in the public domain or that the use falls within the limitations of article 46 of Brazilian Law 9,610/1998. You are solely responsible for the content you enter and agree to reimburse Setlyst for any amounts it is ordered to pay, by a final decision, because of content you entered in breach of these Terms, with your right of defence assured.",
           "Sharing protected works publicly may require the rights holders' authorisation. The notice and takedown procedures are described in the Copyright Policy.",
+          "Authorisation for the public performance of works at shows (article 68 of Law 9,610/1998) is not granted by Setlyst and is the responsibility of whoever promotes the performance.",
         ],
       },
       {
         id: "public-links",
         heading: "Public sharing links",
         blocks: [
-          "You can create public links to setlists and gigs. Anyone with the link can see the shared content, including lyrics and chords, without an account.",
+          "You can create public links to setlists and gigs. Public links show only the running order and technical information (title, artist, key, tempo and duration), plus the setlist's title, description and reference links and, for gigs, the venue, date and status, without lyrics or chords. The PDF that can be downloaded from a public link does not include lyrics or chords either. Anyone with the link can see this content without an account.",
           "You can revoke a link at any time. Copies or screenshots taken by others while the link was active are outside Setlyst's control.",
           "Staff may block public links that break these Terms or infringe the rights of others.",
+          "Anyone can report a public link through the “Report content” option shown on the page itself or through the Contact page.",
         ],
       },
       {
@@ -363,7 +392,7 @@ export const TERMS: LegalTexts = {
         heading: "Plans and subscription",
         blocks: [
           "Setlyst offers the Basic, Intermediate and Pro plans, with the limits and features described on the Plans page. The conditions for subscribing, the trial period, renewal, cancellation, refunds, credits and referrals are set out in the Subscription Terms.",
-          "Every new account starts with a free trial of the Pro plan. Paid features are only charged for after you expressly subscribe to a plan.",
+          "Every new account starts with a free trial of the Pro plan. Nothing is charged without your express subscription to a plan; if you subscribe during the trial, billing starts when the trial ends, as set out in the Subscription Terms.",
         ],
       },
       {
@@ -396,13 +425,22 @@ export const TERMS: LegalTexts = {
           "You can delete your account at any time in Settings. We recommend exporting a backup of your content first.",
           "Deletion removes your personal data and your personal content, subject to the mandatory retention periods and backup periods described in the Privacy Policy. Content added to bands stays with the band.",
           "Setlyst may close accounts that seriously break these Terms, with prior notice whenever the situation allows.",
+          "Except in cases of unlawful content or a court order, you will have 30 days after the closure to export your content, and amounts paid for any period not used will be refunded pro rata when the closure does not result from your breach of these Terms.",
         ],
       },
       {
         id: "changes",
         heading: "Changes to these Terms",
         blocks: [
-          "These Terms may be updated. The effective date is shown at the top of the document. Relevant changes will be communicated by e-mail or a notice in the platform, and continued use requires accepting the new version.",
+          "Setlyst may change these Terms to reflect legal, technical or service changes. Relevant changes will be communicated by e-mail and in the platform at least 15 days before they take effect, together with a summary of what changed; previous versions remain available for consultation. Changes required by law, by an order of an authority or to fix a security flaw may take effect immediately. If you do not agree with the new version, you may export your data and close your account; if you have a paid plan in progress, you may cancel it with a pro-rata refund for the period not used. No change alters the price or conditions of a subscription period already paid.",
+          "The version in force, its effective date and the version history, with a summary of each change, are shown in this document.",
+        ],
+      },
+      {
+        id: "assignment",
+        heading: "Assignment",
+        blocks: [
+          "Setlyst may assign its position under these Terms and the Subscription Terms to a legal entity incorporated or controlled by its current holder, or to whoever succeeds it in operating the platform, with 30 days' notice, keeping the conditions of any subscription in progress; if you do not agree, you may close your account at no cost.",
         ],
       },
       {
@@ -417,7 +455,7 @@ export const TERMS: LegalTexts = {
         id: "contact",
         heading: "Contact",
         blocks: [
-          `Questions, requests and complaints can be sent to ${SUPPORT_EMAIL}. We reply within 5 business days.`,
+          `Questions, requests and complaints can be sent to ${SUPPORT_EMAIL}. The Contact page also lists the privacy and copyright channels. We reply within 5 business days.`,
         ],
       },
     ],
@@ -433,7 +471,7 @@ export const TERMS: LegalTexts = {
         heading: "Aceptación",
         blocks: [
           `Estos Términos de Uso regulan el acceso y el uso de Setlyst, plataforma en línea para organizar repertorio, letras, acordes, setlists y presentaciones en vivo, ofrecida por ${whoEs} (“Setlyst”, “nosotros”).`,
-          "Al crear una cuenta o usar la plataforma, declaras haber leído, entendido y aceptado estos Términos, la Política de Privacidad, la Política de Cookies, las Normas de la Comunidad y la Política de Derechos de Autor. Si contratas un plan de pago, también se aplican los Términos de Suscripción.",
+          "Al crear una cuenta, declaras haber leído, entendido y aceptado estos Términos, la Política de Cookies, las Normas de la Comunidad y la Política de Derechos de Autor, y que conoces la Política de Privacidad, que explica cómo se tratan tus datos personales. Esta declaración se hace en la casilla de aceptación del registro (“He leído y acepto los Términos de Uso y conozco la Política de Privacidad”), junto con la declaración de edad prevista en “Registro y cuenta”, y queda registrada con la versión de los documentos y la fecha de aceptación. El uso de la plataforma sin cuenta, como abrir un enlace público, también está sujeto a estos Términos en lo que corresponda. Si contratas un plan de pago, también se aplican los Términos de Suscripción, aceptados en el momento de la contratación.",
           "Si no estás de acuerdo con alguno de estos documentos, no crees una cuenta ni uses la plataforma.",
         ],
       },
@@ -467,7 +505,7 @@ export const TERMS: LegalTexts = {
         heading: "Registro y cuenta",
         blocks: [
           "Para usar la plataforma es necesario crear una cuenta con nombre de usuario, correo electrónico válido y contraseña, o iniciar sesión con Google. La información proporcionada debe ser verdadera y mantenerse actualizada.",
-          "La plataforma está destinada a personas de 18 años o más. Los adolescentes de 16 y 17 años solo pueden usarla con el consentimiento y la supervisión de su padre, madre o tutor legal, que responde por la cuenta. No se permite el uso a menores de 16 años.",
+          "La plataforma está destinada a personas de 18 años o más. Los adolescentes de 16 y 17 años solo pueden usarla asistidos por su padre, madre o tutor legal, que debe conocer y aceptar estos Términos y responde por los actos realizados en la cuenta (arts. 4, I, y 1.634, VII, del Código Civil brasileño). No se permite el uso a menores de 16 años. La contratación de un plan de pago está restringida a mayores de 18 años o al tutor legal del adolescente, con un medio de pago del que este sea titular. Al crear la cuenta declaras cumplir estas condiciones; si se comprueba que la declaración es falsa, la cuenta podrá cerrarse, con reembolso proporcional de los importes pagados por el período no disfrutado.",
           "Cada cuenta es personal e intransferible. No se permite crear cuentas en nombre de otra persona, mantener cuentas para eludir sanciones ni comerciar con cuentas.",
           "El nombre de usuario y la imagen de perfil deben respetar las Normas de la Comunidad. Setlyst puede restablecer los nombres de usuario que las incumplan.",
         ],
@@ -478,6 +516,14 @@ export const TERMS: LegalTexts = {
         blocks: [
           "Eres responsable de mantener tu contraseña en secreto y de toda la actividad realizada en tu cuenta. Recomendamos activar la verificación en dos pasos en los ajustes de seguridad.",
           `Si sospechas de un acceso no autorizado, cambia la contraseña de inmediato y avísanos en ${SUPPORT_EMAIL}. El equipo de Setlyst nunca te pedirá la contraseña.`,
+        ],
+      },
+      {
+        id: "communications",
+        heading: "Comunicaciones electrónicas",
+        blocks: [
+          "Aceptas recibir por correo electrónico las comunicaciones esenciales sobre la cuenta, la seguridad y la suscripción, que no pueden desactivarse mientras la cuenta exista.",
+          "Las demás comunicaciones, como novedades y ofertas, dependen de tu autorización y pueden desactivarse en Configuración o mediante el enlace incluido en los propios correos.",
         ],
       },
       {
@@ -512,17 +558,19 @@ export const TERMS: LegalTexts = {
         id: "third-party-content",
         heading: "Material protegido de terceros",
         blocks: [
-          "Las letras, acordes y arreglos de otros artistas suelen ser obras protegidas por la Ley brasileña 9.610/1998. Al introducir ese material, declaras tener derecho a usarlo o hacerlo con fines de estudio, ensayo e interpretación, y eres el único responsable de ese uso.",
+          "Al introducir letras, acordes, arreglos o cualquier obra, declaras y garantizas que eres el autor o titular de los derechos, que tienes autorización de los titulares, que la obra es de dominio público o que el uso se ajusta a las limitaciones del artículo 46 de la Ley brasileña 9.610/1998. Eres el único responsable del contenido que introduces y te comprometes a resarcir a Setlyst por los importes que se le condene a pagar, por decisión firme, a causa de contenido introducido por ti en infracción de estos Términos, con tu derecho de defensa garantizado.",
           "Compartir públicamente obras protegidas puede requerir autorización de sus titulares. Los procedimientos de notificación y retirada se describen en la Política de Derechos de Autor.",
+          "La autorización para la ejecución pública de las obras en presentaciones (artículo 68 de la Ley 9.610/1998) no la concede Setlyst y corresponde a quien promueve la presentación.",
         ],
       },
       {
         id: "public-links",
         heading: "Enlaces públicos",
         blocks: [
-          "Puedes crear enlaces públicos de setlists y shows. Cualquier persona con el enlace puede ver el contenido compartido, incluidas letras y acordes, sin necesidad de cuenta.",
+          "Puedes crear enlaces públicos de setlists y shows. Los enlaces públicos muestran solo el orden de las canciones e información técnica (título, artista, tono, tempo y duración), además del título, la descripción y los enlaces de referencia de la setlist y, en los shows, el lugar, la fecha y el estado, sin letras ni acordes. El PDF que puede descargarse desde un enlace público tampoco incluye letras ni acordes. Cualquier persona con el enlace puede ver este contenido sin necesidad de cuenta.",
           "Puedes revocar un enlace en cualquier momento. Las copias o capturas hechas por terceros mientras el enlace estuvo activo quedan fuera del control de Setlyst.",
           "El Equipo puede bloquear enlaces públicos que incumplan estos Términos o derechos de terceros.",
+          "Cualquier persona puede denunciar un enlace público mediante la opción “Denunciar contenido” que aparece en la propia página o en la página de Contacto.",
         ],
       },
       {
@@ -566,7 +614,7 @@ export const TERMS: LegalTexts = {
         heading: "Planes y suscripción",
         blocks: [
           "Setlyst ofrece los planes Básico, Intermedio y Pro, con los límites y funciones descritos en la página de Planes. Las condiciones de contratación, período de prueba, renovación, cancelación, reembolso, créditos y recomendaciones figuran en los Términos de Suscripción.",
-          "Toda cuenta nueva empieza con un período de prueba gratuito del plan Pro. Las funciones de pago solo se cobran tras la contratación expresa de un plan.",
+          "Toda cuenta nueva empieza con un período de prueba gratuito del plan Pro. No se cobra ningún importe sin la contratación expresa de un plan; si la contratación se hace durante la prueba, el cobro empieza al final de la prueba, conforme a los Términos de Suscripción.",
         ],
       },
       {
@@ -599,13 +647,22 @@ export const TERMS: LegalTexts = {
           "Puedes eliminar tu cuenta en cualquier momento en Configuración. Antes, recomendamos exportar una copia de seguridad de tu contenido.",
           "La eliminación borra tus datos personales y tu contenido personal, respetando los plazos de conservación obligatoria y de copias de seguridad descritos en la Política de Privacidad. El contenido añadido a bandas permanece en la banda.",
           "Setlyst puede cerrar cuentas que incumplan gravemente estos Términos, con aviso previo siempre que la situación lo permita.",
+          "Salvo en caso de contenido ilícito u orden judicial, tendrás 30 días tras el cierre para exportar tu contenido, y los importes pagados por el período no disfrutado se reembolsarán proporcionalmente cuando el cierre no se deba a un incumplimiento de estos Términos por tu parte.",
         ],
       },
       {
         id: "changes",
         heading: "Cambios en estos Términos",
         blocks: [
-          "Estos Términos pueden actualizarse. La fecha de vigencia figura al inicio del documento. Los cambios relevantes se comunicarán por correo electrónico o aviso en la plataforma, y el uso continuado requiere aceptar la nueva versión.",
+          "Setlyst podrá modificar estos Términos para reflejar cambios legales, técnicos o del servicio. Los cambios relevantes se comunicarán por correo electrónico y en la plataforma con al menos 15 días de antelación a su entrada en vigor, junto con un resumen de lo que cambió; las versiones anteriores siguen disponibles para consulta. Los cambios exigidos por ley, por orden de una autoridad o para corregir un fallo de seguridad pueden aplicarse de inmediato. Si no estás de acuerdo con la nueva versión, podrás exportar tus datos y cerrar la cuenta; si tienes un plan de pago en curso, podrás cancelarlo con reembolso proporcional al período no disfrutado. Ningún cambio modifica el precio ni las condiciones de un período de suscripción ya pagado.",
+          "La versión vigente, su fecha de vigencia y el historial de versiones, con el resumen de cada cambio, figuran en este documento.",
+        ],
+      },
+      {
+        id: "assignment",
+        heading: "Cesión",
+        blocks: [
+          "Setlyst podrá ceder su posición en estos Términos y en los Términos de Suscripción a una persona jurídica constituida o controlada por su actual titular, o a quien le suceda en la explotación de la plataforma, con aviso previo de 30 días y manteniendo las condiciones de la suscripción en curso; si no estás de acuerdo, podrás cerrar la cuenta sin coste.",
         ],
       },
       {
@@ -620,7 +677,7 @@ export const TERMS: LegalTexts = {
         id: "contact",
         heading: "Contacto",
         blocks: [
-          `Las dudas, solicitudes y reclamaciones pueden enviarse a ${SUPPORT_EMAIL}. Respondemos en un plazo de 5 días hábiles.`,
+          `Las dudas, solicitudes y reclamaciones pueden enviarse a ${SUPPORT_EMAIL}. La página de Contacto reúne también los canales de privacidad y de derechos de autor. Respondemos en un plazo de 5 días hábiles.`,
         ],
       },
     ],

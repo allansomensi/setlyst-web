@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/routing";
 import { formatApiDateTime } from "@/lib/dates";
@@ -71,6 +71,23 @@ export const AUDIT_ACTIONS = [
   "moderation.band_logo_removed",
   "moderation.username_reset",
   "moderation.rescan",
+  "user.login_succeeded",
+  "user.identity_linked",
+  "user.identity_unlinked",
+  "user.recovery_codes_regenerated",
+  "user.second_factor_failed",
+  "user.reauth_failed",
+  "user.reauth_sessions_revoked",
+  "user.password_reset_failed",
+  "user.email_change_started",
+  "user.email_detached",
+  "user.security_reset",
+  "user.communication_changed",
+  "user.unverified_purged",
+  "user.impersonated_read",
+  "staff.content_viewed",
+  "billing.subscription_withdrawn",
+  "billing.subscription_refunded",
 ] as const;
 
 const DESTRUCTIVE = new Set([
@@ -90,6 +107,10 @@ const DESTRUCTIVE = new Set([
   "moderation.avatar_removed",
   "moderation.band_logo_removed",
   "moderation.username_reset",
+  "user.reauth_sessions_revoked",
+  "user.security_reset",
+  "user.unverified_purged",
+  "billing.subscription_refunded",
 ]);
 
 export function useAuditActionLabel() {
@@ -127,6 +148,7 @@ const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 function summarize(
   metadata: Record<string, unknown>,
   locale: string,
+  timeZone: string | undefined,
 ): string[] {
   return Object.entries(metadata ?? {})
     .filter(
@@ -136,7 +158,7 @@ function summarize(
     .map(([key, value]) => {
       const text =
         typeof value === "string" && ISO_TIMESTAMP.test(value)
-          ? formatApiDateTime(value, locale)
+          ? formatApiDateTime(value, locale, timeZone)
           : typeof value === "object"
             ? JSON.stringify(value)
             : String(value);
@@ -153,8 +175,9 @@ export function AuditEntry({
 }) {
   const t = useTranslations("staff.audit");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const label = useAuditActionLabel()(entry.action);
-  const details = summarize(entry.metadata, locale);
+  const details = summarize(entry.metadata, locale, timeZone);
   const href = targetHref(entry);
 
   return (
@@ -186,7 +209,7 @@ export function AuditEntry({
       </div>
       <div className="text-muted-foreground flex flex-wrap gap-x-3 text-xs">
         <time dateTime={entry.created_at}>
-          {formatApiDateTime(entry.created_at, locale)}
+          {formatApiDateTime(entry.created_at, locale, timeZone)}
         </time>
         {entry.ip_address && <span>IP {entry.ip_address}</span>}
         {details.map((line) => (

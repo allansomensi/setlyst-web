@@ -1,7 +1,11 @@
 "use server";
 
 import { fetchServerApi, ApiError } from "@/lib/api-server";
-import { guardedAction, ActionResult } from "@/lib/action-guard";
+import {
+  guardedAction,
+  ActionResult,
+  toActionFailure,
+} from "@/lib/action-guard";
 import { revalidateDashboard } from "@/lib/revalidate";
 import { isUuid } from "@/lib/server/api-route";
 import { getTranslations } from "next-intl/server";
@@ -182,6 +186,87 @@ export async function addSongToSetlist(
       throw err;
     }
   }, revalidateSetlistContent);
+}
+
+/** What adding several songs at once did. */
+export interface AddSongsResult {
+  /** Added, in the order asked. */
+  added: string[];
+  /** Already in the setlist (nothing to do). */
+  skipped: string[];
+  /** Not attempted because an earlier one failed (e.g. the limit was hit). */
+  notAdded: number;
+  /** Why the batch stopped early, translated; null when it didn't. */
+  stoppedBy: string | null;
+  /** The API code behind `stoppedBy` (e.g. QUOTA_EXCEEDED). */
+  stoppedByCode: string | null;
+}
+
+/** Most songs added in one go from the multi-select dialog. */
+const MAX_BATCH_SONGS = 100;
+
+/**
+ * Adds several songs to the end of a setlist, in the order given.
+ *
+ * The API takes one song per request, so they go one after another (in
+ * parallel the running order would come out shuffled). A song that is
+ * already there is skipped; any other failure stops the batch, keeping
+ * what was added so far. If nothing could be added, it is an ordinary
+ * failure (so "limit reached" still offers the way to a bigger plan).
+ */
+export async function addSongsToSetlist(
+  setlistId: string,
+  songIds: string[],
+): Promise<ActionResult<AddSongsResult>> {
+  const t = await getTranslations("setlists.errors");
+  const ids = Array.isArray(songIds)
+    ? [...new Set(songIds.filter((id) => typeof id === "string"))]
+    : [];
+  if (
+    !isUuid(setlistId) ||
+    ids.length === 0 ||
+    ids.length > MAX_BATCH_SONGS ||
+    !ids.every(isUuid)
+  ) {
+    return { success: false, error: t("invalidSetlistOrSongId") };
+  }
+
+  return guardedAction(async () => {
+    const result: AddSongsResult = {
+      added: [],
+      skipped: [],
+      notAdded: 0,
+      stoppedBy: null,
+      stoppedByCode: null,
+    };
+    for (let i = 0; i < ids.length; i++) {
+      const songId = ids[i];
+      try {
+        await fetchServerApi(`/setlists/${setlistId}/songs`, {
+          method: "POST",
+          body: JSON.stringify({ song_id: songId }),
+        });
+        result.added.push(songId);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409 && !isQuota(err)) {
+          result.skipped.push(songId);
+          continue;
+        }
+        // Nothing done yet: a plain failure, with the usual handling.
+        if (result.added.length === 0) throw err;
+        const failure = await toActionFailure(err);
+        result.notAdded = ids.length - i;
+        result.stoppedBy = failure.error;
+        result.stoppedByCode = failure.apiCode ?? null;
+        break;
+      }
+    }
+    return result;
+  }, revalidateSetlistContent);
+}
+
+function isQuota(err: ApiError): boolean {
+  return err.code === "QUOTA_EXCEEDED" || err.code === "FEATURE_NOT_IN_PLAN";
 }
 
 export async function removeSongFromSetlist(setlistId: string, songId: string) {

@@ -34,6 +34,7 @@ export function ArtistDialog({ artist, isOpen, onClose }: ArtistDialogProps) {
   const isEditing = !!artist;
 
   const handleAction = (formData: FormData) => {
+    if (isPending) return;
     const name = formData.get("name") as string;
 
     startTransition(async () => {
@@ -51,7 +52,11 @@ export function ArtistDialog({ artist, isOpen, onClose }: ArtistDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    // Can't be closed while saving (the request is already on its way).
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && !isPending && onClose()}
+    >
       <DialogContent>
         <form onSubmit={onFormSubmit(handleAction)} key={artist?.id || "new"}>
           <DialogHeader>

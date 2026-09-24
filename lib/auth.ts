@@ -1,3 +1,5 @@
+import "server-only";
+
 import { NextAuthOptions, type User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -13,15 +15,23 @@ import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
 import { encodeSignInError, type SignInErrorCode } from "@/lib/sign-in-errors";
 import {
   GOOGLE_2FA_COOKIE,
+  GOOGLE_ERROR_COOKIE,
+  GOOGLE_ERROR_MAX_AGE,
   GOOGLE_INTENT_COOKIE,
   GOOGLE_INTENT_MAX_AGE,
+  GOOGLE_LINK_COOKIE,
+  GOOGLE_LINK_MAX_AGE,
   GOOGLE_SIGNUP_COOKIE,
   googleTwoFactorMaxAge,
   parseGoogleIntent,
+  serializeGoogleLink,
+  serializeGoogleSignInError,
   serializeGoogleTwoFactor,
   type GoogleIntent,
 } from "@/lib/auth-flow";
 import { LEGAL_VERSION } from "@/lib/legal";
+import { safeAuthRedirect } from "@/lib/links";
+import { isUuid } from "@/lib/uuid";
 
 if (!process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET.length < 32) {
   throw new Error(
@@ -274,13 +284,56 @@ async function userFromLogin(
 type SessionToken = import("next-auth/jwt").JWT;
 
 /**
+ * Asks the API for a read-only token to view the platform as `userId`
+ * (`POST /users/{id}/impersonate`), with the staff member's own token.
+ * The API decides who may impersonate whom and writes the audit log.
+ *
+ * Runs here, inside the `jwt` callback, so the token only ever lives in
+ * the encrypted session cookie: it never passes through a server action
+ * answer, React state or the browser's memory.
+ */
+async function requestImpersonationToken(
+  token: SessionToken,
+  userId: string,
+): Promise<{ token: string } | { error: string }> {
+  const apiUrl = getApiBaseUrl();
+  if (!apiUrl || !token.apiToken) return { error: "SERVICE_UNAVAILABLE" };
+  try {
+    const res = await fetch(
+      `${apiUrl}/users/${encodeURIComponent(userId)}/impersonate`,
+      {
+        method: "POST",
+        headers: {
+          ...(await getInternalApiHeaders()),
+          Authorization: `Bearer ${token.apiToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: "{}",
+        redirect: "error",
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
+    if (!res.ok) {
+      const { code } = await readApiFailure(res);
+      return { error: code };
+    }
+    const body = (await res.json()) as { token?: unknown };
+    return typeof body.token === "string"
+      ? { token: body.token }
+      : { error: "SERVICE_UNAVAILABLE" };
+  } catch {
+    return { error: "SERVICE_UNAVAILABLE" };
+  }
+}
+
+/**
  * Switches the session to a read-only impersonation token issued by the
- * API (`POST /users/{id}/impersonate`, called from a server action).
+ * API (see requestImpersonationToken).
  *
  * The token is accepted only if it names *this* session's user as its
- * impersonator and the API accepts it, so a client can't smuggle in an
- * arbitrary token through `useSession().update()`. The staff member's own
- * token is kept aside and restored by `restoreImpersonator`.
+ * impersonator and the API accepts it. The staff member's own token is
+ * kept aside and restored by `restoreImpersonator`.
  */
 async function startImpersonation(
   token: SessionToken,
@@ -336,7 +389,21 @@ async function startImpersonation(
     emailVerified: true,
     termsAccepted: true,
     twoFactorEnabled: undefined,
+    impersonationError: undefined,
   };
+}
+
+/** Starts impersonating `userId`, or records why it was refused. */
+async function impersonate(
+  token: SessionToken,
+  userId: string,
+): Promise<SessionToken> {
+  const issued = await requestImpersonationToken(token, userId);
+  if ("error" in issued) {
+    return { ...token, impersonationError: issued.error };
+  }
+  const next = await startImpersonation(token, issued.token);
+  return next ?? { ...token, impersonationError: "SERVICE_UNAVAILABLE" };
 }
 
 function restoreImpersonator(token: SessionToken): SessionToken {
@@ -376,14 +443,34 @@ async function takeGoogleIntent(): Promise<GoogleIntent | null> {
   }
 }
 
-/** Login page URL reporting a failed Google sign-in (no secrets inside). */
-function googleErrorUrl(
+/**
+ * Login page URL reporting a failed Google sign-in. The URL names the
+ * code only; the details (a suspension's end date and reason, a wait)
+ * go in a short-lived httpOnly cookie the login page reads once, so a
+ * crafted `?google_error=` link can't put words on the real login page.
+ */
+async function googleErrorUrl(
   locale: string,
   code: string,
   meta?: Record<string, unknown> | null,
-): string {
+): Promise<string> {
+  try {
+    (await cookies()).set(
+      GOOGLE_ERROR_COOKIE,
+      serializeGoogleSignInError(code, meta),
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: GOOGLE_ERROR_MAX_AGE,
+      },
+    );
+  } catch {
+    // The login page still names the failure from the bare code.
+  }
   const params = new URLSearchParams({
-    google_error: encodeSignInError(code as SignInErrorCode, meta),
+    google_error: /^[A-Z_]{1,64}$/.test(code) ? code : "SERVICE_UNAVAILABLE",
   });
   return `/${locale}/login?${params}`;
 }
@@ -406,13 +493,35 @@ async function completeGoogleSignIn(
   const locale = intent?.locale ?? routing.defaultLocale;
   const linking = intent?.mode === "link";
 
-  if (!idToken) return googleErrorUrl(locale, "INVALID_GOOGLE_TOKEN");
+  if (!idToken) return await googleErrorUrl(locale, "INVALID_GOOGLE_TOKEN");
 
-  // Linking happens while signed in: the result must be the same account,
-  // never a switch to another one.
-  const current = linking ? await getSessionToken() : null;
-  if (linking && (!current?.id || current.impersonator)) {
-    return settingsGoogleUrl(locale, "failed");
+  // Linking happens while signed in and never signs anyone in: the ID
+  // token is kept server-side (httpOnly cookie, bound to this account)
+  // until the person confirms it's them in the settings, which then sends
+  // both to `POST /users/me/identities/google` (lib/actions/security.ts,
+  // linkGoogle). Linking through `/auth/oauth/google` instead only works
+  // for addresses Google is authoritative for, and not at all with 2FA.
+  if (linking) {
+    const current = await getSessionToken();
+    if (!current?.id || current.impersonator) {
+      return settingsGoogleUrl(locale, "failed");
+    }
+    try {
+      (await cookies()).set(
+        GOOGLE_LINK_COOKIE,
+        serializeGoogleLink(current.id, idToken),
+        {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          maxAge: GOOGLE_LINK_MAX_AGE,
+        },
+      );
+    } catch {
+      return settingsGoogleUrl(locale, "failed");
+    }
+    return settingsGoogleUrl(locale, "confirm");
   }
 
   const apiUrl = getApiBaseUrl();
@@ -425,12 +534,12 @@ async function completeGoogleSignIn(
       headers: { ...internalHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({
         id_token: idToken,
-        referral_code: linking
-          ? undefined
-          : (intent?.referralCode ?? undefined),
-        // Never create an account from the settings page.
-        accept_terms: linking ? false : intent?.acceptTerms === true,
-        marketing_opt_in: linking ? false : intent?.marketingOptIn === true,
+        referral_code: intent?.referralCode ?? undefined,
+        accept_terms: intent?.acceptTerms === true,
+        // Part of the same consent checkbox; the API needs it to create
+        // an account and ignores it for an existing one.
+        age_confirmed: intent?.ageConfirmed === true,
+        marketing_opt_in: intent?.marketingOptIn === true,
         locale,
       }),
       redirect: "error",
@@ -441,34 +550,38 @@ async function completeGoogleSignIn(
       "[auth] Google sign-in request failed:",
       (err as Error)?.name,
     );
-    return linking
-      ? settingsGoogleUrl(locale, "failed")
-      : googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+    return await googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
   }
 
   if (!res.ok) {
     const { code, meta } = await readApiFailure(res);
 
-    if (code === "TERMS_NOT_ACCEPTED" && meta?.signup === true) {
-      if (linking) return settingsGoogleUrl(locale, "no_account");
+    // A new account needs the consent checkbox (terms, privacy and the
+    // age declaration) first: the consent page asks, then restarts the
+    // Google sign-in with it.
+    const needsConsent =
+      (code === "TERMS_NOT_ACCEPTED" && meta?.signup === true) ||
+      code === "AGE_CONFIRMATION_REQUIRED";
+    if (needsConsent) {
+      const email = typeof meta?.email === "string" ? meta.email : null;
+      const name = typeof meta?.name === "string" ? meta.name : null;
       // Kept server-side for the consent page (no e-mail in the URL).
-      try {
-        (await cookies()).set(
-          GOOGLE_SIGNUP_COOKIE,
-          JSON.stringify({
-            email: typeof meta.email === "string" ? meta.email : null,
-            name: typeof meta.name === "string" ? meta.name : null,
-          }),
-          {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-            path: "/",
-            maxAge: GOOGLE_INTENT_MAX_AGE,
-          },
-        );
-      } catch {
-        // The consent page still works without the name and e-mail.
+      if (email || name) {
+        try {
+          (await cookies()).set(
+            GOOGLE_SIGNUP_COOKIE,
+            JSON.stringify({ email, name }),
+            {
+              httpOnly: true,
+              sameSite: "lax",
+              secure: process.env.NODE_ENV === "production",
+              path: "/",
+              maxAge: GOOGLE_INTENT_MAX_AGE,
+            },
+          );
+        } catch {
+          // The consent page still works without the name and e-mail.
+        }
       }
       const params = new URLSearchParams();
       if (intent?.referralCode) params.set("ref", intent.referralCode);
@@ -477,13 +590,7 @@ async function completeGoogleSignIn(
       return `/${locale}/login/google-consent${query}`;
     }
 
-    if (linking) {
-      return settingsGoogleUrl(
-        locale,
-        code === "EMAIL_TAKEN" ? "unverified" : "failed",
-      );
-    }
-    return googleErrorUrl(locale, code, meta);
+    return await googleErrorUrl(locale, code, meta);
   }
 
   const body: unknown = await res.json().catch(() => null);
@@ -493,13 +600,8 @@ async function completeGoogleSignIn(
       challenge_token?: unknown;
       challenge_expires_at?: unknown;
     };
-    if (linking) {
-      // The account already proved itself when signing in; linking only
-      // needs the API's side effect (the identity is linked by now).
-      return settingsGoogleUrl(locale, "linked");
-    }
     if (typeof challenge.challenge_token !== "string") {
-      return googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+      return await googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
     }
     // Handed to the login page in an httpOnly cookie, never in the URL,
     // so the token can't end up in access logs or analytics.
@@ -524,20 +626,13 @@ async function completeGoogleSignIn(
         },
       );
     } catch {
-      return googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
+      return await googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
     }
     return `/${locale}/login?step=2fa`;
   }
 
   const account = await userFromLogin(body, internalHeaders, false);
-  if (!account) return googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
-
-  if (linking) {
-    if (account.id !== current?.id) {
-      // Google belongs to another Setlyst account: stay signed in as is.
-      return settingsGoogleUrl(locale, "mismatch");
-    }
-  }
+  if (!account) return await googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
 
   // The Google profile object becomes the Setlyst user (next-auth passes
   // this very object to the `jwt` callback). Google's picture and e-mail
@@ -692,6 +787,11 @@ export const authOptions: NextAuthOptions = {
     ...googleProviders(),
   ],
   callbacks: {
+    // Only this app's own pages, never `//host` or another origin, whatever
+    // `callbackUrl` a link or a form carried.
+    async redirect({ url, baseUrl }) {
+      return safeAuthRedirect(url, baseUrl);
+    },
     async signIn({ user, account }) {
       if (account?.provider !== "google") return true;
       return completeGoogleSignIn(
@@ -700,6 +800,9 @@ export const authOptions: NextAuthOptions = {
       );
     },
     async jwt({ token, user, trigger, session }) {
+      // Reported once, by the update that tried: the next read drops it.
+      if (token.impersonationError) token.impersonationError = undefined;
+
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -727,7 +830,7 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update") {
         const update = (session ?? {}) as {
           language?: unknown;
-          impersonationToken?: unknown;
+          impersonateUserId?: unknown;
           stopImpersonation?: unknown;
           refreshAccount?: unknown;
         };
@@ -756,15 +859,21 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        if (
-          typeof update.impersonationToken === "string" &&
-          !token.impersonator
-        ) {
-          const next = await startImpersonation(
-            token,
-            update.impersonationToken,
-          );
-          if (next) return next;
+        // "View as": the client names the account, the token is fetched
+        // here with the staff member's own credentials (see
+        // requestImpersonationToken). Never nested, never from an expired
+        // session.
+        if (update.impersonateUserId !== undefined) {
+          if (
+            !isUuid(update.impersonateUserId) ||
+            token.impersonator ||
+            token.error === "TokenExpired" ||
+            !isValidRole(token.role) ||
+            token.role === "user"
+          ) {
+            return { ...token, impersonationError: "FORBIDDEN" };
+          }
+          return impersonate(token, update.impersonateUserId);
         }
 
         if (update.stopImpersonation === true && token.impersonator) {
@@ -790,6 +899,9 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token.error === "TokenExpired") {
         session.error = "TokenExpired";
+      }
+      if (token.impersonationError) {
+        session.impersonationError = token.impersonationError;
       }
 
       if (session.user) {

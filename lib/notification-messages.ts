@@ -110,6 +110,12 @@ const SECURITY_EVENTS = [
   "two_factor_enabled",
   "two_factor_disabled",
   "recovery_codes_regenerated",
+  "google_linked",
+  "google_unlinked",
+  "password_reset_by_staff",
+  "email_changed_by_staff",
+  "login_locked",
+  "reauth_sessions_revoked",
 ] as const;
 
 const MODERATION_ACTIONS = [

@@ -1,6 +1,10 @@
 "use server";
 
-import { guardedAction, requireStaff } from "@/lib/action-guard";
+import {
+  guardedAction,
+  requireStaff,
+  invalidRequest,
+} from "@/lib/action-guard";
 import { fetchServerApi } from "@/lib/api-server";
 import { revalidateDashboard } from "@/lib/revalidate";
 import type { ReleaseNotePayload } from "@/types/communication";
@@ -33,6 +37,7 @@ export async function updateReleaseNote(
   id: string,
   payload: ReleaseNotePayload,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<ReleaseNote>(path(id), {
@@ -43,6 +48,7 @@ export async function updateReleaseNote(
 }
 
 export async function publishReleaseNote(id: string, notify: boolean) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<ReleaseNote>(path(id, "/publish"), {
@@ -54,6 +60,7 @@ export async function publishReleaseNote(id: string, notify: boolean) {
 }
 
 export async function unpublishReleaseNote(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     return fetchServerApi<ReleaseNote>(path(id, "/unpublish"), {
@@ -63,6 +70,7 @@ export async function unpublishReleaseNote(id: string) {
 }
 
 export async function deleteReleaseNote(id: string) {
+  if (!isUuid(id)) return invalidRequest();
   return guardedAction(async () => {
     await requireStaff(true);
     await fetchServerApi<unknown>(path(id), { method: "DELETE" });

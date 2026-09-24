@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn, formatDuration } from "@/lib/utils";
-import { DragHandle } from "./drag-handle";
+import { DragHandle, MoveButtons, type RowMove } from "./drag-handle";
 import type { SongRow as SongRowData } from "./types";
 import { useSortableRow } from "./use-sortable-row";
 
@@ -17,6 +17,7 @@ export function SortableSongRow({
   onPlay,
   isReordering,
   actionsDisabled,
+  move,
 }: {
   row: SongRowData;
   songNumber: number;
@@ -24,6 +25,8 @@ export function SortableSongRow({
   onPlay: (songId: string) => void;
   isReordering: boolean;
   actionsDisabled: boolean;
+  /** Reorder mode: move one step up/down without dragging. */
+  move?: RowMove;
 }) {
   const t = useTranslations("setlists.songs");
   const { song } = row;
@@ -45,7 +48,11 @@ export function SortableSongRow({
     >
       <TableCell className="w-12">
         {isReordering ? (
-          <DragHandle attributes={attributes} listeners={listeners} />
+          <DragHandle
+            attributes={attributes}
+            listeners={listeners}
+            label={song.title}
+          />
         ) : (
           <span className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
             {String(songNumber).padStart(2, "0")}
@@ -99,6 +106,7 @@ export function SortableSongRow({
         </span>
       </TableCell>
       <TableCell className="w-12 text-right">
+        {isReordering && move && <MoveButtons label={song.title} move={move} />}
         {!isReordering && (
           <Button
             variant="ghost"

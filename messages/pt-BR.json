@@ -31,7 +31,15 @@
     "clearSearch": "Limpar busca",
     "remove": "Remover",
     "moreActionsFor": "Mais ações: {name}",
-    "copyManually": "Não foi possível copiar. Selecione o texto e copie manualmente."
+    "copyManually": "Não foi possível copiar. Selecione o texto e copie manualmente.",
+    "discardChanges": {
+      "title": "Descartar alterações?",
+      "description": "O que você preencheu aqui ainda não foi salvo e será perdido.",
+      "keepEditing": "Continuar editando",
+      "discard": "Descartar"
+    },
+    "skipToContent": "Pular para o conteúdo",
+    "notifications": "Notificações"
   },
   "pagination": {
     "previous": "Anterior",
@@ -77,7 +85,8 @@
     "whatsNew": "Novidades",
     "whatsNewUnread": "Novidades (há atualizações que você ainda não viu)",
     "profile": "Minha conta",
-    "breadcrumb": "Caminho da página"
+    "breadcrumb": "Caminho da página",
+    "contactSupport": "Falar com o suporte"
   },
   "auth": {
     "login": {
@@ -179,6 +188,43 @@
     "shortcuts": "Atalhos",
     "tours": {
       "description": "Temporadas de shows com datas e setlists"
+    },
+    "nextGig": {
+      "title": "Próximo show",
+      "openLive": "Abrir Modo Ao Vivo",
+      "noSetlist": "Nenhuma setlist vinculada ainda",
+      "setlistLinked": "Setlist vinculada",
+      "linkSetlist": "Vincular uma setlist"
+    },
+    "onboarding": {
+      "title": "Prepare-se para o primeiro show",
+      "description": "Alguns passos para levar suas músicas com você para o palco.",
+      "dismiss": "Ocultar estes passos",
+      "progress": "{done} de {total} concluídos",
+      "stepDone": "concluído",
+      "stepTodo": "pendente",
+      "steps": {
+        "song": {
+          "title": "Adicione sua primeira música",
+          "hint": "Título, artista, tom e BPM."
+        },
+        "lyrics": {
+          "title": "Escreva a letra com as cifras",
+          "hint": "Abra a música e escolha Editar letra, ou importe um arquivo ChordPro."
+        },
+        "setlist": {
+          "title": "Monte uma setlist",
+          "hint": "Coloque as músicas na ordem em que você vai tocar, com blocos e intervalos."
+        },
+        "live": {
+          "title": "Experimente o Modo Ao Vivo",
+          "hint": "Abra uma setlist e toque em Modo Ao Vivo: letra grande, rolagem automática e metrônomo."
+        },
+        "install": {
+          "title": "Instale o app",
+          "hint": "Abre em tela cheia e continua funcionando sem sinal no local do show."
+        }
+      }
     }
   },
   "artists": {
@@ -212,6 +258,10 @@
     "errors": {
       "nameLength": "O nome do artista deve ter entre 1 e 255 caracteres.",
       "invalidId": "ID do artista inválido."
+    },
+    "emptyState": {
+      "title": "Nenhum artista ainda",
+      "description": "Os artistas são criados conforme você adiciona músicas, ou você pode adicioná-los aqui."
     }
   },
   "songs": {
@@ -221,7 +271,7 @@
     "export": "Exportar",
     "exportChordpro": "ChordPro (.cho)",
     "exportSuccess": "Músicas exportadas.",
-    "searchPlaceholder": "Buscar por título, gênero, artista…",
+    "searchPlaceholder": "Buscar por título, artista, tag ou trecho da letra…",
     "lyricsTag": "letra",
     "table": {
       "title": "Título",
@@ -311,7 +361,7 @@
       "invalidId": "ID da música inválido."
     },
     "tagFilterLabel": "Tags:",
-    "clearTagFilter": "Limpar",
+    "clearTagFilter": "Mostrar todas as músicas",
     "filterByTag": "Mostrar músicas com a tag “{tag}”",
     "manageTags": "Tags",
     "emptyTagFilter": "Nenhuma música com a tag “{tag}”.",
@@ -342,6 +392,10 @@
         "high": "Alta",
         "veryHigh": "Muito alta"
       }
+    },
+    "emptyState": {
+      "title": "Seu repertório começa aqui",
+      "description": "Adicione uma música com tom, BPM e letra com cifras, ou importe arquivos ChordPro que você já tem."
     }
   },
   "lyrics": {
@@ -425,6 +479,19 @@
     "render": {
       "capo": "Capotraste na {fret}ª casa",
       "repeatChorus": "Repetir refrão"
+    },
+    "savedInPlace": "Salvo",
+    "saveAndClose": "Salvar e fechar",
+    "saveAndCloseShort": "Concluir",
+    "saveShortcut": "Salvar (Ctrl+S)",
+    "editorLabel": "Letra e cifras de {title}",
+    "conflict": {
+      "title": "Esta letra mudou enquanto você editava",
+      "description": "Alguém salvou uma versão diferente desta letra depois que você abriu o editor.",
+      "descriptionBy": "@{user} salvou uma versão diferente desta letra depois que você abriu o editor.",
+      "hint": "Salvar agora substitui essa versão pela sua. Na dúvida, copie seu texto antes e carregue a versão salva.",
+      "loadTheirs": "Carregar a versão salva",
+      "overwrite": "Substituir pela minha"
     }
   },
   "setlists": {
@@ -568,7 +635,8 @@
       "deleteTitle": "Excluir setlist",
       "moveToTrash": "Mover para a lixeira",
       "restored": "Setlist restaurada.",
-      "duplicatedSkipped": "Setlist duplicada. {count, plural, =1 {# música da banda ficou de fora} other {# músicas da banda ficaram de fora}}: músicas da banda não entram em setlists pessoais."
+      "duplicatedSkipped": "Setlist duplicada. {count, plural, =1 {# música da banda ficou de fora} other {# músicas da banda ficaram de fora}}: músicas da banda não entram em setlists pessoais.",
+      "titleRequired": "Informe o título da setlist."
     },
     "songs": {
       "title": "Músicas nesta setlist",
@@ -621,7 +689,23 @@
         "addNamed": "Adicionar “{title}”",
         "suggestShort": "Sugerir",
         "addShort": "Adicionar",
-        "repertoireMore": "Mostrando {shown} de {total}. Refine a busca para encontrar outras."
+        "repertoireMore": "Mostrando {shown} de {total}. Refine a busca para encontrar outras.",
+        "searchMine": "Buscar por título, artista ou tom",
+        "filterTag": "Tag",
+        "allTags": "Todas as tags",
+        "filterKey": "Tom",
+        "allKeys": "Todos os tons",
+        "listLabel": "Músicas que você pode adicionar",
+        "noMatch": "Nenhuma música corresponde à busca ou aos filtros.",
+        "clearFilters": "Limpar filtros",
+        "selectedCount": "{count, plural, =0 {Nenhuma música selecionada} one {# música selecionada} other {# músicas selecionadas}}",
+        "clearSelection": "Limpar seleção",
+        "showingFirst": "Mostrando as primeiras {shown} de {total}. Refine a busca para encontrar as outras.",
+        "addMany": "{count, plural, =0 {Adicionar músicas} one {Adicionar # música} other {Adicionar # músicas}}",
+        "addedMany": "{count, plural, one {# música adicionada} other {# músicas adicionadas}} ao setlist.",
+        "addedPartial": "{added, plural, one {# música adicionada} other {# músicas adicionadas}}; {rest, plural, one {# não foi} other {# não foram}}: {reason}",
+        "skippedNote": "{count, plural, one {# música já estava} other {# músicas já estavam}} no setlist.",
+        "done": "Concluir"
       },
       "addSection": "Adicionar seção",
       "addBlock": "Adicionar bloco",
@@ -652,7 +736,19 @@
       "removeTitle": "Remover música",
       "playSong": "Abrir “{title}” no Modo Ao Vivo",
       "dragHandle": "Arrastar para reordenar (ou Espaço e setas)",
-      "suggestSong": "Sugerir música"
+      "suggestSong": "Sugerir música",
+      "dragHandleFor": "Arraste para reordenar “{title}” (ou use Espaço e as setas)",
+      "moveUp": "Mover “{title}” para cima",
+      "moveDown": "Mover “{title}” para baixo",
+      "dnd": {
+        "roleDescription": "item reordenável",
+        "instructions": "Para pegar um item, pressione Espaço ou Enter. Mova com as setas para cima e para baixo, pressione Espaço ou Enter de novo para soltar, ou Esc para cancelar.",
+        "pickedUp": "“{title}” selecionada, na posição {position} de {total}.",
+        "movedOver": "“{title}” movida para a posição {position} de {total}.",
+        "dropped": "“{title}” solta na posição {position} de {total}.",
+        "cancelled": "Movimento cancelado. “{title}” voltou para a posição {position}.",
+        "moved": "“{title}” agora está na posição {position} de {total}."
+      }
     },
     "errors": {
       "titleLength": "O título da setlist deve ter entre 1 e 255 caracteres.",
@@ -691,6 +787,10 @@
       "tooltip": "Reúne todas as músicas da banda",
       "explanation": "O repertório reúne todas as músicas da banda. Toda música adicionada a uma setlist da banda entra aqui automaticamente, e daqui você monta novas setlists.",
       "editHint": "O repertório não pode ser renomeado. Você pode mudar a descrição e os links."
+    },
+    "emptyState": {
+      "title": "Nenhuma setlist ainda",
+      "description": "A setlist é a ordem do show: músicas, blocos e intervalos, com o tempo total e o Modo Ao Vivo no palco."
     }
   },
   "gigs": {
@@ -743,7 +843,8 @@
       "restored": "Show restaurado.",
       "tourLabel": "Turnê",
       "noTourOption": "Sem turnê",
-      "currentTour": "Turnê atual"
+      "currentTour": "Turnê atual",
+      "venueRequired": "Informe o local do show."
     },
     "errors": {
       "venueLength": "O local deve ter entre 1 e 255 caracteres.",
@@ -776,7 +877,13 @@
     "linkSetlistAction": "Vincular uma setlist",
     "noSetlistsAvailable": "Crie uma setlist primeiro para vincular a este show.",
     "tourFilter": "Mostrando os shows da turnê “{name}”.",
-    "clearTourFilter": "Ver todos"
+    "clearTourFilter": "Ver todos",
+    "emptyState": {
+      "title": "Nenhum show na agenda",
+      "description": "Adicione um show com data e local e vincule a setlist que você vai tocar."
+    },
+    "addToCalendar": "Adicionar à agenda",
+    "calendarFailed": "Não foi possível criar o arquivo de agenda deste show."
   },
   "liveMode": {
     "noSongs": "Nenhuma música nesta setlist",
@@ -806,11 +913,12 @@
       "manualTempo": "Andamento ajustado à mão para esta música",
       "decreaseTempo": "Mais lento (botão direito: -5)",
       "increaseTempo": "Mais rápido (botão direito: +5)",
-      "tap": "Tap",
+      "tap": "Toque",
       "tapTempoTitle": "Toque algumas vezes para definir o andamento",
       "beatsPerBarTitle": "Tempos por compasso",
       "muteClick": "Silenciar o clique",
-      "unmuteClick": "Tocar clique audível"
+      "unmuteClick": "Tocar clique audível",
+      "clickSound": "Clique sonoro"
     },
     "transpose": {
       "up": "Meio tom acima (.)",
@@ -852,10 +960,19 @@
       "keyTranspose": "Descer / subir tom",
       "sections": "Seções",
       "keyChords": "Mostrar / ocultar acordes",
-      "keySections": "Mostrar / ocultar seções"
+      "keySections": "Mostrar / ocultar seções",
+      "keyPage": "Rolar uma tela para cima / para baixo",
+      "keyPageThenSong": "Virar a página, depois trocar de música"
     },
     "active": {
       "pauseScroll": "Pausar rolagem"
+    },
+    "pageTurn": {
+      "title": "Pedal / Page Down",
+      "page": "Virar a página, depois a próxima música",
+      "pageHelp": "Em músicas longas, cada toque rola uma tela; no fim da música, passa para a próxima.",
+      "song": "Próxima música direto",
+      "songHelp": "Cada toque troca de música, em qualquer ponto da letra."
     }
   },
   "offlineSync": {
@@ -882,7 +999,14 @@
     "progressSetlists": "Salvando setlists ({completed} de {total})…",
     "progressPages": "Salvando páginas para uso offline…",
     "readOnlyNotice": "Você está offline. É possível ler tudo, mas criar e editar exigem conexão.",
-    "actionNeedsConnection": "Precisa de conexão"
+    "actionNeedsConnection": "Precisa de conexão",
+    "errors": {
+      "network": "Sem conexão com o servidor. Verifique sua internet e tente de novo.",
+      "storage_full": "Este aparelho está sem espaço de armazenamento. Libere um pouco de espaço e tente de novo.",
+      "session": "Sua sessão expirou. Entre de novo para atualizar a cópia offline.",
+      "server": "O Setlyst está com instabilidade no momento. Vamos tentar de novo automaticamente.",
+      "unknown": "Algo deu errado. Tente de novo daqui a pouco."
+    }
   },
   "users": {
     "title": "Usuários",
@@ -927,7 +1051,7 @@
       "updated": "Usuário atualizado.",
       "createFailed": "Não foi possível criar o usuário.",
       "updateFailed": "Não foi possível atualizar o usuário.",
-      "deleteConfirm": "Tem certeza que deseja excluir este usuário?",
+      "deleteConfirm": "Tem certeza de que deseja excluir este usuário?",
       "deleted": "Usuário excluído.",
       "deleteFailed": "Não foi possível excluir o usuário."
     },
@@ -1242,6 +1366,7 @@
     "backupImportSuccess": "Backup importado.",
     "backupImportSuccessTitle": "Backup importado",
     "backupImportResultDescription": "Itens adicionados ou atualizados na sua conta:",
+    "backupSkippedTours": "{count, plural, one {# turnê não foi importada} other {# turnês não foram importadas}} porque seu plano não inclui turnês; os shows foram importados sem turnê. <link>Ver planos</link>",
     "backupInvalidFile": "Arquivo de backup inválido ou corrompido.",
     "backupExportActionTitle": "Exportar dados",
     "backupExportActionDesc": "Baixe uma cópia de todo o seu repertório em um arquivo JSON.",
@@ -1362,10 +1487,10 @@
       "created": "Banda criada.",
       "updated": "Banda atualizada.",
       "saveFailed": "Não foi possível salvar a banda.",
-      "deleteConfirm": "Tem certeza que deseja excluir a banda \"{name}\"? Todas as setlists da banda também serão excluídas.",
+      "deleteConfirm": "Tem certeza de que deseja excluir a banda \"{name}\"? Todas as setlists da banda também serão excluídas.",
       "deleted": "Banda excluída.",
       "leaveTitle": "Sair da banda",
-      "leaveConfirm": "Tem certeza que deseja sair de \"{name}\"?",
+      "leaveConfirm": "Tem certeza de que deseja sair de \"{name}\"?",
       "left": "Você saiu da banda."
     },
     "roles": {
@@ -1389,8 +1514,8 @@
       "remove": "Remover",
       "leaveTitle": "Sair da banda",
       "removeTitle": "Remover integrante",
-      "leaveConfirm": "Tem certeza que deseja sair de \"{name}\"?",
-      "removeConfirm": "Tem certeza que deseja remover {name} da banda?",
+      "leaveConfirm": "Tem certeza de que deseja sair de \"{name}\"?",
+      "removeConfirm": "Tem certeza de que deseja remover {name} da banda?",
       "editTitle": "Editar função",
       "editTitleDescription": "Uma etiqueta livre só para identificação (ex.: Guitarrista, Baixista, Vocalista). Não altera nenhuma permissão.",
       "titleLabel": "Função",
@@ -1441,7 +1566,7 @@
       "created": "Convite criado.",
       "revoked": "Convite revogado.",
       "revoke": "Revogar",
-      "revokeConfirm": "Tem certeza que deseja revogar este convite? Links já compartilhados deixarão de funcionar.",
+      "revokeConfirm": "Tem certeza de que deseja revogar este convite? Links já compartilhados deixarão de funcionar.",
       "copyLink": "Copiar link",
       "linkCopied": "Link copiado.",
       "copyLinkManually": "Não foi possível copiar. Copie o link abaixo manualmente."
@@ -1480,17 +1605,17 @@
       "leaveTitle": "Sair da banda",
       "leaveDescription": "Você perderá acesso às setlists e configurações desta banda.",
       "leaveAction": "Sair",
-      "leaveConfirm": "Tem certeza que deseja sair de \"{name}\"?",
+      "leaveConfirm": "Tem certeza de que deseja sair de \"{name}\"?",
       "left": "Você saiu da banda.",
       "deleteTitle": "Excluir banda",
       "deleteDescription": "Exclui a banda, seus integrantes, convites e setlists permanentemente.",
       "deleteAction": "Excluir banda",
-      "deleteConfirm": "Tem certeza que deseja excluir \"{name}\"? Esta ação não pode ser desfeita.",
+      "deleteConfirm": "Tem certeza de que deseja excluir \"{name}\"? Esta ação não pode ser desfeita.",
       "deleted": "Banda excluída."
     },
     "acceptInvite": {
       "title": "Convite para banda",
-      "description": "Você foi convidado para entrar em uma banda no Setlyst.",
+      "description": "Você recebeu um convite para entrar em uma banda no Setlyst.",
       "cancel": "Cancelar",
       "accept": "Entrar na banda"
     },
@@ -1506,11 +1631,11 @@
         "setlists": "Setlists",
         "suggestions": "Sugestões",
         "gigs": "Shows",
-        "members": "Membros",
+        "members": "Integrantes",
         "settings": "Configurações"
       },
       "stats": {
-        "members": "Membros",
+        "members": "Integrantes",
         "repertoire": "Músicas no repertório",
         "setlists": "Setlists",
         "gigs": "Shows confirmados",
@@ -1538,7 +1663,12 @@
       "autoAcceptInvalid": "Informe um número de 1 a 100.",
       "thresholdSaved": "Configuração salva.",
       "saveSettings": "Salvar"
-    }
+    },
+    "emptyState": {
+      "title": "Toque junto com a sua banda",
+      "description": "Crie uma banda para compartilhar setlists, o repertório e a agenda de shows, ou entre em uma pelo link de convite."
+    },
+    "favoriteNamed": "Favoritar {name}"
   },
   "notifications": {
     "title": "Notificações",
@@ -1547,7 +1677,7 @@
     "empty": "Nenhuma notificação por aqui.",
     "loading": "Carregando notificações…",
     "bandRoleChanged": "Seu cargo em {band} mudou para {role}.",
-    "bandMemberRemoved": "Você foi removido de {band}.",
+    "bandMemberRemoved": "Você não faz mais parte de {band}.",
     "platformRoleChanged": "Seu cargo na plataforma mudou para {role}.",
     "bandMemberAdded": "Um administrador adicionou você à banda {band} como {role}.",
     "shareLinkRevoked": "Um moderador desativou o link público de \"{title}\".",
@@ -1610,6 +1740,12 @@
       "two_factor_enabled": "A verificação em duas etapas foi ativada na sua conta.",
       "two_factor_disabled": "A verificação em duas etapas foi desativada na sua conta.",
       "recovery_codes_regenerated": "Novos códigos de recuperação foram gerados para a sua conta.",
+      "google_linked": "Uma conta Google foi vinculada à sua conta. Se não foi você, desvincule-a e troque sua senha agora.",
+      "google_unlinked": "A conta Google foi desvinculada da sua conta.",
+      "password_reset_by_staff": "Nossa equipe definiu uma senha temporária para a sua conta. Você vai precisar escolher uma nova no próximo acesso.",
+      "email_changed_by_staff": "Nossa equipe alterou o e-mail da sua conta. Se você não pediu isso, fale com o suporte.",
+      "login_locked": "O acesso à sua conta foi bloqueado temporariamente depois de várias senhas erradas. Se não foi você, troque sua senha.",
+      "reauth_sessions_revoked": "Muitas confirmações erradas: desconectamos sua conta de todos os dispositivos. Se não foi você, troque sua senha.",
       "other": "Houve uma alteração de segurança na sua conta."
     }
   },
@@ -1654,7 +1790,29 @@
     "readOnlyNotice": "Visualização somente leitura de uma setlist compartilhada pelo Setlyst.",
     "madeWith": "Feito com Setlyst",
     "gigNoSetlist": "Nenhuma setlist foi vinculada a este show ainda.",
-    "gigReadOnlyNotice": "Visualização somente leitura de um show compartilhado pelo Setlyst."
+    "gigReadOnlyNotice": "Visualização somente leitura de um show compartilhado pelo Setlyst.",
+    "report": "Denunciar conteúdo",
+    "metaSummary": "{count, plural, =1 {# música} other {# músicas}} · {minutes} min",
+    "pdfPublicNotice": "O PDF de um link público traz apenas a ordem das músicas e as informações técnicas, sem letras nem cifras.",
+    "status": {
+      "gone": {
+        "title": {
+          "setlist": "Link de setlist desativado ou inexistente",
+          "gig": "Link de show desativado ou inexistente"
+        },
+        "description": "Quem compartilhou pode ter parado de compartilhar ou gerado um link novo. Peça para enviarem de novo."
+      },
+      "unavailable": {
+        "title": {
+          "setlist": "Setlist temporariamente indisponível",
+          "gig": "Show temporariamente indisponível"
+        },
+        "description": "O link provavelmente está certo: só não conseguimos carregar agora. Tente de novo daqui a pouco."
+      },
+      "retry": "Tentar de novo",
+      "about": "O que é o Setlyst?",
+      "reference": "Referência:"
+    }
   },
   "apiErrors": {
     "generic": "Algo deu errado. Tente novamente.",
@@ -1711,7 +1869,8 @@
       "missing_digit": "Inclua um número.",
       "missing_symbol": "Inclua um símbolo (ex.: ! @ # -).",
       "contains_username": "Não use seu nome de usuário na senha.",
-      "too_common": "Esta senha é comum demais."
+      "too_common": "Esta senha é comum demais.",
+      "breached": "Essa senha apareceu em vazamentos de dados; escolha outra."
     },
     "rejected": "Não foi possível concluir a ação. Revise os dados e tente novamente.",
     "ACCOUNT_LOCKED": "Muitas tentativas de acesso. A conta está bloqueada temporariamente.",
@@ -1805,7 +1964,19 @@
       "multiple_songs": "O arquivo tem mais de uma música; importe uma por vez.",
       "missing_title": "O arquivo não tem o título da música.",
       "invalid_characters": "O arquivo contém caracteres inválidos."
-    }
+    },
+    "AGE_CONFIRMATION_REQUIRED": "Para criar a conta, confirme que você tem 18 anos ou mais, ou 16 ou 17 anos com autorização do seu responsável legal.",
+    "REAUTH_REQUIRED": "Confirme que é você para continuar.",
+    "REAUTH_REQUIRED_PASSWORD": "Digite sua senha para confirmar que é você.",
+    "REAUTH_REQUIRED_EMAIL_CODE": "Confirme que é você com o código que enviamos para o seu e-mail.",
+    "ACCOUNT_LINK_REQUIRED": "Já existe uma conta com este e-mail. Entre com sua senha e vincule o Google em Configurações › Segurança.",
+    "PDF_TOO_LARGE": "Este setlist é grande demais para exportar com as letras. Exporte sem as letras ou divida-o em setlists menores.",
+    "STAFF_TWO_FACTOR_REQUIRED": "Contas da equipe precisam ativar a verificação em duas etapas. Ative em Configurações → Segurança para continuar.",
+    "WITHDRAWAL_NOT_ELIGIBLE": "Esta assinatura já passou do prazo de 7 dias para desistência.",
+    "BILLING_HAS_PAID_SUBSCRIPTIONS": "Há assinaturas pagas ativas, e elas continuam sendo cobradas. Confirme de novo para desligar os planos mesmo assim.",
+    "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {Há # assinatura paga ativa, e ela continua sendo cobrada.} other {Há # assinaturas pagas ativas, e elas continuam sendo cobradas.}} Confirme de novo para desligar os planos mesmo assim.",
+    "IMPORT_IN_PROGRESS": "Já existe uma importação de backup em andamento nesta conta. Aguarde a conclusão e tente de novo.",
+    "PAYMENT_ACTION_REQUIRED": "Seu banco pediu para você confirmar este pagamento. Vamos abrir a página de confirmação; o novo plano vale assim que ele for confirmado."
   },
   "downloads": {
     "failed": "Não foi possível baixar o arquivo. Tente novamente.",
@@ -1977,11 +2148,18 @@
     "toc": "Nesta página",
     "languageNote": "Em caso de divergência entre as versões deste documento em outros idiomas, prevalece a versão em português (Brasil).",
     "consent": {
-      "terms": "Li e aceito os <terms>Termos de Uso</terms> e a <privacy>Política de Privacidade</privacy>.",
+      "terms": "Li e aceito os <terms>Termos de Uso</terms> e estou ciente da <privacy>Política de Privacidade</privacy>. Declaro também ter 18 anos ou mais, ou ter 16 ou 17 anos e autorização do meu responsável legal.",
       "marketing": "Quero receber novidades e ofertas do Setlyst por e-mail. Posso cancelar quando quiser.",
-      "required": "Para continuar, aceite os Termos de Uso e a Política de Privacidade.",
+      "required": "Para continuar, aceite os Termos de Uso e confirme sua idade.",
       "newTab": "(abre em nova aba)"
-    }
+    },
+    "history": "Histórico de versões",
+    "historyIntro": "O que mudou em cada versão deste documento, da mais recente para a mais antiga. As versões anteriores permanecem disponíveis para consulta.",
+    "historyCurrent": "Vigente",
+    "historyVersion": "Versão {version}, vigente desde {date}",
+    "historyView": "Ler esta versão",
+    "archivedNotice": "Você está lendo uma versão anterior deste documento, vigente de {from} até {until}. <current>Ler a versão vigente</current>.",
+    "archivedTitle": "{title}, versão {version}"
   },
   "staff": {
     "status": {
@@ -2250,7 +2428,24 @@
         "moderation_band_logo_removed": "Logo de banda removido",
         "moderation_username_reset": "Nome de usuário redefinido",
         "moderation_rescan": "Reanálise da moderação",
-        "finance_synced": "Financeiro sincronizado com o Stripe"
+        "finance_synced": "Financeiro sincronizado com o Stripe",
+        "user_login_succeeded": "Entrou na conta",
+        "user_identity_linked": "Conta Google vinculada",
+        "user_identity_unlinked": "Conta Google desvinculada",
+        "user_recovery_codes_regenerated": "Códigos de recuperação gerados de novo",
+        "user_second_factor_failed": "Código de verificação incorreto",
+        "user_reauth_failed": "Falha ao confirmar identidade",
+        "user_reauth_sessions_revoked": "Desconectada após confirmações falhas",
+        "user_password_reset_failed": "Código de redefinição incorreto",
+        "user_email_change_started": "Troca de e-mail iniciada",
+        "user_email_detached": "E-mail não confirmado liberado",
+        "user_security_reset": "Configurações de segurança redefinidas",
+        "user_communication_changed": "Preferências de comunicação alteradas",
+        "user_unverified_purged": "Conta não confirmada removida",
+        "user_impersonated_read": "Acessada pela equipe (como o usuário)",
+        "staff_content_viewed": "Conteúdo privado visto pela equipe",
+        "billing_subscription_withdrawn": "Desistência da assinatura (reembolsada)",
+        "billing_subscription_refunded": "Assinatura reembolsada e cancelada"
       }
     },
     "lists": {
@@ -2285,8 +2480,6 @@
       "description": "Descrição",
       "logo": "URL do logo",
       "logoInvalid": "Use um endereço https://.",
-      "membersManageSetlists": "Membros podem gerenciar setlists",
-      "membersManageSetlistsHint": "Desligado, apenas administradores e moderadores da banda podem.",
       "saved": "Banda atualizada."
     },
     "bandMembers": {
@@ -2519,7 +2712,7 @@
       "tags": "Tags diferentes",
       "bands_owned": "Bandas sob sua responsabilidade",
       "band_memberships": "Participações em bandas",
-      "band_members": "Membros por banda",
+      "band_members": "Integrantes por banda",
       "band_setlists": "Setlists por banda",
       "band_gigs": "Shows por banda",
       "band_songs": "Músicas por banda",
@@ -2528,7 +2721,9 @@
       "band_tours": "Turnês por banda",
       "band_notes": "Lembretes por banda",
       "pins": "Itens fixados"
-    }
+    },
+    "chipLabel": "{resource}: {used} de {limit} no seu plano",
+    "fullHint": "Você atingiu o limite de {resource} do seu plano."
   },
   "tags": {
     "placeholder": "ex.: balada, abertura, romântica",
@@ -2723,7 +2918,55 @@
       "docs": "Documentação",
       "status": "Status do sistema",
       "copyright": "© {year} Setlyst",
-      "madeIn": "Feito em Caxias do Sul/RS"
+      "madeIn": "Feito em Caxias do Sul/RS",
+      "contact": "Contato",
+      "identity": "Setlyst é um serviço oferecido por {name}, {kind, select, company {pessoa jurídica} other {pessoa física}}, {taxIdLabel} {taxId}, {address}. Atendimento: <mail>{email}</mail>."
+    }
+  },
+  "contact": {
+    "metaTitle": "Contato",
+    "metaDescription": "Fale com o Setlyst: atendimento, privacidade e dados pessoais, direitos autorais e denúncias de conteúdo. Respondemos em até 5 dias úteis.",
+    "eyebrow": "Contato",
+    "title": "Fale com o Setlyst",
+    "description": "Canais oficiais de atendimento, privacidade e direitos autorais. Respondemos em até 5 dias úteis.",
+    "provider": {
+      "heading": "Quem oferece o Setlyst",
+      "body": "{name}, {kind, select, company {pessoa jurídica} other {pessoa física}}, {taxIdLabel} {taxId}.",
+      "address": "Endereço: {address}"
+    },
+    "channels": {
+      "heading": "Canais de contato",
+      "support": {
+        "title": "Atendimento",
+        "body": "Dúvidas, conta, assinatura, cancelamento, desistência da contratação, reembolsos e reclamações."
+      },
+      "privacy": {
+        "title": "Privacidade e dados pessoais",
+        "body": "Pedidos de titulares de dados (LGPD) e comunicações da ANPD. Canal sob responsabilidade de {name}."
+      },
+      "copyright": {
+        "title": "Direitos autorais e denúncias",
+        "body": "Notificações de infração, contranotificações e denúncias de conteúdo exibido em links públicos. Canal permanentemente disponível."
+      },
+      "security": {
+        "title": "Segurança",
+        "body": "Relatos de vulnerabilidades, com o assunto “Segurança”, conforme a <policy>Política de Segurança</policy>.",
+        "subject": "Segurança"
+      }
+    },
+    "deadlines": {
+      "heading": "Prazos",
+      "general": "Respondemos a todas as mensagens em até 5 dias úteis.",
+      "copyright": "Notificações de direitos autorais completas são analisadas e, quando procedentes, o conteúdo é tornado indisponível ao público em até 2 dias úteis.",
+      "privacy": "Pedidos de titulares de dados são respondidos em até 15 dias."
+    },
+    "report": {
+      "heading": "Como notificar uma violação de direitos autorais",
+      "intro": "Envie a notificação para <mail>{email}</mail>, com o assunto “Direitos autorais”. Para que possamos localizar o conteúdo de forma inequívoca e analisar o pedido, inclua:",
+      "outro": "Notificações incompletas podem ser devolvidas com pedido de complementação. O procedimento completo, inclusive a contranotificação, está na <policy>Política de Direitos Autorais</policy>.",
+      "other": "Para denunciar outro conteúdo que viole as <guidelines>Diretrizes da Comunidade</guidelines>, escreva para <mail>{email}</mail> com o assunto “Denúncia”, informando o endereço do link público e o motivo.",
+      "subject": "Direitos autorais",
+      "otherSubject": "Denúncia"
     }
   },
   "landing": {
@@ -2951,7 +3194,7 @@
       "setlist_items": "Itens por setlist",
       "gigs": "Shows",
       "tours": "Turnês",
-      "tags": "Etiquetas",
+      "tags": "Tags",
       "bands_owned": "Bandas sob sua responsabilidade",
       "band_memberships": "Bandas em que participa",
       "band_members": "Integrantes por banda",
@@ -2970,17 +3213,17 @@
     "preReleaseNote": "Durante o período de pré-lançamento, todos os recursos estão liberados sem custo.",
     "trialNote": "30 dias grátis no plano Pro, sem cartão.",
     "unavailable": "Não foi possível carregar os planos agora. Tente novamente em alguns minutos.",
-    "pricesNote": "Preços em reais (BRL). Cancele quando quiser, sem multa.",
+    "pricesNote": "Preços finais em reais (BRL), com impostos inclusos e sem taxas adicionais. Cancele quando quiser, sem multa.",
     "faqTitle": "Dúvidas sobre planos e cobrança",
     "faq": {
       "free": {
         "q": "Preciso pagar para usar agora?",
-        "aPreRelease": "Não. Durante o período de pré-lançamento, todos os recursos estão liberados sem custo. Avisaremos com pelo menos 30 dias de antecedência antes de a cobrança começar, e nenhum plano é contratado sem a sua confirmação.",
+        "aPreRelease": "Não. Durante o período de pré-lançamento, todos os recursos estão liberados sem custo. Avisaremos por e-mail e na plataforma com pelo menos 30 dias de antecedência antes de a cobrança começar, e nenhum plano é contratado nem cobrado sem a sua confirmação expressa.",
         "aEnforced": "Toda conta nova tem 30 dias grátis do plano Pro, sem cadastrar cartão. Depois disso, você escolhe um plano para continuar com os recursos pagos."
       },
       "trialEnd": {
         "q": "O que acontece quando o período de teste termina?",
-        "a": "Nada é cobrado automaticamente. Seu conteúdo continua salvo e disponível para consulta e exportação, e os recursos passam a ser os da conta sem plano até você escolher um."
+        "a": "Se você não assinou um plano, nada é cobrado: seu conteúdo continua salvo e os recursos passam a ser os da conta sem plano. Se assinou durante o teste, a primeira cobrança ocorre na data informada na contratação, e avisamos por e-mail 7 dias antes."
       },
       "cancel": {
         "q": "Posso cancelar a qualquer momento?",
@@ -2988,7 +3231,7 @@
       },
       "withdrawal": {
         "q": "Como funciona o direito de arrependimento?",
-        "a": "Pelo art. 49 do Código de Defesa do Consumidor, você pode desistir em até 7 dias da contratação e recebe de volta o valor integral pago, mesmo que já tenha usado o plano."
+        "a": "Pelo art. 49 do Código de Defesa do Consumidor, você pode desistir em até 7 dias da contratação (ou da primeira cobrança, se assinou durante o teste), pelo botão em Configurações › Assinatura ou por e-mail, e recebe de volta o valor integral pago, mesmo que já tenha usado o plano. Detalhes nos <subscription>Termos de Assinatura</subscription>."
       },
       "limits": {
         "q": "E se eu ultrapassar os limites do plano?",
@@ -3170,6 +3413,8 @@
     "haveCode": "Já tenho um código",
     "confirm": "Confirmar",
     "verified": "E-mail confirmado.",
+    "resendAction": "Reenviar e-mail de verificação",
+    "addAction": "Adicionar e-mail",
     "banner": {
       "label": "Confirmação de e-mail",
       "title": "Confirme seu e-mail.",
@@ -3206,6 +3451,7 @@
       "consequenceContent": "Suas músicas, artistas, setlists, shows e turnês pessoais são excluídos.",
       "consequenceBands": "Bandas pelas quais você é responsável passam para o membro mais antigo. Se não houver outros membros, a banda é excluída.",
       "consequenceBilling": "Créditos, indicações e o plano atual são perdidos.",
+      "consequenceRefund": "Se você contratou ou foi cobrado há menos de 7 dias, pode desistir com reembolso integral antes de excluir a conta, em Configurações › Assinatura. Fora desse prazo, o período já pago não é reembolsado, salvo o saldo em reais gerado por mudança de plano, que pode ser reembolsado mediante pedido.",
       "consequenceIrreversible": "Não é possível desfazer. Enviaremos uma confirmação para o seu e-mail.",
       "backupHint": "Antes de continuar, você pode exportar um backup acima.",
       "action": "Excluir minha conta",
@@ -3224,10 +3470,15 @@
       "description": "Os Termos de Uso e a Política de Privacidade foram atualizados em {date}. Para continuar usando o Setlyst, leia e aceite a nova versão.",
       "readTerms": "Leia os <link>Termos de Uso</link>.",
       "readPrivacy": "Leia a <link>Política de Privacidade</link>.",
-      "checkbox": "Li e aceito os Termos de Uso e a Política de Privacidade.",
+      "checkbox": "Li e aceito os Termos de Uso e estou ciente da Política de Privacidade.",
+      "alternatives": "Se não concordar, você pode exportar seus dados, cancelar a assinatura (em Configurações › Assinatura) e cancelar sua conta. Nada disso exige aceitar a nova versão.",
+      "exportData": "Exportar meus dados",
+      "deleteAccount": "Cancelar conta",
       "signOut": "Sair",
       "accept": "Aceitar e continuar",
-      "accepted": "Termos aceitos."
+      "accepted": "Termos aceitos.",
+      "banner": "Você ainda não aceitou os novos Termos de Uso. Pode exportar seus dados ou cancelar a conta aqui; para voltar a usar o Setlyst, aceite a nova versão.",
+      "review": "Revisar e aceitar"
     }
   },
   "security": {
@@ -3247,13 +3498,17 @@
       "linked": "Vinculada",
       "notLinked": "Não vinculada",
       "descriptionLinked": "Você pode entrar no Setlyst com esta conta Google.",
-      "descriptionNotLinked": "Vincule para entrar com um clique. Use uma conta Google com o mesmo e-mail, já confirmado, desta conta.",
+      "descriptionNotLinked": "Vincule para entrar com um clique. Você escolhe a conta Google e confirma que é você.",
       "account": "Conta",
       "noEmail": "Sem e-mail",
       "since": "Vinculada em",
       "lastUsed": "Último acesso",
       "never": "Nunca",
       "link": "Vincular conta Google",
+      "linkTitle": "Vincular esta conta Google?",
+      "linkDescription": "Confirme sua senha para vincular a conta Google que você escolheu. Depois disso, você também poderá entrar com ela.",
+      "linkDescriptionCode": "Para confirmar que é você, enviaremos um código para o e-mail da sua conta. Depois disso, você também poderá entrar com a conta Google que escolheu.",
+      "linkConfirm": "Vincular",
       "unlink": "Desvincular",
       "unlinkTitle": "Desvincular a conta Google?",
       "unlinkDescription": "Você deixará de entrar com o Google e passará a usar apenas usuário ou e-mail e senha.",
@@ -3261,10 +3516,10 @@
       "status": {
         "linked": "Conta Google vinculada.",
         "mismatch": "Esta conta Google pertence a outra conta do Setlyst. Nada foi alterado na sua.",
-        "no_account": "Não foi possível vincular: o e-mail desta conta Google é diferente do e-mail desta conta. Altere o e-mail da conta ou use outra conta Google.",
-        "unverified": "Não foi possível vincular: confirme o e-mail desta conta antes de vincular o Google.",
+        "expired": "O tempo para confirmar o vínculo acabou. Clique em “Vincular conta Google” para começar de novo.",
         "failed": "Não foi possível vincular a conta Google. Tente novamente."
-      }
+      },
+      "unlinkPassword": "Confirme sua senha"
     },
     "activity": {
       "title": "Atividade da conta",
@@ -3281,6 +3536,21 @@
       "confirmTitle": "Sair de todos os dispositivos?",
       "confirmDescription": "Todas as sessões serão encerradas, inclusive esta. Você precisará entrar novamente em cada aparelho.",
       "confirm": "Sair de todos"
+    },
+    "reauth": {
+      "explanation": "Sua conta entra com o Google e não tem senha. Para confirmar que é você, vamos enviar um código de 6 dígitos para o seu e-mail.",
+      "send": "Enviar código para meu e-mail",
+      "codeSent": "Enviamos um código de 6 dígitos para o seu e-mail. Ele expira em poucos minutos.",
+      "codeLabel": "Código recebido por e-mail",
+      "resend": "Enviar outro código",
+      "resendIn": "Novo código em {time}",
+      "sendFailed": "Não foi possível enviar o código. Verifique sua conexão e tente de novo.",
+      "twoFactorLabel": "Código do app autenticador",
+      "setupDescription": "Por segurança, confirme que é você antes de configurar a verificação em duas etapas."
+    },
+    "staff2fa": {
+      "title": "A verificação em duas etapas é obrigatória para contas da equipe",
+      "description": "Sua conta tem acesso ao console da equipe, por isso precisa estar protegida com a verificação em duas etapas. Ative logo abaixo para voltar a usar o restante do Setlyst."
     }
   },
   "communication": {
@@ -3383,6 +3653,11 @@
         "resumed": "Assinatura do plano {plan} reativada",
         "renewed": "Plano {plan} renovado",
         "canceled": "Assinatura do plano {plan} encerrada",
+        "withdrawn": "Desistência da assinatura do plano {plan}, com reembolso integral",
+        "refunded": "Assinatura do plano {plan} reembolsada e encerrada",
+        "disputed": "Cobrança do plano {plan} contestada no cartão; assinatura encerrada",
+        "duplicate_canceled": "Assinatura duplicada do plano {plan} cancelada e reembolsada",
+        "grant_restored": "Plano {plan} concedido pela equipe restaurado",
         "other": "Assinatura atualizada"
       }
     },
@@ -3470,11 +3745,11 @@
       "secure": "Pagamento com cartão, processado com segurança pela Stripe.",
       "subscribe": "Assinar um plano",
       "changePlan": "Trocar plano",
-      "manage": "Gerenciar pagamento",
-      "pastDue": "Não conseguimos cobrar seu cartão. Atualize a forma de pagamento em \"Gerenciar pagamento\" para manter seu plano.",
-      "canceling": "Sua assinatura foi cancelada e termina em {date}. Até lá, tudo continua liberado. Para continuar assinando, reative em \"Gerenciar pagamento\".",
+      "manage": "Gerenciar pagamento e faturas",
+      "pastDue": "Não conseguimos cobrar seu cartão. Atualize a forma de pagamento em \"Gerenciar pagamento e faturas\" para manter seu plano.",
+      "canceling": "Sua assinatura foi cancelada e termina em {date}. Até lá, tudo continua liberado. Para continuar assinando, reative em \"Gerenciar pagamento e faturas\".",
       "changeBlockedPastDue": "Regularize o pagamento pendente antes de trocar de plano.",
-      "changeBlockedCanceling": "Reative a assinatura em \"Gerenciar pagamento\" antes de trocar de plano.",
+      "changeBlockedCanceling": "Reative a assinatura em \"Gerenciar pagamento e faturas\" antes de trocar de plano.",
       "pickTitle": "Escolha seu plano",
       "pickDescription": "Você conclui o pagamento na página segura da Stripe e volta para cá em seguida.",
       "changeTitle": "Trocar plano",
@@ -3484,7 +3759,7 @@
       "notAvailable": "Indisponível",
       "trialCarries": "Seu período de teste continua: a primeira cobrança acontece em {date}.",
       "promotionFirstCharge": "Desconto de {percent}% na primeira cobrança.",
-      "renews": "A assinatura renova automaticamente. Cancele quando quiser em \"Gerenciar pagamento\", e o plano segue ativo até o fim do período pago.",
+      "renews": "A assinatura renova automaticamente ao fim de cada período. Cancele quando quiser em \"Gerenciar pagamento e faturas\", e o plano segue ativo até o fim do período pago.",
       "stripeNote": "A Stripe mostra o valor exato antes de você confirmar.",
       "prorated": "A diferença de valor é calculada proporcionalmente e cobrada (ou creditada) na hora.",
       "declinedKeeps": "Se o cartão for recusado, seu plano atual continua como está.",
@@ -3495,8 +3770,23 @@
       "returnCanceled": "Pagamento não concluído. Nada foi cobrado.",
       "returnActive": "Pagamento confirmado. Seu plano está ativo!",
       "returnWaiting": "Pagamento recebido. Estamos ativando seu plano, isso leva alguns segundos…",
-      "returnSlow": "A confirmação está demorando mais que o normal. Seu plano aparece aqui assim que a Stripe confirmar; recarregue a página em alguns minutos."
-    }
+      "returnSlow": "A confirmação está demorando mais que o normal. Seu plano aparece aqui assim que a Stripe confirmar; recarregue a página em alguns minutos.",
+      "pastDueSince": "Não conseguimos cobrar seu cartão em {date}. Atualize a forma de pagamento em \"Gerenciar pagamento e faturas\" para manter seu plano; os recursos pagos são pausados se o pagamento não for regularizado.",
+      "withdrawalNotice": "Você pode desistir em até 7 dias após o primeiro pagamento e receber o reembolso integral.",
+      "legalConsent": "Ao continuar, você concorda com os <terms>Termos de Assinatura</terms> e declara estar ciente da <privacy>Política de Privacidade</privacy>.",
+      "newPrice": "A partir de agora você paga {price} {per}.",
+      "withdraw": {
+        "eligible": "Você está dentro do prazo de 7 dias para desistir (até {date}): pode cancelar e receber de volta tudo o que pagou.",
+        "button": "Desistir da assinatura (reembolso integral)",
+        "confirmTitle": "Desistir da assinatura?",
+        "confirmDescription": "Sua assinatura é cancelada na hora e o valor pago é estornado integralmente no seu cartão (pode levar alguns dias para aparecer, dependendo do banco). Os recursos pagos param agora; tudo o que você criou continua salvo.",
+        "confirm": "Desistir e receber o reembolso",
+        "keep": "Manter minha assinatura",
+        "done": "Assinatura cancelada. O reembolso de {amount} já foi solicitado no seu cartão."
+      },
+      "actionRequired": "Seu banco pediu a confirmação da cobrança. Abrindo a página de confirmação…"
+    },
+    "withdrawalRight": "Direito de arrependimento: você pode desistir de uma nova assinatura em até 7 dias após o primeiro pagamento e receber o reembolso integral, pelo botão acima enquanto estiver disponível ou escrevendo para <mail>{email}</mail>."
   },
   "announcements": {
     "pageTitle": "Avisos",
@@ -3581,6 +3871,7 @@
       "saveDraft": "Salvar rascunho",
       "save": "Salvar alterações",
       "publish": "Publicar",
+      "publishAdminOnly": "Só administradores publicam comunicados. Salve o rascunho e peça a um administrador.",
       "fixErrors": "Revise os campos destacados antes de continuar.",
       "saveFailed": "Não foi possível salvar o aviso.",
       "saved": "Aviso salvo.",
@@ -3631,6 +3922,7 @@
         "notificationHint": "Aparece no sino. Respeita as preferências de cada pessoa.",
         "email": "E-mail",
         "emailHint": "Enviado a quem tem e-mail verificado e aceita avisos por e-mail.",
+        "emailAdminOnly": "Só administradores podem enviar comunicados por e-mail.",
         "emailCriticalHint": "Nível crítico: enviado a todos os e-mails verificados do público."
       },
       "behavior": {
@@ -3740,7 +4032,9 @@
       "description": "Todos os nomes de usuário, fotos de perfil e logos de banda passam de novo pelas verificações automáticas. Pode levar alguns instantes.",
       "confirm": "Reanalisar",
       "done": "{count, plural, =0 {Nenhum ponto de atenção novo encontrado.} =1 {# novo ponto de atenção encontrado.} other {# novos pontos de atenção encontrados.}}",
-      "doneNone": "Reanálise concluída. Nenhum ponto novo."
+      "doneNone": "Reanálise concluída. Nenhum ponto novo.",
+      "doneNoneUsernames": "Nomes de usuário verificados. Nenhum ponto novo.",
+      "imagesInBackground": "Fotos de perfil e logos continuam sendo analisadas em segundo plano; o que for encontrado aparece na fila em alguns minutos."
     },
     "card": {
       "imageUnavailable": "Não foi possível carregar a imagem",
@@ -3998,6 +4292,7 @@
         },
         "confirmOn": "Ativar a cobrança",
         "confirmOff": "Desativar a cobrança",
+        "confirmOffForce": "Desativar mesmo assim",
         "typeToConfirm": "Digite {word} para confirmar"
       },
       "trial": {
@@ -4254,6 +4549,18 @@
       "grantButton": "Conceder plano",
       "creditsButton": "Ajustar créditos",
       "revokeButton": "Encerrar assinatura",
+      "refundButton": "Reembolsar e cancelar assinatura",
+      "refundTitle": "Reembolsar e cancelar a assinatura?",
+      "refundDescription": "A assinatura do plano {plan} de @{username} é cancelada agora e o valor volta para o cartão.",
+      "refundWindow": "Dentro dos 7 dias de desistência, todas as cobranças do período são reembolsadas; fora deles, só a última cobrança.",
+      "refundNow": "A pessoa perde o plano pago imediatamente. Não é possível desfazer.",
+      "refundNotice": "A pessoa recebe um e-mail de confirmação, e o motivo fica registrado na auditoria.",
+      "refundReason": "Motivo",
+      "refundReasonPlaceholder": "ex.: cobrança duplicada, pedido de desistência por e-mail",
+      "refundReasonHint": "De 3 a 500 caracteres. Fica na auditoria; não aparece para a pessoa.",
+      "refundConfirm": "Reembolsar e cancelar",
+      "refunded": "{amount} reembolsados e assinatura cancelada.",
+      "refundedNothing": "Assinatura cancelada. Não havia cobrança para reembolsar.",
       "history": "Histórico",
       "historyEmpty": "Nenhum evento de assinatura.",
       "by": "por @{username}",
@@ -4274,7 +4581,18 @@
         "trial_started": "Teste iniciado",
         "trial_extended": "Teste estendido",
         "revoked": "Assinatura encerrada",
-        "expired": "Assinatura expirada"
+        "expired": "Assinatura expirada",
+        "subscribed": "Assinatura iniciada",
+        "plan_changed": "Plano trocado",
+        "payment_failed": "Falha na cobrança",
+        "cancel_scheduled": "Cancelamento agendado",
+        "resumed": "Assinatura reativada",
+        "canceled": "Assinatura cancelada",
+        "withdrawn": "Desistência com reembolso",
+        "refunded": "Reembolsada pela equipe",
+        "disputed": "Contestação no cartão",
+        "duplicate_canceled": "Assinatura duplicada cancelada",
+        "grant_restored": "Plano concedido restaurado"
       },
       "grantTitle": "Conceder plano",
       "grantDescription": "Cortesia para @{username}. Se a pessoa já tem o mesmo plano, o prazo é estendido.",
@@ -4641,7 +4959,9 @@
       "descriptionPlaceholder": "ex.: Logística, hospedagem, contatos da produção",
       "created": "Turnê criada.",
       "updated": "Turnê atualizada.",
-      "saveFailed": "Não foi possível salvar a turnê."
+      "saveFailed": "Não foi possível salvar a turnê.",
+      "nameRequired": "Informe o nome da turnê.",
+      "dateRequired": "Escolha uma data."
     },
     "errors": {
       "nameLength": "O nome da turnê deve ter entre 1 e 120 caracteres.",
@@ -4651,8 +4971,8 @@
   },
   "suggestions": {
     "title": "Sugestões em votação",
-    "description": "Membros sugerem músicas, a banda vota e quem gerencia as setlists decide.",
-    "descriptionAuto": "Membros sugerem músicas e a banda vota. Com {votes, plural, =1 {# voto a favor} other {# votos a favor}}, a música entra automaticamente.",
+    "description": "Os integrantes sugerem músicas, a banda vota e quem gerencia as setlists decide.",
+    "descriptionAuto": "Os integrantes sugerem músicas e a banda vota. Com {votes, plural, =1 {# voto a favor} other {# votos a favor}}, a música entra automaticamente.",
     "locked": "Sugestões de músicas não estão incluídas no seu plano.",
     "filterLabel": "Filtrar sugestões",
     "filters": {
@@ -4724,7 +5044,7 @@
     "save": "Salvar",
     "addTitle": "Novo lembrete",
     "editTitle": "Editar lembrete",
-    "dialogDescription": "Todos os membros da banda veem os lembretes.",
+    "dialogDescription": "Todos os integrantes da banda veem os lembretes.",
     "contentLabel": "Texto",
     "contentPlaceholder": "ex.: Levar cabo P10 reserva para o show de sábado.",
     "contentRequired": "Escreva o texto do lembrete.",
@@ -4756,6 +5076,26 @@
       "whereToSee": "Os dias restantes ficam sempre visíveis no menu e em Configurações › Assinatura.",
       "seePlans": "Ver planos",
       "start": "Começar a usar"
+    },
+    "status": {
+      "choosePlan": "Escolher plano",
+      "dismiss": "Ocultar este aviso",
+      "ending": {
+        "banner": "Seu teste do plano {plan} {days, plural, =0 {termina hoje} =1 {termina amanhã} other {termina em # dias}}. Escolha um plano para manter todos os recursos; o que você criou continua salvo de qualquer forma."
+      },
+      "expired": {
+        "chip": "Seu teste terminou",
+        "chipDetail": "Escolher plano",
+        "banner": "Seu período no plano {plan} terminou, e os recursos pagos estão pausados. Tudo o que você criou continua aqui: escolha um plano para liberá-los de novo.",
+        "chipPlan": "Seu plano terminou"
+      },
+      "pastDue": {
+        "chip": "Pagamento recusado",
+        "chipDetail": "Atualize o cartão",
+        "banner": "Não conseguimos cobrar seu cartão. Atualize a forma de pagamento para manter seu plano.",
+        "bannerSince": "Não conseguimos cobrar seu cartão em {date}. Atualize a forma de pagamento para manter seu plano.",
+        "action": "Atualizar pagamento"
+      }
     }
   },
   "finance": {
@@ -4834,5 +5174,19 @@
     "description": "Este endereço não existe ou não está mais disponível. Confira o link ou volte para uma página conhecida.",
     "dashboard": "Ir para o meu painel",
     "home": "Voltar ao início"
+  },
+  "installApp": {
+    "button": "Instalar o app",
+    "why": "Ele abre em tela cheia, direto da tela inicial, e funciona sem internet.",
+    "done": "Setlyst instalado. Abra pela tela inicial ou pela lista de apps.",
+    "installed": "Você está usando o app instalado.",
+    "howTo": "Como instalar no iPhone ou iPad",
+    "ios": {
+      "step1": "No Safari, toque no botão Compartilhar (o quadrado com uma seta).",
+      "step2": "Escolha “Adicionar à Tela de Início”.",
+      "step3": "Toque em “Adicionar”. O Setlyst passa a abrir como um app, em tela cheia."
+    },
+    "browserMenu": "Para instalar, abra o menu do navegador e escolha “Instalar app” ou “Adicionar à tela inicial”.",
+    "title": "App neste dispositivo"
   }
 }
