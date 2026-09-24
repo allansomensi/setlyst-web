@@ -48,6 +48,14 @@ function write(key: string, value: number) {
  * restoration never applied: Back from a song landed at the top of a long
  * list. This remembers the position per page for the session and puts it
  * back on Back/Forward.
+ *
+ * Always `relative`: an absolutely positioned descendant (`sr-only`
+ * labels, a hidden file input) whose nearest positioned ancestor is the
+ * page itself is laid out at its place deep in the scrolled content but is
+ * neither scrolled nor clipped by this box. It then stretches the document
+ * past the viewport, adding a second, outer scrollbar that moves the
+ * whole dashboard, sidebar included, out of view (Settings, a long page
+ * with several of them, showed it).
  */
 export function DashboardScrollArea({
   children,
@@ -109,7 +117,7 @@ export function DashboardScrollArea({
     <div
       ref={ref}
       {...{ [DASHBOARD_SCROLL_ATTR]: "" }}
-      className={cn(className)}
+      className={cn("relative", className)}
     >
       {children}
     </div>

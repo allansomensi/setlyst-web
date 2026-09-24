@@ -83,8 +83,10 @@ export default async function DashboardLayout({
           for) with the page scrolling inside <main>. `dashboard-clip`
           (globals.css) clips instead of hiding: a hidden box can still be
           scrolled by script (scrollIntoView, focus), which used to slide the
-          whole dashboard out from under the sidebar. */}
-      <div className="bg-background dashboard-clip flex h-dvh flex-col md:flex-row">
+          whole dashboard out from under the sidebar. `relative` makes the
+          shell the containing block of absolutely positioned descendants,
+          so the clip applies to them too (see DashboardScrollArea). */}
+      <div className="bg-background dashboard-clip relative flex h-dvh flex-col md:flex-row">
         <a
           href="#main-content"
           className="bg-primary text-primary-foreground focus-visible:ring-ring/50 sr-only z-[60] rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:left-3 focus-visible:ring-3"
