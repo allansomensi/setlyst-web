@@ -57,8 +57,8 @@ export function assignableRoles(actor: UserRole): UserRole[] {
  * Moderators review: users, the moderation queue, audit, content and
  * public links; they write announcements, and read release notes, the
  * billing overview and the default limits. Everything else (plans,
- * billing settings, promo codes, promotions, release-note edits, limit
- * edits, rescans) is admin-only.
+ * billing settings, the finance report, promo codes, promotions,
+ * release-note edits, limit edits, rescans) is admin-only.
  */
 export type StaffCapability =
   | "users"
@@ -70,6 +70,7 @@ export type StaffCapability =
   | "releaseNotes.write"
   | "billing"
   | "billing.write"
+  | "finance"
   | "promoCodes"
   | "promotions"
   | "content"
@@ -81,6 +82,7 @@ const ADMIN_ONLY: ReadonlySet<StaffCapability> = new Set<StaffCapability>([
   "moderation.rescan",
   "releaseNotes.write",
   "billing.write",
+  "finance",
   "promoCodes",
   "promotions",
   "content.write",

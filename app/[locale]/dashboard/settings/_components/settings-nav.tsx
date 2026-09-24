@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   CreditCard,
   Database,
-  LifeBuoy,
+  CircleHelp,
   Bell,
   ShieldCheck,
   SlidersHorizontal,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
+import { scrollIntoDashboard } from "@/lib/scroll-into-dashboard";
 
 export const SETTINGS_SECTIONS = [
   "preferences",
@@ -30,17 +31,13 @@ const ICONS: Record<SettingsSection, LucideIcon> = {
   communications: Bell,
   subscription: CreditCard,
   data: Database,
-  help: LifeBuoy,
+  help: CircleHelp,
 };
 
 function scrollToSection(id: SettingsSection) {
   const target = document.getElementById(id);
   if (!target) return;
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  target.scrollIntoView({
-    behavior: reduce ? "auto" : "smooth",
-    block: "start",
-  });
+  scrollIntoDashboard(target, { smooth: true });
   window.history.replaceState(null, "", `#${id}`);
 }
 
@@ -58,9 +55,10 @@ export function SettingsNav() {
     if ((SETTINGS_SECTIONS as readonly string[]).includes(hash)) {
       // The page scrolls inside the dashboard's <main>, so make sure the
       // anchor is honoured once everything has rendered.
-      requestAnimationFrame(() =>
-        document.getElementById(hash)?.scrollIntoView({ block: "start" }),
-      );
+      requestAnimationFrame(() => {
+        const target = document.getElementById(hash);
+        if (target) scrollIntoDashboard(target);
+      });
     }
 
     const visible = new Map<string, number>();

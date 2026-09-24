@@ -561,6 +561,9 @@ function googleProviders() {
   ];
 }
 
+/** How long a sign-in waits for the API before giving up. */
+const LOGIN_TIMEOUT_MS = 25_000;
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -628,6 +631,8 @@ export const authOptions: NextAuthOptions = {
                     : credentials?.recoveryCode?.trim() || undefined,
                 }),
                 redirect: "error",
+                // A sleeping or overloaded API must not hang the sign-in.
+                signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
               })
             : await fetch(`${apiUrl}/auth/login`, {
                 method: "POST",
@@ -640,6 +645,8 @@ export const authOptions: NextAuthOptions = {
                   password: credentials!.password,
                 }),
                 redirect: "error",
+                // A sleeping or overloaded API must not hang the sign-in.
+                signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
               });
 
           if (!res.ok) {

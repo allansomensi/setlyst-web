@@ -147,7 +147,9 @@
       "referralHint": "Whoever referred you receives credits once you confirm your email.",
       "planChosen": "Chosen plan: {plan}.",
       "planNote": "During the pre-release period, every feature is available. You'll be able to subscribe once online payments are available.",
-      "planNoteEnforced": "Your account starts with a trial period. Online payments will be available soon."
+      "planNoteEnforced": "You can subscribe to it at any time in Settings › Subscription, even during the trial.",
+      "trialTitle": "30 days of Pro, free.",
+      "trialBody": "Your account starts on a free trial with every feature unlocked. No card needed and nothing is charged automatically: when the trial ends, you decide whether to subscribe."
     }
   },
   "dashboard": {
@@ -403,7 +405,7 @@
     },
     "help": {
       "title": "ChordPro Format",
-      "intro": "Setlyst reads ChordPro and also the formats most chord sites use.",
+      "intro": "Setlyst reads ChordPro and the common \"chords over lyrics\" layout, so you can paste what you have already written or typed yourself.",
       "inlineChords": "Chords in brackets, right before the syllable they fall on.",
       "sections": "A section on its own line, in English, Portuguese or Spanish, with or without brackets, numbers and repeats (\"Verse 2\", \"Chorus x2\").",
       "environments": "ChordPro sections: chorus, verse, bridge, and {sot}…{eot} for tabs.",
@@ -1315,6 +1317,12 @@
       "subscription": "Plan, usage, credits and referrals.",
       "data": "Backup of your repertoire and account deletion.",
       "help": "Guides, what's new, service status and legal documents."
+    },
+    "personalData": {
+      "title": "Your personal data",
+      "description": "Download everything we keep about your account — profile, preferences, consents, subscription, payments and security log — as a JSON file. Your repertoire is in the backup above.",
+      "button": "Download my data",
+      "done": "Your personal data was downloaded."
     }
   },
   "error": {
@@ -1361,7 +1369,7 @@
       "left": "You left the band."
     },
     "roles": {
-      "owner": "Owner",
+      "owner": "Lead",
       "admin": "Admin",
       "moderator": "Moderator",
       "member": "Member"
@@ -1389,7 +1397,7 @@
       "titlePlaceholder": "e.g., Guitarist",
       "titleUpdated": "Title updated.",
       "roles": {
-        "owner": "Owner",
+        "owner": "Lead",
         "admin": "Admin",
         "moderator": "Moderator",
         "member": "Member"
@@ -1412,7 +1420,7 @@
         "member": "Member",
         "moderator": "Moderator",
         "admin": "Admin",
-        "owner": "Owner"
+        "owner": "Lead"
       },
       "status": {
         "active": "Active",
@@ -1464,10 +1472,10 @@
       "title": "Danger Zone",
       "subtitle": "Irreversible actions related to this band.",
       "transferTitle": "Transfer the band",
-      "transferDescription": "Make another member the owner of this band.",
+      "transferDescription": "Make another member responsible for this band.",
       "transferAction": "Transfer",
-      "transferConfirm": "Choose the band's new owner. You will become an admin.",
-      "newOwnerLabel": "New owner",
+      "transferConfirm": "Choose who becomes responsible for the band. You will become an admin.",
+      "newOwnerLabel": "New lead",
       "transferred": "Band transferred.",
       "leaveTitle": "Leave band",
       "leaveDescription": "You'll lose access to this band's setlists and settings.",
@@ -1611,7 +1619,7 @@
   },
   "about": {
     "title": "About",
-    "tagline": "Lyrics, chords, setlists and gigs, ready for the stage.",
+    "tagline": "Your repertoire, setlists and gigs, ready for the stage.",
     "license": "MIT License",
     "projectDescription": "Setlyst organizes the repertoire of musicians who play live. Store lyrics with chords, build setlists, plan your gigs and use Live Mode on stage, with transposition, a metronome, auto-scroll, compact mode and offline support.",
     "openSource": "It works for solo musicians and for bands. The code is open source: a Next.js web app and a Rust API, published on GitHub.",
@@ -1682,7 +1690,7 @@
       "setlists": "setlists",
       "gigs": "shows",
       "tags": "tags",
-      "bands_owned": "bands you own",
+      "bands_owned": "bands you lead",
       "band_memberships": "band memberships",
       "band_members": "members in this band",
       "band_setlists": "setlists in this band",
@@ -2145,7 +2153,7 @@
       "addConfirm": "Add to band",
       "searchBands": "Search bands…",
       "role": "Role in the band",
-      "bandHint": "Owner @{owner} · {members, plural, one {# member} other {# members}}",
+      "bandHint": "Lead @{owner} · {members, plural, one {# member} other {# members}}",
       "alreadyMember": "Already a member",
       "added": "@{username} was added to {band}."
     },
@@ -2166,7 +2174,7 @@
       "subtitle": "Permanent deletion",
       "preferDeactivate": "In almost every case, deactivating or suspending the account is the better choice: it's instant, reversible and keeps the history.",
       "consequencePersonal": "Their personal songs, artists, setlists and shows are deleted.",
-      "consequenceBands": "Bands they own go to the next most senior member; band content they created stays with the band.",
+      "consequenceBands": "Bands they lead go to the next most senior member; band content they created stays with the band.",
       "consequenceIrreversible": "This can't be undone.",
       "delete": "Delete account permanently…",
       "confirmTitle": "Permanently delete @{username}?",
@@ -2241,7 +2249,8 @@
         "moderation_avatar_removed": "Profile picture removed",
         "moderation_band_logo_removed": "Band logo removed",
         "moderation_username_reset": "Username reset",
-        "moderation_rescan": "Moderation rescan"
+        "moderation_rescan": "Moderation rescan",
+        "finance_synced": "Finance synced with Stripe"
       }
     },
     "lists": {
@@ -2255,7 +2264,7 @@
       "search": "Search by band or slug…",
       "columns": {
         "band": "Band",
-        "owner": "Owner",
+        "owner": "Lead",
         "members": "Members",
         "content": "Content",
         "updated": "Last modified"
@@ -2290,23 +2299,23 @@
       "alreadyMember": "Already a member",
       "unavailable": "Account deactivated or suspended",
       "changeRole": "Change role",
-      "transfer": "Make owner",
+      "transfer": "Make lead",
       "remove": "Remove from band",
       "confirmRoleTitle": "Change the role of {username}?",
       "confirmRole": "They'll become {role} in this band and be notified.",
       "confirmRemoveTitle": "Remove {username} from the band?",
       "confirmRemove": "They lose access to the band's songs, setlists and shows. What they created stays with the band.",
-      "confirmTransferTitle": "Make {username} the owner?",
-      "confirmTransfer": "The current owner becomes an admin of the band.",
+      "confirmTransferTitle": "Make {username} the lead?",
+      "confirmTransfer": "The current lead becomes an admin of the band.",
       "roleChanged": "{username} is now {role}.",
       "removed": "{username} was removed from the band.",
-      "transferred": "{username} is now the owner.",
+      "transferred": "{username} is now the lead.",
       "added": "{username} was added."
     },
     "bandDanger": {
       "title": "Danger zone",
       "subtitle": "Delete this band",
-      "advice": "Consider removing members or changing the owner instead. Deleting can't be undone.",
+      "advice": "Consider removing members or changing the lead instead. Deleting can't be undone.",
       "consequenceContent": "Every band song, setlist and show is deleted.",
       "consequenceMembers": "Members lose access immediately.",
       "irreversible": "This can't be undone.",
@@ -2488,7 +2497,8 @@
         "songs": "Songs",
         "setlists": "Setlists",
         "links": "Public links",
-        "limits": "Limits"
+        "limits": "Limits",
+        "finance": "Finance"
       },
       "openFlags": "{count, plural, =0 {No open points} one {# open point} other {# open points}}"
     }
@@ -2507,7 +2517,7 @@
       "setlists": "Setlists",
       "gigs": "Shows",
       "tags": "Distinct tags",
-      "bands_owned": "Bands owned",
+      "bands_owned": "Bands you lead",
       "band_memberships": "Band memberships",
       "band_members": "Members per band",
       "band_setlists": "Setlists per band",
@@ -2720,7 +2730,7 @@
     "hero": {
       "badgePreRelease": "Pre-release: every feature available free of charge",
       "badgeTrial": "30 days of Pro free, no card required",
-      "title": "Lyrics, chords and setlists ready for the stage",
+      "title": "Your repertoire and setlists, ready for the stage",
       "description": "Organise your repertoire, build setlists with BPM and energy analysis and play in Live Mode, with a metronome and key transposition. On your own or with your band, online or offline.",
       "ctaPrimary": "Create a free account",
       "ctaSecondary": "See plans",
@@ -2759,7 +2769,7 @@
       "suggestion": "Suggestion being voted on",
       "suggestedBy": "Suggested by {name}",
       "autoAccept": "{votes} of {needed, plural, one {# vote} other {# votes}} to accept automatically",
-      "roleOwner": "Owner",
+      "roleOwner": "Lead",
       "roleAdmin": "Admin",
       "roleMember": "Member",
       "roleOwnerCan": "Manages everything",
@@ -2920,7 +2930,7 @@
     "card": {
       "songs": "{unlimited, select, true {Unlimited songs} other {{count, plural, one {# song} other {# songs}}}}",
       "setlists": "{unlimited, select, true {Unlimited setlists} other {{count, plural, one {# setlist} other {# setlists}}}}",
-      "bandsOwned": "{unlimited, select, true {Unlimited bands of your own} other {{count, plural, one {Up to # band of your own} other {Up to # bands of your own}}}}",
+      "bandsOwned": "{unlimited, select, true {Lead unlimited bands} other {{count, plural, one {Lead up to # band} other {Lead up to # bands}}}}",
       "bandMemberships": "{unlimited, select, true {Member of any number of bands} other {{count, plural, one {Member of up to # band} other {Member of up to # bands}}}}"
     },
     "features": {
@@ -2942,7 +2952,7 @@
       "gigs": "Gigs",
       "tours": "Tours",
       "tags": "Tags",
-      "bands_owned": "Bands of your own",
+      "bands_owned": "Bands you lead",
       "band_memberships": "Bands you belong to",
       "band_members": "Members per band",
       "band_songs": "Songs per band",
@@ -3036,7 +3046,7 @@
     }
   },
   "seo": {
-    "landingTitle": "Setlyst: lyrics, chords and setlists for playing live",
+    "landingTitle": "Setlyst: your repertoire, setlists and shows, ready for the stage",
     "landingDescription": "Organise your repertoire, build setlists with BPM and energy analysis and play in Live Mode with a metronome, key transposition and offline use. For musicians and bands.",
     "pricingTitle": "Plans and pricing",
     "pricingDescription": "Compare Setlyst's Basic, Intermediate and Pro plans: limits, band features, tours and export. Prices in Brazilian reais, cancel at any time.",
@@ -3194,7 +3204,7 @@
       "title": "Delete my account",
       "description": "Permanently removes your account and your personal data from Setlyst.",
       "consequenceContent": "Your personal songs, artists, setlists, gigs and tours are deleted.",
-      "consequenceBands": "Bands you own are handed over to their longest-standing member. Bands with no other members are deleted.",
+      "consequenceBands": "Bands you lead are handed over to their longest-standing member. Bands with no other members are deleted.",
       "consequenceBilling": "Credits, referrals and your current plan are lost.",
       "consequenceIrreversible": "This can't be undone. We'll send a confirmation to your email.",
       "backupHint": "Before continuing, you can export a backup above.",
@@ -4733,5 +4743,96 @@
     "created": "Reminder created.",
     "updated": "Reminder updated.",
     "saveFailed": "Couldn't save the reminder."
+  },
+  "trial": {
+    "chip": "{plan} trial",
+    "daysLeft": "{days, plural, =0 {Ends today} one {# day left} other {# days left}}",
+    "welcome": {
+      "title": "You're on a free {plan} trial",
+      "lead": "Welcome to Setlyst{hasName, select, yes {, {name}} other {}}! Your account started with <strong>{days, plural, one {# day} other {# days}} of the {plan} plan for free</strong>, which is why every feature is unlocked right now.",
+      "ends": "The trial ends on <date></date>: <strong>{days, plural, =0 {today} one {# day left} other {# days left}}</strong>.",
+      "noCharge": "We didn't ask for a card and nothing is charged automatically. Subscribing is always your choice.",
+      "afterwards": "When it ends, everything you created stays saved and can be viewed and exported. Paid features pause until you choose a plan.",
+      "whereToSee": "The days left are always shown in the menu and in Settings › Subscription.",
+      "seePlans": "See plans",
+      "start": "Start using Setlyst"
+    }
+  },
+  "finance": {
+    "title": "Finance",
+    "description": "Subscription revenue, subscribers and payments received.",
+    "alerts": {
+      "paymentsOff": "Card payments are not configured on the server (STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET), so no new payments are recorded.",
+      "notEnforced": "Plans aren't enforced yet (Plans and billing › Enforcement): everyone has every feature and nobody is charged."
+    },
+    "kpi": {
+      "sectionRecurring": "Key figures",
+      "mrr": "MRR",
+      "arr": "ARR {value}",
+      "thisMonth": "Received this month",
+      "lastMonth": "Last month: {value}",
+      "paying": "Paying subscribers",
+      "arpu": "Average {value}/month each",
+      "trialing": "On a trial",
+      "trialsEnding": "{count, plural, =0 {None ending in 7 days} one {# ends in 7 days} other {# end in 7 days}}",
+      "newThisMonth": "New subscribers this month",
+      "churnThisMonth": "Cancellations this month",
+      "churnRate": "Churn {rate}",
+      "conversion": "Trial conversion",
+      "conversionHint": "{converted} of {ended} trials that ended in the last {days} days",
+      "attention": "Overdue payments",
+      "attentionHint": "{count, plural, =0 {No cancellation scheduled} one {# cancellation scheduled} other {# cancellations scheduled}}"
+    },
+    "chart": {
+      "title": "Net revenue per month",
+      "description": "Last 12 months: {total} · since the start: {allTime}",
+      "net": "Net",
+      "gross": "Received",
+      "refunded": "Refunds",
+      "payments": "Payments",
+      "showTable": "Show as a table"
+    },
+    "table": {
+      "month": "Month",
+      "new": "New",
+      "churned": "Canceled",
+      "plan": "Plan",
+      "subscribers": "Subscribers",
+      "date": "Date",
+      "account": "Account",
+      "amount": "Amount"
+    },
+    "interval": {
+      "monthly": "monthly",
+      "yearly": "yearly"
+    },
+    "byPlan": {
+      "title": "Recurring revenue by plan",
+      "description": "Paid subscriptions in force, at list price (a yearly plan counts one twelfth a month).",
+      "empty": "No paid subscriptions yet."
+    },
+    "recent": {
+      "title": "Latest payments",
+      "lastPayment": "Last one on <date></date>",
+      "none": "No payment recorded yet.",
+      "empty": "Payments show up here as Stripe confirms them. Already charged someone? Use “Sync with Stripe”.",
+      "deletedAccount": "Deleted account",
+      "refunded": "Refunded",
+      "partiallyRefunded": "{value} refunded"
+    },
+    "sync": {
+      "button": "Sync with Stripe",
+      "running": "Syncing…",
+      "hint": "Imports paid invoices and refunds the webhook didn't deliver. Safe to run any time.",
+      "done": "{scanned, plural, =0 {No paid invoice at Stripe} one {# paid invoice checked} other {# paid invoices checked}}, {imported, plural, =0 {nothing new} one {# new payment imported} other {# new payments imported}}, {refunds, plural, =0 {no refund to update} one {# refund updated} other {# refunds updated}}.",
+      "progress": "{count, plural, one {# invoice checked…} other {# invoices checked…}}"
+    },
+    "footnote": "Amounts as charged (after discounts), before Stripe fees and taxes. MRR is estimated from the paid subscriptions in force at their list price, including subscriptions taken out during the free trial whose first charge happens when the trial ends. Months follow the {timeZone} time zone. Refunds appear once Stripe reports them."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "This address doesn't exist or is no longer available. Check the link or go back to a page you know.",
+    "dashboard": "Go to my dashboard",
+    "home": "Back to the home page"
   }
 }

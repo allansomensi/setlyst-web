@@ -3,12 +3,11 @@ import { getServerSession } from "next-auth";
 import { getLocale, getTranslations } from "next-intl/server";
 import { authOptions } from "@/lib/auth";
 import { fetchServerApi } from "@/lib/api-server";
-import { getMe, getMyPreferences } from "@/lib/server-data";
+import { getMe, getMyBilling, getMyPreferences } from "@/lib/server-data";
 import { getPublicPlans } from "@/lib/public-api";
 import { pickLocalized } from "@/lib/localized";
 import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
 import type { PaginatedResponse, QuotaReport } from "@/types/api";
-import type { BillingMe } from "@/types/billing";
 import type {
   CommunicationSettings,
   CreditEntry,
@@ -24,6 +23,7 @@ import { DisplayDefaultsSection } from "./_components/display-defaults-section";
 import { HelpSection } from "./_components/help-section";
 import { OfflineSection } from "./_components/offline-section";
 import { PdfDefaultsSection } from "./_components/pdf-defaults-section";
+import { PersonalDataSection } from "./_components/personal-data-section";
 import {
   SecuritySection,
   type GoogleLinkStatus,
@@ -83,7 +83,7 @@ export default async function SettingsPage({
     orNull(fetchServerApi<SecurityOverview>("/users/me/security")),
     orNull(fetchServerApi<LinkedIdentity[]>("/users/me/identities")),
     orNull(fetchServerApi<CommunicationSettings>("/users/me/communication")),
-    orNull(fetchServerApi<BillingMe>("/billing/me")),
+    orNull(getMyBilling()),
     orNull(
       fetchServerApi<PaginatedResponse<CreditEntry>>(
         "/billing/credits?page=1&per_page=10",
@@ -228,6 +228,9 @@ export default async function SettingsPage({
               description={t("sectionDescriptions.data")}
             />
             <BackupSection />
+            {/* The owner's own data: not for staff viewing as the account
+                (the API refuses it too). */}
+            {!readOnly && <PersonalDataSection />}
             <DeleteAccountSection
               username={username}
               passwordSet={passwordSet}

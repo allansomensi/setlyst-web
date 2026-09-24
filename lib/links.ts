@@ -15,7 +15,7 @@ export const ISSUES_URL = `https://github.com/${GITHUB_OWNER}/setlyst-web/issues
 
 /** Contact for account help (locked out, lost password, data requests). */
 export const SUPPORT_EMAIL =
-  process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@setlyst.app";
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "contato@setlyst.com.br";
 
 /** The public system status page (outside the locale segment). */
 export const STATUS_PATH = "/status";

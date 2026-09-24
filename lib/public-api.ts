@@ -10,7 +10,7 @@ import type { PublicPlan, ReleaseNote, UnsubscribeInfo } from "@/types/public";
  * the landing page and the legal texts stay up while the API is down.
  */
 
-const TIMEOUT_MS = 5_000;
+const TIMEOUT_MS = 8_000;
 
 function apiBaseUrl(): string | null {
   const url = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";

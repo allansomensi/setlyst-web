@@ -3,13 +3,14 @@
  *
  * Descreve os dados que a plataforma realmente trata (ver API: users,
  * user_preferences, audit_log, email_outbox, verification_codes, trash) e
- * os operadores efetivamente usados. Sempre que um novo operador, dado ou
+ * os operadores efetivamente usados (hoje: Render, Neon, Vercel, Stripe,
+ * provedor de e-mail, Google). Sempre que um novo operador, dado ou
  * finalidade for adicionado ao produto, este texto e `LEGAL_VERSION`
  * precisam ser atualizados. Deve ser revisado por um advogado antes da
  * publicação definitiva.
  */
 
-import { CONTROLLER, PRIVACY_EMAIL } from "@/lib/legal";
+import { PRIVACY_EMAIL, controllerIdentity } from "@/lib/legal";
 import { SUPPORT_EMAIL } from "@/lib/links";
 import type { LegalTexts } from "./types";
 
@@ -25,7 +26,7 @@ export const PRIVACY: LegalTexts = {
         id: "controller",
         heading: "Controlador",
         blocks: [
-          `O controlador dos dados pessoais tratados no Setlyst é ${CONTROLLER.name}, inscrita no CNPJ sob o nº ${CONTROLLER.taxId}, com sede em ${CONTROLLER.address}.`,
+          `O controlador dos dados pessoais tratados no Setlyst é ${controllerIdentity("pt-BR")}.`,
           `Esta Política explica como tratamos dados pessoais conforme a Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018, “LGPD”) e o Marco Civil da Internet (Lei 12.965/2014). Dúvidas podem ser enviadas ao nosso Encarregado pelo e-mail ${dpo}.`,
         ],
       },
@@ -43,7 +44,7 @@ export const PRIVACY: LegalTexts = {
               "Dados de uso e segurança: endereço IP, data e hora de acesso, tentativas de login, eventos de segurança (troca de senha, ativação da verificação em duas etapas) e registros de auditoria de ações administrativas.",
               "Preferências: tema, idioma, configurações do Modo Ao Vivo e da interface, preferências de comunicação e itens fixados.",
               "Comunicações: e-mails enviados a você (verificação, segurança, avisos), notificações e mensagens que você nos envia pelo suporte.",
-              "Dados de assinatura: plano, situação da assinatura, créditos, códigos promocionais resgatados e indicações. Quando a cobrança for ativada, também dados de pagamento tratados pelo processador de pagamentos; o Setlyst não armazena números completos de cartão.",
+              "Dados de assinatura e pagamento: plano, periodicidade, situação da assinatura, créditos, códigos promocionais resgatados, indicações e, para cada pagamento, valor, data, plano e eventuais reembolsos, além dos identificadores de cliente, assinatura e fatura no Stripe. Os dados do cartão são informados diretamente na página de pagamento do Stripe: o Setlyst nunca recebe nem armazena o número do cartão.",
             ],
           },
           "Dados salvos para uso offline ficam no armazenamento do seu próprio navegador e são apagados ao sair da conta.",
@@ -61,7 +62,7 @@ export const PRIVACY: LegalTexts = {
               "Prevenir fraudes e abusos, limitar tentativas de acesso, moderar nomes de usuário e imagens de perfil, garantir a segurança da plataforma e melhorar o serviço com estatísticas agregadas: legítimo interesse (art. 7º, IX), sempre respeitando seus direitos e expectativas.",
               "Enviar e-mails de novidades do produto e ofertas: consentimento (art. 7º, I), que você pode retirar a qualquer momento.",
               "Enviar comunicações de segurança e avisos essenciais sobre a conta: execução de contrato e legítimo interesse.",
-              "Cumprir obrigações fiscais relativas a pagamentos, quando a cobrança estiver ativa: obrigação legal (art. 7º, II).",
+              "Processar a assinatura e os pagamentos: execução de contrato (art. 7º, V). Guardar os registros de pagamento para cumprir obrigações fiscais e contábeis: obrigação legal (art. 7º, II).",
               "Defender direitos em processos judiciais, administrativos ou arbitrais: exercício regular de direitos (art. 7º, VI).",
             ],
           },
@@ -75,12 +76,12 @@ export const PRIVACY: LegalTexts = {
           "Não vendemos dados pessoais. Compartilhamos dados apenas com operadores que nos ajudam a prestar o serviço, sob contrato e dentro das nossas instruções:",
           {
             list: [
-              "Provedor de hospedagem da API e do banco de dados: armazena e processa todos os dados da plataforma.",
+              "Render Services, Inc. (hospedagem da API) e Neon (banco de dados PostgreSQL gerenciado): armazenam e processam todos os dados da plataforma.",
               "Vercel Inc.: hospeda o site e o aplicativo web e fornece o Vercel Web Analytics, que mede visitas de forma agregada e sem cookies.",
               "Provedor de envio de e-mails: entrega e-mails transacionais e comunicações que você autorizou.",
               "Google LLC: autenticação, quando você usa o login com Google.",
               "Google Cloud Vision (opcional): pode receber o endereço da imagem de perfil ou do logotipo de banda para classificar conteúdo impróprio, quando esse recurso estiver ativado.",
-              "Processador de pagamentos: quando a cobrança for ativada, tratará os dados necessários para processar pagamentos.",
+              "Stripe (Stripe, Inc. e empresas do seu grupo): processa os pagamentos das assinaturas. Recebe o seu e-mail, nome de usuário e os dados de pagamento que você informar na página de pagamento do Stripe, e os trata também como controlador independente para prevenção a fraudes e cumprimento das suas próprias obrigações legais, conforme a política de privacidade do Stripe.",
             ],
           },
           "Também há compartilhamento decorrente do uso que você faz da plataforma: integrantes das suas bandas veem o conteúdo da banda e seu nome de usuário, e quem abre um link público vê o conteúdo compartilhado, sem dados pessoais seus.",
@@ -91,7 +92,7 @@ export const PRIVACY: LegalTexts = {
         id: "international",
         heading: "Transferência internacional",
         blocks: [
-          "Alguns operadores, como a Vercel e o Google, mantêm servidores fora do Brasil, principalmente nos Estados Unidos. Essas transferências são feitas com base no art. 33 da LGPD, por meio de cláusulas contratuais que asseguram nível de proteção compatível com a lei brasileira, conforme a regulamentação da Autoridade Nacional de Proteção de Dados (ANPD).",
+          "Os operadores Render, Neon, Vercel, Stripe e Google mantêm servidores fora do Brasil, principalmente nos Estados Unidos. Essas transferências são feitas com base no art. 33 da LGPD, por meio de cláusulas contratuais que asseguram nível de proteção compatível com a lei brasileira, conforme a regulamentação da Autoridade Nacional de Proteção de Dados (ANPD).",
         ],
       },
       {
@@ -102,13 +103,13 @@ export const PRIVACY: LegalTexts = {
           {
             list: [
               "Dados de cadastro, perfil, preferências e conteúdo: enquanto a conta existir. Após a exclusão da conta, são apagados, ressalvados os casos abaixo.",
-              "Registros de acesso (IP, data e hora): 6 meses, conforme o art. 15 do Marco Civil da Internet.",
+              "Registros de acesso (IP, data e hora): 6 meses, conforme o art. 15 do Marco Civil da Internet. A exceção é o IP usado na criação da conta, mantido enquanto a conta existir para prevenir fraudes no programa de indicação (legítimo interesse).",
               "Registros de auditoria de ações administrativas e de segurança: pelo tempo necessário à apuração de incidentes e à defesa de direitos, limitado a 5 anos.",
               "Itens na lixeira: 30 dias; depois são excluídos definitivamente.",
               "E-mails na fila de envio: o conteúdo de e-mails sensíveis (como códigos) é apagado após o envio, e os registros de envio são removidos após 30 dias.",
               "Códigos de verificação: expiram em 15 minutos e são apagados diariamente.",
               "Cópias de segurança do banco de dados: até 30 dias, em rotação; dados excluídos deixam de existir nas cópias ao fim desse período.",
-              "Dados fiscais de pagamentos: pelo prazo exigido pela legislação tributária, em regra 5 anos.",
+              "Registros de pagamento (valor, data, plano e identificadores do Stripe): pelo prazo exigido pela legislação tributária, em regra 5 anos. Com a exclusão da conta, deixam de ter vínculo com ela, e o cadastro de cliente no Stripe é excluído.",
             ],
           },
         ],
@@ -143,7 +144,7 @@ export const PRIVACY: LegalTexts = {
           {
             list: [
               "Acesso e correção: em Meu perfil e em Configurações.",
-              "Portabilidade: exporte todo o seu conteúdo em Configurações, na seção de backup.",
+              "Acesso e portabilidade: em Configurações, na seção Dados, baixe o backup do seu conteúdo e o arquivo com todos os seus dados pessoais (perfil, preferências, consentimentos, assinatura, pagamentos e registro de segurança).",
               "Consentimento para e-mails: ajuste as preferências em Configurações, na seção Comunicações, ou use o link de descadastro presente nos e-mails.",
               "Eliminação: exclua a sua conta em Configurações.",
             ],
@@ -218,7 +219,7 @@ export const PRIVACY: LegalTexts = {
         id: "controller",
         heading: "Controller",
         blocks: [
-          `The controller of the personal data processed in Setlyst is ${CONTROLLER.name}, registered under CNPJ ${CONTROLLER.taxId}, with its registered office at ${CONTROLLER.address}.`,
+          `The controller of the personal data processed in Setlyst is ${controllerIdentity("en")}.`,
           `This Policy explains how we process personal data under the Brazilian General Data Protection Law (Law 13,709/2018, “LGPD”) and the Brazilian Civil Rights Framework for the Internet (Law 12,965/2014). Questions can be sent to our Data Protection Officer at ${dpo}.`,
         ],
       },
@@ -236,7 +237,7 @@ export const PRIVACY: LegalTexts = {
               "Usage and security data: IP address, date and time of access, sign-in attempts, security events (password change, two-step verification turned on) and audit records of administrative actions.",
               "Preferences: theme, language, Live Mode and interface settings, communication preferences and pinned items.",
               "Communications: e-mails sent to you (verification, security, notices), notifications and messages you send to support.",
-              "Subscription data: plan, subscription status, credits, redeemed promo codes and referrals. Once billing is active, also payment data processed by the payment processor; Setlyst does not store full card numbers.",
+              "Subscription and payment data: plan, billing period, subscription status, credits, redeemed promo codes, referrals and, for each payment, the amount, date, plan and any refunds, plus the customer, subscription and invoice identifiers at Stripe. Card details are entered directly on Stripe's payment page: Setlyst never receives or stores card numbers.",
             ],
           },
           "Data saved for offline use stays in your own browser's storage and is erased when you sign out.",
@@ -254,7 +255,7 @@ export const PRIVACY: LegalTexts = {
               "Preventing fraud and abuse, limiting sign-in attempts, moderating usernames and profile pictures, keeping the platform secure and improving the service with aggregated statistics: legitimate interest (art. 7, IX), always respecting your rights and expectations.",
               "Sending product news and offers by e-mail: consent (art. 7, I), which you can withdraw at any time.",
               "Sending security communications and essential account notices: performance of a contract and legitimate interest.",
-              "Meeting tax obligations related to payments, once billing is active: legal obligation (art. 7, II).",
+              "Processing the subscription and payments: performance of a contract (art. 7, V). Keeping payment records to meet tax and accounting obligations: legal obligation (art. 7, II).",
               "Defending rights in judicial, administrative or arbitration proceedings: regular exercise of rights (art. 7, VI).",
             ],
           },
@@ -268,12 +269,12 @@ export const PRIVACY: LegalTexts = {
           "We do not sell personal data. We share data only with processors that help us provide the service, under contract and following our instructions:",
           {
             list: [
-              "API and database hosting provider: stores and processes all platform data.",
+              "Render Services, Inc. (API hosting) and Neon (managed PostgreSQL database): store and process all platform data.",
               "Vercel Inc.: hosts the website and web app and provides Vercel Web Analytics, which measures visits in aggregate and without cookies.",
               "E-mail delivery provider: delivers transactional e-mails and the communications you have authorised.",
               "Google LLC: authentication, when you use Sign in with Google.",
               "Google Cloud Vision (optional): may receive the address of a profile picture or band logo to classify inappropriate content, when this feature is enabled.",
-              "Payment processor: once billing is active, it will process the data needed to handle payments.",
+              "Stripe (Stripe, Inc. and its group companies): processes subscription payments. It receives your e-mail address, username and the payment details you enter on Stripe's payment page, and also processes them as an independent controller for fraud prevention and its own legal obligations, under Stripe's privacy policy.",
             ],
           },
           "Data is also shared as a result of how you use the platform: members of your bands see the band's content and your username, and anyone who opens a public link sees the shared content, without your personal data.",
@@ -284,7 +285,7 @@ export const PRIVACY: LegalTexts = {
         id: "international",
         heading: "International transfer",
         blocks: [
-          "Some processors, such as Vercel and Google, keep servers outside Brazil, mainly in the United States. These transfers are based on article 33 of the LGPD, through contractual clauses that ensure a level of protection compatible with Brazilian law, as regulated by the National Data Protection Authority (ANPD).",
+          "The processors Render, Neon, Vercel, Stripe and Google keep servers outside Brazil, mainly in the United States. These transfers are based on article 33 of the LGPD, through contractual clauses that ensure a level of protection compatible with Brazilian law, as regulated by the National Data Protection Authority (ANPD).",
         ],
       },
       {
@@ -295,13 +296,13 @@ export const PRIVACY: LegalTexts = {
           {
             list: [
               "Registration, profile, preference and content data: while the account exists. After the account is deleted, they are erased, except as described below.",
-              "Access records (IP, date and time): 6 months, under article 15 of the Civil Rights Framework for the Internet.",
+              "Access records (IP, date and time): 6 months, under article 15 of the Civil Rights Framework for the Internet. The exception is the IP address used to create the account, kept while the account exists to prevent referral program fraud (legitimate interest).",
               "Audit records of administrative and security actions: for as long as needed to investigate incidents and defend rights, up to 5 years.",
               "Items in the trash: 30 days; after that they are permanently deleted.",
               "E-mails in the delivery queue: the content of sensitive e-mails (such as codes) is erased after sending, and delivery records are removed after 30 days.",
               "Verification codes: expire in 15 minutes and are erased daily.",
               "Database backups: up to 30 days, on rotation; deleted data disappears from backups at the end of that period.",
-              "Payment tax data: for the period required by tax law, usually 5 years.",
+              "Payment records (amount, date, plan and Stripe identifiers): for the period required by tax law, usually 5 years. When the account is deleted they are no longer linked to it, and the customer record at Stripe is deleted.",
             ],
           },
         ],
@@ -336,7 +337,7 @@ export const PRIVACY: LegalTexts = {
           {
             list: [
               "Access and correction: in My account and in Settings.",
-              "Portability: export all your content in Settings, in the backup section.",
+              "Access and portability: in Settings, in the Data section, download the backup of your content and the file with all your personal data (profile, preferences, consents, subscription, payments and security log).",
               "Consent to e-mails: adjust your preferences in Settings, in the Communications section, or use the unsubscribe link in the e-mails.",
               "Deletion: delete your account in Settings.",
             ],
@@ -411,7 +412,7 @@ export const PRIVACY: LegalTexts = {
         id: "controller",
         heading: "Responsable del tratamiento",
         blocks: [
-          `El responsable de los datos personales tratados en Setlyst es ${CONTROLLER.name}, inscrita en el CNPJ con el nº ${CONTROLLER.taxId}, con domicilio en ${CONTROLLER.address}.`,
+          `El responsable de los datos personales tratados en Setlyst es ${controllerIdentity("es")}.`,
           `Esta Política explica cómo tratamos los datos personales conforme a la Ley General de Protección de Datos de Brasil (Ley 13.709/2018, “LGPD”) y el Marco Civil de Internet (Ley 12.965/2014). Las dudas pueden enviarse a nuestro Encargado de protección de datos en ${dpo}.`,
         ],
       },
@@ -429,7 +430,7 @@ export const PRIVACY: LegalTexts = {
               "Datos de uso y seguridad: dirección IP, fecha y hora de acceso, intentos de inicio de sesión, eventos de seguridad (cambio de contraseña, activación de la verificación en dos pasos) y registros de auditoría de acciones administrativas.",
               "Preferencias: tema, idioma, ajustes del Modo en vivo y de la interfaz, preferencias de comunicación y elementos fijados.",
               "Comunicaciones: correos que te enviamos (verificación, seguridad, avisos), notificaciones y mensajes que envías al soporte.",
-              "Datos de suscripción: plan, estado de la suscripción, créditos, códigos promocionales canjeados y recomendaciones. Cuando se active el cobro, también los datos de pago tratados por el procesador de pagos; Setlyst no guarda números completos de tarjeta.",
+              "Datos de suscripción y pago: plan, periodicidad, estado de la suscripción, créditos, códigos promocionales canjeados, recomendaciones y, por cada pago, el importe, la fecha, el plan y los reembolsos, además de los identificadores de cliente, suscripción y factura en Stripe. Los datos de la tarjeta se introducen directamente en la página de pago de Stripe: Setlyst nunca recibe ni guarda el número de la tarjeta.",
             ],
           },
           "Los datos guardados para uso sin conexión quedan en el almacenamiento de tu propio navegador y se borran al cerrar sesión.",
@@ -447,7 +448,7 @@ export const PRIVACY: LegalTexts = {
               "Prevenir fraudes y abusos, limitar intentos de acceso, moderar nombres de usuario e imágenes de perfil, garantizar la seguridad de la plataforma y mejorar el servicio con estadísticas agregadas: interés legítimo (art. 7, IX), respetando siempre tus derechos y expectativas.",
               "Enviar correos con novedades del producto y ofertas: consentimiento (art. 7, I), que puedes retirar en cualquier momento.",
               "Enviar comunicaciones de seguridad y avisos esenciales de la cuenta: ejecución de contrato e interés legítimo.",
-              "Cumplir obligaciones fiscales relativas a pagos, cuando el cobro esté activo: obligación legal (art. 7, II).",
+              "Procesar la suscripción y los pagos: ejecución de contrato (art. 7, V). Conservar los registros de pago para cumplir obligaciones fiscales y contables: obligación legal (art. 7, II).",
               "Defender derechos en procesos judiciales, administrativos o arbitrales: ejercicio regular de derechos (art. 7, VI).",
             ],
           },
@@ -461,12 +462,12 @@ export const PRIVACY: LegalTexts = {
           "No vendemos datos personales. Solo compartimos datos con encargados que nos ayudan a prestar el servicio, bajo contrato y siguiendo nuestras instrucciones:",
           {
             list: [
-              "Proveedor de alojamiento de la API y la base de datos: almacena y procesa todos los datos de la plataforma.",
+              "Render Services, Inc. (alojamiento de la API) y Neon (base de datos PostgreSQL gestionada): almacenan y procesan todos los datos de la plataforma.",
               "Vercel Inc.: aloja el sitio y la aplicación web y ofrece Vercel Web Analytics, que mide las visitas de forma agregada y sin cookies.",
               "Proveedor de envío de correo: entrega correos transaccionales y las comunicaciones que autorizaste.",
               "Google LLC: autenticación, cuando usas el inicio de sesión con Google.",
               "Google Cloud Vision (opcional): puede recibir la dirección de la imagen de perfil o del logotipo de una banda para clasificar contenido inapropiado, cuando esta función esté activada.",
-              "Procesador de pagos: cuando se active el cobro, tratará los datos necesarios para procesar pagos.",
+              "Stripe (Stripe, Inc. y las empresas de su grupo): procesa los pagos de las suscripciones. Recibe tu correo, nombre de usuario y los datos de pago que introduces en la página de pago de Stripe, y también los trata como responsable independiente para prevenir fraudes y cumplir sus propias obligaciones legales, conforme a la política de privacidad de Stripe.",
             ],
           },
           "También hay comunicación de datos derivada del uso que haces de la plataforma: los miembros de tus bandas ven el contenido de la banda y tu nombre de usuario, y quien abre un enlace público ve el contenido compartido, sin tus datos personales.",
@@ -477,7 +478,7 @@ export const PRIVACY: LegalTexts = {
         id: "international",
         heading: "Transferencia internacional",
         blocks: [
-          "Algunos encargados, como Vercel y Google, tienen servidores fuera de Brasil, principalmente en Estados Unidos. Estas transferencias se basan en el artículo 33 de la LGPD, mediante cláusulas contractuales que garantizan un nivel de protección compatible con la ley brasileña, conforme a la regulación de la Autoridad Nacional de Protección de Datos (ANPD).",
+          "Los encargados Render, Neon, Vercel, Stripe y Google tienen servidores fuera de Brasil, principalmente en Estados Unidos. Estas transferencias se basan en el artículo 33 de la LGPD, mediante cláusulas contractuales que garantizan un nivel de protección compatible con la ley brasileña, conforme a la regulación de la Autoridad Nacional de Protección de Datos (ANPD).",
         ],
       },
       {
@@ -488,13 +489,13 @@ export const PRIVACY: LegalTexts = {
           {
             list: [
               "Datos de registro, perfil, preferencias y contenido: mientras exista la cuenta. Tras eliminar la cuenta, se borran, salvo en los casos siguientes.",
-              "Registros de acceso (IP, fecha y hora): 6 meses, según el artículo 15 del Marco Civil de Internet.",
+              "Registros de acceso (IP, fecha y hora): 6 meses, según el artículo 15 del Marco Civil de Internet. La excepción es la IP usada al crear la cuenta, que se conserva mientras la cuenta exista para prevenir fraudes en el programa de recomendaciones (interés legítimo).",
               "Registros de auditoría de acciones administrativas y de seguridad: el tiempo necesario para investigar incidentes y defender derechos, con un máximo de 5 años.",
               "Elementos en la papelera: 30 días; después se eliminan definitivamente.",
               "Correos en la cola de envío: el contenido de los correos sensibles (como códigos) se borra tras el envío, y los registros de envío se eliminan a los 30 días.",
               "Códigos de verificación: caducan a los 15 minutos y se borran a diario.",
               "Copias de seguridad de la base de datos: hasta 30 días, en rotación; los datos eliminados desaparecen de las copias al final de ese período.",
-              "Datos fiscales de pagos: durante el plazo exigido por la legislación tributaria, en general 5 años.",
+              "Registros de pago (importe, fecha, plan e identificadores de Stripe): durante el plazo exigido por la legislación tributaria, en general 5 años. Al eliminar la cuenta dejan de estar vinculados a ella, y el registro de cliente en Stripe se elimina.",
             ],
           },
         ],
@@ -529,7 +530,7 @@ export const PRIVACY: LegalTexts = {
           {
             list: [
               "Acceso y corrección: en Mi cuenta y en Configuración.",
-              "Portabilidad: exporta todo tu contenido en Configuración, en la sección de copia de seguridad.",
+              "Acceso y portabilidad: en Configuración, en la sección Datos, descarga la copia de seguridad de tu contenido y el archivo con todos tus datos personales (perfil, preferencias, consentimientos, suscripción, pagos y registro de seguridad).",
               "Consentimiento para correos: ajusta tus preferencias en Configuración, en la sección Comunicaciones, o usa el enlace de baja incluido en los correos.",
               "Eliminación: elimina tu cuenta en Configuración.",
             ],

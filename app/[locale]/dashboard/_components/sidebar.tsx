@@ -12,6 +12,8 @@ import { NotificationBellErrorBoundary } from "./notification-bell-error-boundar
 import { LogoutButton } from "./logout-button";
 import { HelpMenu } from "./help-menu";
 import { WhatsNewLink } from "./whats-new-link";
+import { TrialStatus } from "./trial/trial-status";
+import type { TrialInfo } from "@/lib/trial";
 import { ROLE_TEXT_STYLES } from "@/components/role-badge";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/api";
@@ -22,7 +24,13 @@ export interface SidebarUser {
   role?: UserRole | null;
 }
 
-export function Sidebar({ user }: { user?: SidebarUser }) {
+export function Sidebar({
+  user,
+  trial = null,
+}: {
+  user?: SidebarUser;
+  trial?: TrialInfo | null;
+}) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const t = useTranslations("nav");
   const tRoles = useTranslations("roles");
@@ -84,6 +92,11 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
       <SidebarLinks isCollapsed={isCollapsed} userRole={role} />
 
       <div className="border-sidebar-border shrink-0 border-t p-3">
+        <TrialStatus
+          trial={trial}
+          collapsed={isCollapsed}
+          className={cn("mb-2", isCollapsed && "mx-auto")}
+        />
         {!isCollapsed && (
           <Link
             href="/dashboard/profile"

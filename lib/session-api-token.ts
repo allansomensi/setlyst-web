@@ -21,3 +21,36 @@ export function apiTokenOf(
   if (typeof expires === "number" && now >= expires) return null;
   return token.apiToken;
 }
+
+/**
+ * Whether a session JWT can no longer act for its account, judged the way
+ * the `jwt` callback (lib/auth.ts) will judge it on the next server read.
+ *
+ * The proxy decrypts the cookie without running that callback, so it can't
+ * rely on `token.error` alone: the session cookie is renewed on every visit
+ * (`updateAge`), while the API token inside it has a fixed lifetime. Without
+ * this check a visitor coming back after the API token ran out was let
+ * through to the dashboard, whose layout sent them to /login, which the
+ * proxy — still seeing a "valid" session — sent back to the dashboard: an
+ * endless redirect loop.
+ *
+ * An expired impersonation is not an expired session: the callback falls
+ * back to the staff member's own token, so only that one decides.
+ */
+export function isSessionExpired(
+  token: Pick<
+    JWT,
+    "apiToken" | "apiTokenExpires" | "error" | "impersonator"
+  > | null,
+  now: number = Date.now(),
+): boolean {
+  if (!token) return true;
+  if (token.error === "TokenExpired") return true;
+  if (!token.apiToken) return true;
+  const expires = token.apiTokenExpires;
+  if (typeof expires !== "number" || now < expires) return false;
+  const original = token.impersonator;
+  if (!original) return true;
+  const originalExpires = original.apiTokenExpires;
+  return typeof originalExpires === "number" && now >= originalExpires;
+}

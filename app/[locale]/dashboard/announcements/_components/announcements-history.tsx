@@ -19,6 +19,7 @@ import { toastActionError } from "@/lib/action-toast";
 import { LEVEL_STYLES } from "@/lib/announcements";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { scrollIntoDashboard } from "@/lib/scroll-into-dashboard";
 import type { UserAnnouncement } from "@/types/communication";
 
 type Filter = "all" | "unread" | "pending";
@@ -69,7 +70,8 @@ export function AnnouncementsHistory({
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (!hash) return;
-    document.getElementById(hash)?.scrollIntoView({ block: "start" });
+    const target = document.getElementById(hash);
+    if (target) scrollIntoDashboard(target);
   }, []);
 
   const counts = useMemo(

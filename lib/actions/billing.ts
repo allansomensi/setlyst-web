@@ -80,10 +80,17 @@ function planChoice(
   return { plan_code: code, interval: interval as BillingInterval };
 }
 
-/** Only ever send the browser to an https page (Stripe's). */
+/**
+ * Only ever send the browser to one of Stripe's own https pages. (A Stripe
+ * custom domain for Checkout, if one is ever set up, must be added here.)
+ */
 function safeRedirect(target: RedirectTarget): RedirectTarget {
   const url = new URL(target.url);
-  if (url.protocol !== "https:") throw new Error("Unexpected redirect");
+  const stripeHost =
+    url.hostname === "stripe.com" || url.hostname.endsWith(".stripe.com");
+  if (url.protocol !== "https:" || !stripeHost) {
+    throw new Error("Unexpected redirect");
+  }
   return { url: url.toString() };
 }
 

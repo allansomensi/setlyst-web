@@ -157,6 +157,16 @@ export function RegisterForm({
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
+        {billingEnforced && (
+          <div className="border-primary/30 bg-primary/10 flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-sm">
+            <Gift className="text-primary mt-0.5 size-4 shrink-0" />
+            <p>
+              <span className="font-semibold">{t("trialTitle")}</span>{" "}
+              <span className="text-muted-foreground">{t("trialBody")}</span>
+            </p>
+          </div>
+        )}
+
         {planName && (
           <div className="border-primary/25 bg-primary/5 flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-sm">
             <Sparkles className="text-primary mt-0.5 size-4 shrink-0" />

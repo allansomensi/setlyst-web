@@ -43,11 +43,20 @@ export interface WhatsNewState {
   lastSeen: string | null;
 }
 
+export interface OnboardingState {
+  /**
+   * The "you're on a free Pro trial" welcome was dismissed. Kept on the
+   * account (not the device) so it is shown once, not once per browser.
+   */
+  trialWelcomeSeen: boolean;
+}
+
 export interface UiSettings {
   live: LiveDefaults;
   pdf: PdfExportOptions;
   lists: ListSettings;
   whatsNew: WhatsNewState;
+  onboarding: OnboardingState;
 }
 
 export const DEFAULT_LIVE: LiveDefaults = {
@@ -66,6 +75,7 @@ export const DEFAULT_UI_SETTINGS: UiSettings = {
   pdf: DEFAULT_PDF_OPTIONS,
   lists: { pageSize: DEFAULT_PAGE_SIZE },
   whatsNew: { lastSeen: null },
+  onboarding: { trialWelcomeSeen: false },
 };
 
 function record(value: unknown): Record<string, unknown> {
@@ -98,6 +108,7 @@ export function normalizeUiSettings(raw: unknown): UiSettings {
   const source = record(raw);
   const lists = record(source.lists);
   const whatsNew = record(source.whatsNew);
+  const onboarding = record(source.onboarding);
 
   return {
     live: normalizeLiveDefaults(source.live),
@@ -112,6 +123,9 @@ export function normalizeUiSettings(raw: unknown): UiSettings {
     whatsNew: {
       lastSeen:
         typeof whatsNew.lastSeen === "string" ? whatsNew.lastSeen : null,
+    },
+    onboarding: {
+      trialWelcomeSeen: bool(onboarding.trialWelcomeSeen, false),
     },
   };
 }

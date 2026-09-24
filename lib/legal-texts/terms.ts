@@ -8,13 +8,13 @@
  * traduções de mesmo conteúdo.
  */
 
-import { CONTROLLER } from "@/lib/legal";
+import { controllerIdentity } from "@/lib/legal";
 import { SUPPORT_EMAIL } from "@/lib/links";
 import type { LegalTexts } from "./types";
 
-const who = `${CONTROLLER.name}, inscrita no CNPJ sob o nº ${CONTROLLER.taxId}, com sede em ${CONTROLLER.address}`;
-const whoEn = `${CONTROLLER.name}, registered under CNPJ ${CONTROLLER.taxId}, with its registered office at ${CONTROLLER.address}`;
-const whoEs = `${CONTROLLER.name}, inscrita en el CNPJ con el nº ${CONTROLLER.taxId}, con domicilio en ${CONTROLLER.address}`;
+const who = controllerIdentity("pt-BR");
+const whoEn = controllerIdentity("en");
+const whoEs = controllerIdentity("es");
 
 export const TERMS: LegalTexts = {
   "pt-BR": {
@@ -123,10 +123,10 @@ export const TERMS: LegalTexts = {
         id: "bands",
         heading: "Bandas",
         blocks: [
-          "Quem cria uma banda torna-se seu proprietário. O proprietário e os administradores definem funções e permissões dos integrantes, que determinam quem pode editar músicas, setlists, shows e turnês da banda.",
+          "Quem cria uma banda torna-se o seu responsável: a banda conta nos limites do plano dessa pessoa. O responsável e os administradores definem funções e permissões dos integrantes, que determinam quem pode editar músicas, setlists, shows e turnês da banda.",
           "Músicas, setlists, shows, turnês, sugestões e lembretes criados dentro de uma banda pertencem ao espaço da banda e ficam disponíveis a todos os integrantes, de acordo com as permissões. Ao adicionar conteúdo à banda, você autoriza os demais integrantes a acessá-lo e, conforme as permissões, a editá-lo.",
           "Quando um integrante sai ou é removido, o conteúdo que ele adicionou à banda permanece na banda. O conteúdo pessoal desse integrante continua na conta dele.",
-          "O proprietário pode transferir a propriedade da banda a outro integrante e precisa fazê-lo antes de sair. Se o proprietário excluir a conta, a propriedade passa automaticamente ao integrante de função mais alta e mais antigo; se não houver outros integrantes, a banda e o seu conteúdo são excluídos.",
+          "O responsável pode passar essa função a outro integrante e precisa fazê-lo antes de sair. Se o responsável excluir a conta, a função passa automaticamente ao integrante de função mais alta e mais antigo; se não houver outros integrantes, a banda e o seu conteúdo são excluídos.",
         ],
       },
       {
@@ -149,9 +149,9 @@ export const TERMS: LegalTexts = {
       },
       {
         id: "availability",
-        heading: "Disponibilidade e período de pré-lançamento",
+        heading: "Disponibilidade e evolução do serviço",
         blocks: [
-          "O Setlyst está em período de pré-lançamento. Funcionalidades podem ser criadas, alteradas ou descontinuadas, e mudanças relevantes são anunciadas na página de Novidades ou por aviso na plataforma.",
+          "O Setlyst está em constante evolução. Funcionalidades podem ser criadas, alteradas ou descontinuadas, e mudanças relevantes são anunciadas na página de Novidades ou por aviso na plataforma.",
           "Buscamos manter a plataforma disponível de forma contínua, mas podem ocorrer interrupções para manutenção, atualizações ou por fatores fora do nosso controle. O Modo Ao Vivo e o conteúdo salvo para uso offline ajudam a reduzir o impacto de falhas de conexão no palco; recomendamos manter também uma cópia exportada do repertório essencial.",
         ],
       },
@@ -160,7 +160,7 @@ export const TERMS: LegalTexts = {
         heading: "Planos e assinatura",
         blocks: [
           "O Setlyst oferece os planos Básico, Intermediário e Pro, com limites e recursos descritos na página de Planos. As condições de contratação, período de teste, renovação, cancelamento, reembolso, créditos e indicações estão nos Termos de Assinatura.",
-          "Durante o pré-lançamento, enquanto a cobrança não estiver ativa, todos os recursos ficam liberados sem custo. O início da cobrança será comunicado com antecedência mínima de 30 dias.",
+          "Toda conta nova começa com um período de teste gratuito do plano Pro. Recursos pagos só são cobrados após a contratação expressa de um plano.",
         ],
       },
       {
@@ -326,10 +326,10 @@ export const TERMS: LegalTexts = {
         id: "bands",
         heading: "Bands",
         blocks: [
-          "Whoever creates a band becomes its owner. The owner and administrators set the members' roles and permissions, which determine who can edit the band's songs, setlists, gigs and tours.",
+          "Whoever creates a band becomes its lead: the band counts towards that person's plan limits. The lead and administrators set the members' roles and permissions, which determine who can edit the band's songs, setlists, gigs and tours.",
           "Songs, setlists, gigs, tours, suggestions and reminders created within a band belong to the band's space and are available to all members according to their permissions. By adding content to a band, you allow the other members to access it and, depending on their permissions, to edit it.",
           "When a member leaves or is removed, the content they added to the band stays with the band. That member's personal content remains in their account.",
-          "The owner can transfer ownership of the band to another member and must do so before leaving. If the owner deletes their account, ownership passes automatically to the member with the highest role and longest membership; if there are no other members, the band and its content are deleted.",
+          "The lead can hand that role to another member and must do so before leaving. If the lead deletes their account, the role passes automatically to the member with the highest role and longest membership; if there are no other members, the band and its content are deleted.",
         ],
       },
       {
@@ -352,9 +352,9 @@ export const TERMS: LegalTexts = {
       },
       {
         id: "availability",
-        heading: "Availability and pre-release period",
+        heading: "Availability and changes to the service",
         blocks: [
-          "Setlyst is in a pre-release period. Features may be added, changed or discontinued, and relevant changes are announced on the What's new page or by a notice in the platform.",
+          "Setlyst is constantly evolving. Features may be added, changed or discontinued, and relevant changes are announced on the What's new page or by a notice in the platform.",
           "We aim to keep the platform continuously available, but interruptions may occur for maintenance, updates or reasons beyond our control. Live Mode and content saved for offline use help reduce the impact of connection failures on stage; we also recommend keeping an exported copy of your essential repertoire.",
         ],
       },
@@ -363,7 +363,7 @@ export const TERMS: LegalTexts = {
         heading: "Plans and subscription",
         blocks: [
           "Setlyst offers the Basic, Intermediate and Pro plans, with the limits and features described on the Plans page. The conditions for subscribing, the trial period, renewal, cancellation, refunds, credits and referrals are set out in the Subscription Terms.",
-          "During the pre-release period, while billing is not active, every feature is available free of charge. The start of billing will be announced at least 30 days in advance.",
+          "Every new account starts with a free trial of the Pro plan. Paid features are only charged for after you expressly subscribe to a plan.",
         ],
       },
       {
@@ -529,10 +529,10 @@ export const TERMS: LegalTexts = {
         id: "bands",
         heading: "Bandas",
         blocks: [
-          "Quien crea una banda pasa a ser su propietario. El propietario y los administradores definen los roles y permisos de los miembros, que determinan quién puede editar las canciones, setlists, shows y giras de la banda.",
+          "Quien crea una banda pasa a ser su responsable: la banda cuenta en los límites del plan de esa persona. El responsable y los administradores definen los roles y permisos de los miembros, que determinan quién puede editar las canciones, setlists, shows y giras de la banda.",
           "Las canciones, setlists, shows, giras, sugerencias y recordatorios creados dentro de una banda pertenecen al espacio de la banda y están disponibles para todos los miembros según sus permisos. Al añadir contenido a una banda, autorizas a los demás miembros a acceder a él y, según sus permisos, a editarlo.",
           "Cuando un miembro sale o es eliminado, el contenido que añadió a la banda permanece en la banda. Su contenido personal sigue en su cuenta.",
-          "El propietario puede transferir la propiedad de la banda a otro miembro y debe hacerlo antes de salir. Si el propietario elimina su cuenta, la propiedad pasa automáticamente al miembro con el rol más alto y más antigüedad; si no hay otros miembros, la banda y su contenido se eliminan.",
+          "El responsable puede pasar esa función a otro miembro y debe hacerlo antes de salir. Si el responsable elimina su cuenta, la función pasa automáticamente al miembro con el rol más alto y más antigüedad; si no hay otros miembros, la banda y su contenido se eliminan.",
         ],
       },
       {
@@ -555,9 +555,9 @@ export const TERMS: LegalTexts = {
       },
       {
         id: "availability",
-        heading: "Disponibilidad y período de prelanzamiento",
+        heading: "Disponibilidad y evolución del servicio",
         blocks: [
-          "Setlyst está en período de prelanzamiento. Las funciones pueden crearse, cambiar o retirarse, y los cambios relevantes se anuncian en la página de Novedades o mediante un aviso en la plataforma.",
+          "Setlyst está en constante evolución. Las funciones pueden crearse, cambiar o retirarse, y los cambios relevantes se anuncian en la página de Novedades o mediante un aviso en la plataforma.",
           "Procuramos mantener la plataforma disponible de forma continua, pero pueden producirse interrupciones por mantenimiento, actualizaciones o causas ajenas a nuestro control. El Modo en vivo y el contenido guardado para uso sin conexión ayudan a reducir el impacto de los fallos de conexión en el escenario; recomendamos mantener también una copia exportada del repertorio esencial.",
         ],
       },
@@ -566,7 +566,7 @@ export const TERMS: LegalTexts = {
         heading: "Planes y suscripción",
         blocks: [
           "Setlyst ofrece los planes Básico, Intermedio y Pro, con los límites y funciones descritos en la página de Planes. Las condiciones de contratación, período de prueba, renovación, cancelación, reembolso, créditos y recomendaciones figuran en los Términos de Suscripción.",
-          "Durante el prelanzamiento, mientras el cobro no esté activo, todas las funciones están disponibles sin coste. El inicio del cobro se anunciará con al menos 30 días de antelación.",
+          "Toda cuenta nueva empieza con un período de prueba gratuito del plan Pro. Las funciones de pago solo se cobran tras la contratación expresa de un plan.",
         ],
       },
       {

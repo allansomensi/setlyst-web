@@ -88,9 +88,9 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
    NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
    NEXT_PUBLIC_PRIVACY_EMAIL=privacy@example.com   # LGPD officer, defaults to the support e-mail
    NEXT_PUBLIC_BILLING_ENFORCED=false              # "true" once the API enforces billing
-   NEXT_PUBLIC_COMPANY_NAME=                       # controller shown in the legal documents
-   NEXT_PUBLIC_COMPANY_CNPJ=
-   NEXT_PUBLIC_COMPANY_ADDRESS=
+   NEXT_PUBLIC_CONTROLLER_NAME=                    # who runs Setlyst, shown in the legal documents
+   NEXT_PUBLIC_CONTROLLER_TAX_ID=                  # CPF (individual) or CNPJ (company), detected by length
+   NEXT_PUBLIC_CONTROLLER_ADDRESS=                 # postal address (Decreto 7.962/2013)
    INTERNAL_API_SECRET=                            # same value as the API's, see "Client address" below
    TRUSTED_PROXY_HOPS=1                            # reverse proxies in front of Next.js (self-hosted)
    TRUST_X_REAL_IP=false                           # "true" only if your proxy overwrites X-Real-IP

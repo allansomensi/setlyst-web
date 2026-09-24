@@ -50,6 +50,7 @@ export const AUDIT_ACTIONS = [
   "billing.settings_updated",
   "billing.plan_updated",
   "billing.trials_granted",
+  "finance.synced",
   "promo.created",
   "promo.updated",
   "promotion.created",

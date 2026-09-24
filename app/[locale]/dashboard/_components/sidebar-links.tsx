@@ -13,6 +13,7 @@ import {
   Flag,
   Gauge,
   Guitar,
+  Landmark,
   Home,
   Link2,
   ListMusic,
@@ -120,6 +121,12 @@ export const STAFF_NAV: StaffNavGroup[] = [
         href: "/dashboard/admin/billing",
         icon: CreditCard,
         capability: "billing",
+      },
+      {
+        key: "finance",
+        href: "/dashboard/admin/finance",
+        icon: Landmark,
+        capability: "finance",
       },
       {
         key: "promoCodes",

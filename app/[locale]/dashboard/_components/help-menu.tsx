@@ -6,7 +6,7 @@ import {
   BookOpen,
   FileText,
   Info,
-  LifeBuoy,
+  CircleHelp,
   Lock,
   Megaphone,
   ShieldCheck,
@@ -42,7 +42,7 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
           aria-label={t("help")}
           title={t("help")}
         >
-          <LifeBuoy className="h-4 w-4" />
+          <CircleHelp className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="w-56">

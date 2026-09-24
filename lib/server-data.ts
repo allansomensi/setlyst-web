@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { fetchServerApi } from "@/lib/api-server";
 import type { User, UserPreferences } from "@/types/api";
+import type { BillingMe } from "@/types/billing";
 
 /**
  * Request-scoped (React `cache`) loaders for data several server
@@ -12,3 +13,7 @@ export const getMyPreferences = cache(() =>
 );
 
 export const getMe = cache(() => fetchServerApi<User>("/users/me"));
+
+export const getMyBilling = cache(() =>
+  fetchServerApi<BillingMe>("/billing/me"),
+);

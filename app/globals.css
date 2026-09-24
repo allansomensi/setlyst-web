@@ -288,3 +288,18 @@
   break-inside: avoid;
   break-after: avoid;
 }
+
+/*
+ * The dashboard shell (app/[locale]/dashboard/layout.tsx). `clip` can't be
+ * scrolled even by script, unlike `hidden`; browsers without `clip`
+ * (Safari before 16) keep `hidden`.
+ */
+.dashboard-clip {
+  overflow: clip;
+}
+
+@supports not (overflow: clip) {
+  .dashboard-clip {
+    overflow: hidden;
+  }
+}

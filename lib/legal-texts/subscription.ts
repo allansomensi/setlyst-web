@@ -2,10 +2,10 @@
  * Termos de Assinatura do Setlyst (CDC, Decreto 7.962/2013).
  *
  * Refletem o modelo de cobrança da API (billing: planos, período de teste,
- * códigos promocionais, créditos e indicações). Quando o processador de
- * pagamentos for integrado, revisar as cláusulas de pagamento, renovação e
- * reembolso. Deve ser revisado por um advogado antes da publicação
- * definitiva.
+ * códigos promocionais, créditos e indicações) e a integração com o Stripe
+ * (checkout, portal de cobrança, mudança de plano com cobrança
+ * proporcional imediata). Deve ser revisado por um advogado antes da
+ * publicação definitiva.
  */
 
 import { CONTROLLER } from "@/lib/legal";
@@ -29,7 +29,7 @@ export const SUBSCRIPTION: LegalTexts = {
         id: "supplier",
         heading: "Identificação do fornecedor",
         blocks: [
-          `Em cumprimento ao Decreto 7.962/2013, informamos: ${CONTROLLER.name}, CNPJ ${CONTROLLER.taxId}, endereço ${CONTROLLER.address}, e-mail de atendimento ${SUPPORT_EMAIL}.`,
+          `Em cumprimento ao Decreto 7.962/2013, informamos: ${CONTROLLER.name}, ${CONTROLLER.taxIdLabel} ${CONTROLLER.taxId}, endereço ${CONTROLLER.address}, e-mail de atendimento ${SUPPORT_EMAIL}.`,
         ],
       },
       {
@@ -41,18 +41,10 @@ export const SUBSCRIPTION: LegalTexts = {
         ],
       },
       {
-        id: "pre-release",
-        heading: "Período de pré-lançamento",
-        blocks: [
-          "Enquanto a cobrança não estiver ativa, todos os recursos ficam liberados sem custo e nenhum valor é cobrado.",
-          "O início da cobrança será comunicado por e-mail e aviso na plataforma com antecedência mínima de 30 dias. Nenhum plano pago é contratado sem a sua ação expressa.",
-        ],
-      },
-      {
         id: "trial",
         heading: "Período de teste",
         blocks: [
-          "Com a cobrança ativa, novas contas recebem 30 dias gratuitos do plano Pro, sem necessidade de cadastrar cartão.",
+          "Toda conta nova recebe 30 dias gratuitos do plano Pro, com todos os recursos liberados, sem necessidade de cadastrar cartão. O teste começa na criação da conta, e os dias restantes ficam sempre visíveis na plataforma.",
           "Avisamos por e-mail e na plataforma 3 dias antes do fim do teste. Ao final, se você não contratar um plano, o teste simplesmente termina: nada é cobrado, o seu conteúdo é preservado e continua disponível para consulta e exportação, e os recursos e limites passam a ser os da conta sem plano.",
           "O período de teste é concedido uma vez por pessoa. Criar contas para obter novos testes é considerado abuso.",
         ],
@@ -62,7 +54,7 @@ export const SUBSCRIPTION: LegalTexts = {
         heading: "Contratação e pagamento",
         blocks: [
           "Antes de concluir a contratação, você verá um resumo com o plano, o valor, a periodicidade, a forma de pagamento e as condições de renovação e cancelamento. A confirmação é enviada por e-mail.",
-          "Os pagamentos são processados por um processador de pagamentos parceiro. O Setlyst não armazena os dados completos do cartão.",
+          "Os pagamentos são feitos com os meios exibidos na página de pagamento (como cartão de crédito) e processados pelo Stripe, em página de pagamento segura do próprio Stripe. O Setlyst não recebe nem armazena os dados do cartão. O recibo de cada pagamento é enviado por e-mail e fica disponível no portal de cobrança, acessível em Configurações › Assinatura.",
           "Se um pagamento não for aprovado, a assinatura pode ficar pendente por um período de tolerância. Persistindo a falta de pagamento, a assinatura expira e a conta passa a não ter plano, sem perda de conteúdo.",
         ],
       },
@@ -87,7 +79,7 @@ export const SUBSCRIPTION: LegalTexts = {
         heading: "Direito de arrependimento",
         blocks: [
           "Conforme o art. 49 do Código de Defesa do Consumidor, você pode desistir da contratação em até 7 dias contados da contratação, com reembolso integral de todos os valores pagos, inclusive quando já tiver usado o plano nesse período.",
-          "Para exercer esse direito, use a opção de cancelamento na plataforma ou escreva para o e-mail de atendimento. Confirmaremos o recebimento imediatamente, e o estorno será solicitado ao processador de pagamentos pelo mesmo meio usado no pagamento, nos termos do art. 5º do Decreto 7.962/2013.",
+          `Para exercer esse direito, escreva para ${SUPPORT_EMAIL} a partir do e-mail da sua conta, dizendo que deseja desistir da assinatura. Cancelar a renovação na plataforma não basta para pedir o reembolso. Confirmaremos o recebimento imediatamente, a assinatura será encerrada e o estorno do valor integral será solicitado ao Stripe em até 5 dias úteis, pelo mesmo meio usado no pagamento, nos termos do art. 5º do Decreto 7.962/2013. O prazo para o estorno aparecer na fatura depende do emissor do cartão.`,
         ],
       },
       {
@@ -102,7 +94,7 @@ export const SUBSCRIPTION: LegalTexts = {
         id: "plan-changes",
         heading: "Mudança de plano",
         blocks: [
-          "A mudança para um plano superior vale imediatamente. A mudança para um plano inferior vale a partir da próxima renovação.",
+          "A mudança de plano ou de periodicidade vale imediatamente. Numa mudança para um plano mais caro, a diferença proporcional ao tempo restante do período é cobrada na hora; numa mudança para um plano mais barato, o valor proporcional não utilizado vira crédito no Stripe, abatido automaticamente das próximas cobranças.",
           "Se o seu conteúdo ultrapassar os limites do novo plano, nada é excluído: você continua acessando tudo, mas não poderá criar novos itens daquele tipo até ficar dentro do limite.",
         ],
       },
@@ -174,7 +166,7 @@ export const SUBSCRIPTION: LegalTexts = {
         id: "supplier",
         heading: "Supplier identification",
         blocks: [
-          `In compliance with Brazilian Decree 7,962/2013: ${CONTROLLER.name}, CNPJ ${CONTROLLER.taxId}, address ${CONTROLLER.address}, support e-mail ${SUPPORT_EMAIL}.`,
+          `In compliance with Brazilian Decree 7,962/2013: ${CONTROLLER.name}, ${CONTROLLER.taxIdLabel} ${CONTROLLER.taxId}, address ${CONTROLLER.address}, support e-mail ${SUPPORT_EMAIL}.`,
         ],
       },
       {
@@ -186,18 +178,10 @@ export const SUBSCRIPTION: LegalTexts = {
         ],
       },
       {
-        id: "pre-release",
-        heading: "Pre-release period",
-        blocks: [
-          "While billing is not active, every feature is available free of charge and nothing is charged.",
-          "The start of billing will be announced by e-mail and a notice in the platform at least 30 days in advance. No paid plan is ever taken out without your explicit action.",
-        ],
-      },
-      {
         id: "trial",
         heading: "Trial period",
         blocks: [
-          "Once billing is active, new accounts get 30 free days of the Pro plan, with no card required.",
+          "Every new account gets 30 free days of the Pro plan, with every feature unlocked and no card required. The trial starts when the account is created, and the days left are always shown in the platform.",
           "We let you know by e-mail and in the platform 3 days before the trial ends. At the end, if you do not subscribe to a plan, the trial simply ends: nothing is charged, your content is kept and remains available to view and export, and your features and limits become those of an account without a plan.",
           "The trial is granted once per person. Creating accounts to obtain new trials is considered abuse.",
         ],
@@ -207,7 +191,7 @@ export const SUBSCRIPTION: LegalTexts = {
         heading: "Subscribing and payment",
         blocks: [
           "Before completing the subscription, you will see a summary with the plan, price, billing period, payment method and renewal and cancellation conditions. The confirmation is sent by e-mail.",
-          "Payments are handled by a partner payment processor. Setlyst does not store full card details.",
+          "Payments are made with the methods shown on the payment page (such as credit card) and processed by Stripe, on Stripe's own secure payment page. Setlyst never receives or stores card details. The receipt for each payment is sent by e-mail and is available in the billing portal, reached from Settings › Subscription.",
           "If a payment is not approved, the subscription may remain pending for a grace period. If payment is still missing, the subscription expires and the account no longer has a plan, without losing content.",
         ],
       },
@@ -232,7 +216,7 @@ export const SUBSCRIPTION: LegalTexts = {
         heading: "Right of withdrawal",
         blocks: [
           "Under article 49 of the Brazilian Consumer Protection Code, you may withdraw from the subscription within 7 days of taking it out, with a full refund of all amounts paid, even if you have already used the plan during that period.",
-          "To exercise this right, use the cancellation option in the platform or write to the support e-mail. We will confirm receipt immediately, and the refund will be requested from the payment processor through the same payment method, under article 5 of Decree 7,962/2013.",
+          `To exercise this right, write to ${SUPPORT_EMAIL} from your account's e-mail address saying that you want to withdraw from the subscription. Cancelling the renewal in the platform is not enough to request the refund. We will confirm receipt immediately, end the subscription and request the full refund from Stripe within 5 business days, through the same payment method, under article 5 of Decree 7,962/2013. How long the refund takes to appear on your statement depends on your card issuer.`,
         ],
       },
       {
@@ -247,7 +231,7 @@ export const SUBSCRIPTION: LegalTexts = {
         id: "plan-changes",
         heading: "Changing plans",
         blocks: [
-          "Upgrading to a higher plan takes effect immediately. Downgrading takes effect at the next renewal.",
+          "Changing plan or billing period takes effect immediately. When moving to a more expensive plan, the difference for the rest of the period is charged right away; when moving to a cheaper one, the unused amount becomes a Stripe credit, automatically deducted from your next charges.",
           "If your content exceeds the new plan's limits, nothing is deleted: you keep access to everything, but you cannot create new items of that type until you are within the limit.",
         ],
       },
@@ -319,7 +303,7 @@ export const SUBSCRIPTION: LegalTexts = {
         id: "supplier",
         heading: "Identificación del proveedor",
         blocks: [
-          `En cumplimiento del Decreto brasileño 7.962/2013: ${CONTROLLER.name}, CNPJ ${CONTROLLER.taxId}, domicilio ${CONTROLLER.address}, correo de atención ${SUPPORT_EMAIL}.`,
+          `En cumplimiento del Decreto brasileño 7.962/2013: ${CONTROLLER.name}, ${CONTROLLER.taxIdLabel} ${CONTROLLER.taxId}, domicilio ${CONTROLLER.address}, correo de atención ${SUPPORT_EMAIL}.`,
         ],
       },
       {
@@ -331,18 +315,10 @@ export const SUBSCRIPTION: LegalTexts = {
         ],
       },
       {
-        id: "pre-release",
-        heading: "Período de prelanzamiento",
-        blocks: [
-          "Mientras el cobro no esté activo, todas las funciones están disponibles sin coste y no se cobra ningún importe.",
-          "El inicio del cobro se anunciará por correo electrónico y aviso en la plataforma con al menos 30 días de antelación. Nunca se contrata un plan de pago sin tu acción expresa.",
-        ],
-      },
-      {
         id: "trial",
         heading: "Período de prueba",
         blocks: [
-          "Con el cobro activo, las cuentas nuevas reciben 30 días gratis del plan Pro, sin necesidad de registrar una tarjeta.",
+          "Toda cuenta nueva recibe 30 días gratis del plan Pro, con todas las funciones activadas y sin necesidad de registrar una tarjeta. La prueba empieza al crear la cuenta, y los días restantes siempre se ven en la plataforma.",
           "Te avisamos por correo y en la plataforma 3 días antes del fin de la prueba. Al terminar, si no contratas un plan, la prueba simplemente finaliza: no se cobra nada, tu contenido se conserva y sigue disponible para consulta y exportación, y las funciones y límites pasan a ser los de una cuenta sin plan.",
           "La prueba se concede una vez por persona. Crear cuentas para obtener nuevas pruebas se considera abuso.",
         ],
@@ -352,7 +328,7 @@ export const SUBSCRIPTION: LegalTexts = {
         heading: "Contratación y pago",
         blocks: [
           "Antes de completar la contratación verás un resumen con el plan, el precio, la periodicidad, la forma de pago y las condiciones de renovación y cancelación. La confirmación se envía por correo electrónico.",
-          "Los pagos los procesa un procesador de pagos asociado. Setlyst no guarda los datos completos de la tarjeta.",
+          "Los pagos se hacen con los medios que se muestran en la página de pago (como tarjeta de crédito) y los procesa Stripe, en la página de pago segura del propio Stripe. Setlyst nunca recibe ni guarda los datos de la tarjeta. El recibo de cada pago se envía por correo y está disponible en el portal de cobro, al que se accede desde Configuración › Suscripción.",
           "Si un pago no se aprueba, la suscripción puede quedar pendiente durante un período de gracia. Si persiste la falta de pago, la suscripción caduca y la cuenta queda sin plan, sin pérdida de contenido.",
         ],
       },
@@ -377,7 +353,7 @@ export const SUBSCRIPTION: LegalTexts = {
         heading: "Derecho de desistimiento",
         blocks: [
           "Conforme al artículo 49 del Código de Defensa del Consumidor de Brasil, puedes desistir de la contratación en un plazo de 7 días desde que la realizaste, con reembolso íntegro de todos los importes pagados, incluso si ya usaste el plan en ese período.",
-          "Para ejercer este derecho, usa la opción de cancelación de la plataforma o escribe al correo de atención. Confirmaremos la recepción de inmediato, y el reembolso se solicitará al procesador de pagos por el mismo medio de pago, conforme al artículo 5 del Decreto 7.962/2013.",
+          `Para ejercer este derecho, escribe a ${SUPPORT_EMAIL} desde el correo de tu cuenta indicando que deseas desistir de la suscripción. Cancelar la renovación en la plataforma no basta para pedir el reembolso. Confirmaremos la recepción de inmediato, terminaremos la suscripción y solicitaremos a Stripe el reembolso íntegro en un plazo de 5 días hábiles, por el mismo medio de pago, conforme al artículo 5 del Decreto 7.962/2013. El plazo para que el reembolso aparezca en el extracto depende del emisor de la tarjeta.`,
         ],
       },
       {
@@ -392,7 +368,7 @@ export const SUBSCRIPTION: LegalTexts = {
         id: "plan-changes",
         heading: "Cambio de plan",
         blocks: [
-          "El cambio a un plan superior se aplica de inmediato. El cambio a un plan inferior se aplica desde la siguiente renovación.",
+          "El cambio de plan o de periodicidad se aplica de inmediato. Al pasar a un plan más caro, la diferencia proporcional al resto del período se cobra en el momento; al pasar a uno más barato, el importe no utilizado queda como crédito en Stripe y se descuenta automáticamente de los próximos cobros.",
           "Si tu contenido supera los límites del nuevo plan, no se elimina nada: sigues accediendo a todo, pero no podrás crear nuevos elementos de ese tipo hasta estar dentro del límite.",
         ],
       },

@@ -9,6 +9,7 @@ import {
   stripLocale,
 } from "./lib/route-access";
 import { buildCsp, cspEnvironment, generateNonce } from "./lib/csp";
+import { isSessionExpired } from "./lib/session-api-token";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -57,7 +58,8 @@ function resolvePreferredLocale(
 const CSP_ENV = cspEnvironment();
 
 /**
- * Public pages outside the locale segment (share links, status page):
+ * Public pages outside the locale segment (share links, status page,
+ * the link-preview image):
  * they only need the per-request CSP, never the auth gate or next-intl's
  * locale redirect.
  */
@@ -66,7 +68,10 @@ function isLocaleFreePage(pathname: string): boolean {
     pathname.startsWith("/s/") ||
     pathname.startsWith("/g/") ||
     pathname === "/status" ||
-    pathname.startsWith("/status/")
+    pathname.startsWith("/status/") ||
+    // The generated link-preview image (app/opengraph-image.tsx) lives at
+    // the root; a locale redirect would make it 404.
+    pathname === "/opengraph-image"
   );
 }
 
@@ -127,10 +132,12 @@ async function route(
   // was sent to the English login page.
   const locale = localeSegment ?? resolvePreferredLocale(req, token);
 
-  if (
-    (isProtected || isChangePassword) &&
-    (!token || token.error === "TokenExpired")
-  ) {
+  // A session is usable only while the API token it carries is: see
+  // isSessionExpired for why `token.error` alone isn't enough here.
+  const expired = isSessionExpired(token);
+  const session = expired ? null : token;
+
+  if ((isProtected || isChangePassword) && !session) {
     const loginUrl = new URL(
       `/${locale ?? DEFAULT_LOCALE}/login`,
       req.nextUrl.origin,
@@ -145,7 +152,7 @@ async function route(
   // An account flagged for a mandatory password change (temporary
   // password, or one below the current policy) can't reach anything else
   // until it's done — the API refuses every other call anyway.
-  if (isProtected && token && !token.error && token.mustChangePassword) {
+  if (isProtected && session?.mustChangePassword) {
     return NextResponse.redirect(
       new URL(
         `/${locale ?? DEFAULT_LOCALE}/change-password`,
@@ -154,13 +161,13 @@ async function route(
     );
   }
 
-  if (isChangePassword && token && !token.error && !token.mustChangePassword) {
+  if (isChangePassword && session && !session.mustChangePassword) {
     return NextResponse.redirect(
       new URL(`/${locale ?? DEFAULT_LOCALE}/dashboard`, req.nextUrl.origin),
     );
   }
 
-  if (isAuthPage && token && !token.error) {
+  if (isAuthPage && session) {
     return NextResponse.redirect(
       new URL(`/${locale ?? DEFAULT_LOCALE}/dashboard`, req.nextUrl.origin),
     );

@@ -147,7 +147,9 @@
       "referralHint": "Quien te recomendó recibe créditos cuando confirmes tu correo.",
       "planChosen": "Plan elegido: {plan}.",
       "planNote": "Durante el prelanzamiento, todas las funciones están disponibles. Podrás suscribirte cuando los pagos en línea estén disponibles.",
-      "planNoteEnforced": "Tu cuenta empieza con un período de prueba. Los pagos en línea estarán disponibles pronto."
+      "planNoteEnforced": "Puedes suscribirte cuando quieras en Configuración › Suscripción, incluso durante la prueba.",
+      "trialTitle": "30 días gratis del plan Pro.",
+      "trialBody": "Tu cuenta empieza con un período de prueba con todas las funciones activadas. No pedimos tarjeta y no se cobra nada automáticamente: cuando termine la prueba, tú decides si quieres suscribirte."
     }
   },
   "dashboard": {
@@ -403,7 +405,7 @@
     },
     "help": {
       "title": "Formato ChordPro",
-      "intro": "Setlyst lee ChordPro y también los formatos de la mayoría de sitios de acordes.",
+      "intro": "Setlyst lee ChordPro y el formato habitual de \"acordes sobre la letra\", así que puedes pegar lo que ya escribiste o tecleaste.",
       "inlineChords": "Acordes entre corchetes, justo antes de la sílaba donde entran.",
       "sections": "Una sección en su propia línea, en español, inglés o portugués, con o sin corchetes, números y repeticiones (\"Verso 2\", \"Coro x2\").",
       "environments": "Secciones ChordPro: coro, verso, puente, y {sot}…{eot} para tablaturas.",
@@ -1315,6 +1317,12 @@
       "subscription": "Plan, uso, créditos y referidos.",
       "data": "Copia de seguridad de tu repertorio y eliminación de la cuenta.",
       "help": "Guías, novedades, estado del servicio y textos legales."
+    },
+    "personalData": {
+      "title": "Tus datos personales",
+      "description": "Descarga todo lo que guardamos sobre tu cuenta (perfil, preferencias, consentimientos, suscripción, pagos y registro de seguridad) en un archivo JSON. Tu repertorio está en la copia de seguridad de arriba.",
+      "button": "Descargar mis datos",
+      "done": "Tus datos personales se descargaron."
     }
   },
   "error": {
@@ -1361,7 +1369,7 @@
       "left": "Saliste de la banda."
     },
     "roles": {
-      "owner": "Propietario",
+      "owner": "Responsable",
       "admin": "Administrador",
       "moderator": "Moderador",
       "member": "Miembro"
@@ -1389,7 +1397,7 @@
       "titlePlaceholder": "ej.: Guitarrista",
       "titleUpdated": "Función actualizada.",
       "roles": {
-        "owner": "Propietario",
+        "owner": "Responsable",
         "admin": "Administrador",
         "moderator": "Moderador",
         "member": "Miembro"
@@ -1412,7 +1420,7 @@
         "member": "Miembro",
         "moderator": "Moderador",
         "admin": "Administrador",
-        "owner": "Propietario"
+        "owner": "Responsable"
       },
       "status": {
         "active": "Activa",
@@ -1464,10 +1472,10 @@
       "title": "Zona de peligro",
       "subtitle": "Acciones irreversibles relacionadas con esta banda.",
       "transferTitle": "Transferir la banda",
-      "transferDescription": "Convierte a otro integrante en propietario de esta banda.",
+      "transferDescription": "Pasa la responsabilidad de esta banda a otro integrante.",
       "transferAction": "Transferir",
-      "transferConfirm": "Elige el nuevo propietario de la banda. Tú pasarás a ser administrador.",
-      "newOwnerLabel": "Nuevo propietario",
+      "transferConfirm": "Elige quién pasa a ser responsable de la banda. Tú pasarás a ser administrador(a).",
+      "newOwnerLabel": "Nuevo(a) responsable",
       "transferred": "Banda transferida.",
       "leaveTitle": "Salir de la banda",
       "leaveDescription": "Perderás el acceso a las setlists y configuraciones de esta banda.",
@@ -1611,7 +1619,7 @@
   },
   "about": {
     "title": "Acerca de",
-    "tagline": "Letras, acordes, setlists y shows, listos para el escenario.",
+    "tagline": "Tu repertorio, setlists y shows, listos para el escenario.",
     "license": "Licencia MIT",
     "projectDescription": "Setlyst organiza el repertorio de quienes tocan en vivo. Guarda letras con acordes, arma setlists, organiza tus shows y usa el Modo en vivo en el escenario, con transposición, metrónomo, desplazamiento automático, modo compacto y funcionamiento sin conexión.",
     "openSource": "Sirve para quien toca solo y para bandas. El código es abierto: una app web en Next.js y una API en Rust, publicadas en GitHub.",
@@ -1682,7 +1690,7 @@
       "setlists": "setlists",
       "gigs": "conciertos",
       "tags": "etiquetas",
-      "bands_owned": "bandas propias",
+      "bands_owned": "bandas bajo tu responsabilidad",
       "band_memberships": "membresías en bandas",
       "band_members": "miembros en esta banda",
       "band_setlists": "setlists en esta banda",
@@ -2145,7 +2153,7 @@
       "addConfirm": "Añadir a la banda",
       "searchBands": "Buscar bandas…",
       "role": "Rol en la banda",
-      "bandHint": "Propietario @{owner} · {members, plural, one {# miembro} other {# miembros}}",
+      "bandHint": "Responsable @{owner} · {members, plural, one {# miembro} other {# miembros}}",
       "alreadyMember": "Ya es miembro",
       "added": "@{username} se añadió a {band}."
     },
@@ -2166,7 +2174,7 @@
       "subtitle": "Eliminación permanente",
       "preferDeactivate": "En casi todos los casos, desactivar o suspender la cuenta es mejor opción: es inmediato, reversible y conserva el historial.",
       "consequencePersonal": "Se eliminan sus canciones, artistas, setlists y conciertos personales.",
-      "consequenceBands": "Las bandas de las que es propietario pasan al miembro más antiguo; el contenido de banda que creó se queda en la banda.",
+      "consequenceBands": "Las bandas de las que es responsable pasan al miembro más antiguo; el contenido de banda que creó se queda en la banda.",
       "consequenceIrreversible": "Esto no se puede deshacer.",
       "delete": "Eliminar cuenta permanentemente…",
       "confirmTitle": "¿Eliminar a @{username} permanentemente?",
@@ -2241,7 +2249,8 @@
         "moderation_avatar_removed": "Foto de perfil eliminada",
         "moderation_band_logo_removed": "Logo de banda eliminado",
         "moderation_username_reset": "Nombre de usuario restablecido",
-        "moderation_rescan": "Reanálisis de moderación"
+        "moderation_rescan": "Reanálisis de moderación",
+        "finance_synced": "Finanzas sincronizadas con Stripe"
       }
     },
     "lists": {
@@ -2255,7 +2264,7 @@
       "search": "Buscar por banda o slug…",
       "columns": {
         "band": "Banda",
-        "owner": "Propietario",
+        "owner": "Responsable",
         "members": "Miembros",
         "content": "Contenido",
         "updated": "Última modificación"
@@ -2290,23 +2299,23 @@
       "alreadyMember": "Ya es miembro",
       "unavailable": "Cuenta desactivada o suspendida",
       "changeRole": "Cambiar rol",
-      "transfer": "Hacer propietario",
+      "transfer": "Hacer responsable",
       "remove": "Quitar de la banda",
       "confirmRoleTitle": "¿Cambiar el rol de {username}?",
       "confirmRole": "Pasará a ser {role} en esta banda y recibirá una notificación.",
       "confirmRemoveTitle": "¿Quitar a {username} de la banda?",
       "confirmRemove": "Pierde el acceso a las canciones, setlists y conciertos de la banda. Lo que creó se queda en la banda.",
-      "confirmTransferTitle": "¿Hacer propietario a {username}?",
-      "confirmTransfer": "El propietario actual pasa a ser administrador de la banda.",
+      "confirmTransferTitle": "¿Hacer responsable a {username}?",
+      "confirmTransfer": "El/la responsable actual pasa a ser administrador(a) de la banda.",
       "roleChanged": "{username} ahora es {role}.",
       "removed": "{username} fue quitado(a) de la banda.",
-      "transferred": "{username} ahora es propietario.",
+      "transferred": "{username} ahora es responsable de la banda.",
       "added": "{username} fue añadido(a)."
     },
     "bandDanger": {
       "title": "Zona de peligro",
       "subtitle": "Eliminar esta banda",
-      "advice": "Considera quitar miembros o cambiar el propietario: eliminar no se puede deshacer.",
+      "advice": "Considera quitar miembros o cambiar el/la responsable: eliminar no se puede deshacer.",
       "consequenceContent": "Se eliminan todas las canciones, setlists y conciertos de la banda.",
       "consequenceMembers": "Los miembros pierden el acceso de inmediato.",
       "irreversible": "Esto no se puede deshacer.",
@@ -2488,7 +2497,8 @@
         "songs": "Canciones",
         "setlists": "Setlists",
         "links": "Enlaces públicos",
-        "limits": "Límites"
+        "limits": "Límites",
+        "finance": "Finanzas"
       },
       "openFlags": "{count, plural, =0 {Ningún punto abierto} one {# punto abierto} other {# puntos abiertos}}"
     }
@@ -2507,7 +2517,7 @@
       "setlists": "Setlists",
       "gigs": "Conciertos",
       "tags": "Etiquetas distintas",
-      "bands_owned": "Bandas propias",
+      "bands_owned": "Bandas bajo tu responsabilidad",
       "band_memberships": "Membresías en bandas",
       "band_members": "Miembros por banda",
       "band_setlists": "Setlists por banda",
@@ -2720,7 +2730,7 @@
     "hero": {
       "badgePreRelease": "Prelanzamiento: todas las funciones disponibles sin coste",
       "badgeTrial": "30 días gratis del plan Pro, sin tarjeta",
-      "title": "Letras, acordes y setlists listos para el escenario",
+      "title": "Tu repertorio y tus setlists, listos para el escenario",
       "description": "Organiza el repertorio, crea setlists con análisis de BPM y energía y toca en el Modo en vivo, con metrónomo y transposición de tono. Solo o con tu banda, con o sin internet.",
       "ctaPrimary": "Crear cuenta gratis",
       "ctaSecondary": "Ver planes",
@@ -2759,7 +2769,7 @@
       "suggestion": "Sugerencia en votación",
       "suggestedBy": "Sugerida por {name}",
       "autoAccept": "{votes} de {needed, plural, one {# voto} other {# votos}} para aceptarla automáticamente",
-      "roleOwner": "Propietario",
+      "roleOwner": "Responsable",
       "roleAdmin": "Administradora",
       "roleMember": "Miembro",
       "roleOwnerCan": "Gestiona todo",
@@ -2920,7 +2930,7 @@
     "card": {
       "songs": "{unlimited, select, true {Canciones ilimitadas} other {{count, plural, one {# canción} other {# canciones}}}}",
       "setlists": "{unlimited, select, true {Setlists ilimitados} other {{count, plural, one {# setlist} other {# setlists}}}}",
-      "bandsOwned": "{unlimited, select, true {Bandas propias ilimitadas} other {{count, plural, one {Hasta # banda propia} other {Hasta # bandas propias}}}}",
+      "bandsOwned": "{unlimited, select, true {Bandas ilimitadas bajo tu responsabilidad} other {{count, plural, one {Hasta # banda bajo tu responsabilidad} other {Hasta # bandas bajo tu responsabilidad}}}}",
       "bandMemberships": "{unlimited, select, true {Miembro de bandas sin límite} other {{count, plural, one {Miembro de hasta # banda} other {Miembro de hasta # bandas}}}}"
     },
     "features": {
@@ -2942,7 +2952,7 @@
       "gigs": "Shows",
       "tours": "Giras",
       "tags": "Etiquetas",
-      "bands_owned": "Bandas propias",
+      "bands_owned": "Bandas bajo tu responsabilidad",
       "band_memberships": "Bandas en las que participas",
       "band_members": "Miembros por banda",
       "band_songs": "Canciones por banda",
@@ -3036,7 +3046,7 @@
     }
   },
   "seo": {
-    "landingTitle": "Setlyst: letras, acordes y setlists para tocar en directo",
+    "landingTitle": "Setlyst: tu repertorio, setlists y shows listos para el escenario",
     "landingDescription": "Organiza el repertorio, crea setlists con análisis de BPM y energía y toca en el Modo en vivo con metrónomo, transposición de tono y uso sin conexión. Para músicos y bandas.",
     "pricingTitle": "Planes y precios",
     "pricingDescription": "Compara los planes Básico, Intermedio y Pro de Setlyst: límites, funciones de banda, giras y exportación. Precios en reales, cancelación en cualquier momento.",
@@ -3194,7 +3204,7 @@
       "title": "Eliminar mi cuenta",
       "description": "Elimina tu cuenta y tus datos personales de Setlyst de forma definitiva.",
       "consequenceContent": "Se eliminan tus canciones, artistas, setlists, shows y giras personales.",
-      "consequenceBands": "Las bandas de las que eres propietario(a) pasan al miembro más antiguo. Las bandas sin otros miembros se eliminan.",
+      "consequenceBands": "Las bandas de las que eres responsable pasan al miembro más antiguo. Las bandas sin otros miembros se eliminan.",
       "consequenceBilling": "Se pierden los créditos, los referidos y el plan actual.",
       "consequenceIrreversible": "No se puede deshacer. Enviaremos una confirmación a tu correo.",
       "backupHint": "Antes de continuar, puedes exportar una copia de seguridad arriba.",
@@ -4733,5 +4743,96 @@
     "created": "Recordatorio creado.",
     "updated": "Recordatorio actualizado.",
     "saveFailed": "No se pudo guardar el recordatorio."
+  },
+  "trial": {
+    "chip": "Prueba del plan {plan}",
+    "daysLeft": "{days, plural, =0 {Termina hoy} one {Queda # día} other {Quedan # días}}",
+    "welcome": {
+      "title": "Estás en la prueba gratis del plan {plan}",
+      "lead": "¡Te damos la bienvenida a Setlyst{hasName, select, yes {, {name}} other {}}! Tu cuenta empezó con <strong>{days, plural, one {# día} other {# días}} gratis del plan {plan}</strong>, por eso todas las funciones están activadas ahora.",
+      "ends": "La prueba termina el <date></date>: <strong>{days, plural, =0 {hoy} one {queda # día} other {quedan # días}}</strong>.",
+      "noCharge": "No pedimos tarjeta y no se cobra nada automáticamente. Suscribirte es siempre tu decisión.",
+      "afterwards": "Cuando termine, todo lo que creaste sigue guardado para consultarlo y exportarlo. Las funciones de pago quedan en pausa hasta que elijas un plan.",
+      "whereToSee": "Los días restantes siempre se ven en el menú y en Configuración › Suscripción.",
+      "seePlans": "Ver planes",
+      "start": "Empezar a usar"
+    }
+  },
+  "finance": {
+    "title": "Finanzas",
+    "description": "Ingresos de suscripciones, suscriptores y pagos recibidos.",
+    "alerts": {
+      "paymentsOff": "Los pagos con tarjeta no están configurados en el servidor (STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET), así que no se registran pagos nuevos.",
+      "notEnforced": "El cobro de los planes aún no está activo (Planes y cobro › Cobro): todos tienen todas las funciones y nadie paga."
+    },
+    "kpi": {
+      "sectionRecurring": "Indicadores",
+      "mrr": "MRR",
+      "arr": "ARR {value}",
+      "thisMonth": "Recibido este mes",
+      "lastMonth": "Mes anterior: {value}",
+      "paying": "Suscriptores de pago",
+      "arpu": "Promedio de {value}/mes cada uno",
+      "trialing": "En período de prueba",
+      "trialsEnding": "{count, plural, =0 {Ninguno termina en 7 días} one {# termina en 7 días} other {# terminan en 7 días}}",
+      "newThisMonth": "Nuevos suscriptores este mes",
+      "churnThisMonth": "Cancelaciones este mes",
+      "churnRate": "Churn del {rate}",
+      "conversion": "Conversión de la prueba",
+      "conversionHint": "{converted} de {ended} pruebas terminadas en los últimos {days} días",
+      "attention": "Pagos atrasados",
+      "attentionHint": "{count, plural, =0 {Ninguna cancelación programada} one {# cancelación programada} other {# cancelaciones programadas}}"
+    },
+    "chart": {
+      "title": "Ingresos netos por mes",
+      "description": "Últimos 12 meses: {total} · desde el inicio: {allTime}",
+      "net": "Neto",
+      "gross": "Recibido",
+      "refunded": "Reembolsos",
+      "payments": "Pagos",
+      "showTable": "Ver como tabla"
+    },
+    "table": {
+      "month": "Mes",
+      "new": "Nuevos",
+      "churned": "Cancelados",
+      "plan": "Plan",
+      "subscribers": "Suscriptores",
+      "date": "Fecha",
+      "account": "Cuenta",
+      "amount": "Importe"
+    },
+    "interval": {
+      "monthly": "mensual",
+      "yearly": "anual"
+    },
+    "byPlan": {
+      "title": "Ingresos recurrentes por plan",
+      "description": "Suscripciones de pago vigentes, a precio de lista (un plan anual cuenta 1/12 al mes).",
+      "empty": "Aún no hay suscripciones de pago."
+    },
+    "recent": {
+      "title": "Últimos pagos",
+      "lastPayment": "El último el <date></date>",
+      "none": "Aún no hay pagos registrados.",
+      "empty": "Los pagos aparecen aquí a medida que Stripe los confirma. ¿Ya cobraste a alguien? Usa “Sincronizar con Stripe”.",
+      "deletedAccount": "Cuenta eliminada",
+      "refunded": "Reembolsado",
+      "partiallyRefunded": "{value} reembolsado"
+    },
+    "sync": {
+      "button": "Sincronizar con Stripe",
+      "running": "Sincronizando…",
+      "hint": "Importa facturas pagadas y reembolsos que el webhook no entregó. Se puede ejecutar en cualquier momento.",
+      "done": "{scanned, plural, =0 {Ninguna factura pagada en Stripe} one {# factura pagada revisada} other {# facturas pagadas revisadas}}, {imported, plural, =0 {nada nuevo} one {# pago nuevo importado} other {# pagos nuevos importados}}, {refunds, plural, =0 {ningún reembolso que actualizar} one {# reembolso actualizado} other {# reembolsos actualizados}}.",
+      "progress": "{count, plural, one {# factura revisada…} other {# facturas revisadas…}}"
+    },
+    "footnote": "Importes tal como se cobraron (tras descuentos), antes de comisiones de Stripe e impuestos. El MRR se estima a partir de las suscripciones de pago vigentes, a precio de lista, incluidas las contratadas durante la prueba gratis, cuyo primer cobro se hace al terminar la prueba. Los meses siguen la zona horaria {timeZone}. Los reembolsos aparecen en cuanto Stripe los informa."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "Esta dirección no existe o ya no está disponible. Revisa el enlace o vuelve a una página conocida.",
+    "dashboard": "Ir a mi panel",
+    "home": "Volver al inicio"
   }
 }

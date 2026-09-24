@@ -19,7 +19,14 @@ import {
 } from "@/lib/pricing";
 import { pickLocalized } from "@/lib/localized";
 import { formatMoney } from "@/lib/money";
-import { LEGAL_HREFS, LEGAL_VERSION, legalHref } from "@/lib/legal";
+import {
+  LEGAL_HREFS,
+  LEGAL_VERSION,
+  controllerIdentity,
+  formatTaxId,
+  legalHref,
+  resolveController,
+} from "@/lib/legal";
 import { getLegalText } from "@/lib/legal-content";
 import { LEGAL_DOCUMENTS } from "@/lib/links";
 import type { PublicPlan } from "@/types/public";
@@ -204,9 +211,36 @@ describe("localized text", () => {
 
 describe("legal documents", () => {
   it("shares the API terms version", () => {
-    expect(LEGAL_VERSION).toBe("2026-09-23");
+    expect(LEGAL_VERSION).toBe("2026-09-24");
     expect(LEGAL_HREFS.guidelines).toBe("/legal/guidelines");
     expect(legalHref("privacy", "rights")).toBe("/legal/privacy#rights");
+  });
+
+  it("identifies an individual by CPF and a company by CNPJ", () => {
+    const person = resolveController({
+      name: "Ana Souza",
+      taxId: "12345678909",
+      address: "Caixa Postal 1, Caxias do Sul/RS",
+    });
+    expect(person.kind).toBe("individual");
+    expect(person.taxIdLabel).toBe("CPF");
+    expect(person.taxId).toBe("123.456.789-09");
+    expect(controllerIdentity("pt-BR", person)).toBe(
+      "Ana Souza, pessoa física inscrita no CPF sob o nº 123.456.789-09, com endereço em Caixa Postal 1, Caxias do Sul/RS",
+    );
+    expect(controllerIdentity("en", person)).toContain("an individual");
+
+    const company = resolveController({ taxId: "11.222.333/0001-81" });
+    expect(company.kind).toBe("company");
+    expect(company.taxId).toBe("11.222.333/0001-81");
+    expect(company.name).toBe("[RAZÃO SOCIAL]");
+    expect(controllerIdentity("es", company)).toContain("CNPJ");
+
+    // Nothing configured: placeholders, worded as an individual.
+    const empty = resolveController({});
+    expect(empty.taxId).toBe("[CPF]");
+    expect(empty.name).toBe("[NOME COMPLETO]");
+    expect(formatTaxId("abc")).toBe("abc");
   });
 
   it("has every document in every language, with unique anchors", () => {

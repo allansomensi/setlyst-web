@@ -15,9 +15,17 @@ import { WhatsNewLink } from "./whats-new-link";
 import { ROLE_TEXT_STYLES } from "@/components/role-badge";
 import { cn } from "@/lib/utils";
 import type { SidebarUser } from "./sidebar";
+import { TrialStatus } from "./trial/trial-status";
+import type { TrialInfo } from "@/lib/trial";
 import packageJson from "@/package.json";
 
-export function MobileNav({ user }: { user?: SidebarUser }) {
+export function MobileNav({
+  user,
+  trial = null,
+}: {
+  user?: SidebarUser;
+  trial?: TrialInfo | null;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("nav");
   const tRoles = useTranslations("roles");
@@ -44,6 +52,7 @@ export function MobileNav({ user }: { user?: SidebarUser }) {
       </div>
 
       <div className="flex items-center gap-1">
+        <TrialStatus trial={trial} collapsed />
         <WhatsNewLink />
         <NotificationBellErrorBoundary>
           <NotificationBell />
@@ -83,6 +92,12 @@ export function MobileNav({ user }: { user?: SidebarUser }) {
           <div className="flex-1 overflow-y-auto py-2" onClick={close}>
             <SidebarLinks isCollapsed={false} userRole={role} />
           </div>
+
+          {trial && (
+            <div className="border-t px-4 pt-3">
+              <TrialStatus trial={trial} onNavigate={close} />
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-2 border-t p-4">
             <Link
