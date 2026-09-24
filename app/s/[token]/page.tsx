@@ -10,6 +10,7 @@ import { PublicShell } from "@/components/public/public-shell";
 import { getNonce } from "@/lib/server/nonce";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 import { isGoneShareLinkError } from "@/lib/api-not-found";
+import { clientMessages } from "@/i18n/client-messages";
 
 // One fetch per request, shared by the metadata and the page.
 const getPublicSetlist = cache(async (token: string) => {
@@ -81,7 +82,11 @@ export default async function PublicSetlistPage({
   ]);
 
   return (
-    <PublicShell locale={locale} messages={messages} nonce={nonce}>
+    <PublicShell
+      locale={locale}
+      messages={clientMessages(messages, "publicShare")}
+      nonce={nonce}
+    >
       <PublicSetlistView setlist={setlist} token={token} />
     </PublicShell>
   );

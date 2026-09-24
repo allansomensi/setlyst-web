@@ -10,6 +10,8 @@ interface TrashToastText {
   message: string;
   /** "Desfazer" */
   undoLabel: string;
+  /** "Restaurando…", while the undo runs. */
+  restoring: string;
   /** "Música restaurada." */
   restored: string;
   /** Shown when the restore fails without a specific reason. */
@@ -32,11 +34,15 @@ export function toastMovedToTrash(
     action: {
       label: text.undoLabel,
       onClick: async () => {
+        // A spinner toast while the restore runs, replaced in place (same
+        // id) by the outcome, so the tap on "Desfazer" is acknowledged.
+        const toastId = toast.loading(text.restoring);
         const result = await restoreTrashItem(type, id);
         if (result.success) {
-          toast.success(text.restored);
+          toast.success(text.restored, { id: toastId });
           onRestored?.();
         } else {
+          toast.dismiss(toastId);
           toastActionError(result, result.error || text.restoreFailed);
         }
       },

@@ -297,7 +297,7 @@ type Item =
  * at the bottom, or next to a section heading (which has its own spacing).
  * Hiding chords can't leave holes where chord-only lines used to be.
  */
-export function ChordProRenderer({
+export const ChordProRenderer = React.memo(function ChordProRenderer({
   content,
   showChords = true,
   showSections = true,
@@ -313,6 +313,205 @@ export function ChordProRenderer({
     [content],
   );
 
+  // The block → item → grouping pass only depends on these inputs, so the
+  // Live viewer's frequent re-renders (controls, timers) reuse the tree.
+  const nodes = useMemo<React.ReactNode[]>(() => {
+    const headingLabel = (block: Extract<Block, { type: "heading" }>) => {
+      if (!block.key) return block.raw.replace(ANNOTATION_MARK, "");
+      const parts = [tSection(block.key)];
+      if (block.heading?.number) parts.push(block.heading.number);
+      let label = parts.join(" ");
+      if (block.heading?.extra) label += ` · ${block.heading.extra}`;
+      return label;
+    };
+
+    // 1. Blocks → items, honouring what's shown.
+    const items: Item[] = [];
+    blocks.forEach((block, i) => {
+      switch (block.type) {
+        case "blank":
+          items.push({ kind: "gap" });
+          return;
+        case "heading":
+          if (!showSections) {
+            items.push({ kind: "gap" });
+            return;
+          }
+          if (!block.key && !block.raw) return;
+          items.push({
+            kind: "heading",
+            node: (
+              <SectionHeading
+                key={i}
+                label={headingLabel(block)}
+                icon={block.key ? ICONS[block.key] : undefined}
+                pill={block.key ? PILL_SECTIONS.has(block.key) : false}
+                repeat={block.heading?.repeat ?? null}
+              />
+            ),
+          });
+          return;
+        case "lyric": {
+          if (showChords && block.hasChords) {
+            items.push({
+              kind: "content",
+              chorus: block.chorus,
+              node: <ChordLine key={i} words={block.words} />,
+            });
+            return;
+          }
+          const text = plainText(block.words);
+          if (!text.replace(new RegExp(ANNOTATION_MARK, "g"), "").trim())
+            return;
+          items.push({
+            kind: "content",
+            chorus: block.chorus,
+            node: <TextLine key={i} text={text} />,
+          });
+          return;
+        }
+        case "chords":
+          if (!showChords) return;
+          items.push({
+            kind: "content",
+            chorus: block.chorus,
+            node: <ChordsRow key={i} items={block.items} />,
+          });
+          return;
+        case "tab":
+          if (!showChords) return;
+          items.push({
+            kind: "content",
+            chorus: false,
+            node: (
+              <pre
+                key={i}
+                data-line=""
+                data-tab=""
+                className="bg-muted/40 text-foreground my-[0.4em] overflow-x-auto rounded-[0.5em] px-[0.8em] py-[0.5em] font-mono text-[0.68em] leading-[1.35]"
+              >
+                {block.lines.join("\n")}
+              </pre>
+            ),
+          });
+          return;
+        case "capo":
+          if (!showChords) return;
+          items.push({
+            kind: "content",
+            chorus: false,
+            node: (
+              <div key={i} data-line="" className="my-[0.3em]">
+                <span className="border-primary/40 text-primary inline-flex items-center rounded-full border px-[0.8em] py-[0.15em] text-[0.62em] font-bold tracking-[0.12em] uppercase">
+                  {t("render.capo", { fret: block.fret })}
+                </span>
+              </div>
+            ),
+          });
+          return;
+        case "chorusRepeat":
+          items.push({
+            kind: "heading",
+            node: (
+              <SectionHeading
+                key={i}
+                label={
+                  block.label
+                    ? `${tSection("chorus")} · ${block.label}`
+                    : t("render.repeatChorus")
+                }
+                icon={Repeat}
+                pill
+                repeat={null}
+              />
+            ),
+          });
+          return;
+        case "comment":
+          items.push({
+            kind: "content",
+            chorus: false,
+            node: (
+              <div
+                key={i}
+                data-line=""
+                data-comment=""
+                className={cn(
+                  "text-muted-foreground my-[0.3em] flex items-start gap-[0.4em] text-[0.75em]",
+                  block.style === "italic" && "italic",
+                  block.style === "box" &&
+                    "w-fit rounded-[0.4em] border px-[0.6em] py-[0.2em]",
+                )}
+              >
+                <MessageSquareText className="mt-[0.2em] size-[1em] shrink-0 opacity-70" />
+                <span>{renderInline(block.text, `c${i}`)}</span>
+              </div>
+            ),
+          });
+          return;
+      }
+    });
+
+    // 2. Collapse gaps: none at the edges, none next to a heading, never two
+    //    in a row.
+    const tidy: Item[] = [];
+    for (const item of items) {
+      const prev = tidy[tidy.length - 1];
+      if (item.kind === "gap") {
+        if (!prev || prev.kind === "gap" || prev.kind === "heading") continue;
+      } else if (item.kind === "heading" && prev?.kind === "gap") {
+        tidy.pop();
+      }
+      tidy.push(item);
+    }
+    while (tidy.length && tidy[tidy.length - 1].kind === "gap") tidy.pop();
+
+    // 3. Group consecutive chorus lines under one accent bar.
+    const output: React.ReactNode[] = [];
+    let chorusGroup: React.ReactNode[] = [];
+    const flushChorus = () => {
+      if (!chorusGroup.length) return;
+      output.push(
+        <div
+          key={`chorus-${output.length}`}
+          data-chorus=""
+          className="border-primary/35 border-l-[0.15em] pl-[0.8em]"
+        >
+          {chorusGroup}
+        </div>,
+      );
+      chorusGroup = [];
+    };
+
+    tidy.forEach((item, index) => {
+      const node =
+        item.kind === "gap" ? (
+          <div key={`gap-${index}`} data-blank="" className="h-[0.8em]" />
+        ) : (
+          item.node
+        );
+
+      const isChorusLine =
+        showSections && item.kind === "content" && item.chorus;
+      // A gap between two chorus stanzas stays inside the bar.
+      const continuesChorus =
+        showSections &&
+        item.kind === "gap" &&
+        chorusGroup.length > 0 &&
+        tidy[index + 1]?.kind === "content" &&
+        (tidy[index + 1] as Extract<Item, { kind: "content" }>).chorus;
+
+      if (isChorusLine || continuesChorus) {
+        chorusGroup.push(node);
+      } else {
+        flushChorus();
+        output.push(node);
+      }
+    });
+    flushChorus();
+    return output;
+  }, [blocks, showChords, showSections, t, tSection]);
+
   const cssFontSize = fontSize === "inherit" ? "1em" : `${fontSize}rem`;
 
   if (blocks.length === 0) {
@@ -326,198 +525,6 @@ export function ChordProRenderer({
     );
   }
 
-  const headingLabel = (block: Extract<Block, { type: "heading" }>) => {
-    if (!block.key) return block.raw.replace(ANNOTATION_MARK, "");
-    const parts = [tSection(block.key)];
-    if (block.heading?.number) parts.push(block.heading.number);
-    let label = parts.join(" ");
-    if (block.heading?.extra) label += ` · ${block.heading.extra}`;
-    return label;
-  };
-
-  // 1. Blocks → items, honouring what's shown.
-  const items: Item[] = [];
-  blocks.forEach((block, i) => {
-    switch (block.type) {
-      case "blank":
-        items.push({ kind: "gap" });
-        return;
-      case "heading":
-        if (!showSections) {
-          items.push({ kind: "gap" });
-          return;
-        }
-        if (!block.key && !block.raw) return;
-        items.push({
-          kind: "heading",
-          node: (
-            <SectionHeading
-              key={i}
-              label={headingLabel(block)}
-              icon={block.key ? ICONS[block.key] : undefined}
-              pill={block.key ? PILL_SECTIONS.has(block.key) : false}
-              repeat={block.heading?.repeat ?? null}
-            />
-          ),
-        });
-        return;
-      case "lyric": {
-        if (showChords && block.hasChords) {
-          items.push({
-            kind: "content",
-            chorus: block.chorus,
-            node: <ChordLine key={i} words={block.words} />,
-          });
-          return;
-        }
-        const text = plainText(block.words);
-        if (!text.replace(new RegExp(ANNOTATION_MARK, "g"), "").trim()) return;
-        items.push({
-          kind: "content",
-          chorus: block.chorus,
-          node: <TextLine key={i} text={text} />,
-        });
-        return;
-      }
-      case "chords":
-        if (!showChords) return;
-        items.push({
-          kind: "content",
-          chorus: block.chorus,
-          node: <ChordsRow key={i} items={block.items} />,
-        });
-        return;
-      case "tab":
-        if (!showChords) return;
-        items.push({
-          kind: "content",
-          chorus: false,
-          node: (
-            <pre
-              key={i}
-              data-line=""
-              data-tab=""
-              className="bg-muted/40 text-foreground my-[0.4em] overflow-x-auto rounded-[0.5em] px-[0.8em] py-[0.5em] font-mono text-[0.68em] leading-[1.35]"
-            >
-              {block.lines.join("\n")}
-            </pre>
-          ),
-        });
-        return;
-      case "capo":
-        if (!showChords) return;
-        items.push({
-          kind: "content",
-          chorus: false,
-          node: (
-            <div key={i} data-line="" className="my-[0.3em]">
-              <span className="border-primary/40 text-primary inline-flex items-center rounded-full border px-[0.8em] py-[0.15em] text-[0.62em] font-bold tracking-[0.12em] uppercase">
-                {t("render.capo", { fret: block.fret })}
-              </span>
-            </div>
-          ),
-        });
-        return;
-      case "chorusRepeat":
-        items.push({
-          kind: "heading",
-          node: (
-            <SectionHeading
-              key={i}
-              label={
-                block.label
-                  ? `${tSection("chorus")} · ${block.label}`
-                  : t("render.repeatChorus")
-              }
-              icon={Repeat}
-              pill
-              repeat={null}
-            />
-          ),
-        });
-        return;
-      case "comment":
-        items.push({
-          kind: "content",
-          chorus: false,
-          node: (
-            <div
-              key={i}
-              data-line=""
-              data-comment=""
-              className={cn(
-                "text-muted-foreground my-[0.3em] flex items-start gap-[0.4em] text-[0.75em]",
-                block.style === "italic" && "italic",
-                block.style === "box" &&
-                  "w-fit rounded-[0.4em] border px-[0.6em] py-[0.2em]",
-              )}
-            >
-              <MessageSquareText className="mt-[0.2em] size-[1em] shrink-0 opacity-70" />
-              <span>{renderInline(block.text, `c${i}`)}</span>
-            </div>
-          ),
-        });
-        return;
-    }
-  });
-
-  // 2. Collapse gaps: none at the edges, none next to a heading, never two
-  //    in a row.
-  const tidy: Item[] = [];
-  for (const item of items) {
-    const prev = tidy[tidy.length - 1];
-    if (item.kind === "gap") {
-      if (!prev || prev.kind === "gap" || prev.kind === "heading") continue;
-    } else if (item.kind === "heading" && prev?.kind === "gap") {
-      tidy.pop();
-    }
-    tidy.push(item);
-  }
-  while (tidy.length && tidy[tidy.length - 1].kind === "gap") tidy.pop();
-
-  // 3. Group consecutive chorus lines under one accent bar.
-  const output: React.ReactNode[] = [];
-  let chorusGroup: React.ReactNode[] = [];
-  const flushChorus = () => {
-    if (!chorusGroup.length) return;
-    output.push(
-      <div
-        key={`chorus-${output.length}`}
-        data-chorus=""
-        className="border-primary/35 border-l-[0.15em] pl-[0.8em]"
-      >
-        {chorusGroup}
-      </div>,
-    );
-    chorusGroup = [];
-  };
-
-  tidy.forEach((item, index) => {
-    const node =
-      item.kind === "gap" ? (
-        <div key={`gap-${index}`} data-blank="" className="h-[0.8em]" />
-      ) : (
-        item.node
-      );
-
-    const isChorusLine = showSections && item.kind === "content" && item.chorus;
-    // A gap between two chorus stanzas stays inside the bar.
-    const continuesChorus =
-      showSections &&
-      item.kind === "gap" &&
-      chorusGroup.length > 0 &&
-      tidy[index + 1]?.kind === "content" &&
-      (tidy[index + 1] as Extract<Item, { kind: "content" }>).chorus;
-
-    if (isChorusLine || continuesChorus) {
-      chorusGroup.push(node);
-    } else {
-      flushChorus();
-      output.push(node);
-    }
-  });
-  flushChorus();
-
   return (
     <div
       data-chordpro=""
@@ -528,7 +535,7 @@ export function ChordProRenderer({
       )}
       style={{ fontSize: cssFontSize }}
     >
-      {output}
+      {nodes}
     </div>
   );
-}
+});

@@ -1,6 +1,6 @@
 import { entityTitle } from "@/lib/page-metadata";
 import { notFoundOnMissing } from "@/lib/api-not-found";
-import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
+import { fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import { BandWithMembership, Gig, Setlist } from "@/types/api";
 import { GigsTable } from "@/app/[locale]/dashboard/gigs/_components/gigs-table";
@@ -10,6 +10,7 @@ import { Link } from "@/components/nav-link";
 import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 export async function generateMetadata({
   params,
@@ -35,7 +36,7 @@ export default async function BandGigsPage({
   const tNav = await getTranslations("nav");
 
   const [band, gigsRes, setlistsRes] = await Promise.all([
-    fetchServerApi<BandWithMembership>(`/bands/${id}`),
+    fetchServerApiOnce<BandWithMembership>(`/bands/${id}`),
     fetchAllServerPages<Gig>(`/bands/${id}/gigs`),
     fetchAllServerPages<Setlist>(`/bands/${id}/setlists`),
   ]).catch(notFoundOnMissing);

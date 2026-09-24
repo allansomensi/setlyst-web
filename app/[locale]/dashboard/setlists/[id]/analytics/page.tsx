@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { SetlistFlowReport } from "./_components/setlist-flow-report";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 export async function generateMetadata({
   params,
@@ -36,7 +37,7 @@ export default async function SetlistAnalyticsPage({
   const tNav = await getTranslations("nav");
 
   const [setlist, items, entitlements] = await Promise.all([
-    fetchServerApi<Setlist>(`/setlists/${id}`),
+    fetchServerApiOnce<Setlist>(`/setlists/${id}`),
     fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
     getEntitlements(),
   ]).catch((error) => {

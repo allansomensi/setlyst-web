@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import {
   Copy,
@@ -21,12 +22,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QrCodeDisplay } from "@/components/qr-code-display";
 import { ShareLockedNotice } from "@/components/share-locked-notice";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { copyText } from "@/lib/clipboard";
 import type { ActionResult } from "@/lib/action-guard";
+
+// Only drawn when asked for: keeps the QR library out of the setlist and
+// gig pages' first load.
+const QrCodeDisplay = dynamic(
+  () => import("@/components/qr-code-display").then((m) => m.QrCodeDisplay),
+  { ssr: false, loading: () => <div className="size-[200px]" /> },
+);
 
 export interface ShareDialogProps {
   /**

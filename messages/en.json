@@ -918,7 +918,8 @@
       "beatsPerBarTitle": "Beats per bar",
       "muteClick": "Mute the click",
       "unmuteClick": "Play an audible click",
-      "clickSound": "Audible click"
+      "clickSound": "Audible click",
+      "label": "Metronome"
     },
     "transpose": {
       "up": "Up a semitone (.)",
@@ -4701,6 +4702,7 @@
   "trash": {
     "undo": "Undo",
     "restoreFailed": "Couldn't restore.",
+    "restoring": "Restoring…",
     "navLabel": "Trash",
     "title": "Trash",
     "retention": "Deleted items stay here for 30 days. After that, they are deleted for good.",

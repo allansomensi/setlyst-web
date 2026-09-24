@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import { notFoundOnMissing } from "@/lib/api-not-found";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import {
@@ -12,9 +11,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { authOptions } from "@/lib/auth";
 import { entityTitle } from "@/lib/page-metadata";
-import { fetchServerApi } from "@/lib/api-server";
 import { formatApiDate } from "@/lib/dates";
 import { isStaffRole } from "@/lib/staff-permissions";
 import type { UserProfileView } from "@/types/api";
@@ -25,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserAvatar } from "@/components/user-avatar";
 import { BandAvatar } from "@/components/bands/band-avatar";
 import { ReportProfileButton } from "./_components/report-profile-dialog";
+import { getSession } from "@/lib/server/session";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 export async function generateMetadata({
   params,
@@ -46,7 +45,7 @@ export default async function UserProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const t = await getTranslations("userProfile");
   const tRoles = await getTranslations("roles");
   const locale = await getLocale();
@@ -54,7 +53,7 @@ export default async function UserProfilePage({
 
   // A deleted account, a malformed id or a profile the viewer can't see
   // is a 404, not the generic error screen.
-  const profile = await fetchServerApi<UserProfileView>(
+  const profile = await fetchServerApiOnce<UserProfileView>(
     `/users/${id}/profile`,
   ).catch(notFoundOnMissing);
   const isSelf = profile.is_self || session?.user?.id === profile.id;

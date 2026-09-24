@@ -105,6 +105,7 @@ export function ArtistsTable({
         toastMovedToTrash("artist", artistToDelete, {
           message: t("dialog.deleted"),
           undoLabel: tTrash("undo"),
+          restoring: tTrash("restoring"),
           restored: t("dialog.restored"),
           restoreFailed: tTrash("restoreFailed"),
         });

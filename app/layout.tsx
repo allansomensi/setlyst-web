@@ -11,6 +11,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Only chords, BPM and keys use it: not worth a preload on every page
+  // (the landing, sign-in and legal pages barely do).
+  preload: false,
 });
 
 /**
@@ -86,11 +89,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Matches the manifest's background/theme colour, so the browser chrome
-  // doesn't flash white against the app's dark surfaces on launch.
+  // The page's own `--background` (globals.css) in each theme, so the
+  // browser chrome and the status bar meet the page without a seam; the
+  // dark one is also the manifest's background/theme colour.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#f1f2fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a11" },
   ],
   width: "device-width",
   initialScale: 1,

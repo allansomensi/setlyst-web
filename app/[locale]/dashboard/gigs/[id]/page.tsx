@@ -35,6 +35,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { notFound } from "next/navigation";
 import { ApiError } from "@/lib/api-server";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 const STATUS_VARIANT: Record<
   Gig["status"],
@@ -67,7 +68,7 @@ export default async function GigDetailsPage({
 
   let gig: Gig;
   try {
-    gig = await fetchServerApi<Gig>(`/gigs/${id}`);
+    gig = await fetchServerApiOnce<Gig>(`/gigs/${id}`);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;

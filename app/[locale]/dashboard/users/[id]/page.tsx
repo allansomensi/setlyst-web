@@ -1,6 +1,6 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { Ban, Flag, KeyRound } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,7 +21,6 @@ import { UserStatusBadges } from "@/components/staff/user-status-badges";
 import { ViewAsButton } from "@/components/impersonation/view-as-button";
 import { redirect } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
-import { authOptions } from "@/lib/auth";
 import { formatApiDate, formatApiDateTime } from "@/lib/dates";
 import { pickLocalized } from "@/lib/localized";
 import { getPlanOptions } from "@/lib/staff-data";
@@ -39,10 +38,14 @@ import { DangerZone } from "./_components/danger-zone";
 import { QuotaEditor } from "./_components/quota-editor";
 import { SubscriptionCard } from "./_components/subscription-card";
 import { UserBandsSection } from "./_components/user-bands-section";
+import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ locale: string; id: string }>;
 
-async function loadOverview(id: string): Promise<AdminUserOverview | null> {
+// Request-scoped: generateMetadata and the page both need it.
+const loadOverview = cache(async function loadOverview(
+  id: string,
+): Promise<AdminUserOverview | null> {
   try {
     return await fetchServerApi<AdminUserOverview>(
       `/users/${encodeURIComponent(id)}/overview`,
@@ -56,7 +59,7 @@ async function loadOverview(id: string): Promise<AdminUserOverview | null> {
     }
     throw error;
   }
-}
+});
 
 export async function generateMetadata({
   params,
@@ -82,7 +85,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default async function UserDetailPage({ params }: { params: Params }) {
   const { locale: routeLocale, id } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session || !isStaffRole(session.user.role)) {
     return redirect({ href: "/dashboard", locale: routeLocale });
   }

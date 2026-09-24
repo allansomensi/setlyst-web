@@ -217,6 +217,7 @@ export function SongsTable({
         toastMovedToTrash("song", target.id, {
           message: t("dialog.deleted"),
           undoLabel: tTrash("undo"),
+          restoring: tTrash("restoring"),
           restored: t("dialog.restored"),
           restoreFailed: tTrash("restoreFailed"),
         });
@@ -426,7 +427,7 @@ export function SongsTable({
                       <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span
-                          className="bg-primary/10 text-primary rounded px-1 py-0.5 text-[10px] font-medium"
+                          className="bg-primary/10 text-primary rounded px-1 py-0.5 text-[11px] font-medium"
                           title={t("dialog.lyricsTitle")}
                         >
                           {t("lyricsTag")}
@@ -454,7 +455,7 @@ export function SongsTable({
                           </button>
                         ))}
                         {song.tags.length > 3 && (
-                          <span className="text-muted-foreground text-[10px]">
+                          <span className="text-muted-foreground text-[11px]">
                             +{song.tags.length - 3}
                           </span>
                         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
-import { Loader2, Pin, PinOff } from "lucide-react";
+import { Pin, PinOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,8 @@ interface PinButtonProps {
 /**
  * Pins an item to the home page ("Fixados") or unpins it. Optimistic:
  * the icon flips at once and flips back if the API refuses (limit of 12,
- * lost access).
+ * lost access). No spinner while the request runs: the flipped icon is
+ * the feedback, and the button stays disabled (aria-busy) until it lands.
  */
 export function PinButton({
   type,
@@ -61,7 +62,7 @@ export function PinButton({
     });
   };
 
-  const Icon = isPending ? Loader2 : optimistic ? PinOff : Pin;
+  const Icon = optimistic ? PinOff : Pin;
 
   if (variant === "default") {
     return (
@@ -70,14 +71,12 @@ export function PinButton({
         variant="outline"
         onClick={toggle}
         disabled={isPending}
+        aria-busy={isPending}
         aria-pressed={optimistic}
         aria-label={label}
         className={cn("gap-2", className)}
       >
-        <Icon
-          className={cn("h-4 w-4", isPending && "animate-spin")}
-          aria-hidden
-        />
+        <Icon className="h-4 w-4" aria-hidden />
         <span className="sr-only sm:not-sr-only">{short}</span>
       </Button>
     );
@@ -95,6 +94,7 @@ export function PinButton({
             toggle();
           }}
           disabled={isPending}
+          aria-busy={isPending}
           aria-pressed={optimistic}
           aria-label={label}
           data-no-row-click
@@ -104,14 +104,10 @@ export function PinButton({
             className,
           )}
         >
-          {optimistic && !isPending ? (
-            <Pin className="h-4 w-4 fill-current" aria-hidden />
-          ) : (
-            <Icon
-              className={cn("h-4 w-4", isPending && "animate-spin")}
-              aria-hidden
-            />
-          )}
+          <Pin
+            className={cn("h-4 w-4", optimistic && "fill-current")}
+            aria-hidden
+          />
         </Button>
       </TooltipTrigger>
       <TooltipContent>{short}</TooltipContent>

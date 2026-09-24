@@ -22,6 +22,31 @@ type FetchApi = <T>(
 
 const PAGE_SIZE = 100;
 
+// Bands whose records are fetched at once (two listings each). Someone in
+// many bands used to fire all of them together, on top of the library
+// calls already in flight.
+const BAND_CONCURRENCY = 2;
+
+/** `fn` over `items`, at most `limit` at a time, results in order. */
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
+  return results;
+}
+
 // Every call this module makes is a silent background operation — never a
 // direct response to something the person clicked and is watching. A 401
 // here (a token mid-refresh, a momentary auth hiccup) must never trigger
@@ -258,8 +283,10 @@ export async function syncAllForOffline(
   // Per-band records, each failing independently for the same reason as
   // above: one band's data not loading shouldn't cost the person every
   // other band's.
-  const bandRecords = await Promise.all(
-    bands.map(async (band) => {
+  const bandRecords = await mapWithConcurrency(
+    bands,
+    BAND_CONCURRENCY,
+    async (band) => {
       const [setlistsRes, gigsRes] = await Promise.allSettled([
         fetchAllPages<Setlist>(fetchApi, `/bands/${band.id}/setlists`),
         fetchAllPages<Gig>(fetchApi, `/bands/${band.id}/gigs`),
@@ -268,7 +295,7 @@ export async function syncAllForOffline(
         setlists: settled(setlistsRes, `${band.name} setlists`, []),
         gigs: settled(gigsRes, `${band.name} shows`, []),
       };
-    }),
+    },
   );
 
   const setlists = [

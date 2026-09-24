@@ -1,7 +1,6 @@
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { Coffee, Layers } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -19,11 +18,11 @@ import {
 } from "@/components/staff/share-moderation";
 import { Link } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
-import { authOptions } from "@/lib/auth";
 import { formatApiDateTime } from "@/lib/dates";
 import { formatDuration } from "@/lib/utils";
 import type { AdminSetlistDetail } from "@/types/api";
 import { SetlistAdminActions } from "./_components/setlist-admin-actions";
+import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ id: string }>;
 
@@ -59,7 +58,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
   const detail = await loadSetlist(id);
   if (!detail) notFound();
 
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const isAdmin = session?.user.role === "admin";
   const t = await getTranslations("staff.setlistDetail");
   const tNav = await getTranslations("nav");

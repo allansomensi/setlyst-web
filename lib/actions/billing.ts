@@ -23,6 +23,15 @@ async function invalid<T>(): Promise<ActionResult<T>> {
   return { success: false, error: t("rejected") };
 }
 
+/**
+ * The account's billing state, on its own: what the page polls while it
+ * waits for a payment's webhook, instead of re-rendering the whole
+ * settings page every few seconds.
+ */
+export async function getBillingState(): Promise<ActionResult<BillingMe>> {
+  return guardedAction(() => fetchServerApi<BillingMe>("/billing/me"));
+}
+
 export type RedeemResult = BillingMe & { redemption: RedemptionSummary };
 
 /** Redeems a promo code; answers the new billing state and what it did. */

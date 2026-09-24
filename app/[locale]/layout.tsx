@@ -3,17 +3,16 @@ import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/providers/theme_provider";
 import { ThemeSync } from "@/components/providers/theme-sync";
 import { AuthProvider } from "@/components/providers/session_provider";
-import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@/components/analytics";
 import { TimeZoneCookie } from "@/components/time-zone-cookie";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { getMyPreferences } from "@/lib/server-data";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import type { UserTheme } from "@/types/api";
 import { getNonce } from "@/lib/server/nonce";
+import { clientMessages } from "@/i18n/client-messages";
+import { getSession } from "@/lib/server/session";
 
 function isUserTheme(value: unknown): value is UserTheme {
   return value === "light" || value === "dark" || value === "system";
@@ -38,7 +37,7 @@ export default async function LocaleLayout({
 
   // Only fetch preferences when the user is authenticated; skip the API round-trip
   // on public pages (login, register) to avoid unnecessary latency and silent errors.
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const isAuthenticated = Boolean(
     session && session.error !== "TokenExpired" && session.user?.id,
   );
@@ -54,24 +53,25 @@ export default async function LocaleLayout({
   }
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={clientMessages(messages, "shell")}
+    >
       <AuthProvider>
-        <OfflineSyncProvider>
-          {/* Never remounted: changing the theme must not reset the page
+        {/* Never remounted: changing the theme must not reset the page
               (open dialogs, scroll, Live Mode). The saved preference is
               the initial default and ThemeSync keeps it in step. */}
-          <ThemeProvider
-            attribute="class"
-            defaultTheme={userTheme ?? "system"}
-            enableSystem
-            disableTransitionOnChange
-            nonce={nonce}
-          >
-            {userTheme && <ThemeSync theme={userTheme} />}
-            {children}
-            <Toaster position="top-center" />
-          </ThemeProvider>
-        </OfflineSyncProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme={userTheme ?? "system"}
+          enableSystem
+          disableTransitionOnChange
+          nonce={nonce}
+        >
+          {userTheme && <ThemeSync theme={userTheme} />}
+          {children}
+          <Toaster position="top-center" />
+        </ThemeProvider>
       </AuthProvider>
       <TimeZoneCookie />
       <Analytics />

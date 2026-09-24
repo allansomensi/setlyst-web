@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { getToken, type JWT } from "next-auth/jwt";
 import { apiTokenOf } from "@/lib/session-api-token";
@@ -12,8 +13,11 @@ const PLAIN_COOKIE = "next-auth.session-token";
  * encrypted session cookie. Server-only: the API token it carries never
  * reaches the browser (it is not part of the `session()` callback output
  * any more, see lib/auth.ts).
+ *
+ * Request-scoped (React `cache`): every `fetchServerApi` call reads it,
+ * and a page making ten calls used to decrypt the same cookie ten times.
  */
-export async function getSessionToken(): Promise<JWT | null> {
+export const getSessionToken = cache(async (): Promise<JWT | null> => {
   const cookieStore = await cookies();
   // The cookie name depends on whether next-auth decided the site runs on
   // https; read whichever one the browser actually sent.
@@ -34,7 +38,7 @@ export async function getSessionToken(): Promise<JWT | null> {
   } catch {
     return null;
   }
-}
+});
 
 /**
  * The bearer token for API calls made on behalf of the signed-in person,

@@ -70,6 +70,16 @@ const nextConfig: NextConfig = {
     },
   ],
   images: { remotePatterns: [] },
+  experimental: {
+    // Barrel packages Next.js doesn't already optimize by default: only
+    // the parts actually imported end up in the bundles.
+    optimizePackageImports: [
+      "radix-ui",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "sonner",
+    ],
+  },
 };
 
 export default withNextIntl(nextConfig);

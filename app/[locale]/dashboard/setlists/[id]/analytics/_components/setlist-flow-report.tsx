@@ -596,7 +596,7 @@ export function SetlistFlowReport({
                           : "bg-muted/40 text-muted-foreground",
                       )}
                     >
-                      <span className="text-[9px] font-normal opacity-70">
+                      <span className="text-[11px] font-normal opacity-70">
                         {i + 1}
                       </span>
                       <span>{song.tonality ?? "·"}</span>

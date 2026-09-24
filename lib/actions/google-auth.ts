@@ -2,8 +2,6 @@
 
 import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
 import {
   GOOGLE_2FA_COOKIE,
@@ -19,6 +17,7 @@ import {
 } from "@/lib/auth-flow";
 import { safeCallbackPath } from "@/lib/links";
 import type { SignInError } from "@/lib/sign-in-errors";
+import { getSession } from "@/lib/server/session";
 
 export interface PrepareGoogleInput {
   mode?: GoogleIntentMode;
@@ -48,7 +47,7 @@ export async function prepareGoogleSignIn(
 
   const mode: GoogleIntentMode = input.mode === "link" ? "link" : "signin";
   if (mode === "link") {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session || session.error || session.user.impersonator) return false;
   }
 

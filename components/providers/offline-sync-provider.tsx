@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -47,9 +48,80 @@ const IDLE_PROGRESS: SyncProgress = {
 
 const OfflineSyncContext = createContext<OfflineSyncContextValue | null>(null);
 
+/** Just what's on the device, see useOfflineCache. */
+type OfflineCacheContextValue = Pick<
+  OfflineSyncContextValue,
+  | "isSetlistCached"
+  | "isSongCached"
+  | "cachedSetlistCount"
+  | "cachedSongCount"
+  | "cachedGigCount"
+  | "cachedBandCount"
+>;
+
+const OfflineCacheContext = createContext<OfflineCacheContextValue | null>(
+  null,
+);
+
+/**
+ * The ids as one string: a sync writes setlists one at a time, and each
+ * write re-runs the live query with the same keys (in the same order,
+ * primary keys come sorted). Memoizing on this rather than on the array
+ * keeps every row's indicator from re-rendering for nothing.
+ */
+function idsKey(ids: readonly string[] | undefined): string {
+  return (ids ?? []).join("\n");
+}
+
+function idSet(key: string): Set<string> {
+  return new Set(key ? key.split("\n") : []);
+}
+
 // Re-sync periodically while the app is open and online, so data doesn't
 // quietly go stale during a long rehearsal or a day of edits before a show.
 const BACKGROUND_SYNC_INTERVAL_MS = 15 * 60 * 1000;
+
+// Automatic syncs (page load, reconnect, the interval, the tab coming back
+// into view) are skipped while the last full sync is younger than this.
+// Every reload, every new tab and every PWA launch used to download the
+// whole library again (two calls per setlist, plus every page shell),
+// which on a small API server is most of its load. The mirror is also
+// kept warm by the screens themselves (lib/offline/write.ts), so a few
+// minutes of age is harmless. "Sync now" always runs.
+const AUTO_SYNC_MIN_AGE_MS = 10 * 60 * 1000;
+
+// How long after the app opens (or comes back online) the first automatic
+// sync waits.
+const INITIAL_SYNC_DELAY_MS = 5_000;
+
+// Held while a sync runs, so two open tabs never download the library at
+// the same time (Web Locks are shared by every tab of the origin).
+const SYNC_LOCK_NAME = "setlyst-offline-sync";
+
+/**
+ * Runs `task` while holding the cross-tab sync lock. With `wait` false it
+ * gives up (null) when another tab already holds it. Browsers without Web
+ * Locks just run the task.
+ */
+async function withSyncLock<T>(
+  wait: boolean,
+  task: () => Promise<T>,
+): Promise<T | null> {
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+  if (!locks) return task();
+  return locks.request(SYNC_LOCK_NAME, { ifAvailable: !wait }, async (lock) =>
+    lock ? task() : null,
+  );
+}
+
+async function lastFullSyncAge(): Promise<number> {
+  try {
+    const meta = await offlineDb.meta.get("global");
+    return meta?.lastFullSyncAt ? Date.now() - meta.lastFullSyncAt : Infinity;
+  } catch {
+    return Infinity;
+  }
+}
 
 /**
  * Keeps the offline data layer (lib/offline/db.ts) warm: syncs every
@@ -140,26 +212,39 @@ export function OfflineSyncProvider({
     [],
   );
 
-  const syncNow = useCallback(() => {
-    if (syncingRef.current || !isAuthenticated) return;
-    syncingRef.current = true;
-    setStatus("syncing");
-    setProgress({ phase: "library", completed: 0, total: 0 });
+  // `force` is a person pressing "sync now": it waits for another tab's
+  // sync to finish and ignores the age of the last one. Automatic syncs
+  // give way to both (see AUTO_SYNC_MIN_AGE_MS and SYNC_LOCK_NAME).
+  const runSync = useCallback(
+    (force: boolean) => {
+      if (syncingRef.current || !isAuthenticated) return;
+      syncingRef.current = true;
 
-    syncAllForOffline(fetchApi, locale, setProgress)
-      .then((result) => {
-        setStatus(result.ok ? "idle" : "error");
+      withSyncLock(force, async () => {
+        if (!force && (await lastFullSyncAge()) < AUTO_SYNC_MIN_AGE_MS) {
+          return null;
+        }
+        setStatus("syncing");
+        setProgress({ phase: "library", completed: 0, total: 0 });
+        return syncAllForOffline(fetchApi, locale, setProgress);
       })
-      .catch(() => {
-        setStatus("error");
-      })
-      .finally(() => {
-        syncingRef.current = false;
-        setProgress(IDLE_PROGRESS);
-      });
-  }, [fetchApi, locale, isAuthenticated]);
+        .then((result) => {
+          if (result) setStatus(result.ok ? "idle" : "error");
+        })
+        .catch(() => {
+          setStatus("error");
+        })
+        .finally(() => {
+          syncingRef.current = false;
+          setProgress(IDLE_PROGRESS);
+        });
+    },
+    [fetchApi, locale, isAuthenticated],
+  );
 
-  // The interval below is intentionally NOT re-armed every time `syncNow`
+  const syncNow = useCallback(() => runSync(true), [runSync]);
+
+  // The interval below is intentionally NOT re-armed every time `runSync`
   // changes identity (e.g. NextAuth silently rotating the session token) —
   // doing that would resync far more often than the 15-minute cadence
   // intends. But the interval callback still has to call the LATEST
@@ -169,53 +254,125 @@ export function OfflineSyncProvider({
   // failed" — or worse, was misread by the server as an auth problem — for
   // no reason a person watching the tab could see. A ref sidesteps that
   // without re-arming the interval.
-  const syncNowRef = useRef(syncNow);
+  const autoSyncRef = useRef(() => runSync(false));
   useEffect(() => {
-    syncNowRef.current = syncNow;
-  }, [syncNow]);
+    autoSyncRef.current = () => runSync(false);
+  }, [runSync]);
 
   // Sync on load and whenever connectivity comes back, then keep it fresh
-  // on an interval for as long as the tab stays open and online.
+  // on an interval for as long as the tab stays open and online. A tab in
+  // the background skips its ticks and catches up when it's shown again.
   useEffect(() => {
     if (!isAuthenticated || !isOnline) return;
 
-    syncNowRef.current();
-    const interval = setInterval(
-      () => syncNowRef.current(),
-      BACKGROUND_SYNC_INTERVAL_MS,
+    // Not during the page's own first load: the sync would compete with
+    // it for the same server.
+    const initial = setTimeout(
+      () => autoSyncRef.current(),
+      INITIAL_SYNC_DELAY_MS,
     );
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") autoSyncRef.current();
+    }, BACKGROUND_SYNC_INTERVAL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") autoSyncRef.current();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [isAuthenticated, isOnline]);
 
+  // Sets, not arrays: every row of a long list asks, and `includes` made
+  // each question walk the whole library.
+  const setlistKey = idsKey(cachedSetlistIds);
+  const songKey = idsKey(cachedSongIds);
+  const cachedSetlistSet = useMemo(() => idSet(setlistKey), [setlistKey]);
+  const cachedSongSet = useMemo(() => idSet(songKey), [songKey]);
+
   const isSetlistCached = useCallback(
-    (setlistId: string) => cachedSetlistIds?.includes(setlistId) ?? false,
-    [cachedSetlistIds],
+    (setlistId: string) => cachedSetlistSet.has(setlistId),
+    [cachedSetlistSet],
   );
 
   const isSongCached = useCallback(
-    (songId: string) => cachedSongIds?.includes(songId) ?? false,
-    [cachedSongIds],
+    (songId: string) => cachedSongSet.has(songId),
+    [cachedSongSet],
   );
 
-  const value: OfflineSyncContextValue = {
-    status,
-    progress,
-    lastSyncedAt: meta?.lastFullSyncAt ?? null,
-    lastError: meta?.lastError ?? null,
-    syncNow,
-    isSetlistCached,
-    isSongCached,
-    cachedSetlistCount: cachedSetlistIds?.length ?? 0,
-    cachedSongCount: cachedSongIds?.length ?? 0,
-    cachedGigCount: cachedGigCount ?? 0,
-    cachedBandCount: cachedBandCount ?? 0,
-  };
+  const lastSyncedAt = meta?.lastFullSyncAt ?? null;
+  const lastError = meta?.lastError ?? null;
+  const value = useMemo<OfflineSyncContextValue>(
+    () => ({
+      status,
+      progress,
+      lastSyncedAt,
+      lastError,
+      syncNow,
+      isSetlistCached,
+      isSongCached,
+      cachedSetlistCount: cachedSetlistSet.size,
+      cachedSongCount: cachedSongSet.size,
+      cachedGigCount: cachedGigCount ?? 0,
+      cachedBandCount: cachedBandCount ?? 0,
+    }),
+    [
+      status,
+      progress,
+      lastSyncedAt,
+      lastError,
+      syncNow,
+      isSetlistCached,
+      isSongCached,
+      cachedSetlistSet,
+      cachedSongSet,
+      cachedGigCount,
+      cachedBandCount,
+    ],
+  );
+
+  // A separate context for the per-row indicators, so the progress
+  // updates of a running sync don't re-render every row of a list.
+  const cacheValue = useMemo<OfflineCacheContextValue>(
+    () => ({
+      isSetlistCached,
+      isSongCached,
+      cachedSetlistCount: cachedSetlistSet.size,
+      cachedSongCount: cachedSongSet.size,
+      cachedGigCount: cachedGigCount ?? 0,
+      cachedBandCount: cachedBandCount ?? 0,
+    }),
+    [
+      isSetlistCached,
+      isSongCached,
+      cachedSetlistSet,
+      cachedSongSet,
+      cachedGigCount,
+      cachedBandCount,
+    ],
+  );
 
   return (
     <OfflineSyncContext.Provider value={value}>
-      {children}
+      <OfflineCacheContext.Provider value={cacheValue}>
+        {children}
+      </OfflineCacheContext.Provider>
     </OfflineSyncContext.Provider>
   );
+}
+
+/**
+ * What's saved on this device, without the sync's status and progress:
+ * for components that only show whether something is available offline.
+ */
+export function useOfflineCache(): OfflineCacheContextValue {
+  const ctx = useContext(OfflineCacheContext);
+  if (!ctx) {
+    throw new Error("useOfflineCache must be used within OfflineSyncProvider");
+  }
+  return ctx;
 }
 
 /** Reads offline-sync status/controls set up by `OfflineSyncProvider`. */

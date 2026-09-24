@@ -14,13 +14,12 @@ import {
   type ReauthProof,
 } from "@/lib/auth-flow";
 import type { RecoveryCodes, TwoFactorSetup } from "@/types/account";
-import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
-import { authOptions } from "@/lib/auth";
 import {
   clearPendingGoogleLink,
   readPendingGoogleLink,
 } from "@/lib/server/google-link";
+import { getSession } from "@/lib/server/session";
 
 /**
  * Two-factor authentication and linked sign-in providers of the
@@ -156,7 +155,7 @@ export async function linkGoogle(
 ): Promise<ActionResult> {
   const reauth = reauthBody(proof);
   if (!reauth) return invalidRequest();
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (session?.user.impersonator) return invalidRequest();
   const link = await readPendingGoogleLink(session?.user.id);
   if (!link) {

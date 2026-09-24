@@ -189,6 +189,7 @@ export function GigsTable({
         toastMovedToTrash("gig", gigToDelete.id, {
           message: t("dialog.deleted"),
           undoLabel: tTrash("undo"),
+          restoring: tTrash("restoring"),
           restored: t("dialog.restored"),
           restoreFailed: tTrash("restoreFailed"),
         });

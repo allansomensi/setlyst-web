@@ -19,3 +19,16 @@ export const getMe = cache(() => fetchServerApi<User>("/users/me"));
 export const getMyBilling = cache(() =>
   fetchServerApi<BillingMe>("/billing/me"),
 );
+
+const fetchOnce = cache((endpoint: string): Promise<unknown> =>
+  fetchServerApi(endpoint),
+);
+
+/**
+ * A plain GET of `endpoint`, made at most once per request. For the entity
+ * a page and its `generateMetadata` both load: Next.js does not dedupe
+ * these fetches itself, because every call carries a timeout signal.
+ */
+export function fetchServerApiOnce<T>(endpoint: string): Promise<T> {
+  return fetchOnce(endpoint) as Promise<T>;
+}

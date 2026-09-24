@@ -42,6 +42,9 @@ function write(key: string, value: number) {
   }
 }
 
+/** How long scrolling must pause before the position is saved. */
+const SAVE_DELAY_MS = 150;
+
 /**
  * The dashboard's scrolling area. The whole dashboard scrolls inside this
  * element rather than the window (see layout.tsx), so Next.js' own scroll
@@ -67,23 +70,31 @@ export function DashboardScrollArea({
   const ref = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  // Remember the position while scrolling (throttled to a frame).
+  // Remember the position once scrolling pauses: sessionStorage writes
+  // are synchronous, and one per frame competed with the scrolling itself
+  // on low-end phones. A pending write is flushed when the page changes.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const key = KEY_PREFIX + pathname;
-    let frame = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let lastTop = el.scrollTop;
+    const flush = () => {
+      timer = undefined;
+      write(key, lastTop);
+    };
     const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        write(key, el.scrollTop);
-      });
+      lastTop = el.scrollTop;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(flush, SAVE_DELAY_MS);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       el.removeEventListener("scroll", onScroll);
-      if (frame) cancelAnimationFrame(frame);
+      if (timer) {
+        clearTimeout(timer);
+        flush();
+      }
     };
   }, [pathname]);
 

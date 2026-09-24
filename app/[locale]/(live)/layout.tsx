@@ -1,10 +1,11 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { authOptions } from "@/lib/auth";
 import { UiSettingsProvider } from "@/components/providers/ui-settings-provider";
 import { getMyPreferences } from "@/lib/server-data";
 import { DEFAULT_UI_SETTINGS, normalizeUiSettings } from "@/lib/ui-settings";
+import { getSession } from "@/lib/server/session";
+import { ScopedMessages } from "@/components/providers/scoped-messages";
+import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
 
 /**
  * The bare shell Live Mode renders in (both the setlist and the single-song
@@ -26,7 +27,7 @@ export default async function LiveLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const locale = await getLocale();
 
   if (!session) redirect(`/${locale}/login`);
@@ -39,8 +40,13 @@ export default async function LiveLayout({
     .catch(() => DEFAULT_UI_SETTINGS);
 
   return (
-    <UiSettingsProvider initial={uiSettings}>
-      <div className="bg-background h-dvh">{children}</div>
-    </UiSettingsProvider>
+    <ScopedMessages area="live">
+      {/* Keeps the offline copy fresh while performing, too. */}
+      <OfflineSyncProvider>
+        <UiSettingsProvider initial={uiSettings}>
+          <div className="bg-background h-dvh">{children}</div>
+        </UiSettingsProvider>
+      </OfflineSyncProvider>
+    </ScopedMessages>
   );
 }

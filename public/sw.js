@@ -113,6 +113,29 @@ const CACHED_AT_HEADER = "x-setlyst-cached-at";
  */
 const IMPERSONATION_HEADER = "x-setlyst-impersonating";
 
+/**
+ * A page the offline sync asks to precache is skipped while its stored
+ * copy is younger than this. Offline, pages take their data from the
+ * IndexedDB mirror (lib/offline/*), so the stored HTML is only a shell;
+ * re-rendering every song and setlist page on every sync (each render
+ * several API calls) was the heaviest load the app put on its server.
+ * Well under PAGE_MAX_AGE_MS, so a synced page never expires, and a page
+ * actually visited is refreshed by networkFirst() anyway.
+ */
+const PRECACHE_REFRESH_MS = 24 * 60 * 60 * 1000;
+
+/** Whether a stored page was stored less than PRECACHE_REFRESH_MS ago. */
+function isRecentlyStored(response, now = Date.now()) {
+  if (!response) return false;
+  const cachedAt = Number(response.headers.get(CACHED_AT_HEADER));
+  return (
+    Number.isFinite(cachedAt) &&
+    cachedAt > 0 &&
+    cachedAt <= now + 60_000 &&
+    now - cachedAt < PRECACHE_REFRESH_MS
+  );
+}
+
 /** Whether a stored page is still young enough to replay (see PAGE_MAX_AGE_MS). */
 function isFreshPage(response, now = Date.now()) {
   if (!response) return false;
@@ -392,8 +415,11 @@ self.addEventListener("message", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(PAGES_CACHE);
-      await mapWithConcurrency(urls, 4, async (url) => {
+      // Two at a time: these are full server renders, and a sync can ask
+      // for hundreds of them.
+      await mapWithConcurrency(urls, 2, async (url) => {
         try {
+          if (isRecentlyStored(await cache.match(url))) return;
           const response = await fetch(url, { credentials: "same-origin" });
           if (await isUsableForCache(response)) {
             const html = await response.clone().text();
@@ -453,7 +479,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       isPrivatePath(url.pathname)
         ? networkOnly(request)
-        : networkFirst(request),
+        : networkFirst(request, event),
     );
     return;
   }
@@ -622,16 +648,26 @@ async function cachePage(cache, request, response) {
   }
 }
 
-async function networkFirst(request) {
+async function networkFirst(request, event) {
   const cache = await caches.open(PAGES_CACHE);
   try {
     const response = await fetch(request);
     // Only cache a response actually worth replaying offline later — the
     // live page is still returned either way, this only decides whether
     // it's trusted enough to keep around. See isUsableForCache() above.
-    if (await isUsableForCache(response)) {
-      await cachePage(cache, request, response);
-    }
+    //
+    // In the background, on a copy: deciding means reading the whole body,
+    // and awaiting that here held the page back until the server had
+    // finished rendering it, so loading skeletons and streamed sections
+    // never showed on a full load.
+    const copy = response.clone();
+    event.waitUntil(
+      (async () => {
+        if (await isUsableForCache(copy)) {
+          await cachePage(cache, request, copy);
+        }
+      })().catch(() => {}),
+    );
     return response;
   } catch {
     const cached = await findCachedPage(cache, request);

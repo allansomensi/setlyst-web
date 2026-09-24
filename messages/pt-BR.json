@@ -918,7 +918,8 @@
       "beatsPerBarTitle": "Tempos por compasso",
       "muteClick": "Silenciar o clique",
       "unmuteClick": "Tocar clique audível",
-      "clickSound": "Clique sonoro"
+      "clickSound": "Clique sonoro",
+      "label": "Metrônomo"
     },
     "transpose": {
       "up": "Meio tom acima (.)",
@@ -4701,6 +4702,7 @@
   "trash": {
     "undo": "Desfazer",
     "restoreFailed": "Não foi possível restaurar.",
+    "restoring": "Restaurando…",
     "navLabel": "Lixeira",
     "title": "Lixeira",
     "retention": "Itens excluídos ficam aqui por 30 dias. Depois disso, são excluídos definitivamente.",

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { useAppRouter } from "@/hooks/use-app-router";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 export default function DashboardError({
   error,
@@ -13,6 +14,19 @@ export default function DashboardError({
   reset: () => void;
 }) {
   const t = useTranslations("error");
+
+  const router = useAppRouter();
+  const [isRetrying, startRetry] = useTransition();
+
+  // `reset()` alone only re-renders the client tree; when the failure came
+  // from server data, that just throws again. Refreshing first refetches
+  // the server components, and the transition keeps the button pending
+  // until the new payload is in.
+  const retry = () =>
+    startRetry(() => {
+      router.refresh();
+      reset();
+    });
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -50,7 +64,13 @@ export default function DashboardError({
           {t("reference")} <code className="font-mono">{digest}</code>
         </p>
       )}
-      <Button variant="outline" onClick={() => reset()}>
+      <Button
+        variant="outline"
+        onClick={retry}
+        disabled={isRetrying}
+        aria-busy={isRetrying}
+      >
+        {isRetrying && <Loader2 className="animate-spin" aria-hidden />}
         {t("tryAgain")}
       </Button>
     </div>

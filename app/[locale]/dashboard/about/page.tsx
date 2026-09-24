@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { authOptions } from "@/lib/auth";
 import { isStaffRole } from "@/lib/staff-permissions";
 import {
   Activity,
@@ -42,6 +40,7 @@ import {
   getLatestCommit,
   type LatestCommit,
 } from "@/lib/github";
+import { getSession } from "@/lib/server/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("about");
@@ -68,7 +67,7 @@ export default async function AboutPage() {
   // The repositories and their latest commits (raw, English, with
   // gitmoji) are for the team; everyone else gets the version and the
   // changelog ("What's new").
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const isStaff = isStaffRole(session?.user?.role);
   const commits = isStaff
     ? await Promise.all(REPOSITORIES.map((repo) => getLatestCommit(repo.name)))

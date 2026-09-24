@@ -1,9 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
-import { QRCodeSVG } from "qrcode.react";
 import {
   AlertTriangle,
   Check,
@@ -53,6 +53,12 @@ import { formatApiDate } from "@/lib/dates";
 import { toast } from "@/lib/toast";
 import type { TwoFactorSetup } from "@/types/account";
 import { RecoveryCodesPanel } from "./recovery-codes-panel";
+
+// Only needed while turning two-factor on.
+const QRCodeSVG = dynamic(
+  () => import("qrcode.react").then((m) => m.QRCodeSVG),
+  { ssr: false, loading: () => <div className="size-[168px]" /> },
+);
 
 interface TwoFactorCardProps {
   enabled: boolean;

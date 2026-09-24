@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { fetchServerApi } from "@/lib/api-server";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 /**
  * Browser-tab titles. Every page names where the person is; the root
  * layout appends "· Setlyst". Entity pages show the entity's own name
- * (a setlist title, a band name), fetched with the same request the page
- * makes — Next.js memoizes identical GETs within one render.
+ * (a setlist title, a band name), loaded through fetchServerApiOnce so
+ * the page's own request for it is not made a second time.
  */
 
 /** A static title from the `metadata` namespace. */
@@ -28,7 +28,7 @@ export async function entityTitle<T>(
 ): Promise<Metadata> {
   const t = await getTranslations("metadata");
   try {
-    const name = pick(await fetchServerApi<T>(endpoint));
+    const name = pick(await fetchServerApiOnce<T>(endpoint));
     return { title: name ? t(template, { name }) : t(fallbackKey) };
   } catch {
     return { title: t(fallbackKey) };

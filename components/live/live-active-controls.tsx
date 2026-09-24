@@ -38,7 +38,7 @@ export function LiveActiveControls({
   return (
     <div
       className={cn(
-        "bg-card/90 animate-in fade-in slide-in-from-bottom-2 flex items-center gap-1 rounded-full border p-1 shadow-lg backdrop-blur-md",
+        "bg-card/95 animate-in fade-in slide-in-from-bottom-2 flex items-center gap-1 rounded-full border p-1 shadow-lg",
         className,
       )}
     >

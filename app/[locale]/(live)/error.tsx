@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
+import { useAppRouter } from "@/hooks/use-app-router";
 
 /**
  * Crash screen for Live Mode. Full screen (there is no dashboard around
@@ -24,6 +25,19 @@ export default function LiveError({
 }) {
   const t = useTranslations("error");
   const tNotFound = useTranslations("notFound");
+
+  const router = useAppRouter();
+  const [isRetrying, startRetry] = useTransition();
+
+  // `reset()` alone only re-renders the client tree; when the failure came
+  // from server data, that just throws again. Refreshing first refetches
+  // the server components, and the transition keeps the button pending
+  // until the new payload is in.
+  const retry = () =>
+    startRetry(() => {
+      router.refresh();
+      reset();
+    });
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -49,7 +63,13 @@ export default function LiveError({
         )}
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button size="lg" onClick={() => reset()}>
+        <Button
+          size="lg"
+          onClick={retry}
+          disabled={isRetrying}
+          aria-busy={isRetrying}
+        >
+          {isRetrying && <Loader2 className="animate-spin" aria-hidden />}
           {t("tryAgain")}
         </Button>
         <Button size="lg" variant="outline" asChild>

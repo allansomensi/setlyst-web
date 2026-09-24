@@ -195,9 +195,33 @@ function isActive(pathname: string, href: string) {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Navigations within this long of the last count reuse it. */
+const MODERATION_COUNT_TTL_MS = 60_000;
+
 /**
- * Open moderation flags (staff only), refreshed on every navigation and
- * whenever the queue reports a change.
+ * The last count fetched, shared by every mounted link list (the sidebar
+ * and the mobile menu both render one).
+ */
+let moderationCountCache: {
+  at: number;
+  value: Promise<number | null>;
+} | null = null;
+
+function loadModerationCount(force: boolean): Promise<number | null> {
+  const now = Date.now();
+  if (
+    force ||
+    !moderationCountCache ||
+    now - moderationCountCache.at > MODERATION_COUNT_TTL_MS
+  ) {
+    moderationCountCache = { at: now, value: getModerationOpenCount() };
+  }
+  return moderationCountCache.value;
+}
+
+/**
+ * Open moderation flags (staff only), refreshed on navigation (at most
+ * once a minute) and whenever the queue reports a change.
  */
 function useModerationCount(enabled: boolean): number | null {
   const pathname = usePathname();
@@ -206,18 +230,21 @@ function useModerationCount(enabled: boolean): number | null {
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
-    const load = () => {
-      getModerationOpenCount()
+    const load = (force: boolean) => {
+      loadModerationCount(force)
         .then((value) => {
           if (!cancelled) setCount(value);
         })
-        .catch(() => undefined);
+        .catch(() => {
+          moderationCountCache = null;
+        });
     };
-    load();
-    window.addEventListener(MODERATION_CHANGED_EVENT, load);
+    const onChanged = () => load(true);
+    load(false);
+    window.addEventListener(MODERATION_CHANGED_EVENT, onChanged);
     return () => {
       cancelled = true;
-      window.removeEventListener(MODERATION_CHANGED_EVENT, load);
+      window.removeEventListener(MODERATION_CHANGED_EVENT, onChanged);
     };
   }, [enabled, pathname]);
 

@@ -525,7 +525,8 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
             value={pasted}
             onChange={(e) => setPasted(e.target.value)}
             rows={10}
-            className="font-mono text-sm"
+            // 16px on phones: anything smaller makes iOS zoom in on focus.
+            className="font-mono text-base md:text-sm"
             placeholder={
               "{title: Asa Branca}\n{artist: Luiz Gonzaga}\n{key: G}\n\n[G]Quando olhei a [C]terra ardendo"
             }

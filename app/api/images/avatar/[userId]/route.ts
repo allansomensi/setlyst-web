@@ -1,5 +1,3 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { apiPath } from "@/lib/api-endpoint";
 import { fetchServerApi } from "@/lib/api-server";
 import { isUuid } from "@/lib/server/api-route";
@@ -8,6 +6,7 @@ import {
   noImage,
   serveRemoteImage,
 } from "@/lib/server/image-proxy";
+import { getSession } from "@/lib/server/session";
 
 /**
  * `GET /api/images/avatar/{userId}` — a user's avatar, fetched from the
@@ -21,7 +20,7 @@ export async function GET(
   const { userId } = await params;
   if (!isUuid(userId)) return noImage(400);
 
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session?.user || session.error) return noImage(401);
 
   const limited = limitImageRequests(session.user.id);

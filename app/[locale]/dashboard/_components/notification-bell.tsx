@@ -27,7 +27,7 @@ import {
 } from "@/lib/notification-messages";
 
 /** How often the unread badge is refreshed while the popover is closed. */
-const POLL_INTERVAL_MS = 30_000;
+const POLL_INTERVAL_MS = 60_000;
 
 export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
   const t = useTranslations("notifications");
@@ -40,6 +40,10 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
     null,
   );
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // The bell is mounted twice, in the sidebar and in the mobile header,
+  // and CSS hides one of them. Only the one on screen polls.
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Read by the polling interval, so the timer is never re-armed just
   // because the function identity changed.
@@ -62,12 +66,13 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
 
     const poll = () => {
       // Don't poll a tab nobody is looking at, or one with no connection.
-      // This runs every 30s for as long as the app is open — on a phone
+      // This runs every minute for as long as the app is open — on a phone
       // left on a music stand between sets, that is a lot of pointless
       // radio wake-ups and a lot of requests the backend rate-limits.
       if (
         document.visibilityState !== "visible" ||
-        navigator.onLine === false
+        navigator.onLine === false ||
+        triggerRef.current?.getClientRects().length === 0
       ) {
         return;
       }
@@ -173,6 +178,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          ref={triggerRef}
           type="button"
           title={t("title")}
           aria-label={

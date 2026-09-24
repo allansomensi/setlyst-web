@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useDeferredValue,
   useEffect,
   useState,
   useTransition,
@@ -188,6 +189,9 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
     : `/dashboard/songs/${id}`;
 
   const isDirty = !isReadOnly && lyrics !== savedLyrics;
+  // The preview trails the textarea: parsing and rendering ChordPro on
+  // every keystroke would otherwise make typing lag on long songs.
+  const previewLyrics = useDeferredValue(lyrics);
   const guard = useUnsavedChangesGuard(isDirty);
 
   /**
@@ -571,7 +575,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
               </span>
             </div>
             <ChordProRenderer
-              content={lyrics}
+              content={previewLyrics}
               showChords={showChords}
               showSections={showSections}
               fontSize={1}

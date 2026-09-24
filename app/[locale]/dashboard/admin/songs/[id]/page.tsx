@@ -1,7 +1,6 @@
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +9,10 @@ import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { TagChip } from "@/components/tags/tag-chip";
 import { Link } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
-import { authOptions } from "@/lib/auth";
 import { formatDuration } from "@/lib/utils";
 import { formatGenre, type AdminSongDetail } from "@/types/api";
 import { SongAdminActions } from "./_components/song-admin-actions";
+import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ id: string }>;
 
@@ -50,7 +49,7 @@ export default async function AdminSongPage({ params }: { params: Params }) {
   if (!detail) notFound();
   const { song, summary } = detail;
 
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const isAdmin = session?.user.role === "admin";
   const t = await getTranslations("staff.songDetail");
   const tNav = await getTranslations("nav");

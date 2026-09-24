@@ -1,6 +1,4 @@
 import { staticTitle } from "@/lib/page-metadata";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { getTranslations } from "next-intl/server";
 import {
   ListMusic,
@@ -30,6 +28,7 @@ import { parseWallClock } from "@/lib/dates";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import type { BandWithMembership, Gig, Setlist } from "@/types/api";
 import type { PinnedItem } from "@/types/content";
+import { getSession } from "@/lib/server/session";
 
 /** How many upcoming shows the server hands the "next show" card. */
 const NEXT_GIG_CANDIDATES = 3;
@@ -90,7 +89,7 @@ export async function generateMetadata() {
 }
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
   const tTours = await getTranslations("tours");

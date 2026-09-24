@@ -31,6 +31,7 @@ import { SetlistOfflineStatus } from "./_components/setlist-offline-status";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { formatDuration } from "@/lib/utils";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 export async function generateMetadata({
   params,
@@ -57,7 +58,7 @@ export default async function SetlistDetailsPage({
 
   const [setlist, setlistSongsRes, setlistItems, allSongsRes, allArtistsRes] =
     await Promise.all([
-      fetchServerApi<Setlist>(`/setlists/${id}`),
+      fetchServerApiOnce<Setlist>(`/setlists/${id}`),
       fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
       fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
       fetchAllServerPages<Song>("/songs"),

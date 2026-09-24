@@ -1,14 +1,13 @@
 import "server-only";
 
-import { getServerSession } from "next-auth";
 import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/routing";
-import { authOptions } from "@/lib/auth";
 import {
   hasStaffCapability,
   isStaffRole,
   type StaffCapability,
 } from "@/lib/staff-permissions";
+import { getSession } from "@/lib/server/session";
 
 /**
  * Page guard for the staff console. Without a staff session the visitor
@@ -20,7 +19,7 @@ export async function requireStaffPage(
   capability?: StaffCapability,
   fallback = "/dashboard",
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const locale = await getLocale();
   if (!session || !isStaffRole(session.user.role)) {
     return redirect({ href: "/dashboard", locale });

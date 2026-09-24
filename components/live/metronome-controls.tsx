@@ -154,12 +154,14 @@ export function MetronomeControls({
         onClick={onToggleRunning}
         className="h-10 w-10 shrink-0 rounded-lg"
         title={isRunning ? t("stop") : t("start")}
+        // Fixed name plus pressed state, like the click toggle below.
+        aria-label={t("label")}
         aria-pressed={isRunning}
       >
         {isRunning ? (
-          <Pause className="h-5 w-5" />
+          <Pause className="h-5 w-5" aria-hidden />
         ) : (
-          <Metronome className="h-5 w-5" />
+          <Metronome className="h-5 w-5" aria-hidden />
         )}
       </Button>
 
@@ -176,20 +178,22 @@ export function MetronomeControls({
           }}
           disabled={bpm <= MIN_BPM}
           title={t("decreaseTempo")}
+          aria-label={t("decreaseTempo")}
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-4 w-4" aria-hidden />
         </Button>
 
         <span
-          className="flex w-16 flex-col items-center leading-none"
+          className="flex w-18 flex-col items-center leading-none"
           title={isSongTempo ? t("songTempo") : t("manualTempo")}
+          aria-live="polite"
         >
           <span className="font-mono text-sm font-bold tabular-nums">
             {bpm}
           </span>
           <span
             className={cn(
-              "text-[9px] tracking-wider uppercase",
+              "text-[11px] tracking-wider uppercase",
               isSongTempo ? "text-primary" : "text-muted-foreground",
             )}
           >
@@ -208,8 +212,9 @@ export function MetronomeControls({
           }}
           disabled={bpm >= MAX_BPM}
           title={t("increaseTempo")}
+          aria-label={t("increaseTempo")}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden />
         </Button>
       </div>
 
@@ -221,7 +226,7 @@ export function MetronomeControls({
         className="h-10 gap-1.5 px-3"
         title={t("tapTempoTitle")}
       >
-        <Hand className="h-4 w-4" />
+        <Hand className="h-4 w-4" aria-hidden />
         <span className="text-xs font-bold tracking-wider">{t("tap")}</span>
       </Button>
 
@@ -252,9 +257,9 @@ export function MetronomeControls({
         aria-pressed={audioEnabled}
       >
         {audioEnabled ? (
-          <Volume2 className="h-4 w-4" />
+          <Volume2 className="h-4 w-4" aria-hidden />
         ) : (
-          <VolumeX className="h-4 w-4" />
+          <VolumeX className="h-4 w-4" aria-hidden />
         )}
       </Button>
 

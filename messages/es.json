@@ -918,7 +918,8 @@
       "beatsPerBarTitle": "Tiempos por compás",
       "muteClick": "Silenciar el clic",
       "unmuteClick": "Reproducir clic audible",
-      "clickSound": "Clic sonoro"
+      "clickSound": "Clic sonoro",
+      "label": "Metrónomo"
     },
     "transpose": {
       "up": "Medio tono arriba (.)",
@@ -4701,6 +4702,7 @@
   "trash": {
     "undo": "Deshacer",
     "restoreFailed": "No se pudo restaurar.",
+    "restoring": "Restaurando…",
     "navLabel": "Papelera",
     "title": "Papelera",
     "retention": "Los elementos eliminados quedan aquí 30 días. Después se eliminan definitivamente.",

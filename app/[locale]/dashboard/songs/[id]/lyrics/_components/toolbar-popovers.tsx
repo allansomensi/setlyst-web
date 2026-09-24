@@ -79,7 +79,7 @@ export function ChordPopover({ onInsert }: ChordPopoverProps) {
                 value={custom}
                 onChange={(e) => setCustom(e.target.value)}
                 placeholder={t("customChordPlaceholder")}
-                className="h-8 text-sm"
+                className="h-8 text-base md:text-sm"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && custom.trim()) {
                     onInsert(custom.trim());

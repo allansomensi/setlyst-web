@@ -1,13 +1,14 @@
 import "server-only";
 
 import { cache } from "react";
-import { fetchServerApi } from "@/lib/api-server";
+import { getMyBilling } from "@/lib/server-data";
 import type { BillingMe } from "@/types/billing";
 import type { PlanFeature } from "@/types/public";
 
 /**
  * The caller's plan, subscription and effective feature flags
- * (`GET /billing/me`), fetched at most once per request.
+ * (`GET /billing/me`), fetched at most once per request (the same
+ * request the dashboard layout makes through getMyBilling).
  *
  * Returns `null` when the API can't be reached: callers must then treat
  * features as available and let the API be the one to refuse (it always
@@ -16,7 +17,7 @@ import type { PlanFeature } from "@/types/public";
  */
 export const getEntitlements = cache(async (): Promise<BillingMe | null> => {
   try {
-    return await fetchServerApi<BillingMe>("/billing/me");
+    return await getMyBilling();
   } catch {
     return null;
   }

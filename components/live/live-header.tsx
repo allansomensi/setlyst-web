@@ -57,7 +57,9 @@ export function LiveHeader({
   return (
     <header
       className={cn(
-        "bg-card/60 flex shrink-0 items-center justify-between gap-2 border-b backdrop-blur-md md:gap-4",
+        // Near-opaque instead of a backdrop blur: blurring the lyrics that
+        // scroll underneath costs a repaint per frame on weaker devices.
+        "bg-card/95 flex shrink-0 items-center justify-between gap-2 border-b md:gap-4",
         // Each side keeps its own minimum and never drops below the
         // safe-area inset (notch, status bar, landscape corners). The
         // breakpoint variants restate the insets instead of a plain
@@ -82,7 +84,7 @@ export function LiveHeader({
           <h1 className="truncate text-base leading-tight font-bold sm:text-lg md:text-2xl">
             {title}
           </h1>
-          <p className="text-muted-foreground truncate text-[10px] tracking-wider uppercase md:text-xs">
+          <p className="text-muted-foreground truncate text-[11px] tracking-wider uppercase md:text-xs">
             {subtitle}
           </p>
         </div>
@@ -105,7 +107,7 @@ export function LiveHeader({
             className="h-7 px-2 text-xs font-bold tabular-nums md:h-9 md:px-3 md:text-base"
           >
             {tempo}
-            <span className="ml-1 text-[10px] opacity-70 md:text-xs">
+            <span className="ml-1 text-[11px] opacity-70 md:text-xs">
               {t("bpm")}
             </span>
           </Badge>

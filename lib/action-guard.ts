@@ -1,11 +1,10 @@
 import "server-only";
 
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
 import { ApiError } from "@/lib/api-server";
 import { describeApiError } from "@/lib/api-errors";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
+import { getSession } from "@/lib/server/session";
 
 export type ActionErrorCode =
   "rate_limited" | "password_change_required" | "session_revoked" | "read_only";
@@ -183,7 +182,7 @@ export async function guardedAction<T>(
   fn: () => Promise<T>,
   revalidateFn?: () => void,
 ): Promise<ActionResult<T>> {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
 
   if (!session || session.error === "TokenExpired") {
     const t = await getTranslations("apiErrors");
@@ -228,7 +227,7 @@ export function isStaffTwoFactorRequired(error: unknown): boolean {
  * Use inside Server Actions that need to read the session.
  */
 export async function requireSession() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
 
   if (!session || session.error === "TokenExpired") {
     throw new Error("Unauthorized");

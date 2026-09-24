@@ -16,8 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function WhatsNewPage() {
   const t = await getTranslations("whatsNew");
   const locale = await getLocale();
-  // Uncached on purpose: a note published a moment ago shows right away.
-  const result = await fetchPublicApi<ReleaseNote[]>("/public/release-notes");
+  // Shared by every visitor for a minute: the same list for everyone, and
+  // a note published a moment ago still shows up quickly.
+  const result = await fetchPublicApi<ReleaseNote[]>("/public/release-notes", {
+    revalidate: 60,
+  });
   const notes = result.ok && Array.isArray(result.data) ? result.data : null;
 
   return (

@@ -1,4 +1,5 @@
 import { requireStaffPage } from "@/lib/staff-guard";
+import { ScopedMessages } from "@/components/providers/scoped-messages";
 
 /**
  * The staff console. Every page under it is for admins and moderators;
@@ -12,5 +13,9 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   await requireStaffPage();
-  return <div className="mx-auto w-full max-w-6xl space-y-6">{children}</div>;
+  return (
+    <ScopedMessages area="staff">
+      <div className="mx-auto w-full max-w-6xl space-y-6">{children}</div>
+    </ScopedMessages>
+  );
 }

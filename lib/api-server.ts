@@ -135,7 +135,10 @@ export async function fetchServerApi<T>(
       const isTimeout =
         err instanceof DOMException && err.name === "TimeoutError";
 
-      if (canRetryMethod && attempt < MAX_RETRIES) {
+      // A timeout is not retried: the server is most likely overloaded,
+      // and sending the same work again only adds to it (and made the
+      // page wait up to three full timeouts).
+      if (canRetryMethod && !isTimeout && attempt < MAX_RETRIES) {
         attempt++;
         await sleep(retryDelayMs(attempt));
         continue;

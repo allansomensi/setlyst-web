@@ -37,11 +37,15 @@ export function TransposeControls({
           onClick={() => onShift(-1)}
           disabled={semitones <= -MAX_TRANSPOSE}
           title={t("down")}
+          aria-label={t("down")}
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-4 w-4" aria-hidden />
         </Button>
 
-        <span className="flex w-20 flex-col items-center leading-none">
+        <span
+          className="flex w-20 flex-col items-center leading-none"
+          aria-live="polite"
+        >
           {/* The key is what a musician actually needs to see — the
               semitone count is only how they got there, so it is the
               smaller of the two. */}
@@ -53,7 +57,7 @@ export function TransposeControls({
           >
             {transposedKey ?? (isTransposed ? formatOffset(semitones) : "—")}
           </span>
-          <span className="text-muted-foreground text-[9px] tracking-wider uppercase">
+          <span className="text-muted-foreground text-[11px] tracking-wider uppercase">
             {isTransposed ? formatOffset(semitones) : t("original")}
           </span>
         </span>
@@ -65,8 +69,9 @@ export function TransposeControls({
           onClick={() => onShift(1)}
           disabled={semitones >= MAX_TRANSPOSE}
           title={t("up")}
+          aria-label={t("up")}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden />
         </Button>
       </div>
 
@@ -88,8 +93,9 @@ export function TransposeControls({
         onClick={onReset}
         disabled={!isTransposed}
         title={t("reset")}
+        aria-label={t("reset")}
       >
-        <RotateCcw className="h-4 w-4" />
+        <RotateCcw className="h-4 w-4" aria-hidden />
       </Button>
     </div>
   );

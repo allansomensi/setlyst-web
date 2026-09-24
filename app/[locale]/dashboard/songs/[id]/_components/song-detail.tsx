@@ -150,6 +150,7 @@ export function SongDetail({
         {
           message: tSongs("dialog.deleted"),
           undoLabel: tTrash("undo"),
+          restoring: tTrash("restoring"),
           restored: tSongs("dialog.restored"),
           restoreFailed: tTrash("restoreFailed"),
         },

@@ -31,6 +31,7 @@ import { IntervalToggle } from "@/components/pricing/pricing-plans";
 import { useAppRouter } from "@/hooks/use-app-router";
 import {
   changePaidPlan,
+  getBillingState,
   openBillingPortal,
   startCheckout,
   withdrawSubscription,
@@ -649,13 +650,25 @@ export function CheckoutReturn({
     if (status === "canceled") toast.info(t("returnCanceled"));
   }, [status, t]);
 
+  // Polls the billing state alone; the page (about a dozen API calls) is
+  // re-rendered once, when the plan is there.
+  const found = useRef(false);
   useEffect(() => {
-    if (!waiting) return;
-    const timer = window.setTimeout(() => {
-      router.refresh();
+    if (!waiting || found.current) return;
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      const result = await getBillingState().catch(() => null);
+      if (cancelled) return;
+      if (result?.success && isPaidAndLive(result.data?.subscription ?? null)) {
+        found.current = true;
+        router.refresh();
+      }
       setAttempt((n) => n + 1);
     }, POLL_EVERY_MS);
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [waiting, attempt, router]);
 
   useEffect(() => {

@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
 import { Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
 import { fetchServerApi } from "@/lib/api-server";
-import { authOptions } from "@/lib/auth";
 import type { QuotaLimits } from "@/types/api";
 import { DefaultLimitsForm } from "./_components/default-limits-form";
 import { requireStaffPage } from "@/lib/staff-guard";
+import { getSession } from "@/lib/server/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -18,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AdminLimitsPage() {
   await requireStaffPage("limits");
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const isAdmin = session?.user.role === "admin";
   const t = await getTranslations("staff.limits");
   const limits = await fetchServerApi<QuotaLimits>("/admin/settings/quotas");

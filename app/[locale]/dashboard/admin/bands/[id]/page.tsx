@@ -1,7 +1,6 @@
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import { ListMusic, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,12 +15,12 @@ import { BandAvatar } from "@/components/bands/band-avatar";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { Link } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
-import { authOptions } from "@/lib/auth";
 import { formatApiDateTime } from "@/lib/dates";
 import type { AdminBandDetail } from "@/types/api";
 import { BandAdminDangerZone } from "./_components/band-danger-zone";
 import { BandAdminForm } from "./_components/band-admin-form";
 import { BandAdminMembers } from "./_components/band-admin-members";
+import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ id: string }>;
 
@@ -61,7 +60,7 @@ export default async function AdminBandDetailPage({
   const detail = await loadBand(id);
   if (!detail) notFound();
 
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const isAdmin = session?.user.role === "admin";
   const t = await getTranslations("staff.bandDetail");
   const tNav = await getTranslations("nav");

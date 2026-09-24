@@ -10,8 +10,10 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 // A handful of automatic retries with backoff before leaving it to the
 // person — a genuinely dead backend shouldn't refresh forever in the
 // background, but most of what this covers (a rate limit, a timeout) is
-// exactly the kind of thing that clears up within a few seconds.
-const AUTO_RETRY_DELAYS_MS = [2000, 4000, 8000];
+// exactly the kind of thing that clears up within a few seconds. Each
+// retry re-renders the whole page (every one of its API calls), so they
+// are few and spaced out: an overloaded server needs room to recover.
+const AUTO_RETRY_DELAYS_MS = [3000, 10000];
 
 /**
  * Shown instead of a list's normal "no results" empty state when it came

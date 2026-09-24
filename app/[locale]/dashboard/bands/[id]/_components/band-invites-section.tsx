@@ -168,8 +168,9 @@ export function BandInvitesSection({
                           className="h-8 w-8"
                           onClick={() => copyInviteLink(invite.code)}
                           title={t("copyLink")}
+                          aria-label={t("copyLink")}
                         >
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-4 w-4" aria-hidden />
                         </Button>
                         {status === "active" && (
                           <Button
@@ -179,8 +180,9 @@ export function BandInvitesSection({
                             onClick={() => setInviteToRevoke(invite)}
                             disabled={isPending}
                             title={t("revoke")}
+                            aria-label={t("revoke")}
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-4 w-4" aria-hidden />
                           </Button>
                         )}
                       </div>

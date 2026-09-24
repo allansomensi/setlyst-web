@@ -3,7 +3,7 @@
 import { CloudCheck, CloudOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { useOfflineSync } from "@/components/providers/offline-sync-provider";
+import { useOfflineCache } from "@/components/providers/offline-sync-provider";
 
 interface OfflineIndicatorProps {
   kind: "setlist" | "song";
@@ -27,7 +27,7 @@ export function OfflineIndicator({
   className,
 }: OfflineIndicatorProps) {
   const t = useTranslations("offlineSync");
-  const { isSetlistCached, isSongCached } = useOfflineSync();
+  const { isSetlistCached, isSongCached } = useOfflineCache();
   const isCached = kind === "setlist" ? isSetlistCached(id) : isSongCached(id);
   const label = isCached ? t("synced") : t("notSynced");
   const Icon = isCached ? CloudCheck : CloudOff;

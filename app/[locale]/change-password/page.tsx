@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { KeyRound } from "lucide-react";
-import { authOptions } from "@/lib/auth";
 import { AuthShell } from "@/components/auth/auth-shell";
 import {
   Card,
@@ -14,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { ChangePasswordForm } from "@/components/auth/change-password-form";
 import { SignOutLink } from "./_components/sign-out-link";
+import { getSession } from "@/lib/server/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -26,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * a compliant password is set.
  */
 export default async function ChangePasswordPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const locale = await getLocale();
   if (!session || session.error === "TokenExpired") {
     redirect(`/${locale}/login`);

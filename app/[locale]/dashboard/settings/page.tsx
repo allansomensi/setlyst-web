@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { getLocale, getTranslations } from "next-intl/server";
-import { authOptions } from "@/lib/auth";
 import { fetchServerApi } from "@/lib/api-server";
 import { getMe, getMyBilling, getMyPreferences } from "@/lib/server-data";
 import { getPublicPlans } from "@/lib/public-api";
@@ -36,6 +34,7 @@ import {
   SettingsSectionHeading,
 } from "./_components/settings-nav";
 import { SubscriptionSection } from "./_components/subscription-section";
+import { getSession } from "@/lib/server/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings");
@@ -63,7 +62,7 @@ export default async function SettingsPage({
   const t = await getTranslations("settings");
   const locale = await getLocale();
   const params = await searchParams;
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   const readOnly = Boolean(session?.user.impersonator);
 
   const [

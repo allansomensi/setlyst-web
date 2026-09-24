@@ -119,6 +119,7 @@ export function TourDetailView({
         {
           message: t("deleted"),
           undoLabel: tTrash("undo"),
+          restoring: tTrash("restoring"),
           restored: t("restored"),
           restoreFailed: tTrash("restoreFailed"),
         },

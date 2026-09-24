@@ -177,6 +177,7 @@ export function SetlistsTable({
         toastMovedToTrash("setlist", setlistToDelete.id, {
           message: t("dialog.deleted"),
           undoLabel: tTrash("undo"),
+          restoring: tTrash("restoring"),
           restored: t("dialog.restored"),
           restoreFailed: tTrash("restoreFailed"),
         });

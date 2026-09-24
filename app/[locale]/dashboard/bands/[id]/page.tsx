@@ -16,8 +16,6 @@ import {
   Artist,
 } from "@/types/api";
 import type { BandNote, Suggestion, Tour } from "@/types/content";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
@@ -44,6 +42,8 @@ import {
   RepertoireCard,
   SuggestionSettings,
 } from "./_components/band-sections";
+import { getSession } from "@/lib/server/session";
+import { fetchServerApiOnce } from "@/lib/server-data";
 
 export async function generateMetadata({
   params,
@@ -74,7 +74,7 @@ export default async function BandDetailPage({
 
   let band: BandWithMembership;
   try {
-    band = await fetchServerApi<BandWithMembership>(`/bands/${id}`);
+    band = await fetchServerApiOnce<BandWithMembership>(`/bands/${id}`);
   } catch (err) {
     // A stale or inaccessible band id (e.g. from an old notification for a
     // band the user is no longer part of, or a malformed id) shouldn't
@@ -110,7 +110,7 @@ export default async function BandDetailPage({
     isAdmin
       ? fetchServerApi<BandRolePermission[]>(`/bands/${id}/permissions`)
       : Promise.resolve<BandRolePermission[]>([]),
-    getServerSession(authOptions),
+    getSession(),
     fetchOrFailed(fetchAllServerPages<Setlist>(`/bands/${id}/setlists`)),
     fetchOrFailed(fetchAllServerPages<Gig>(`/bands/${id}/gigs`)),
     fetchOrFailed(fetchAllServerPages<Tour>(`/bands/${id}/tours?status=all`)),

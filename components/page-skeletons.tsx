@@ -206,7 +206,9 @@ export function LyricsEditorSkeleton() {
 
   return (
     <div
-      className="flex h-[calc(100vh-4rem)] flex-col"
+      // Same frame as the editor (songs/[id]/lyrics/page.tsx): edge to edge,
+      // filling the dashboard's scroll area, so nothing jumps on swap.
+      className="-m-4 flex h-[calc(100%+2rem)] min-h-[28rem] flex-col md:-m-8 md:h-[calc(100%+4rem)]"
       aria-busy="true"
       aria-live="polite"
     >

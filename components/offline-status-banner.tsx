@@ -3,7 +3,7 @@
 import { WifiOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useOnlineStatus } from "@/hooks/use-online-status";
-import { useOfflineSync } from "@/components/providers/offline-sync-provider";
+import { useOfflineCache } from "@/components/providers/offline-sync-provider";
 
 /**
  * A thin, always-in-flow banner across the top of the dashboard that
@@ -17,7 +17,7 @@ import { useOfflineSync } from "@/components/providers/offline-sync-provider";
 export function OfflineStatusBanner() {
   const isOnline = useOnlineStatus();
   const t = useTranslations("offlineSync");
-  const { cachedSetlistCount, cachedSongCount } = useOfflineSync();
+  const { cachedSetlistCount, cachedSongCount } = useOfflineCache();
 
   if (isOnline) return null;
 

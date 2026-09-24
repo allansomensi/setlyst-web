@@ -228,11 +228,12 @@ export function BandMembersSection({
                         onClick={() => setMemberToRemove(member)}
                         disabled={isPending}
                         title={isSelf ? t("leave") : t("remove")}
+                        aria-label={isSelf ? t("leave") : t("remove")}
                       >
                         {isSelf ? (
-                          <LogOut className="h-4 w-4" />
+                          <LogOut className="h-4 w-4" aria-hidden />
                         ) : (
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4" aria-hidden />
                         )}
                       </Button>
                     )}

@@ -295,10 +295,10 @@ export function LiveModeViewer({
             role="status"
             className="bg-foreground text-background animate-in fade-in zoom-in-95 pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium whitespace-nowrap shadow-xl"
           >
-            <ChevronLeft className="h-4 w-4 opacity-70" />
-            <Hand className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4 opacity-70" aria-hidden />
+            <Hand className="h-4 w-4" aria-hidden />
             {t("swipeHint")}
-            <ChevronRight className="h-4 w-4 opacity-70" />
+            <ChevronRight className="h-4 w-4 opacity-70" aria-hidden />
           </div>
         )}
 
@@ -318,8 +318,9 @@ export function LiveModeViewer({
         isRunning={metronomeSettings.isRunning}
       />
 
-      {/* Footer */}
-      <footer className="bg-card/80 shrink-0 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
+      {/* Footer — solid rather than blurred, like the header: no per-frame
+          blur of the lyrics scrolling behind it. */}
+      <footer className="bg-card/95 shrink-0 border-t pb-[env(safe-area-inset-bottom)]">
         <Progress
           value={progress}
           className="h-1 rounded-none bg-transparent"
@@ -339,7 +340,7 @@ export function LiveModeViewer({
           </div>
 
           <div className="overflow-hidden px-1 text-center">
-            <p className="text-muted-foreground text-[9px] font-bold tracking-[0.2em] uppercase md:text-[10px]">
+            <p className="text-muted-foreground text-[11px] font-bold tracking-[0.2em] uppercase md:text-xs">
               {t("nextSong")}
             </p>
             <p className="truncate text-sm font-bold md:text-lg">

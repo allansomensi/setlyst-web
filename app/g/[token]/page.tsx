@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchServerApi } from "@/lib/api-server";
+import { fetchServerApiOnce } from "@/lib/server-data";
 import { apiPath } from "@/lib/api-endpoint";
 import { PublicGig } from "@/types/api";
 import { notFound } from "next/navigation";
@@ -8,6 +8,7 @@ import { PublicShell } from "@/components/public/public-shell";
 import { getNonce } from "@/lib/server/nonce";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 import { isGoneShareLinkError } from "@/lib/api-not-found";
+import { clientMessages } from "@/i18n/client-messages";
 
 export async function generateMetadata({
   params,
@@ -16,7 +17,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   try {
-    const gig = await fetchServerApi<PublicGig>(apiPath`/public/gigs/${token}`);
+    const gig = await fetchServerApiOnce<PublicGig>(
+      apiPath`/public/gigs/${token}`,
+    );
     return {
       title: gig.venue,
       // A share link is meant for the people it's sent to, not for search.
@@ -54,7 +57,7 @@ export default async function PublicGigPage({
   try {
     // Encoded rather than interpolated raw: this token arrives from a link
     // a stranger can craft. See lib/api-endpoint.ts.
-    gig = await fetchServerApi<PublicGig>(apiPath`/public/gigs/${token}`);
+    gig = await fetchServerApiOnce<PublicGig>(apiPath`/public/gigs/${token}`);
   } catch (error) {
     // Only a link that doesn't exist (any more) is a 404; an outage goes
     // to error.tsx ("temporarily unavailable", with a retry).
@@ -68,7 +71,11 @@ export default async function PublicGigPage({
   ]);
 
   return (
-    <PublicShell locale={locale} messages={messages} nonce={nonce}>
+    <PublicShell
+      locale={locale}
+      messages={clientMessages(messages, "publicShare")}
+      nonce={nonce}
+    >
       <PublicGigView gig={gig} />
     </PublicShell>
   );

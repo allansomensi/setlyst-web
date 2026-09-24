@@ -342,7 +342,7 @@ export function ReferralCard({
                 readOnly
                 value={link}
                 onFocus={(e) => e.currentTarget.select()}
-                className="h-10 font-mono text-xs sm:text-sm"
+                className="h-10 font-mono text-base md:text-sm"
               />
               <div className="flex gap-2">
                 <Button

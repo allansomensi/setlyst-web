@@ -61,7 +61,7 @@ export function SearchInput({
         enterKeyHint="search"
         autoComplete="off"
         // The native clear "×" is replaced by ours, which works everywhere.
-        className="h-9 pr-9 pl-9 pointer-coarse:h-10 [&::-webkit-search-cancel-button]:appearance-none"
+        className="h-9 pr-9 pl-9 pointer-coarse:min-h-10 [&::-webkit-search-cancel-button]:appearance-none"
       />
       {value && (
         <button
