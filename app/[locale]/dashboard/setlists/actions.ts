@@ -1,13 +1,15 @@
 "use server";
 
 import { fetchServerApi, ApiError } from "@/lib/api-server";
+import { apiPath } from "@/lib/api-endpoint";
 import {
   guardedAction,
+  invalidRequest,
   ActionResult,
   toActionFailure,
 } from "@/lib/action-guard";
 import { revalidateDashboard } from "@/lib/revalidate";
-import { isUuid } from "@/lib/server/api-route";
+import { isUuid } from "@/lib/uuid";
 import { getTranslations } from "next-intl/server";
 import {
   PaginatedResponse,
@@ -81,9 +83,8 @@ export async function updateSetlist(
   data: { title?: string; description?: string; links?: LinkInput[] },
   bandId?: string,
 ) {
+  if (!isUuid(id)) return invalidRequest();
   const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
 
   const payload: {
     title?: string;
@@ -111,7 +112,7 @@ export async function updateSetlist(
 
   return guardedAction(
     () =>
-      fetchServerApi(`/setlists/${id}`, {
+      fetchServerApi(apiPath`/setlists/${id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       }),
@@ -123,16 +124,14 @@ export async function duplicateSetlist(
   id: string,
   title?: string,
 ): Promise<ActionResult<Setlist & DuplicateSetlistExtras>> {
-  const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   const trimmedTitle = title?.trim();
 
   return guardedAction(
     () =>
       fetchServerApi<Setlist & DuplicateSetlistExtras>(
-        `/setlists/${id}/duplicate`,
+        apiPath`/setlists/${id}/duplicate`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -146,12 +145,10 @@ export async function duplicateSetlist(
 
 /** Moves the setlist to the trash (the band repertoire can't be). */
 export async function deleteSetlist(id: string, bandId?: string) {
-  const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/setlists/${id}`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/setlists/${id}`, { method: "DELETE" }),
     () => revalidateSetlistViews(bandId),
   );
 }
@@ -160,15 +157,11 @@ export async function addSongToSetlist(
   setlistId: string,
   data: { song_id: string },
 ) {
-  const t = await getTranslations("setlists.errors");
-
-  if (!setlistId || !data.song_id) {
-    return { success: false, error: t("invalidSetlistOrSongId") };
-  }
+  if (!isUuid(setlistId) || !isUuid(data?.song_id)) return invalidRequest();
 
   return guardedAction(async () => {
     try {
-      return await fetchServerApi(`/setlists/${setlistId}/songs`, {
+      return await fetchServerApi(apiPath`/setlists/${setlistId}/songs`, {
         method: "POST",
         body: JSON.stringify({ song_id: data.song_id }),
       });
@@ -242,7 +235,7 @@ export async function addSongsToSetlist(
     for (let i = 0; i < ids.length; i++) {
       const songId = ids[i];
       try {
-        await fetchServerApi(`/setlists/${setlistId}/songs`, {
+        await fetchServerApi(apiPath`/setlists/${setlistId}/songs`, {
           method: "POST",
           body: JSON.stringify({ song_id: songId }),
         });
@@ -270,15 +263,11 @@ function isQuota(err: ApiError): boolean {
 }
 
 export async function removeSongFromSetlist(setlistId: string, songId: string) {
-  const t = await getTranslations("setlists.errors");
-
-  if (!setlistId || !songId) {
-    return { success: false, error: t("invalidSetlistOrSongId") };
-  }
+  if (!isUuid(setlistId) || !isUuid(songId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/setlists/${setlistId}/songs/${songId}`, {
+      fetchServerApi(apiPath`/setlists/${setlistId}/songs/${songId}`, {
         method: "DELETE",
       }),
     revalidateSetlistContent,
@@ -289,9 +278,8 @@ export async function reorderSetlistSongs(
   setlistId: string,
   songIds: string[],
 ) {
+  if (!isUuid(setlistId)) return invalidRequest();
   const t = await getTranslations("setlists.errors");
-
-  if (!setlistId) return { success: false, error: t("invalidId") };
 
   if (!Array.isArray(songIds) || songIds.length === 0) {
     return { success: false, error: t("emptySongList") };
@@ -303,7 +291,7 @@ export async function reorderSetlistSongs(
 
   return guardedAction(
     () =>
-      fetchServerApi(`/setlists/${setlistId}/songs/reorder`, {
+      fetchServerApi(apiPath`/setlists/${setlistId}/songs/reorder`, {
         method: "PATCH",
         body: JSON.stringify({ song_ids: songIds }),
       }),
@@ -315,9 +303,8 @@ export async function reorderSetlistItems(
   setlistId: string,
   items: SetlistItemRef[],
 ) {
+  if (!isUuid(setlistId)) return invalidRequest();
   const t = await getTranslations("setlists.errors");
-
-  if (!setlistId) return { success: false, error: t("invalidId") };
 
   if (!Array.isArray(items) || items.length === 0) {
     return { success: false, error: t("emptySongList") };
@@ -325,7 +312,7 @@ export async function reorderSetlistItems(
 
   return guardedAction(
     () =>
-      fetchServerApi(`/setlists/${setlistId}/items/reorder`, {
+      fetchServerApi(apiPath`/setlists/${setlistId}/items/reorder`, {
         method: "PATCH",
         body: JSON.stringify({ items }),
       }),
@@ -334,16 +321,17 @@ export async function reorderSetlistItems(
 }
 
 export async function createSetlistBlock(setlistId: string, name: string) {
+  if (!isUuid(setlistId)) return invalidRequest();
   const t = await getTranslations("setlists.errors");
 
   const trimmed = name?.trim();
-  if (!setlistId || !trimmed) {
+  if (!trimmed) {
     return { success: false, error: t("invalidId") };
   }
 
   return guardedAction(
     () =>
-      fetchServerApi<SetlistMarker>(`/setlists/${setlistId}/blocks`, {
+      fetchServerApi<SetlistMarker>(apiPath`/setlists/${setlistId}/blocks`, {
         method: "POST",
         body: JSON.stringify({ name: trimmed.slice(0, 255) }),
       }),
@@ -356,17 +344,18 @@ export async function updateSetlistBlock(
   markerId: string,
   name: string,
 ) {
+  if (!isUuid(setlistId) || !isUuid(markerId)) return invalidRequest();
   const t = await getTranslations("setlists.errors");
 
   const trimmed = name?.trim();
-  if (!setlistId || !markerId || !trimmed) {
+  if (!trimmed) {
     return { success: false, error: t("invalidId") };
   }
 
   return guardedAction(
     () =>
       fetchServerApi<SetlistMarker>(
-        `/setlists/${setlistId}/blocks/${markerId}`,
+        apiPath`/setlists/${setlistId}/blocks/${markerId}`,
         {
           method: "PATCH",
           body: JSON.stringify({ name: trimmed.slice(0, 255) }),
@@ -380,13 +369,11 @@ export async function createSetlistBreak(
   setlistId: string,
   data: { label?: string; duration_minutes?: number | null },
 ) {
-  const t = await getTranslations("setlists.errors");
-
-  if (!setlistId) return { success: false, error: t("invalidId") };
+  if (!isUuid(setlistId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi<SetlistMarker>(`/setlists/${setlistId}/breaks`, {
+      fetchServerApi<SetlistMarker>(apiPath`/setlists/${setlistId}/breaks`, {
         method: "POST",
         body: JSON.stringify({
           label: data.label?.trim() || undefined,
@@ -402,14 +389,12 @@ export async function updateSetlistBreak(
   markerId: string,
   data: { label?: string; duration_minutes?: number | null },
 ) {
-  const t = await getTranslations("setlists.errors");
-
-  if (!setlistId || !markerId) return { success: false, error: t("invalidId") };
+  if (!isUuid(setlistId) || !isUuid(markerId)) return invalidRequest();
 
   return guardedAction(
     () =>
       fetchServerApi<SetlistMarker>(
-        `/setlists/${setlistId}/breaks/${markerId}`,
+        apiPath`/setlists/${setlistId}/breaks/${markerId}`,
         {
           method: "PATCH",
           body: JSON.stringify({
@@ -423,13 +408,11 @@ export async function updateSetlistBreak(
 }
 
 export async function deleteSetlistMarker(setlistId: string, markerId: string) {
-  const t = await getTranslations("setlists.errors");
-
-  if (!setlistId || !markerId) return { success: false, error: t("invalidId") };
+  if (!isUuid(setlistId) || !isUuid(markerId)) return invalidRequest();
 
   return guardedAction(
     () =>
-      fetchServerApi(`/setlists/${setlistId}/markers/${markerId}`, {
+      fetchServerApi(apiPath`/setlists/${setlistId}/markers/${markerId}`, {
         method: "DELETE",
       }),
     revalidateSetlistContent,
@@ -439,12 +422,13 @@ export async function deleteSetlistMarker(setlistId: string, markerId: string) {
 export async function enableSetlistSharing(
   id: string,
 ): Promise<ActionResult<Setlist>> {
-  const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi<Setlist>(`/setlists/${id}/share`, { method: "POST" }),
+    () =>
+      fetchServerApi<Setlist>(apiPath`/setlists/${id}/share`, {
+        method: "POST",
+      }),
     revalidateSetlistContent,
   );
 }
@@ -452,23 +436,19 @@ export async function enableSetlistSharing(
 export async function disableSetlistSharing(
   id: string,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/setlists/${id}/share`, { method: "DELETE" }),
+    () => fetchServerApi(apiPath`/setlists/${id}/share`, { method: "DELETE" }),
     revalidateSetlistContent,
   );
 }
 
 export async function favoriteSetlist(id: string): Promise<ActionResult<void>> {
-  const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/setlists/${id}/favorite`, { method: "POST" }),
+    () => fetchServerApi(apiPath`/setlists/${id}/favorite`, { method: "POST" }),
     () => {
       revalidateDashboard("/setlists");
       revalidateDashboard("");
@@ -479,12 +459,11 @@ export async function favoriteSetlist(id: string): Promise<ActionResult<void>> {
 export async function unfavoriteSetlist(
   id: string,
 ): Promise<ActionResult<void>> {
-  const t = await getTranslations("setlists.errors");
-
-  if (!id) return { success: false, error: t("invalidId") };
+  if (!isUuid(id)) return invalidRequest();
 
   return guardedAction(
-    () => fetchServerApi(`/setlists/${id}/favorite`, { method: "DELETE" }),
+    () =>
+      fetchServerApi(apiPath`/setlists/${id}/favorite`, { method: "DELETE" }),
     () => {
       revalidateDashboard("/setlists");
       revalidateDashboard("");
@@ -507,7 +486,7 @@ export async function suggestSongForSetlist(
   const note = data.note?.trim().slice(0, 500) || undefined;
   return guardedAction(
     () =>
-      fetchServerApi<Suggestion>(`/bands/${bandId}/suggestions`, {
+      fetchServerApi<Suggestion>(apiPath`/bands/${bandId}/suggestions`, {
         method: "POST",
         body: JSON.stringify({
           song_id: data.song_id,

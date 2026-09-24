@@ -10,9 +10,15 @@ import {
 } from "@/lib/server/safe-image-fetch";
 import { TokenBucketLimiter } from "@/lib/server/token-bucket";
 
-/** Headers every proxied image is served with (SPEC §10.1). */
+/**
+ * Headers every proxied image is served with (SPEC §10.1). Served behind
+ * the session, so never kept by the browser: on a shared device the next
+ * person must not get the previous account's avatars and band logos from
+ * the HTTP cache without a sign-in check (the server-side cache below is
+ * what makes repeated views cheap).
+ */
 const IMAGE_HEADERS = {
-  "Cache-Control": "private, max-age=3600",
+  "Cache-Control": "private, no-store",
   "Content-Security-Policy": "default-src 'none'",
   "X-Content-Type-Options": "nosniff",
 } as const;

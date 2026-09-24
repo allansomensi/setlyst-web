@@ -8,7 +8,11 @@ vi.mock("@/i18n/routing", () => ({
 }));
 
 import { redactAnalyticsUrl, REDACTED } from "@/lib/analytics";
-import { apiPath, assertSafeEndpoint } from "@/lib/api-endpoint";
+import {
+  apiPath,
+  assertSafeEndpoint,
+  redactEndpointForLog,
+} from "@/lib/api-endpoint";
 import {
   parseGoogleIntent,
   parseGoogleSignInError,
@@ -83,6 +87,32 @@ describe("apiPath", () => {
     expect(apiPath`/bands/${UUID}/members/${7}`).toBe(
       `/bands/${UUID}/members/7`,
     );
+  });
+});
+
+describe("redactEndpointForLog", () => {
+  it("hides share tokens, invite codes and query strings", () => {
+    expect(redactEndpointForLog("/public/setlists/abc123?x=1")).toBe(
+      "/public/setlists/[redacted]",
+    );
+    expect(redactEndpointForLog("/public/gigs/tok/export/pdf")).toBe(
+      "/public/gigs/[redacted]/export/pdf",
+    );
+    expect(redactEndpointForLog("/invites/CODE/accept")).toBe(
+      "/invites/[redacted]/accept",
+    );
+    expect(redactEndpointForLog("/s/tok")).toBe("/s/[redacted]");
+    expect(redactEndpointForLog("/songs?search=foo")).toBe("/songs");
+    expect(
+      redactEndpointForLog("/users/me/username-availability?username=x"),
+    ).toBe("/users/me/username-availability");
+  });
+
+  it("leaves ordinary ids alone", () => {
+    expect(redactEndpointForLog(`/setlists/${UUID}/share`)).toBe(
+      `/setlists/${UUID}/share`,
+    );
+    expect(redactEndpointForLog(`/gigs/${UUID}`)).toBe(`/gigs/${UUID}`);
   });
 });
 

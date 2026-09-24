@@ -52,7 +52,7 @@ export interface PublicSong {
   energy: number | null;
   time_signature: string | null;
   capo: number | null;
-  lyrics: string | null;
+  /** Never `lyrics`: a share link exposes the running order, not the songs' text. */
   links: Link[];
 }
 

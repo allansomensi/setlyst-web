@@ -3,7 +3,11 @@ import "server-only";
 import { getLocale } from "next-intl/server";
 import { getApiToken } from "@/lib/server/api-token";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
-import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
+import {
+  assertSafeEndpoint,
+  InvalidEndpointError,
+  redactEndpointForLog,
+} from "@/lib/api-endpoint";
 import type { PaginatedResponse } from "@/types/api";
 import {
   MAX_RETRIES,
@@ -66,7 +70,10 @@ function validateEndpoint(endpoint: string): void {
     assertSafeEndpoint(endpoint);
   } catch (error) {
     if (error instanceof InvalidEndpointError) {
-      console.error("[fetchServerApi] Rejected unsafe endpoint:", endpoint);
+      console.error(
+        "[fetchServerApi] Rejected unsafe endpoint:",
+        redactEndpointForLog(endpoint),
+      );
       throw new ApiError(400, "Invalid API endpoint.");
     }
     throw error;
@@ -137,7 +144,7 @@ export async function fetchServerApi<T>(
       if (isTimeout) {
         console.error(
           `[fetchServerApi] Request timed out after ${timeoutMs}ms:`,
-          url,
+          redactEndpointForLog(endpoint),
         );
         throw new ApiError(504, "The backend service did not respond in time.");
       }

@@ -104,3 +104,28 @@ export function apiPath(
     return acc + encodeURIComponent(String(values[index - 1])) + part;
   }, "");
 }
+
+/**
+ * What a log line may show of an endpoint: the query string is dropped
+ * (search terms, usernames) and the segment after a share or invite
+ * segment (`/public/setlists/<token>`, `/public/gigs/<token>`,
+ * `/invites/<code>/accept`, `/s/<token>`, `/g/<token>`) is replaced,
+ * since those grant access to whoever reads the log.
+ */
+export function redactEndpointForLog(endpoint: string): string {
+  const path = endpoint.split(/[?#]/, 1)[0];
+  const segments = path.split("/");
+  for (let i = 0; i < segments.length - 1; i += 1) {
+    const current = segments[i];
+    const holdsSecret =
+      current === "s" ||
+      current === "g" ||
+      current === "invites" ||
+      ((current === "setlists" || current === "gigs") &&
+        segments[i - 1] === "public");
+    if (holdsSecret && segments[i + 1]) {
+      segments[i + 1] = "[redacted]";
+    }
+  }
+  return segments.join("/");
+}
