@@ -40,6 +40,26 @@ import { reorderPins, unpinItem } from "@/lib/actions/pins";
 import { cn } from "@/lib/utils";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import { MAX_PINS, type PinItemType, type PinnedItem } from "@/types/content";
+import { safeCallbackPath } from "@/lib/links";
+
+const PIN_SECTIONS: Record<PinItemType, string> = {
+  setlist: "setlists",
+  band: "bands",
+  song: "songs",
+  tour: "tours",
+  gig: "gigs",
+};
+
+/**
+ * Where a pin leads. `href_hint` comes from the API and is only ever a
+ * path of this app; anything else (an absolute URL, `//host`) falls back
+ * to the page the pin's type and id name.
+ */
+function pinHref(item: PinnedItem): string {
+  const hint = safeCallbackPath(item.href_hint);
+  if (hint && hint.startsWith("/dashboard/")) return hint;
+  return `/dashboard/${PIN_SECTIONS[item.item_type]}/${item.item_id}`;
+}
 
 const TYPE_ICONS: Record<PinItemType, LucideIcon> = {
   setlist: ListMusic,
@@ -226,7 +246,7 @@ function PinnedCard({
         <GripVertical className="h-4 w-4" aria-hidden />
       </button>
       <Link
-        href={item.href_hint}
+        href={pinHref(item)}
         className="focus-visible:ring-ring/50 flex min-w-0 flex-1 items-center gap-3 rounded-md py-1 focus-visible:ring-2 focus-visible:outline-none"
       >
         <span className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">

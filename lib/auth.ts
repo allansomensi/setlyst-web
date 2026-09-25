@@ -869,7 +869,9 @@ export const authOptions: NextAuthOptions = {
             token.impersonator ||
             token.error === "TokenExpired" ||
             !isValidRole(token.role) ||
-            token.role === "user"
+            // The API only issues them to admins; asking as a moderator
+            // would only produce a 403 and an audit line.
+            token.role !== "admin"
           ) {
             return { ...token, impersonationError: "FORBIDDEN" };
           }

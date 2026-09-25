@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { isUuid } from "@/lib/uuid";
 import { getTranslations } from "next-intl/server";
 import { staticTitle } from "@/lib/page-metadata";
 import {
@@ -24,6 +25,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   try {
     const song = await fetchServerApi<Song>(`/songs/${id}`);
     return { title: song.title };
@@ -59,6 +63,9 @@ export default async function SongDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const tNav = await getTranslations("nav");
 
   let song: Song;

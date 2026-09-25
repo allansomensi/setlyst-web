@@ -1,4 +1,6 @@
 import { notFoundOnMissing } from "@/lib/api-not-found";
+import { notFound } from "next/navigation";
+import { isUuid } from "@/lib/uuid";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import {
   CalendarDays,
@@ -31,6 +33,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   return entityTitle<UserProfileView>(
     `/users/${id}/profile`,
     (p) => p.username,
@@ -45,6 +50,9 @@ export default async function UserProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const session = await getSession();
   const t = await getTranslations("userProfile");
   const tRoles = await getTranslations("roles");

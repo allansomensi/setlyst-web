@@ -1,4 +1,5 @@
 import { AuditStamp } from "@/components/audit-stamp";
+import { isUuid } from "@/lib/uuid";
 import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
@@ -52,6 +53,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   return entityTitle<Gig>(`/gigs/${id}`, (g) => g.venue, "gig", "gigs");
 }
 
@@ -61,6 +65,9 @@ export default async function GigDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const t = await getTranslations("gigs");
   const tNav = await getTranslations("nav");
   const tSetlists = await getTranslations("setlists");

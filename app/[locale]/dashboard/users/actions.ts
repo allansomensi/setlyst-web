@@ -272,6 +272,7 @@ export async function getUsernameHistory(
 ): Promise<UsernameHistoryEntry[]> {
   if (!isUuid(userId)) return [];
   try {
+    await requireStaff();
     return await fetchServerApi<UsernameHistoryEntry[]>(
       userPath(userId, "/username-history"),
     );
@@ -286,6 +287,7 @@ export async function getUserAuditTrail(
 ): Promise<AuditLogEntry[]> {
   if (!isUuid(userId)) return [];
   try {
+    await requireStaff();
     const page = await fetchServerApi<PaginatedResponse<AuditLogEntry>>(
       `/admin/audit-logs?target_id=${encodeURIComponent(userId)}&per_page=20`,
     );

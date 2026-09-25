@@ -166,6 +166,16 @@ function isLoginRedirect(response) {
   }
 }
 
+/** A redirected response whose final URL is one of PRIVATE_PATHS. */
+function landsOnPrivatePath(response) {
+  if (!response || !response.redirected || !response.url) return false;
+  try {
+    return isPrivatePath(new URL(response.url).pathname);
+  } catch {
+    return true;
+  }
+}
+
 function isPrivatePath(pathname) {
   const segments = pathname.split("/");
   const withoutLocale = hasLocalePrefix(pathname)
@@ -205,6 +215,10 @@ async function isUsableForCache(response) {
   if (!response || !response.ok) return false;
   if (response.headers.get(IMPERSONATION_HEADER)) return false;
   if (isLoginRedirect(response)) return false;
+  // A followed redirect that landed on a page that is never stored
+  // (settings, the staff console...) must not be stored under the URL
+  // that was asked for either: the precache fetches follow redirects.
+  if (landsOnPrivatePath(response)) return false;
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("text/html")) return true;
@@ -638,7 +652,12 @@ async function cachePage(cache, request, response) {
 
     await cache.put(request, storable.clone());
 
-    if (response.redirected && response.url && response.url !== request.url) {
+    if (
+      response.redirected &&
+      response.url &&
+      response.url !== request.url &&
+      !landsOnPrivatePath(response)
+    ) {
       await cache.put(response.url, storable.clone());
     }
   } catch {

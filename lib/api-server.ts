@@ -151,7 +151,15 @@ export async function fetchServerApi<T>(
         );
         throw new ApiError(504, "The backend service did not respond in time.");
       }
-      console.error("[fetchServerApi] Network error:", err);
+      // Not the error itself: undici puts the full URL (query string
+      // included) in its messages.
+      console.error(
+        "[fetchServerApi] Network error:",
+        (err as { code?: string; name?: string })?.code ??
+          (err as Error)?.name ??
+          "unknown",
+        redactEndpointForLog(endpoint),
+      );
       throw new ApiError(503, "Unable to reach the backend service.");
     }
 

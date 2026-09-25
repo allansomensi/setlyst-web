@@ -1,4 +1,6 @@
 import { entityTitle } from "@/lib/page-metadata";
+import { notFound } from "next/navigation";
+import { isUuid } from "@/lib/uuid";
 import { fetchAllServerPages } from "@/lib/api-server";
 import { Setlist, SetlistSong } from "@/types/api";
 import { notFoundOnMissing } from "@/lib/api-not-found";
@@ -11,6 +13,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   return entityTitle<Setlist>(
     `/setlists/${id}`,
     (s) => s.title,
@@ -27,6 +32,9 @@ export default async function SetlistLivePage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const resolvedSearchParams = await searchParams;
 
   const songId =

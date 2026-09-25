@@ -117,8 +117,8 @@ export interface SubscriptionEvent {
   to_plan: string | null;
   from_status: SubscriptionStatus | null;
   to_status: SubscriptionStatus | null;
+  /** Only the owner-visible details (days, plan, amounts); never a staff note. */
   data: Record<string, unknown>;
-  actor_username: string | null;
   created_at: string;
 }
 

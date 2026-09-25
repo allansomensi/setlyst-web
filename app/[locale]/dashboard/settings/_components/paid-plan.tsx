@@ -579,6 +579,7 @@ function PlanPickerBody({
               <Link
                 href={LEGAL_HREFS.subscription}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="text-foreground font-medium underline underline-offset-2"
               >
                 {chunks}
@@ -588,6 +589,7 @@ function PlanPickerBody({
               <Link
                 href={LEGAL_HREFS.privacy}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="text-foreground font-medium underline underline-offset-2"
               >
                 {chunks}

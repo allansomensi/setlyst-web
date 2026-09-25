@@ -1,4 +1,6 @@
 import { entityTitle } from "@/lib/page-metadata";
+import { notFound } from "next/navigation";
+import { isUuid } from "@/lib/uuid";
 import { notFoundOnMissing } from "@/lib/api-not-found";
 import { fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
@@ -18,6 +20,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   return entityTitle<BandWithMembership>(
     `/bands/${id}`,
     (b) => b.name,
@@ -32,6 +37,9 @@ export default async function BandGigsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const t = await getTranslations("bands");
   const tNav = await getTranslations("nav");
 

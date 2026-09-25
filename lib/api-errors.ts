@@ -305,6 +305,10 @@ export function describeApiError(
           ? t("REAUTH_REQUIRED_PASSWORD")
           : t(code);
     }
+    case "WITHDRAWAL_NOT_ELIGIBLE":
+      // Past the yearly allowance of self-service withdrawals: support
+      // handles it, so the message must say so rather than "too late".
+      return meta?.reason === "limit" ? t("WITHDRAWAL_LIMIT_REACHED") : t(code);
     case "INVALID_CODE": {
       const left = meta?.attempts_left;
       return typeof left === "number" && left >= 0

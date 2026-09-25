@@ -1,4 +1,5 @@
 import { entityTitle } from "@/lib/page-metadata";
+import { isUuid } from "@/lib/uuid";
 import {
   fetchAllServerPages,
   fetchServerApi,
@@ -51,6 +52,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   return entityTitle<BandWithMembership>(
     `/bands/${id}`,
     (b) => b.name,
@@ -70,6 +74,9 @@ export default async function BandDetailPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const { tab } = await searchParams;
 
   let band: BandWithMembership;

@@ -1,4 +1,5 @@
 import { AuditStamp } from "@/components/audit-stamp";
+import { isUuid } from "@/lib/uuid";
 import { entityTitle } from "@/lib/page-metadata";
 import { notFound } from "next/navigation";
 import {
@@ -40,6 +41,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   return entityTitle<Setlist>(
     `/setlists/${id}`,
     (s) => s.title,
@@ -54,6 +58,9 @@ export default async function SetlistDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Route params are attacker-chosen and reach API paths: anything but a
+  // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
+  if (!isUuid(id)) notFound();
   const t = await getTranslations("setlists");
   const tNav = await getTranslations("nav");
 

@@ -134,6 +134,7 @@ export function AvatarCard({
                   <Link
                     href={legalHref("guidelines")}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-primary font-medium underline-offset-4 hover:underline"
                   >
                     {chunks}
