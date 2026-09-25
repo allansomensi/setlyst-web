@@ -21,6 +21,8 @@ const DISMISS_KEY = "setlyst:plan-banner-dismissed";
  */
 function occurrence(status: AccountPlanStatus): string {
   switch (status.kind) {
+    case "beta":
+      return "beta";
     case "trial":
     case "trial_ending":
       return `${status.kind}:${status.trial.endsAt}:${status.trial.daysLeft}`;
@@ -76,7 +78,8 @@ export function PlanStatusBanner({
   // Hidden for this page view even if storage refuses the write.
   const [hiddenNow, setHiddenNow] = useState<string | null>(null);
 
-  const key = status && status.kind !== "trial" ? occurrence(status) : null;
+  const chipOnly = status?.kind === "trial" || status?.kind === "beta";
+  const key = status && !chipOnly ? occurrence(status) : null;
 
   // Hidden on the server and until storage has been read after hydration:
   // a banner that rendered and then vanished would shift the whole page on
@@ -94,7 +97,9 @@ export function PlanStatusBanner({
     () => UNKNOWN,
   );
 
-  if (!status || status.kind === "trial" || !key) return null;
+  if (!status || status.kind === "trial" || status.kind === "beta" || !key) {
+    return null;
+  }
   if (dismissed === UNKNOWN || dismissed === key || hiddenNow === key) {
     return null;
   }
@@ -128,7 +133,7 @@ export function PlanStatusBanner({
       ? format.dateTime(parseApiTimestamp(value), { dateStyle: "long" })
       : null;
 
-  let message: string;
+  let message = "";
   switch (status.kind) {
     case "trial_ending":
       message = t("status.ending.banner", {

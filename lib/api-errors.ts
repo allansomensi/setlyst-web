@@ -121,6 +121,7 @@ export const TRANSLATED_CODES = [
   "WITHDRAWAL_NOT_ELIGIBLE",
   "PAYMENT_ACTION_REQUIRED",
   "BILLING_HAS_PAID_SUBSCRIPTIONS",
+  "STAFF_CANNOT_SUBSCRIBE",
   // Content
   "INVALID_LINK",
   "REPERTOIRE_PROTECTED",
@@ -157,6 +158,7 @@ export const PLAN_FEATURES = [
   "create_bands",
   "tours",
   "analytics_export",
+  "pdf_export",
   "advanced_pdf",
   "chordpro_import",
   "song_suggestions",

@@ -17,6 +17,8 @@ interface SetlistActionsProps {
   canEdit: boolean;
   /** May export it to PDF (band setlists need the band's `export_pdf`). */
   canExport?: boolean;
+  /** The plan includes PDF export (`pdf_export`); without it, watermarked. */
+  pdfInPlan?: boolean;
   setlistId: string;
   setlistTitle: string;
   shareToken: string | null;
@@ -35,6 +37,7 @@ export function SetlistActions({
   setlist,
   canEdit,
   canExport = true,
+  pdfInPlan = true,
   setlistId,
   setlistTitle,
   shareToken,
@@ -125,6 +128,7 @@ export function SetlistActions({
         setlistTitle={setlistTitle}
         isOpen={isPdfDialogOpen}
         onClose={() => setIsPdfDialogOpen(false)}
+        watermarkOnly={!pdfInPlan}
       />
 
       <ShareSetlistDialog

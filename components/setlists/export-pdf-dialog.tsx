@@ -50,6 +50,13 @@ interface ExportPdfDialogProps {
    */
   publicLink?: boolean;
   publicNotice?: string;
+  /**
+   * PDF export isn't in the person's plan (`pdf_export`): the PDF always
+   * carries the watermark, and `watermarkNotice` (a pointer to the plans)
+   * says so.
+   */
+  forceWatermark?: boolean;
+  watermarkNotice?: React.ReactNode;
   setlistTitle: string;
   isOpen: boolean;
   onClose: () => void;
@@ -83,6 +90,8 @@ function ExportForm({
   canSaveDefault = false,
   publicLink = false,
   publicNotice,
+  forceWatermark = false,
+  watermarkNotice,
   setlistTitle,
   onClose,
 }: ExportPdfDialogProps) {
@@ -106,7 +115,10 @@ function ExportForm({
 
   const handleExport = () => {
     startTransition(async () => {
-      const query = pdfOptionsToQuery(options, { lang: language, subtitle });
+      const exported = forceWatermark
+        ? { ...options, watermark: true }
+        : options;
+      const query = pdfOptionsToQuery(exported, { lang: language, subtitle });
       const saved = await download(
         `${endpoint}?${query}`,
         `${setlistTitle}.pdf`,
@@ -185,7 +197,10 @@ function ExportForm({
         onChange={setOptions}
         disabled={isPending}
         allowLyrics={!publicLink}
+        forceWatermark={forceWatermark}
       />
+
+      {forceWatermark && watermarkNotice}
 
       <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">

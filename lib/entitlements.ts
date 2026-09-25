@@ -24,13 +24,16 @@ export const getEntitlements = cache(async (): Promise<BillingMe | null> => {
 });
 
 /**
- * Whether the caller may use `feature`. Unknown (API unreachable) counts
- * as allowed; see `getEntitlements`.
+ * Whether the caller may use `feature`, as the API resolved it (beta,
+ * plan, free tier, unverified e-mail or staff). Unknown (API unreachable,
+ * or a flag the API doesn't send) counts as allowed while plans aren't
+ * enforced; see `getEntitlements`.
  */
 export function hasFeature(
   entitlements: BillingMe | null,
   feature: PlanFeature,
 ): boolean {
-  if (!entitlements || !entitlements.enforced) return true;
-  return entitlements.features[feature] === true;
+  if (!entitlements) return true;
+  const flag = entitlements.features[feature];
+  return typeof flag === "boolean" ? flag : !entitlements.enforced;
 }

@@ -88,7 +88,7 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
    NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
    NEXT_PUBLIC_PRIVACY_EMAIL=privacy@example.com   # LGPD privacy channel (small-scale agent, no encarregado), defaults to the support e-mail
    NEXT_PUBLIC_COPYRIGHT_EMAIL=copyright@example.com # copyright notices and content reports, defaults to the support e-mail
-   NEXT_PUBLIC_BILLING_ENFORCED=false              # "true" once the API enforces billing
+   NEXT_PUBLIC_BILLING_ENFORCED=false              # fallback when the API is down; the beta switch lives in the API
    NEXT_PUBLIC_CONTROLLER_NAME=                    # who runs Setlyst: footer, /contato and legal documents (required to build)
    NEXT_PUBLIC_CONTROLLER_TAX_ID=                  # CPF (individual) or CNPJ (company), detected by length, check digits validated
    NEXT_PUBLIC_CONTROLLER_ADDRESS=                 # postal address (Decreto 7.962/2013)

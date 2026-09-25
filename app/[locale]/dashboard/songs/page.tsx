@@ -36,6 +36,7 @@ export default async function SongsPage() {
         features={{
           chordproImport: hasFeature(entitlements, "chordpro_import"),
           advancedPdf: hasFeature(entitlements, "advanced_pdf"),
+          pdfExport: hasFeature(entitlements, "pdf_export"),
         }}
       />
     </div>

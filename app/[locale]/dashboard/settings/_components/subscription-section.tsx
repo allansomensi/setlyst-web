@@ -9,7 +9,9 @@ import {
   Gauge,
   Info,
   Loader2,
+  MailWarning,
   Minus,
+  ShieldCheck,
   Sparkles,
   Ticket,
   TriangleAlert,
@@ -101,6 +103,21 @@ export function SubscriptionSection({
         <TriangleAlert />
         <AlertDescription>{t("unavailable")}</AlertDescription>
       </Alert>
+    );
+  }
+
+  // Admins and moderators already have everything: no plans to buy.
+  if (billing.access === "staff") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="text-primary size-4" />
+            {t("staff.title")}
+          </CardTitle>
+          <CardDescription>{t("staff.description")}</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
@@ -278,11 +295,20 @@ function PlanCard({
           )}
         </div>
 
-        {!billing.enforced && (
-          <Alert variant="info">
-            <Info />
-            <AlertDescription>{t("preRelease")}</AlertDescription>
+        {billing.access === "unverified" ? (
+          <Alert variant="warning">
+            <MailWarning />
+            <AlertDescription>
+              {billing.enforced ? t("unverifiedTrial") : t("unverifiedBeta")}
+            </AlertDescription>
           </Alert>
+        ) : (
+          !billing.enforced && (
+            <Alert variant="info">
+              <Info />
+              <AlertDescription>{t("preRelease")}</AlertDescription>
+            </Alert>
+          )
         )}
 
         <div>

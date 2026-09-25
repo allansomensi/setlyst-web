@@ -23,9 +23,8 @@ import { BillingNote } from "@/components/site/billing-note";
 import { FaqList } from "@/components/site/faq-list";
 import { Button } from "@/components/ui/button";
 import { pickLocalized } from "@/lib/localized";
-import { isBillingEnforced } from "@/lib/pricing";
 import { formatMoney } from "@/lib/money";
-import { getPublicPlans } from "@/lib/public-api";
+import { getBillingMode, getPublicPlans } from "@/lib/public-api";
 import { getSiteOrigin, publicPageMetadata } from "@/lib/seo";
 import { isSignedIn } from "@/lib/site-session";
 import { cn } from "@/lib/utils";
@@ -142,12 +141,13 @@ export default async function LandingPage({ params }: { params: Params }) {
   const { locale } = await params;
   const t = await getTranslations("landing");
   const tSeo = await getTranslations("seo");
-  const [signedIn, plans, nonce] = await Promise.all([
+  const [signedIn, plans, nonce, billingMode] = await Promise.all([
     isSignedIn(),
     getPublicPlans(),
     getNonce(),
+    getBillingMode(),
   ]);
-  const enforced = isBillingEnforced();
+  const enforced = !billingMode.beta;
 
   const primaryCta = signedIn ? (
     <Button asChild size="lg" className="h-11 px-5 text-base">

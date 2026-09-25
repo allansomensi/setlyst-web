@@ -3,9 +3,8 @@ import { cookies } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
-import { getPublicPlans } from "@/lib/public-api";
+import { getBillingMode, getPublicPlans } from "@/lib/public-api";
 import { pickLocalized } from "@/lib/localized";
-import { isBillingEnforced } from "@/lib/pricing";
 import { REFERRAL_COOKIE, normalizeReferralCode } from "@/lib/auth-flow";
 import { safeCallbackPath } from "@/lib/links";
 import { RegisterForm } from "./_components/register-form";
@@ -39,6 +38,7 @@ export default async function RegisterPage({
     (await cookies()).get(REFERRAL_COOKIE)?.value,
   );
 
+  const billingMode = await getBillingMode();
   const planCode = planCodeOf(firstParam(params.plan));
   let planName: string | null = null;
   if (planCode) {
@@ -54,7 +54,8 @@ export default async function RegisterPage({
         initialReferral={fromLink ?? fromCookie}
         referralFromLink={fromLink}
         planName={planName}
-        billingEnforced={isBillingEnforced()}
+        billingEnforced={!billingMode.beta}
+        trialDays={billingMode.trialDays}
         callbackPath={safeCallbackPath(firstParam(params.callbackUrl))}
       />
     </AuthShell>

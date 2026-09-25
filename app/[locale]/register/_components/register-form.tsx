@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { getSession } from "next-auth/react";
 import { credentialsSignIn } from "@/lib/credentials-sign-in";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronDown, Gift, Loader2, Sparkles } from "lucide-react";
+import {
+  ChevronDown,
+  FlaskConical,
+  Gift,
+  Loader2,
+  MailCheck,
+  Sparkles,
+} from "lucide-react";
 import { useRouter } from "@/i18n/routing";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
@@ -41,7 +48,10 @@ interface RegisterFormProps {
   referralFromLink: string | null;
   /** Name of the plan chosen on the pricing page, if any. */
   planName: string | null;
+  /** Plans enforced (a trial on sign-up); `false` during the beta. */
   billingEnforced: boolean;
+  /** Days of the sign-up trial. */
+  trialDays: number;
   /**
    * Where the visitor was going (an invite link, Live Mode...): carried
    * through sign-up and back to the login page, so it isn't lost.
@@ -59,6 +69,7 @@ export function RegisterForm({
   referralFromLink,
   planName,
   billingEnforced,
+  trialDays,
   callbackPath,
 }: RegisterFormProps) {
   const t = useTranslations("auth.register");
@@ -179,15 +190,31 @@ export function RegisterForm({
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        {billingEnforced && (
-          <div className="border-primary/30 bg-primary/10 flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-sm">
-            <Gift className="text-primary mt-0.5 size-4 shrink-0" />
+        <div className="border-primary/30 bg-primary/10 space-y-2 rounded-lg border px-3 py-2.5 text-sm">
+          <div className="flex items-start gap-2.5">
+            {billingEnforced ? (
+              <Gift className="text-primary mt-0.5 size-4 shrink-0" />
+            ) : (
+              <FlaskConical className="text-primary mt-0.5 size-4 shrink-0" />
+            )}
             <p>
-              <span className="font-semibold">{t("trialTitle")}</span>{" "}
-              <span className="text-muted-foreground">{t("trialBody")}</span>
+              <span className="font-semibold">
+                {billingEnforced
+                  ? t("trialTitle", { days: trialDays })
+                  : t("betaTitle")}
+              </span>{" "}
+              <span className="text-muted-foreground">
+                {billingEnforced ? t("trialBody") : t("betaBody")}
+              </span>
             </p>
           </div>
-        )}
+          <div className="flex items-start gap-2.5">
+            <MailCheck className="text-primary mt-0.5 size-4 shrink-0" />
+            <p className="text-muted-foreground">
+              {billingEnforced ? t("verifyNoteTrial") : t("verifyNoteBeta")}
+            </p>
+          </div>
+        </div>
 
         {planName && (
           <div className="border-primary/25 bg-primary/5 flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-sm">

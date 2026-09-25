@@ -38,9 +38,22 @@ export interface CreditReward {
   cost: number;
 }
 
+/**
+ * Which rules apply to the account: `staff` (everything, can't subscribe),
+ * `plan` (the plan in effect), `unverified` (e-mail not verified yet: very
+ * small limits, beta or not), `beta` (plans not enforced: everything free)
+ * or `free` (plans enforced, no plan).
+ */
+export type AccessTier = "staff" | "plan" | "unverified" | "beta" | "free";
+
 export interface BillingMe {
-  /** Whether plans are enforced at all. While `false`, everything is allowed. */
+  /** Whether plans are enforced at all. While `false` it's the beta. */
   enforced: boolean;
+  /** Optional: older APIs don't send it. */
+  access?: AccessTier;
+  email_verified?: boolean;
+  /** `false` for staff, who already have every feature. */
+  can_subscribe?: boolean;
   /** Whether card payments are set up on the server (checkout available). */
   payments_enabled?: boolean;
   plan: Plan | null;

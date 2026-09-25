@@ -111,10 +111,20 @@ describe("accountPlanStatus", () => {
     });
   });
 
+  it("is the beta while plans aren't enforced", () => {
+    expect(accountPlanStatus(billing({ enforced: false }), "Pro", now)).toEqual(
+      { kind: "beta" },
+    );
+  });
+
   it("says nothing when there is nothing to flag", () => {
     expect(accountPlanStatus(null, "Pro", now)).toBeNull();
     expect(
-      accountPlanStatus(billing({ enforced: false }), "Pro", now),
+      accountPlanStatus(
+        billing({ enforced: false, access: "staff" }),
+        "Pro",
+        now,
+      ),
     ).toBeNull();
     expect(
       accountPlanStatus(billing({ subscription: null }), "Pro", now),

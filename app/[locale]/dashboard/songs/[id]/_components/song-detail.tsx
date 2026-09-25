@@ -73,6 +73,8 @@ interface SongDetailProps {
   /** Band songs need the band's `export_pdf` permission. */
   canExport: boolean;
   canUseAdvancedPdf: boolean;
+  /** The plan includes PDF export (`pdf_export`). */
+  pdfInPlan?: boolean;
 }
 
 /**
@@ -90,6 +92,7 @@ export function SongDetail({
   canEdit,
   canExport,
   canUseAdvancedPdf,
+  pdfInPlan = true,
 }: SongDetailProps) {
   const t = useTranslations("songDetail");
   const tRepertoire = useTranslations("setlists.repertoire");
@@ -467,6 +470,7 @@ export function SongDetail({
         isOpen={isPdfOpen}
         onClose={() => setIsPdfOpen(false)}
         canUseAdvanced={canUseAdvancedPdf}
+        canExport={pdfInPlan}
       />
 
       <Dialog open={isDeleting} onOpenChange={setIsDeleting}>

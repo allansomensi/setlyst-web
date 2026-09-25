@@ -93,7 +93,11 @@ interface SongsTableProps {
    */
   loadError?: boolean;
   /** Plan features, resolved by the page (`hasFeature`). */
-  features?: { chordproImport: boolean; advancedPdf: boolean };
+  features?: {
+    chordproImport: boolean;
+    advancedPdf: boolean;
+    pdfExport: boolean;
+  };
   /** `GET /users/me/quotas`, for the usage chip next to "Add song". */
   quotas?: QuotaReport | null;
 }
@@ -102,7 +106,7 @@ export function SongsTable({
   initialSongs,
   artists,
   loadError,
-  features = { chordproImport: true, advancedPdf: true },
+  features = { chordproImport: true, advancedPdf: true, pdfExport: true },
   quotas = null,
 }: SongsTableProps) {
   const t = useTranslations("songs");
@@ -606,6 +610,7 @@ export function SongsTable({
         isOpen={!!pdfSong}
         onClose={() => setPdfSong(null)}
         canUseAdvanced={features.advancedPdf}
+        canExport={features.pdfExport}
       />
 
       <ImportChordProDialog

@@ -112,7 +112,7 @@
         "signed_out_everywhere": "You signed out of all devices. Sign in again to continue."
       },
       "identifier": "Username or email",
-      "identifierPlaceholder": "your.username or you@example.com",
+      "identifierPlaceholder": "Your username or e-mail",
       "divider": "or",
       "rateLimitedWait": "Too many sign-in attempts. Try again in {wait}.",
       "locked": "Too many unsuccessful attempts. For your security, this account is locked for {wait}. If you forgot your password, use password recovery.",
@@ -155,10 +155,14 @@
       "referralPlaceholder": "e.g. K7M2QX9TPA",
       "referralHint": "Whoever referred you receives credits once you confirm your email.",
       "planChosen": "Chosen plan: {plan}.",
-      "planNote": "During the pre-release period, every feature is available. You'll be able to subscribe once online payments are available.",
+      "planNote": "During the beta, every feature is available free of charge. You'll be able to subscribe once Setlyst reaches version 1.0.",
       "planNoteEnforced": "You can subscribe to it at any time in Settings › Subscription, even during the trial.",
-      "trialTitle": "30 days of Pro, free.",
-      "trialBody": "Your account starts on a free trial with every feature unlocked. No card needed and nothing is charged automatically: when the trial ends, you decide whether to subscribe."
+      "trialTitle": "{days} days of Pro, free.",
+      "trialBody": "Every feature is unlocked during the trial. No card needed and nothing is charged automatically: when the trial ends, you decide whether to subscribe.",
+      "betaTitle": "Open beta: everything is free.",
+      "betaBody": "Until Setlyst reaches version 1.0, every feature is unlocked for every account, free of charge and with no card.",
+      "verifyNoteBeta": "After signing up, confirm your e-mail with the code we'll send you. Until then the account is very limited: a few songs and setlists, no bands, tours, public links or PDF export.",
+      "verifyNoteTrial": "The trial only starts once you confirm your e-mail with the code we'll send you. Until then the account is very limited: a few songs and setlists, no bands, tours, public links or PDF export."
     }
   },
   "dashboard": {
@@ -605,7 +609,8 @@
       "subtitlePlaceholder": "e.g. Blue Note · Sat 9pm",
       "saveAsDefault": "Save as my default",
       "resetOptions": "Reset",
-      "defaultNotSaved": "The PDF was created, but the options couldn't be saved as default."
+      "defaultNotSaved": "The PDF was created, but the options couldn't be saved as default.",
+      "watermarkOnly": "Without a subscription, setlist PDFs always carry the Setlyst watermark."
     },
     "empty": "No setlists registered.",
     "emptySearch": "No setlists found for \"{search}\".",
@@ -1940,6 +1945,7 @@
       "create_bands": "Creating bands",
       "tours": "Tours",
       "analytics_export": "Statistics export",
+      "pdf_export": "PDF export",
       "advanced_pdf": "Advanced PDF options",
       "chordpro_import": "ChordPro import",
       "song_suggestions": "Song suggestions",
@@ -1975,6 +1981,7 @@
     "STAFF_TWO_FACTOR_REQUIRED": "Staff accounts must turn on two-step verification. Set it up in Settings → Security to continue.",
     "WITHDRAWAL_NOT_ELIGIBLE": "This subscription is no longer within the 7-day withdrawal period.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS": "Paid subscriptions are live and keep being charged. Confirm again to switch plans off anyway.",
+    "STAFF_CANNOT_SUBSCRIBE": "Admins and moderators already have every feature and can't subscribe to plans.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {# paid subscription is live and keeps being charged.} other {# paid subscriptions are live and keep being charged.}} Confirm again to switch plans off anyway.",
     "IMPORT_IN_PROGRESS": "Another backup import is already running for this account. Wait for it to finish and try again.",
     "PAYMENT_ACTION_REQUIRED": "Your bank needs you to confirm this payment. We'll take you to the confirmation page; the new plan applies once it's confirmed."
@@ -2972,7 +2979,7 @@
   },
   "landing": {
     "hero": {
-      "badgePreRelease": "Pre-release: every feature available free of charge",
+      "badgePreRelease": "Open beta: every feature available free of charge",
       "badgeTrial": "30 days of Pro free, no card required",
       "title": "Your repertoire and setlists, ready for the stage",
       "description": "Organise your repertoire, build setlists with BPM and energy analysis and play in Live Mode, with a metronome and key transposition. On your own or with your band, online or offline.",
@@ -3181,6 +3188,7 @@
       "create_bands": "Create bands",
       "tours": "Tours",
       "analytics_export": "Export statistics",
+      "pdf_export": "Export PDFs",
       "advanced_pdf": "Advanced PDF options",
       "chordpro_import": "ChordPro import",
       "song_suggestions": "Song suggestions in bands",
@@ -3211,7 +3219,7 @@
     "compareDescription": "Usage limits and features of each plan. Band limits apply to the bands you create.",
     "limitsGroup": "Limits",
     "featuresGroup": "Features",
-    "preReleaseNote": "During the pre-release period, every feature is available free of charge.",
+    "preReleaseNote": "During the beta, until version 1.0, every feature is available free of charge.",
     "trialNote": "30 days of the Pro plan free, no card required.",
     "unavailable": "The plans could not be loaded right now. Please try again in a few minutes.",
     "pricesNote": "Final prices in Brazilian reais (BRL), taxes included and no additional fees. Cancel at any time, with no fee.",
@@ -3424,7 +3432,10 @@
       "noEmailDescription": "Add one to recover access to your account and receive security notices.",
       "verify": "Verify now",
       "addEmail": "Add email",
-      "dismiss": "Hide notice"
+      "dismiss": "Hide notice",
+      "unlockBeta": "Until you confirm it ({email}), your account is very limited: a few songs and setlists, no bands, tours, public links or PDFs. Confirm it to unlock everything the beta offers.",
+      "unlockTrial": "Your free trial only starts once you confirm it ({email}). Until then the account is very limited: a few songs and setlists, no bands, tours, public links or PDFs.",
+      "noEmailUnlock": "Until an e-mail is confirmed, the account is very limited."
     }
   },
   "account": {
@@ -3597,7 +3608,7 @@
   },
   "billing": {
     "unavailable": "We couldn't load your subscription right now. Reload the page in a moment.",
-    "preRelease": "During the pre-release period, every feature is available.",
+    "preRelease": "Open beta: until version 1.0, every feature is available free of charge.",
     "paymentsSoon": "Online payments will be available soon.",
     "seePlans": "See plans",
     "plans": {
@@ -3610,7 +3621,7 @@
       "description": "Your plan, the current period and the included features.",
       "none": "No plan",
       "noneHint": "Your account has no active plan. Paid features stay unavailable until you choose a plan.",
-      "preRelease": "Pre-release",
+      "preRelease": "Open beta",
       "started": "Started",
       "trialEnds": "Trial ends on",
       "renewsOn": "Valid until",
@@ -3787,7 +3798,13 @@
       },
       "actionRequired": "Your bank asked to confirm the charge. Taking you to the confirmation page…"
     },
-    "withdrawalRight": "Right of withdrawal: you can cancel a new subscription within 7 days of the first payment and get a full refund, with the button above while it's available or by writing to <mail>{email}</mail>."
+    "withdrawalRight": "Right of withdrawal: you can cancel a new subscription within 7 days of the first payment and get a full refund, with the button above while it's available or by writing to <mail>{email}</mail>.",
+    "unverifiedBeta": "Confirm your e-mail to unlock every beta feature. Until then your account is very limited: a few songs and setlists, no bands, tours, public links or PDFs.",
+    "unverifiedTrial": "Confirm your e-mail to start your free trial. Until then your account is very limited: a few songs and setlists, no bands, tours, public links or PDFs.",
+    "staff": {
+      "title": "Staff access",
+      "description": "Admins and moderators already have every feature and no usage limits, so they don't subscribe to plans."
+    }
   },
   "announcements": {
     "pageTitle": "Announcements",
@@ -4237,7 +4254,7 @@
       "enforcedOn": "On",
       "enforcedOff": "Off",
       "enforcedOnHint": "Features and limits follow each account's plan.",
-      "enforcedOffHint": "Pre-release: every feature is available.",
+      "enforcedOffHint": "Beta mode: every feature available.",
       "withoutSubscription": "Accounts without a subscription",
       "credits": "Credits issued",
       "creditsSpent": "{count, plural, one {# spent} other {# spent}}",
@@ -4274,16 +4291,16 @@
       "reset": "Undo changes",
       "save": "Save settings",
       "enforce": {
-        "label": "Enforce plans",
-        "onHint": "Features and limits follow each account's plan.",
-        "offHint": "Every feature is available to every account.",
+        "label": "Enforce plans (end the beta)",
+        "onHint": "Features and limits follow each account's plan. Without a plan: 1 band, no tours, public links, PDFs or report exports.",
+        "offHint": "Beta mode: every account with a confirmed e-mail has every feature for free, within the default limits. Accounts without a confirmed e-mail stay very limited.",
         "word": "CONFIRM",
         "confirmOnTitle": "Turn billing on?",
         "confirmOffTitle": "Turn billing off?",
         "confirmOnLead": "This change affects every account immediately.",
         "confirmOffLead": "Every account gets every feature back.",
         "consequences": {
-          "on1": "Accounts without a subscription lose paid features and follow the default limits.",
+          "on1": "Accounts without a subscription move to the free tier: 1 band, no tours, public links, PDFs or report exports.",
           "on2": "New accounts start a trial of the configured plan.",
           "on3": "Trial-ending reminders and expirations start being processed.",
           "on4": "Consider granting a trial to accounts without a subscription first.",
@@ -4670,7 +4687,8 @@
       "reset": "Reset",
       "export": "Export PDF",
       "exporting": "Exporting…",
-      "success": "PDF exported."
+      "success": "PDF exported.",
+      "locked": "PDF export comes with the paid plans."
     },
     "chordpro": {
       "success": "ChordPro file exported."
@@ -5097,6 +5115,10 @@
         "banner": "We couldn't charge your card. Update your payment method to keep your plan.",
         "bannerSince": "We couldn't charge your card on {date}. Update your payment method to keep your plan.",
         "action": "Update payment"
+      },
+      "beta": {
+        "chip": "Open beta",
+        "chipDetail": "Everything is free"
       }
     }
   },

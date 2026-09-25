@@ -67,7 +67,11 @@ export function isPaidAndLive(subscription: Subscription | null): boolean {
 
 /** Whether this account can use checkout / the portal at all. */
 export function paymentsAvailable(billing: BillingMe): boolean {
-  return billing.enforced && billing.payments_enabled === true;
+  return (
+    billing.enforced &&
+    billing.payments_enabled === true &&
+    billing.can_subscribe !== false
+  );
 }
 
 type PickerMode = "checkout" | "change";

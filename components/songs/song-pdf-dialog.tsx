@@ -41,6 +41,11 @@ interface SongPdfDialogProps {
   onClose: () => void;
   /** `hasFeature(entitlements, "advanced_pdf")`, resolved by the page. */
   canUseAdvanced: boolean;
+  /**
+   * `hasFeature(entitlements, "pdf_export")`: without it the export
+   * button is disabled with a pointer to the plans.
+   */
+  canExport?: boolean;
 }
 
 /**
@@ -67,6 +72,7 @@ function SongPdfForm({
   songTitle,
   onClose,
   canUseAdvanced,
+  canExport = true,
 }: SongPdfDialogProps) {
   const t = useTranslations("songExport.pdf");
   const tOptions = useTranslations("pdfOptions");
@@ -249,6 +255,8 @@ function SongPdfForm({
         </section>
       </div>
 
+      {!canExport && <UpgradeHint message={t("locked")} />}
+
       <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           type="button"
@@ -269,7 +277,7 @@ function SongPdfForm({
           >
             {tCommon("cancel")}
           </Button>
-          <Button onClick={handleExport} disabled={isPending}>
+          <Button onClick={handleExport} disabled={isPending || !canExport}>
             {isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
             ) : (

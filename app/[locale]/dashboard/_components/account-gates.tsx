@@ -44,6 +44,13 @@ export interface AccountGatesProps {
   passwordSet: boolean;
   /** Staff viewing as someone else: never prompt on their behalf. */
   readOnly: boolean;
+  /**
+   * Why verifying matters beyond security: until then the account is on
+   * the small unverified limits, and the beta (`beta`) or the trial
+   * (`trial`, once plans are enforced) only starts after it. `null` when
+   * the limits don't apply (staff, an account on a plan).
+   */
+  unlockNote?: "beta" | "trial" | null;
 }
 
 /**
@@ -67,6 +74,7 @@ export function AccountGates(props: AccountGatesProps) {
           username={props.username}
           email={props.email}
           passwordSet={props.passwordSet}
+          unlockNote={props.unlockNote ?? null}
         />
       )}
     </>
@@ -96,10 +104,12 @@ function EmailBanner({
   username,
   email,
   passwordSet,
+  unlockNote,
 }: {
   username: string;
   email: string | null;
   passwordSet: boolean;
+  unlockNote: "beta" | "trial" | null;
 }) {
   const t = useTranslations("emailVerification.banner");
   const storedDismissal = useSyncExternalStore(
@@ -136,7 +146,11 @@ function EmailBanner({
               <>
                 <span className="font-medium">{t("title")}</span>{" "}
                 <span className="text-amber-900/80 dark:text-amber-100/80">
-                  {t("description", { email })}
+                  {unlockNote === "beta"
+                    ? t("unlockBeta", { email })
+                    : unlockNote === "trial"
+                      ? t("unlockTrial", { email })
+                      : t("description", { email })}
                 </span>
               </>
             ) : (
@@ -144,6 +158,7 @@ function EmailBanner({
                 <span className="font-medium">{t("noEmailTitle")}</span>{" "}
                 <span className="text-amber-900/80 dark:text-amber-100/80">
                   {t("noEmailDescription")}
+                  {unlockNote && ` ${t("noEmailUnlock")}`}
                 </span>
               </>
             )}

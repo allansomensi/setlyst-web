@@ -116,11 +116,14 @@ export function PdfOptionsEditor({
   onChange,
   disabled,
   allowLyrics = true,
+  forceWatermark = false,
 }: {
   value: PdfExportOptions;
   onChange: (next: PdfExportOptions) => void;
   disabled?: boolean;
   allowLyrics?: boolean;
+  /** The watermark can't be turned off (no plan with PDF export). */
+  forceWatermark?: boolean;
 }) {
   const t = useTranslations("pdfOptions");
   const set = <K extends keyof PdfExportOptions>(
@@ -285,9 +288,9 @@ export function PdfOptionsEditor({
             <ToggleRow
               label={t("toggles.watermark")}
               hint={t("hints.watermark")}
-              checked={value.watermark}
+              checked={forceWatermark || value.watermark}
               onChange={(next) => set("watermark", next)}
-              disabled={disabled}
+              disabled={disabled || forceWatermark}
             />
           </div>
         </TabsContent>

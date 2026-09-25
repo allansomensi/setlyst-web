@@ -2,7 +2,13 @@ import "server-only";
 
 import { assertSafeEndpoint } from "@/lib/api-endpoint";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
-import type { PublicPlan, ReleaseNote, UnsubscribeInfo } from "@/types/public";
+import { isBillingEnforced } from "@/lib/pricing";
+import type {
+  PublicBillingMode,
+  PublicPlan,
+  ReleaseNote,
+  UnsubscribeInfo,
+} from "@/types/public";
 
 /**
  * Unauthenticated calls to the API's `/public/*` endpoints, for the public
@@ -68,6 +74,35 @@ export async function fetchPublicApi<T>(
   } catch {
     return { ok: false, status: null };
   }
+}
+
+export interface BillingMode {
+  /** Plans not enforced yet: every feature is free (until v1.0.0). */
+  beta: boolean;
+  /** Days of the sign-up trial (after the e-mail is verified). */
+  trialDays: number;
+  /** The API's answer, `null` when it couldn't be reached. */
+  details: PublicBillingMode | null;
+}
+
+/**
+ * The beta switch, read from the API (`GET /public/billing`, the admin
+ * panel's "Enforce plans" setting), so the public site and the API never
+ * disagree. Falls back to `NEXT_PUBLIC_BILLING_ENFORCED` while the API
+ * can't be reached.
+ */
+export async function getBillingMode(): Promise<BillingMode> {
+  const result = await fetchPublicApi<PublicBillingMode>("/public/billing", {
+    revalidate: 60,
+  });
+  if (result.ok && typeof result.data?.beta === "boolean") {
+    return {
+      beta: result.data.beta,
+      trialDays: result.data.trial_days,
+      details: result.data,
+    };
+  }
+  return { beta: !isBillingEnforced(), trialDays: 30, details: null };
 }
 
 /** Public plans in display order, or `null` when the API can't be reached. */

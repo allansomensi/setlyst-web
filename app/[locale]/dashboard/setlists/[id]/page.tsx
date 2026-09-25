@@ -170,6 +170,7 @@ export default async function SetlistDetailsPage({
           setlist={setlist}
           canEdit={canManage}
           canExport={canExport}
+          pdfInPlan={hasFeature(entitlements, "pdf_export")}
           setlistId={setlist.id}
           setlistTitle={title}
           shareToken={setlist.share_token}

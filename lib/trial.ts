@@ -81,11 +81,13 @@ export type BillingState = BillingMe & {
  * - `past_due`: a paid subscription's renewal failed; the plan keeps
  *   working for a short grace period while the card is updated.
  *
- * `null` for everything that needs no mention: billing not enforced, an
- * active plan, or an account that never had a subscription (the free
+ * - `beta`: plans aren't enforced yet, everything is free (chip only);
+ *
+ * `null` for everything that needs no mention: staff, an active plan, or an account that never had a subscription (the free
  * tier, chosen or not, isn't a problem to flag on every page).
  */
 export type AccountPlanStatus =
+  | { kind: "beta" }
   | { kind: "trial"; trial: TrialInfo }
   | { kind: "trial_ending"; trial: TrialInfo }
   | {
@@ -104,7 +106,8 @@ export function accountPlanStatus(
   planName: string,
   now: number = Date.now(),
 ): AccountPlanStatus | null {
-  if (!billing?.enforced) return null;
+  if (!billing || billing.access === "staff") return null;
+  if (!billing.enforced) return { kind: "beta" };
   const subscription = billing.subscription;
   if (!subscription) return null;
 

@@ -1,16 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import { Gift, Info } from "lucide-react";
-import { isBillingEnforced } from "@/lib/pricing";
+import { getBillingMode } from "@/lib/public-api";
 import { cn } from "@/lib/utils";
 
 /**
- * "Everything is free during pre-release" or "30 days of Pro, no card",
- * depending on `NEXT_PUBLIC_BILLING_ENFORCED` (the API's billing switch
- * has no public endpoint).
+ * "Everything is free during the beta" or "30 days of Pro, no card",
+ * depending on the API's billing switch (`GET /public/billing`).
  */
 export async function BillingNote({ className }: { className?: string }) {
   const t = await getTranslations("pricing");
-  const enforced = isBillingEnforced();
+  const enforced = !(await getBillingMode()).beta;
   const Icon = enforced ? Gift : Info;
 
   return (

@@ -112,7 +112,7 @@
         "signed_out_everywhere": "Você saiu de todos os dispositivos. Entre novamente para continuar."
       },
       "identifier": "Usuário ou e-mail",
-      "identifierPlaceholder": "seu.usuario ou voce@exemplo.com",
+      "identifierPlaceholder": "Seu usuário ou e-mail",
       "divider": "ou",
       "rateLimitedWait": "Muitas tentativas de acesso. Tente novamente em {wait}.",
       "locked": "Muitas tentativas sem sucesso. Por segurança, o acesso a esta conta está bloqueado por {wait}. Se esqueceu a senha, use a recuperação.",
@@ -155,10 +155,14 @@
       "referralPlaceholder": "ex.: K7M2QX9TPA",
       "referralHint": "Quem indicou você recebe créditos depois que você confirmar o e-mail.",
       "planChosen": "Plano escolhido: {plan}.",
-      "planNote": "Durante o pré-lançamento, todos os recursos estão liberados. Você poderá assinar quando os pagamentos online estiverem disponíveis.",
+      "planNote": "Durante o beta, todos os recursos estão liberados sem custo. Você poderá assinar quando o Setlyst chegar à versão 1.0.",
       "planNoteEnforced": "Você pode assiná-lo quando quiser em Configurações › Assinatura, inclusive durante o teste.",
-      "trialTitle": "30 dias grátis do plano Pro.",
-      "trialBody": "Sua conta começa em um período de teste com todos os recursos liberados. Não pedimos cartão e nada é cobrado automaticamente: quando o teste acabar, você decide se quer assinar."
+      "trialTitle": "{days} dias grátis do plano Pro.",
+      "trialBody": "Todos os recursos ficam liberados durante o teste. Não pedimos cartão e nada é cobrado automaticamente: quando o teste acabar, você decide se quer assinar.",
+      "betaTitle": "Beta aberto: tudo liberado de graça.",
+      "betaBody": "Enquanto o Setlyst não chega à versão 1.0, todos os recursos ficam liberados para todas as contas, sem custo e sem cartão.",
+      "verifyNoteBeta": "Depois de criar a conta, confirme seu e-mail com o código que vamos enviar. Até lá, a conta fica bem limitada: poucas músicas e setlists, sem bandas, turnês, links públicos nem exportação de PDF.",
+      "verifyNoteTrial": "O teste só começa quando você confirmar seu e-mail com o código que vamos enviar. Até lá, a conta fica bem limitada: poucas músicas e setlists, sem bandas, turnês, links públicos nem exportação de PDF."
     }
   },
   "dashboard": {
@@ -605,7 +609,8 @@
       "subtitlePlaceholder": "ex.: Bar do Zé · Sáb 21h",
       "saveAsDefault": "Salvar como meu padrão",
       "resetOptions": "Restaurar",
-      "defaultNotSaved": "O PDF foi gerado, mas as opções não puderam ser salvas como padrão."
+      "defaultNotSaved": "O PDF foi gerado, mas as opções não puderam ser salvas como padrão.",
+      "watermarkOnly": "Sem assinatura, o PDF da setlist sai sempre com a marca d'água do Setlyst."
     },
     "empty": "Nenhuma setlist cadastrada.",
     "emptySearch": "Nenhuma setlist encontrada para \"{search}\".",
@@ -1940,6 +1945,7 @@
       "create_bands": "Criar bandas",
       "tours": "Turnês",
       "analytics_export": "Exportação de estatísticas",
+      "pdf_export": "Exportação de PDF",
       "advanced_pdf": "Opções avançadas de PDF",
       "chordpro_import": "Importação de ChordPro",
       "song_suggestions": "Sugestões de músicas",
@@ -1975,6 +1981,7 @@
     "STAFF_TWO_FACTOR_REQUIRED": "Contas da equipe precisam ativar a verificação em duas etapas. Ative em Configurações → Segurança para continuar.",
     "WITHDRAWAL_NOT_ELIGIBLE": "Esta assinatura já passou do prazo de 7 dias para desistência.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS": "Há assinaturas pagas ativas, e elas continuam sendo cobradas. Confirme de novo para desligar os planos mesmo assim.",
+    "STAFF_CANNOT_SUBSCRIBE": "Administradores e moderadores já têm acesso a todos os recursos e não podem assinar planos.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {Há # assinatura paga ativa, e ela continua sendo cobrada.} other {Há # assinaturas pagas ativas, e elas continuam sendo cobradas.}} Confirme de novo para desligar os planos mesmo assim.",
     "IMPORT_IN_PROGRESS": "Já existe uma importação de backup em andamento nesta conta. Aguarde a conclusão e tente de novo.",
     "PAYMENT_ACTION_REQUIRED": "Seu banco pediu para você confirmar este pagamento. Vamos abrir a página de confirmação; o novo plano vale assim que ele for confirmado."
@@ -2972,7 +2979,7 @@
   },
   "landing": {
     "hero": {
-      "badgePreRelease": "Pré-lançamento: todos os recursos liberados sem custo",
+      "badgePreRelease": "Beta aberto: todos os recursos liberados sem custo",
       "badgeTrial": "30 dias grátis no plano Pro, sem cartão",
       "title": "Seu repertório e suas setlists, prontos para o palco",
       "description": "Organize o repertório, monte setlists com análise de BPM e energia e toque no Modo Ao Vivo, com metrônomo e transposição de tom. Sozinho ou com a banda, com ou sem internet.",
@@ -3181,6 +3188,7 @@
       "create_bands": "Criar bandas",
       "tours": "Turnês",
       "analytics_export": "Exportar estatísticas",
+      "pdf_export": "Exportar PDF",
       "advanced_pdf": "Opções avançadas de PDF",
       "chordpro_import": "Importar ChordPro",
       "song_suggestions": "Sugestões de músicas em bandas",
@@ -3211,7 +3219,7 @@
     "compareDescription": "Limites de uso e recursos de cada plano. Limites de banda valem para as bandas que você cria.",
     "limitsGroup": "Limites",
     "featuresGroup": "Recursos",
-    "preReleaseNote": "Durante o período de pré-lançamento, todos os recursos estão liberados sem custo.",
+    "preReleaseNote": "Durante o beta, até a versão 1.0, todos os recursos estão liberados sem custo.",
     "trialNote": "30 dias grátis no plano Pro, sem cartão.",
     "unavailable": "Não foi possível carregar os planos agora. Tente novamente em alguns minutos.",
     "pricesNote": "Preços finais em reais (BRL), com impostos inclusos e sem taxas adicionais. Cancele quando quiser, sem multa.",
@@ -3424,7 +3432,10 @@
       "noEmailDescription": "Adicione um para recuperar o acesso à conta e receber avisos de segurança.",
       "verify": "Verificar agora",
       "addEmail": "Adicionar e-mail",
-      "dismiss": "Ocultar aviso"
+      "dismiss": "Ocultar aviso",
+      "unlockBeta": "Até confirmar ({email}), sua conta fica bem limitada: poucas músicas e setlists, sem bandas, turnês, links públicos nem PDF. Confirme para liberar tudo o que o beta oferece.",
+      "unlockTrial": "Seu teste grátis só começa depois da confirmação ({email}). Até lá, a conta fica bem limitada: poucas músicas e setlists, sem bandas, turnês, links públicos nem PDF.",
+      "noEmailUnlock": "Até confirmar um e-mail, a conta fica bem limitada."
     }
   },
   "account": {
@@ -3597,7 +3608,7 @@
   },
   "billing": {
     "unavailable": "Não foi possível carregar sua assinatura agora. Recarregue a página em instantes.",
-    "preRelease": "Durante o pré-lançamento, todos os recursos estão liberados.",
+    "preRelease": "Beta aberto: até a versão 1.0, todos os recursos estão liberados sem custo.",
     "paymentsSoon": "Pagamentos online estarão disponíveis em breve.",
     "seePlans": "Ver planos",
     "plans": {
@@ -3610,7 +3621,7 @@
       "description": "Seu plano, o período em vigor e os recursos incluídos.",
       "none": "Sem plano",
       "noneHint": "Sua conta está sem plano ativo. Os recursos pagos ficam indisponíveis até você escolher um plano.",
-      "preRelease": "Pré-lançamento",
+      "preRelease": "Beta aberto",
       "started": "Início",
       "trialEnds": "Teste termina em",
       "renewsOn": "Válido até",
@@ -3787,7 +3798,13 @@
       },
       "actionRequired": "Seu banco pediu a confirmação da cobrança. Abrindo a página de confirmação…"
     },
-    "withdrawalRight": "Direito de arrependimento: você pode desistir de uma nova assinatura em até 7 dias após o primeiro pagamento e receber o reembolso integral, pelo botão acima enquanto estiver disponível ou escrevendo para <mail>{email}</mail>."
+    "withdrawalRight": "Direito de arrependimento: você pode desistir de uma nova assinatura em até 7 dias após o primeiro pagamento e receber o reembolso integral, pelo botão acima enquanto estiver disponível ou escrevendo para <mail>{email}</mail>.",
+    "unverifiedBeta": "Confirme seu e-mail para liberar todos os recursos do beta. Até lá, sua conta fica bem limitada: poucas músicas e setlists, sem bandas, turnês, links públicos nem PDF.",
+    "unverifiedTrial": "Confirme seu e-mail para começar seu teste grátis. Até lá, sua conta fica bem limitada: poucas músicas e setlists, sem bandas, turnês, links públicos nem PDF.",
+    "staff": {
+      "title": "Acesso da equipe",
+      "description": "Administradores e moderadores já têm todos os recursos liberados e nenhum limite de uso, por isso não assinam planos."
+    }
   },
   "announcements": {
     "pageTitle": "Avisos",
@@ -4237,7 +4254,7 @@
       "enforcedOn": "Ativa",
       "enforcedOff": "Desativada",
       "enforcedOnHint": "Recursos e limites seguem o plano de cada conta.",
-      "enforcedOffHint": "Pré-lançamento: todos os recursos liberados.",
+      "enforcedOffHint": "Modo beta: todos os recursos liberados.",
       "withoutSubscription": "Contas sem assinatura",
       "credits": "Créditos emitidos",
       "creditsSpent": "{count, plural, =1 {# gasto} other {# gastos}}",
@@ -4274,16 +4291,16 @@
       "reset": "Desfazer alterações",
       "save": "Salvar configurações",
       "enforce": {
-        "label": "Aplicar planos",
-        "onHint": "Recursos e limites seguem o plano de cada conta.",
-        "offHint": "Todos os recursos estão liberados para todas as contas.",
+        "label": "Aplicar planos (encerrar o beta)",
+        "onHint": "Recursos e limites seguem o plano de cada conta. Sem plano: 1 banda, sem turnês, links públicos, PDF ou exportação de estatísticas.",
+        "offHint": "Modo beta: todas as contas com e-mail confirmado têm todos os recursos liberados de graça, dentro dos limites padrão. Contas sem e-mail confirmado seguem bem limitadas.",
         "word": "CONFIRMAR",
         "confirmOnTitle": "Ativar a cobrança?",
         "confirmOffTitle": "Desativar a cobrança?",
         "confirmOnLead": "Esta mudança afeta todas as contas na hora.",
         "confirmOffLead": "Todas as contas voltam a ter todos os recursos liberados.",
         "consequences": {
-          "on1": "Contas sem assinatura perdem os recursos pagos e passam a seguir os limites padrão.",
+          "on1": "Contas sem assinatura passam para o nível gratuito: 1 banda, sem turnês, links públicos, PDF ou exportação de estatísticas.",
           "on2": "Novas contas começam um período de teste com o plano configurado.",
           "on3": "Lembretes de fim de teste e expirações passam a ser processados.",
           "on4": "Considere conceder um período de teste às contas sem assinatura antes.",
@@ -4670,7 +4687,8 @@
       "reset": "Restaurar",
       "export": "Exportar PDF",
       "exporting": "Exportando…",
-      "success": "PDF exportado."
+      "success": "PDF exportado.",
+      "locked": "A exportação de PDF faz parte dos planos pagos."
     },
     "chordpro": {
       "success": "Arquivo ChordPro exportado."
@@ -5097,6 +5115,10 @@
         "banner": "Não conseguimos cobrar seu cartão. Atualize a forma de pagamento para manter seu plano.",
         "bannerSince": "Não conseguimos cobrar seu cartão em {date}. Atualize a forma de pagamento para manter seu plano.",
         "action": "Atualizar pagamento"
+      },
+      "beta": {
+        "chip": "Beta aberto",
+        "chipDetail": "Tudo liberado de graça"
       }
     }
   },

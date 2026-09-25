@@ -65,7 +65,12 @@ export default async function DashboardLayout({
   );
   const tCommon = await getTranslations("common");
 
-  const user = { name: session.user?.name, role: session.user?.role };
+  const user = {
+    id: session.user?.id,
+    name: session.user?.name,
+    role: session.user?.role,
+    avatarUrl: me?.avatar_url ?? null,
+  };
 
   const gates = {
     username: me?.username ?? session.user.name ?? "",
@@ -76,6 +81,12 @@ export default async function DashboardLayout({
       : session.user.termsAccepted,
     passwordSet: me?.password_set ?? true,
     readOnly: Boolean(session.user.impersonator),
+    unlockNote:
+      billing?.access === "unverified"
+        ? billing.enforced
+          ? ("trial" as const)
+          : ("beta" as const)
+        : null,
   };
 
   return (

@@ -1,6 +1,12 @@
 "use client";
 
-import { CircleAlert, CreditCard, Gift, Hourglass } from "lucide-react";
+import {
+  CircleAlert,
+  CreditCard,
+  FlaskConical,
+  Gift,
+  Hourglass,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/components/nav-link";
 import type { AccountPlanStatus } from "@/lib/trial";
@@ -11,6 +17,7 @@ export const SUBSCRIPTION_SETTINGS_HREF =
 
 /**
  * The account's plan state, always on screen in the navigation:
+ * "Beta · everything free" before plans are enforced,
  * "Pro trial · 23 days left" while a trial runs (amber in its last week),
  * "Trial ended · Choose a plan" once it has, and "Payment failed" when a
  * renewal didn't go through. Links to the subscription settings.
@@ -74,6 +81,13 @@ export function describe(
   t: ReturnType<typeof useTranslations<"trial">>,
 ) {
   switch (status.kind) {
+    case "beta":
+      return {
+        Icon: FlaskConical,
+        label: t("status.beta.chip"),
+        detail: t("status.beta.chipDetail"),
+        tone: "info" as Tone,
+      };
     case "trial":
     case "trial_ending":
       return {

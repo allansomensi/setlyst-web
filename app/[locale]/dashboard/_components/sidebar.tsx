@@ -15,13 +15,16 @@ import { WhatsNewLink } from "./whats-new-link";
 import { TrialStatus } from "./trial/trial-status";
 import type { AccountPlanStatus } from "@/lib/trial";
 import { ROLE_TEXT_STYLES } from "@/components/role-badge";
+import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/api";
 import packageJson from "@/package.json";
 
 export interface SidebarUser {
+  id?: string | null;
   name?: string | null;
   role?: UserRole | null;
+  avatarUrl?: string | null;
 }
 
 export function Sidebar({
@@ -97,20 +100,34 @@ export function Sidebar({
           collapsed={isCollapsed}
           className={cn("mb-2", isCollapsed && "mx-auto")}
         />
-        {!isCollapsed && (
-          <Link
-            href="/dashboard/profile"
-            title={t("profile")}
-            className="group hover:bg-sidebar-accent/60 mb-2 block overflow-hidden rounded-md px-2 py-1.5 transition-colors"
-          >
-            <p className="group-hover:text-primary truncate text-sm font-medium transition-colors">
-              {user?.name}
-            </p>
-            <p className={cn("truncate text-xs", ROLE_TEXT_STYLES[role])}>
-              {tRoles(role)}
-            </p>
-          </Link>
-        )}
+        <Link
+          href="/dashboard/profile"
+          title={isCollapsed ? (user?.name ?? t("profile")) : t("profile")}
+          aria-label={isCollapsed ? t("profile") : undefined}
+          className={cn(
+            "group hover:bg-sidebar-accent/60 mb-2 flex items-center overflow-hidden rounded-md transition-colors",
+            isCollapsed
+              ? "mx-auto w-fit justify-center p-1"
+              : "gap-2.5 px-2 py-1.5",
+          )}
+        >
+          <UserAvatar
+            userId={user?.id ?? user?.name ?? ""}
+            name={user?.name ?? ""}
+            avatarUrl={user?.id ? user.avatarUrl : null}
+            size="sm"
+          />
+          {!isCollapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="group-hover:text-primary truncate text-sm font-medium transition-colors">
+                {user?.name}
+              </p>
+              <p className={cn("truncate text-xs", ROLE_TEXT_STYLES[role])}>
+                {tRoles(role)}
+              </p>
+            </div>
+          )}
+        </Link>
         <div
           className={cn(
             "flex items-center",

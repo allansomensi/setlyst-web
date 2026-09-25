@@ -99,6 +99,7 @@ export default async function SongDetailPage({
         canEdit={canEdit}
         canExport={canExport}
         canUseAdvancedPdf={hasFeature(entitlements, "advanced_pdf")}
+        pdfInPlan={hasFeature(entitlements, "pdf_export")}
       />
     </div>
   );

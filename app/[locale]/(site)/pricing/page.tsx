@@ -9,8 +9,7 @@ import { FaqList } from "@/components/site/faq-list";
 import { PageIntro } from "@/components/site/page-intro";
 import { Button } from "@/components/ui/button";
 import { LEGAL_HREFS } from "@/lib/legal";
-import { isBillingEnforced } from "@/lib/pricing";
-import { getPublicPlans } from "@/lib/public-api";
+import { getBillingMode, getPublicPlans } from "@/lib/public-api";
 import { publicPageMetadata } from "@/lib/seo";
 
 type Params = Promise<{ locale: string }>;
@@ -44,8 +43,11 @@ const FAQ_KEYS = [
 export default async function PricingPage({ params }: { params: Params }) {
   const { locale } = await params;
   const t = await getTranslations("pricing");
-  const plans = await getPublicPlans();
-  const enforced = isBillingEnforced();
+  const [plans, billingMode] = await Promise.all([
+    getPublicPlans(),
+    getBillingMode(),
+  ]);
+  const enforced = !billingMode.beta;
 
   const docLink = (href: string) =>
     function DocLink(chunks: React.ReactNode) {

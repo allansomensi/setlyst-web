@@ -1,6 +1,6 @@
 /**
  * Shapes of the public (no session) API endpoints consumed by the public
- * site: `GET /public/plans`, `GET /public/release-notes`,
+ * site: `GET /public/billing`, `GET /public/plans`, `GET /public/release-notes`,
  * `GET|POST /public/email/unsubscribe` and `GET /public/legal/version`.
  */
 
@@ -11,6 +11,7 @@ export const PLAN_FEATURES = [
   "create_bands",
   "tours",
   "analytics_export",
+  "pdf_export",
   "advanced_pdf",
   "chordpro_import",
   "song_suggestions",
@@ -107,4 +108,23 @@ export type CommunicationCategory = (typeof COMMUNICATION_CATEGORIES)[number];
 export interface UnsubscribeInfo {
   category: CommunicationCategory | null;
   valid: boolean;
+}
+
+/**
+ * `GET /public/billing`: whether the platform is in its beta (plans not
+ * enforced, every feature free) and the built-in free tiers.
+ */
+export interface PublicBillingMode {
+  /** `true` while plans aren't enforced: everything is free. */
+  beta: boolean;
+  /** Days of the sign-up trial, which starts once the e-mail is verified. */
+  trial_days: number;
+  trial_plan: string;
+  /** Limits of every verified account during the beta. */
+  beta_limits: PlanLimits;
+  /** Accounts without a plan once plans are enforced. */
+  free_limits: PlanLimits;
+  free_features: PlanFeatures;
+  /** Limits until the e-mail address is verified. */
+  unverified_limits: PlanLimits;
 }

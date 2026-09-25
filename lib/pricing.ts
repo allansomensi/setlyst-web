@@ -14,6 +14,10 @@ export type BillingInterval = "monthly" | "yearly";
  * setting, which has no public endpoint: while it is off (pre-release)
  * every feature is free and the pricing page says so.
  */
+/**
+ * Fallback only: the public site asks the API (`getBillingMode` in
+ * lib/public-api.ts) and uses this when the API can't be reached.
+ */
 export function isBillingEnforced(
   value: string | undefined = process.env.NEXT_PUBLIC_BILLING_ENFORCED,
 ): boolean {

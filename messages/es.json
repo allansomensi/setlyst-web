@@ -112,7 +112,7 @@
         "signed_out_everywhere": "Cerraste sesión en todos los dispositivos. Entra de nuevo para continuar."
       },
       "identifier": "Usuario o correo",
-      "identifierPlaceholder": "tu.usuario o tu@ejemplo.com",
+      "identifierPlaceholder": "Tu usuario o correo",
       "divider": "o",
       "rateLimitedWait": "Demasiados intentos de acceso. Inténtalo de nuevo en {wait}.",
       "locked": "Demasiados intentos fallidos. Por seguridad, el acceso a esta cuenta está bloqueado durante {wait}. Si olvidaste la contraseña, usa la recuperación.",
@@ -155,10 +155,14 @@
       "referralPlaceholder": "ej.: K7M2QX9TPA",
       "referralHint": "Quien te recomendó recibe créditos cuando confirmes tu correo.",
       "planChosen": "Plan elegido: {plan}.",
-      "planNote": "Durante el prelanzamiento, todas las funciones están disponibles. Podrás suscribirte cuando los pagos en línea estén disponibles.",
+      "planNote": "Durante la beta, todas las funciones están disponibles sin coste. Podrás suscribirte cuando Setlyst llegue a la versión 1.0.",
       "planNoteEnforced": "Puedes suscribirte cuando quieras en Configuración › Suscripción, incluso durante la prueba.",
-      "trialTitle": "30 días gratis del plan Pro.",
-      "trialBody": "Tu cuenta empieza con un período de prueba con todas las funciones activadas. No pedimos tarjeta y no se cobra nada automáticamente: cuando termine la prueba, tú decides si quieres suscribirte."
+      "trialTitle": "{days} días gratis del plan Pro.",
+      "trialBody": "Todas las funciones están activadas durante la prueba. No pedimos tarjeta y no se cobra nada automáticamente: cuando termine la prueba, tú decides si quieres suscribirte.",
+      "betaTitle": "Beta abierta: todo gratis.",
+      "betaBody": "Hasta que Setlyst llegue a la versión 1.0, todas las funciones están activadas para todas las cuentas, sin coste y sin tarjeta.",
+      "verifyNoteBeta": "Después de crear la cuenta, confirma tu correo con el código que te enviaremos. Hasta entonces la cuenta queda muy limitada: pocas canciones y setlists, sin bandas, giras, enlaces públicos ni exportación a PDF.",
+      "verifyNoteTrial": "La prueba solo empieza cuando confirmes tu correo con el código que te enviaremos. Hasta entonces la cuenta queda muy limitada: pocas canciones y setlists, sin bandas, giras, enlaces públicos ni exportación a PDF."
     }
   },
   "dashboard": {
@@ -605,7 +609,8 @@
       "subtitlePlaceholder": "p. ej. Sala Apolo · Sáb 21h",
       "saveAsDefault": "Guardar como predeterminado",
       "resetOptions": "Restablecer",
-      "defaultNotSaved": "El PDF se generó, pero no se pudieron guardar las opciones como predeterminadas."
+      "defaultNotSaved": "El PDF se generó, pero no se pudieron guardar las opciones como predeterminadas.",
+      "watermarkOnly": "Sin suscripción, el PDF de la setlist siempre lleva la marca de agua de Setlyst."
     },
     "empty": "No hay setlists registradas.",
     "emptySearch": "No se encontraron setlists para \"{search}\".",
@@ -1940,6 +1945,7 @@
       "create_bands": "Crear bandas",
       "tours": "Giras",
       "analytics_export": "Exportación de estadísticas",
+      "pdf_export": "Exportación a PDF",
       "advanced_pdf": "Opciones avanzadas de PDF",
       "chordpro_import": "Importación de ChordPro",
       "song_suggestions": "Sugerencias de canciones",
@@ -1975,6 +1981,7 @@
     "STAFF_TWO_FACTOR_REQUIRED": "Las cuentas del equipo deben activar la verificación en dos pasos. Actívala en Configuración → Seguridad para continuar.",
     "WITHDRAWAL_NOT_ELIGIBLE": "Esta suscripción ya superó el plazo de 7 días para desistir.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS": "Hay suscripciones de pago activas y se siguen cobrando. Confirma de nuevo para desactivar los planes de todos modos.",
+    "STAFF_CANNOT_SUBSCRIBE": "Los administradores y moderadores ya tienen todas las funciones y no pueden suscribirse a planes.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {Hay # suscripción de pago activa y se sigue cobrando.} other {Hay # suscripciones de pago activas y se siguen cobrando.}} Confirma de nuevo para desactivar los planes de todos modos.",
     "IMPORT_IN_PROGRESS": "Ya hay una importación de copia de seguridad en curso en esta cuenta. Espera a que termine e inténtalo de nuevo.",
     "PAYMENT_ACTION_REQUIRED": "Tu banco necesita que confirmes este pago. Te llevaremos a la página de confirmación; el nuevo plan se aplica en cuanto se confirme."
@@ -2972,7 +2979,7 @@
   },
   "landing": {
     "hero": {
-      "badgePreRelease": "Prelanzamiento: todas las funciones disponibles sin coste",
+      "badgePreRelease": "Beta abierta: todas las funciones disponibles sin coste",
       "badgeTrial": "30 días gratis del plan Pro, sin tarjeta",
       "title": "Tu repertorio y tus setlists, listos para el escenario",
       "description": "Organiza el repertorio, crea setlists con análisis de BPM y energía y toca en el Modo en vivo, con metrónomo y transposición de tono. Solo o con tu banda, con o sin internet.",
@@ -3181,6 +3188,7 @@
       "create_bands": "Crear bandas",
       "tours": "Giras",
       "analytics_export": "Exportar estadísticas",
+      "pdf_export": "Exportar PDF",
       "advanced_pdf": "Opciones avanzadas de PDF",
       "chordpro_import": "Importar ChordPro",
       "song_suggestions": "Sugerencias de canciones en bandas",
@@ -3211,7 +3219,7 @@
     "compareDescription": "Límites de uso y funciones de cada plan. Los límites de banda se aplican a las bandas que creas.",
     "limitsGroup": "Límites",
     "featuresGroup": "Funciones",
-    "preReleaseNote": "Durante el período de prelanzamiento, todas las funciones están disponibles sin coste.",
+    "preReleaseNote": "Durante la beta, hasta la versión 1.0, todas las funciones están disponibles sin coste.",
     "trialNote": "30 días gratis del plan Pro, sin tarjeta.",
     "unavailable": "No se pudieron cargar los planes ahora. Inténtalo de nuevo en unos minutos.",
     "pricesNote": "Precios finales en reales brasileños (BRL), con impuestos incluidos y sin tasas adicionales. Cancela cuando quieras, sin penalización.",
@@ -3424,7 +3432,10 @@
       "noEmailDescription": "Añade uno para recuperar el acceso a la cuenta y recibir avisos de seguridad.",
       "verify": "Verificar ahora",
       "addEmail": "Añadir correo",
-      "dismiss": "Ocultar aviso"
+      "dismiss": "Ocultar aviso",
+      "unlockBeta": "Hasta que lo confirmes ({email}), tu cuenta queda muy limitada: pocas canciones y setlists, sin bandas, giras, enlaces públicos ni PDF. Confírmalo para activar todo lo que ofrece la beta.",
+      "unlockTrial": "Tu prueba gratis solo empieza cuando lo confirmes ({email}). Hasta entonces la cuenta queda muy limitada: pocas canciones y setlists, sin bandas, giras, enlaces públicos ni PDF.",
+      "noEmailUnlock": "Hasta confirmar un correo, la cuenta queda muy limitada."
     }
   },
   "account": {
@@ -3597,7 +3608,7 @@
   },
   "billing": {
     "unavailable": "No fue posible cargar tu suscripción ahora. Recarga la página en unos instantes.",
-    "preRelease": "Durante el prelanzamiento, todas las funciones están disponibles.",
+    "preRelease": "Beta abierta: hasta la versión 1.0, todas las funciones están disponibles sin coste.",
     "paymentsSoon": "Los pagos en línea estarán disponibles pronto.",
     "seePlans": "Ver planes",
     "plans": {
@@ -3610,7 +3621,7 @@
       "description": "Tu plan, el período vigente y las funciones incluidas.",
       "none": "Sin plan",
       "noneHint": "Tu cuenta no tiene un plan activo. Las funciones de pago no están disponibles hasta que elijas un plan.",
-      "preRelease": "Prelanzamiento",
+      "preRelease": "Beta abierta",
       "started": "Inicio",
       "trialEnds": "La prueba termina el",
       "renewsOn": "Válido hasta",
@@ -3787,7 +3798,13 @@
       },
       "actionRequired": "Tu banco pidió confirmar el cobro. Abriendo la página de confirmación…"
     },
-    "withdrawalRight": "Derecho de desistimiento: puedes cancelar una nueva suscripción dentro de los 7 días posteriores al primer pago y recibir el reembolso total, con el botón de arriba mientras esté disponible o escribiendo a <mail>{email}</mail>."
+    "withdrawalRight": "Derecho de desistimiento: puedes cancelar una nueva suscripción dentro de los 7 días posteriores al primer pago y recibir el reembolso total, con el botón de arriba mientras esté disponible o escribiendo a <mail>{email}</mail>.",
+    "unverifiedBeta": "Confirma tu correo para activar todas las funciones de la beta. Hasta entonces tu cuenta queda muy limitada: pocas canciones y setlists, sin bandas, giras, enlaces públicos ni PDF.",
+    "unverifiedTrial": "Confirma tu correo para empezar tu prueba gratis. Hasta entonces tu cuenta queda muy limitada: pocas canciones y setlists, sin bandas, giras, enlaces públicos ni PDF.",
+    "staff": {
+      "title": "Acceso del equipo",
+      "description": "Los administradores y moderadores ya tienen todas las funciones y ningún límite de uso, por eso no se suscriben a planes."
+    }
   },
   "announcements": {
     "pageTitle": "Avisos",
@@ -4237,7 +4254,7 @@
       "enforcedOn": "Activo",
       "enforcedOff": "Desactivado",
       "enforcedOnHint": "Funciones y límites siguen el plan de cada cuenta.",
-      "enforcedOffHint": "Prelanzamiento: todas las funciones disponibles.",
+      "enforcedOffHint": "Modo beta: todas las funciones disponibles.",
       "withoutSubscription": "Cuentas sin suscripción",
       "credits": "Créditos emitidos",
       "creditsSpent": "{count, plural, one {# gastado} other {# gastados}}",
@@ -4274,16 +4291,16 @@
       "reset": "Deshacer cambios",
       "save": "Guardar ajustes",
       "enforce": {
-        "label": "Aplicar planes",
-        "onHint": "Funciones y límites siguen el plan de cada cuenta.",
-        "offHint": "Todas las funciones están disponibles para todas las cuentas.",
+        "label": "Aplicar planes (terminar la beta)",
+        "onHint": "Las funciones y los límites siguen el plan de cada cuenta. Sin plan: 1 banda, sin giras, enlaces públicos, PDF ni exportación de estadísticas.",
+        "offHint": "Modo beta: todas las cuentas con correo confirmado tienen todas las funciones gratis, dentro de los límites predeterminados. Las cuentas sin correo confirmado siguen muy limitadas.",
         "word": "CONFIRMAR",
         "confirmOnTitle": "¿Activar el cobro?",
         "confirmOffTitle": "¿Desactivar el cobro?",
         "confirmOnLead": "Este cambio afecta a todas las cuentas de inmediato.",
         "confirmOffLead": "Todas las cuentas recuperan todas las funciones.",
         "consequences": {
-          "on1": "Las cuentas sin suscripción pierden las funciones de pago y siguen los límites por defecto.",
+          "on1": "Las cuentas sin suscripción pasan al nivel gratuito: 1 banda, sin giras, enlaces públicos, PDF ni exportación de estadísticas.",
           "on2": "Las cuentas nuevas empiezan un periodo de prueba del plan configurado.",
           "on3": "Se empiezan a procesar los recordatorios de fin de prueba y las expiraciones.",
           "on4": "Considera conceder antes un periodo de prueba a las cuentas sin suscripción.",
@@ -4670,7 +4687,8 @@
       "reset": "Restablecer",
       "export": "Exportar PDF",
       "exporting": "Exportando…",
-      "success": "PDF exportado."
+      "success": "PDF exportado.",
+      "locked": "La exportación a PDF forma parte de los planes de pago."
     },
     "chordpro": {
       "success": "Archivo ChordPro exportado."
@@ -5097,6 +5115,10 @@
         "banner": "No pudimos cobrar tu tarjeta. Actualiza el método de pago para conservar tu plan.",
         "bannerSince": "No pudimos cobrar tu tarjeta el {date}. Actualiza el método de pago para conservar tu plan.",
         "action": "Actualizar pago"
+      },
+      "beta": {
+        "chip": "Beta abierta",
+        "chipDetail": "Todo gratis"
       }
     }
   },

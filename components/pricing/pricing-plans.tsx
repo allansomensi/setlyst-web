@@ -25,6 +25,7 @@ import { parseApiTimestamp } from "@/lib/dates";
 const CARD_FEATURES: PlanFeature[] = [
   "create_bands",
   "tours",
+  "pdf_export",
   "advanced_pdf",
   "analytics_export",
   "priority_support",
