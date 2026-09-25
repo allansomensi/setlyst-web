@@ -20,7 +20,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { Song, SetlistSong, SetlistItem, Setlist, Artist } from "@/types/api";
+import {
+  Song,
+  SetlistSong,
+  SetlistItem,
+  Setlist,
+  Artist,
+  BandCopyStatus,
+} from "@/types/api";
 import { useOfflineSetlistDetail } from "@/hooks/use-offline-setlist-detail";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 import { removeSongFromSetlist, deleteSetlistMarker } from "../../actions";
@@ -43,6 +50,8 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import { toastMovedToTrash } from "@/components/content/trash-toast";
+import { SyncBandCopyDialog } from "@/components/songs/sync-band-copy-dialog";
 import { AddSongDialog, type AddSongBandContext } from "./add-song-dialog";
 import { BlockDialog, type BlockDraft } from "./block-dialog";
 import { BreakDialog, type BreakDraft } from "./break-dialog";
@@ -68,6 +77,11 @@ interface SetlistSongsManagerProps {
   artists: Artist[];
   /** Band setlists: permissions and repertoire (see AddSongDialog). */
   band?: AddSongBandContext;
+  /**
+   * Band setlists: band songs the person contributed whose original has
+   * changed since (`GET /bands/{id}/song-updates`).
+   */
+  songUpdates?: BandCopyStatus[];
 }
 
 /**
@@ -85,10 +99,12 @@ export function SetlistSongsManager({
   allSongs,
   artists,
   band,
+  songUpdates = [],
 }: SetlistSongsManagerProps) {
   const router = useAppRouter();
   const t = useTranslations("setlists.songs");
   const tCommon = useTranslations("common");
+  const tTrash = useTranslations("trash");
   const offlineDisabled = useOfflineDisabled();
   // Members without `manage_setlists` see the running order read-only and
   // suggest songs instead of adding them.
@@ -112,6 +128,23 @@ export function SetlistSongsManager({
   const [isPending, startTransition] = useTransition();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [songToRemove, setSongToRemove] = useState<string | null>(null);
+  const [copyToSync, setCopyToSync] = useState<BandCopyStatus | null>(null);
+  // Updated from here: their badge goes away before the refreshed data
+  // arrives.
+  const [syncedIds, setSyncedIds] = useState<string[]>([]);
+  const updatesBySong = useMemo(
+    () =>
+      new Map(
+        songUpdates
+          .filter(
+            (copy) => copy.can_update && !syncedIds.includes(copy.song_id),
+          )
+          .map((copy) => [copy.song_id, copy]),
+      ),
+    [songUpdates, syncedIds],
+  );
+  // Out of the repertoire means out of the band (to its trash).
+  const removingFromRepertoire = !!band?.isRepertoire;
   const [markerToDelete, setMarkerToDelete] = useState<string | null>(null);
   const [blockDraft, setBlockDraft] = useState<BlockDraft | null>(null);
   const [breakDraft, setBreakDraft] = useState<BreakDraft | null>(null);
@@ -200,12 +233,26 @@ export function SetlistSongsManager({
 
   const confirmRemove = () => {
     if (!songToRemove) return;
+    const songId = songToRemove;
     startTransition(async () => {
-      const result = await removeSongFromSetlist(setlistId, songToRemove);
-      if (result.success) {
-        toast.success(t("removed"));
-      } else {
+      const result = await removeSongFromSetlist(setlistId, songId);
+      if (!result.success) {
         toastActionError(result, result.error);
+      } else if (removingFromRepertoire) {
+        toastMovedToTrash(
+          "song",
+          songId,
+          {
+            message: t("removedFromRepertoire"),
+            undoLabel: tTrash("undo"),
+            restoring: tTrash("restoring"),
+            restored: t("restoredToRepertoire"),
+            restoreFailed: tTrash("restoreFailed"),
+          },
+          () => router.refresh(),
+        );
+      } else {
+        toast.success(t("removed"));
       }
       setSongToRemove(null);
     });
@@ -403,6 +450,17 @@ export function SetlistSongsManager({
                           songNumber={songNumbers.get(row.id) ?? 0}
                           onRemove={setSongToRemove}
                           onPlay={handlePlay}
+                          update={
+                            actionsDisabled
+                              ? undefined
+                              : updatesBySong.get(row.song.id)
+                          }
+                          onUpdate={setCopyToSync}
+                          removeLabel={
+                            removingFromRepertoire
+                              ? t("removeFromRepertoire")
+                              : undefined
+                          }
                           isReordering={reorder.isReordering}
                           actionsDisabled={actionsDisabled}
                           move={move}
@@ -488,11 +546,35 @@ export function SetlistSongsManager({
       <ConfirmActionDialog
         open={!!songToRemove}
         onOpenChange={(open) => !open && setSongToRemove(null)}
-        title={t("removeTitle")}
-        description={t("removeConfirm")}
-        confirmLabel={tCommon("remove")}
+        title={
+          removingFromRepertoire
+            ? t("removeFromRepertoireTitle")
+            : t("removeTitle")
+        }
+        description={
+          removingFromRepertoire
+            ? t("removeFromRepertoireConfirm")
+            : band
+              ? t("removeConfirmBand")
+              : t("removeConfirm")
+        }
+        confirmLabel={
+          removingFromRepertoire
+            ? t("removeFromRepertoireAction")
+            : tCommon("remove")
+        }
         onConfirm={confirmRemove}
         pending={isPending}
+      />
+
+      <SyncBandCopyDialog
+        copy={copyToSync}
+        title={
+          songsInSetlist.find((song) => song.id === copyToSync?.song_id)
+            ?.title ?? ""
+        }
+        onClose={() => setCopyToSync(null)}
+        onSynced={(copy) => setSyncedIds((prev) => [...prev, copy.song_id])}
       />
 
       {/* Marker (block/break) delete confirmation */}

@@ -56,7 +56,17 @@ import { SongPdfDialog } from "@/components/songs/song-pdf-dialog";
 import { useSongChordProExport } from "@/components/songs/use-song-chordpro-export";
 import { toastActionError } from "@/lib/action-toast";
 import { formatDuration } from "@/lib/utils";
-import { Artist, Song, SongSetlistRef, formatGenre } from "@/types/api";
+import {
+  Artist,
+  BandCopyStatus,
+  Song,
+  SongSetlistRef,
+  formatGenre,
+} from "@/types/api";
+import {
+  BandCopiesCard,
+  BandCopyUpdateBanner,
+} from "@/components/songs/band-copies";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import { deleteSong } from "../../actions";
 import { SongDialog } from "../../_components/song-dialog";
@@ -69,6 +79,11 @@ interface SongDetailProps {
   band: { id: string; name: string } | null;
   /** Setlists that contain the song (`null` when they couldn't load). */
   setlists: SongSetlistRef[] | null;
+  /**
+   * The person's band copies of this song (personal song), or this band
+   * copy when they contributed it (see `BandCopyStatus`).
+   */
+  bandCopies?: BandCopyStatus[];
   canEdit: boolean;
   /** Band songs need the band's `export_pdf` permission. */
   canExport: boolean;
@@ -89,6 +104,7 @@ export function SongDetail({
   artists,
   band,
   setlists,
+  bandCopies = [],
   canEdit,
   canExport,
   canUseAdvancedPdf,
@@ -308,6 +324,14 @@ export function SongDetail({
         </div>
       </header>
 
+      {song.band_id && bandCopies[0] && (
+        <BandCopyUpdateBanner
+          key={`${bandCopies[0].synced_at}:${bandCopies[0].has_updates}`}
+          title={song.title}
+          copy={bandCopies[0]}
+        />
+      )}
+
       <section aria-labelledby="song-facts">
         <h2 id="song-facts" className="sr-only">
           {t("facts.title")}
@@ -446,6 +470,17 @@ export function SongDetail({
               )}
             </CardContent>
           </Card>
+
+          {!song.band_id && (
+            <BandCopiesCard
+              // Fresh server data (after an edit) starts it over.
+              key={bandCopies
+                .map((copy) => `${copy.song_id}:${copy.has_updates}`)
+                .join()}
+              title={song.title}
+              copies={bandCopies}
+            />
+          )}
 
           <p className="text-muted-foreground text-xs">
             {t("created")} <ClientDate value={song.created_at} />

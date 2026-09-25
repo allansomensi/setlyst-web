@@ -300,7 +300,8 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
         }
         return;
       }
-      const { added, skipped, notAdded, stoppedBy } = result.data;
+      const { added, skipped, updated, outdated, notAdded, stoppedBy } =
+        result.data;
       setJustAdded((prev) => [...prev, ...added, ...skipped]);
       setSelected((prev) =>
         prev.filter((id) => !added.includes(id) && !skipped.includes(id)),
@@ -320,6 +321,15 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
       }
       if (skipped.length > 0) {
         toast.info(t("skippedNote", { count: skipped.length }));
+      }
+      // The band already had these songs: say what happened to its copy.
+      if (updated.length > 0) {
+        toast.info(t("copiesUpdated", { count: updated.length }));
+      }
+      if (outdated.length > 0) {
+        toast.info(t("copiesOutdated", { count: outdated.length }), {
+          duration: 10000,
+        });
       }
     });
   };

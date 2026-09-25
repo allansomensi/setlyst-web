@@ -238,8 +238,47 @@ export interface Song {
   /** Who last changed the song (null if never edited or account deleted). */
   updated_by?: string | null;
   updated_by_username?: string | null;
+  /** Band copies: when the copy last matched its original. */
+  source_synced_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * A band's copy of one of the caller's personal songs, and how it compares
+ * to that original (`GET /songs/{id}/band-copies`,
+ * `GET /bands/{id}/song-updates`). Only the member who contributed the
+ * song sees these.
+ */
+export interface BandCopyStatus {
+  /** The band's copy. */
+  song_id: string;
+  band_id: string;
+  band_name: string;
+  /** The caller's personal song it was copied from. */
+  source_id: string;
+  /** The original has changes the band's copy doesn't have yet. */
+  has_updates: boolean;
+  /** The band edited its copy since: updating replaces those edits. */
+  band_edited: boolean;
+  /** The caller may update the copy (the band's `manage_songs`). */
+  can_update: boolean;
+  synced_at: string | null;
+}
+
+/**
+ * What became of the band's copy when a personal song was added to a band
+ * setlist: copied now, reused as it was, brought up to date with the
+ * original, or left as it is although the original changed (the band
+ * edited it too, or the caller can't edit band songs).
+ */
+export type BandCopyOutcome = "created" | "reused" | "updated" | "outdated";
+
+/** `POST /setlists/{id}/songs`. */
+export interface AddedSetlistSong {
+  /** The song now in the setlist (the band's copy, in a band setlist). */
+  song_id: string;
+  band_copy: BandCopyOutcome | null;
 }
 
 /** One tag of the caller's vocabulary, with how many songs use it. */

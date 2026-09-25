@@ -8,7 +8,13 @@ import {
 } from "@/lib/api-server";
 import { getEntitlements, hasFeature } from "@/lib/entitlements";
 import { canExportBandPdf, canManageBandSongs } from "@/lib/band-permissions";
-import { Artist, BandWithMembership, Song, SongSetlistRef } from "@/types/api";
+import {
+  Artist,
+  BandCopyStatus,
+  BandWithMembership,
+  Song,
+  SongSetlistRef,
+} from "@/types/api";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { SongDetail } from "./_components/song-detail";
 
@@ -68,16 +74,24 @@ export default async function SongDetailPage({
     throw error;
   }
 
-  const [entitlements, band, setlists, artists] = await Promise.all([
-    getEntitlements(),
-    song.band_id
-      ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
-          () => null,
-        )
-      : Promise.resolve(null),
-    fetchServerApi<SongSetlistRef[]>(`/songs/${id}/setlists`).catch(() => null),
-    editableArtists(song),
-  ]);
+  const [entitlements, band, setlists, artists, bandCopies] = await Promise.all(
+    [
+      getEntitlements(),
+      song.band_id
+        ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
+            () => null,
+          )
+        : Promise.resolve(null),
+      fetchServerApi<SongSetlistRef[]>(`/songs/${id}/setlists`).catch(
+        () => null,
+      ),
+      editableArtists(song),
+      // Only a secondary panel: the page works without it.
+      fetchServerApi<BandCopyStatus[]>(`/songs/${id}/band-copies`).catch(
+        () => [] as BandCopyStatus[],
+      ),
+    ],
+  );
 
   const canEdit = !song.band_id || (band ? canManageBandSongs(band) : false);
   const canExport = !song.band_id || (band ? canExportBandPdf(band) : false);
@@ -96,6 +110,7 @@ export default async function SongDetailPage({
         artists={artists}
         band={band ? { id: band.id, name: band.name } : null}
         setlists={setlists}
+        bandCopies={bandCopies}
         canEdit={canEdit}
         canExport={canExport}
         canUseAdvancedPdf={hasFeature(entitlements, "advanced_pdf")}

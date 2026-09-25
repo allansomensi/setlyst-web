@@ -48,6 +48,7 @@ export const CLIENT_NAMESPACES = {
     "apiErrors",
     "artists",
     "audit",
+    "bandCopies",
     "bandNotes",
     "bands",
     "billing",

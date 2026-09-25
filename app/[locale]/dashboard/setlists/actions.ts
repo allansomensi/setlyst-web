@@ -12,6 +12,7 @@ import { revalidateDashboard } from "@/lib/revalidate";
 import { isUuid } from "@/lib/uuid";
 import { getTranslations } from "next-intl/server";
 import {
+  AddedSetlistSong,
   PaginatedResponse,
   Setlist,
   SetlistItemRef,
@@ -161,10 +162,13 @@ export async function addSongToSetlist(
 
   return guardedAction(async () => {
     try {
-      return await fetchServerApi(apiPath`/setlists/${setlistId}/songs`, {
-        method: "POST",
-        body: JSON.stringify({ song_id: data.song_id }),
-      });
+      return await fetchServerApi<AddedSetlistSong>(
+        apiPath`/setlists/${setlistId}/songs`,
+        {
+          method: "POST",
+          body: JSON.stringify({ song_id: data.song_id }),
+        },
+      );
     } catch (err) {
       // `ALREADY_EXISTS` here always means this song: say so plainly.
       if (err instanceof ApiError && err.status === 409) {
@@ -187,6 +191,16 @@ export interface AddSongsResult {
   added: string[];
   /** Already in the setlist (nothing to do). */
   skipped: string[];
+  /**
+   * Band setlists: added songs whose band copy was brought up to date with
+   * the person's latest version on the way.
+   */
+  updated: string[];
+  /**
+   * Band setlists: added songs whose band copy was kept as the band has it
+   * although the person's version changed since (see `BandCopyOutcome`).
+   */
+  outdated: string[];
   /** Not attempted because an earlier one failed (e.g. the limit was hit). */
   notAdded: number;
   /** Why the batch stopped early, translated; null when it didn't. */
@@ -228,6 +242,8 @@ export async function addSongsToSetlist(
     const result: AddSongsResult = {
       added: [],
       skipped: [],
+      updated: [],
+      outdated: [],
       notAdded: 0,
       stoppedBy: null,
       stoppedByCode: null,
@@ -235,11 +251,16 @@ export async function addSongsToSetlist(
     for (let i = 0; i < ids.length; i++) {
       const songId = ids[i];
       try {
-        await fetchServerApi(apiPath`/setlists/${setlistId}/songs`, {
-          method: "POST",
-          body: JSON.stringify({ song_id: songId }),
-        });
+        const added = await fetchServerApi<AddedSetlistSong>(
+          apiPath`/setlists/${setlistId}/songs`,
+          {
+            method: "POST",
+            body: JSON.stringify({ song_id: songId }),
+          },
+        );
         result.added.push(songId);
+        if (added?.band_copy === "updated") result.updated.push(songId);
+        if (added?.band_copy === "outdated") result.outdated.push(songId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 409 && !isQuota(err)) {
           result.skipped.push(songId);
@@ -262,6 +283,11 @@ function isQuota(err: ApiError): boolean {
   return err.code === "QUOTA_EXCEEDED" || err.code === "FEATURE_NOT_IN_PLAN";
 }
 
+/**
+ * Takes a song out of a setlist. Out of a band's repertoire, it leaves the
+ * band altogether: the band's song moves to the band's trash (and out of
+ * every band setlist) until it is restored.
+ */
 export async function removeSongFromSetlist(setlistId: string, songId: string) {
   if (!isUuid(setlistId) || !isUuid(songId)) return invalidRequest();
 
@@ -270,7 +296,11 @@ export async function removeSongFromSetlist(setlistId: string, songId: string) {
       fetchServerApi(apiPath`/setlists/${setlistId}/songs/${songId}`, {
         method: "DELETE",
       }),
-    revalidateSetlistContent,
+    () => {
+      revalidateSetlistContent();
+      revalidateDashboard("/songs", "layout");
+      revalidateDashboard("/trash");
+    },
   );
 }
 

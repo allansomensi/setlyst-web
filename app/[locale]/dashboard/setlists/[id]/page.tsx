@@ -12,6 +12,7 @@ import {
   SetlistSong,
   SetlistItem,
   Artist,
+  BandCopyStatus,
   BandWithMembership,
 } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
@@ -75,13 +76,20 @@ export default async function SetlistDetailsPage({
       throw error;
     });
 
-  const [band, entitlements] = await Promise.all([
+  const [band, entitlements, songUpdates] = await Promise.all([
     setlist.band_id
       ? fetchServerApi<BandWithMembership>(`/bands/${setlist.band_id}`).catch(
           () => null,
         )
       : Promise.resolve(null),
     getEntitlements(),
+    // Band songs whose original (the person's own) changed since: offered
+    // as a one-tap update on their rows.
+    setlist.band_id
+      ? fetchServerApi<BandCopyStatus[]>(
+          `/bands/${setlist.band_id}/song-updates`,
+        ).catch(() => [] as BandCopyStatus[])
+      : Promise.resolve([] as BandCopyStatus[]),
   ]);
   const canManage = !setlist.band_id || (!!band && canManageBandSetlists(band));
   const canExport = !setlist.band_id || (!!band && canExportBandPdf(band));
@@ -201,6 +209,7 @@ export default async function SetlistDetailsPage({
         setlistItems={setlistItems}
         allSongs={allSongs}
         artists={allArtists}
+        songUpdates={songUpdates}
         band={
           band
             ? {

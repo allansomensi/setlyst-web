@@ -1,12 +1,13 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn, formatDuration } from "@/lib/utils";
 import { DragHandle, MoveButtons, type RowMove } from "./drag-handle";
+import type { BandCopyStatus } from "@/types/api";
 import type { SongRow as SongRowData } from "./types";
 import { useSortableRow } from "./use-sortable-row";
 
@@ -18,11 +19,19 @@ export function SortableSongRow({
   isReordering,
   actionsDisabled,
   move,
+  update,
+  onUpdate,
+  removeLabel,
 }: {
   row: SongRowData;
   songNumber: number;
   onRemove: (songId: string) => void;
   onPlay: (songId: string) => void;
+  /** The person's own version of this band song changed since. */
+  update?: BandCopyStatus;
+  onUpdate?: (copy: BandCopyStatus) => void;
+  /** Overrides "Remove from setlist" (the repertoire's removal differs). */
+  removeLabel?: string;
   isReordering: boolean;
   actionsDisabled: boolean;
   /** Reorder mode: move one step up/down without dragging. */
@@ -86,6 +95,26 @@ export function SortableSongRow({
               {song.tonality}
             </Badge>
           )}
+          {update && !isReordering && (
+            <Badge
+              asChild
+              variant="secondary"
+              className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 h-5 shrink-0 cursor-pointer gap-1 px-1.5 text-[10px]"
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdate?.(update);
+                }}
+                title={t("newVersionHint")}
+                aria-label={t("newVersionFor", { title: song.title })}
+              >
+                <RefreshCw className="h-3 w-3" aria-hidden />
+                <span className="hidden sm:inline">{t("newVersion")}</span>
+              </button>
+            </Badge>
+          )}
         </div>
         {/* The artist column is dropped on phones; keep the name visible. */}
         <p className="text-muted-foreground truncate text-xs md:hidden">
@@ -117,8 +146,8 @@ export function SortableSongRow({
               onRemove(song.id);
             }}
             disabled={actionsDisabled}
-            aria-label={t("removeSong")}
-            title={t("removeSong")}
+            aria-label={removeLabel ?? t("removeSong")}
+            title={removeLabel ?? t("removeSong")}
           >
             <Trash2 className="h-4 w-4" aria-hidden />
           </Button>

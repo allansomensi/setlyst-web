@@ -10,6 +10,7 @@ import { apiPath } from "@/lib/api-endpoint";
 import { isUuid } from "@/lib/uuid";
 import { revalidateDashboard } from "@/lib/revalidate";
 import {
+  BandCopyStatus,
   CreateSongPayload,
   Song,
   TagCount,
@@ -101,6 +102,33 @@ export async function deleteSong(id: string) {
 
   return guardedAction(
     () => fetchServerApi(apiPath`/songs/${id}`, { method: "DELETE" }),
+    revalidateSongViews,
+  );
+}
+
+/**
+ * How the band copies of one of the person's songs compare to it: for a
+ * personal song, its copies in their bands; for a band's copy, that copy
+ * when the person contributed it.
+ */
+export async function getSongBandCopies(id: string) {
+  if (!isUuid(id)) return invalidRequest();
+  return guardedAction(() =>
+    fetchServerApi<BandCopyStatus[]>(apiPath`/songs/${id}/band-copies`),
+  );
+}
+
+/**
+ * Replaces a band's copy of a song with the person's current version of
+ * it (edits the band made to its copy are replaced).
+ */
+export async function syncBandSong(id: string) {
+  if (!isUuid(id)) return invalidRequest();
+  return guardedAction(
+    () =>
+      fetchServerApi<BandCopyStatus>(apiPath`/songs/${id}/sync`, {
+        method: "POST",
+      }),
     revalidateSongViews,
   );
 }

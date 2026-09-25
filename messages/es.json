@@ -680,7 +680,7 @@
         },
         "suggested": "Sugerencia enviada a la banda.",
         "suggestFailed": "No se pudo enviar la sugerencia.",
-        "copyHint": "La banda recibe una copia de la canción; editar tu versión después no cambia la de la banda.",
+        "copyHint": "La banda recibe su propia copia de la canción. Si editas tu versión después, puedes actualizar la de la banda con un clic.",
         "suggestButton": "Enviar sugerencia",
         "noteLabel": "Nota para la banda",
         "optional": "opcional",
@@ -710,7 +710,9 @@
         "addedMany": "{count, plural, one {# canción añadida} other {# canciones añadidas}} al setlist.",
         "addedPartial": "{added, plural, one {# canción añadida} other {# canciones añadidas}}; {rest, plural, one {# no se añadió} other {# no se añadieron}}: {reason}",
         "skippedNote": "{count, plural, one {# canción ya estaba} other {# canciones ya estaban}} en el setlist.",
-        "done": "Listo"
+        "done": "Listo",
+        "copiesUpdated": "{count, plural, one {La banda ya tenía esta canción: su copia se actualizó} other {La banda ya tenía # de estas canciones: sus copias se actualizaron}} con tu versión más reciente.",
+        "copiesOutdated": "{count, plural, one {La banda ya tenía esta canción, con cambios propios, y se mantuvo su copia} other {La banda ya tenía # de estas canciones, con cambios propios, y se mantuvieron sus copias}}. Usa “Nueva versión” en el setlist para cambiarla por la tuya."
       },
       "addSection": "Agregar sección",
       "addBlock": "Agregar bloque",
@@ -753,7 +755,17 @@
         "dropped": "“{title}” quedó en la posición {position} de {total}.",
         "cancelled": "Movimiento cancelado. “{title}” volvió a la posición {position}.",
         "moved": "“{title}” ahora está en la posición {position} de {total}."
-      }
+      },
+      "removeConfirmBand": "La canción sale de este setlist, pero sigue en el repertorio de la banda.",
+      "removeFromRepertoire": "Quitar del repertorio",
+      "removeFromRepertoireTitle": "¿Quitar del repertorio?",
+      "removeFromRepertoireConfirm": "La canción sale de la banda: deja el repertorio y todos los setlists de la banda y va a la papelera de la banda. Al restaurarla, vuelve a donde estaba.",
+      "removeFromRepertoireAction": "Mover a la papelera",
+      "removedFromRepertoire": "Canción quitada del repertorio y movida a la papelera de la banda.",
+      "restoredToRepertoire": "Canción de vuelta en el repertorio.",
+      "newVersion": "Nueva versión",
+      "newVersionHint": "Tu versión de esta canción cambió desde que entró en la banda. Haz clic para actualizar la copia de la banda.",
+      "newVersionFor": "Actualizar “{title}” con tu versión"
     },
     "errors": {
       "titleLength": "El título de la setlist debe tener entre 1 y 255 caracteres.",
@@ -1928,6 +1940,7 @@
     "RESTORE_CONFLICT_TYPED": "No se pudo restaurar: ya existe {type} con el mismo nombre.",
     "CHORDPRO_INVALID": "No se pudo leer este archivo ChordPro.",
     "CHORDPRO_TOO_LARGE": "El archivo ChordPro es demasiado grande (máximo 64 KB).",
+    "SONG_ORIGINAL_UNAVAILABLE": "Solo quien agregó esta canción a la banda puede actualizarla con su propia versión, mientras esa versión exista.",
     "atLine": "(línea {line})",
     "PAYLOAD_TOO_LARGE": "El contenido enviado es demasiado grande.",
     "SERVICE_BUSY": "El servidor está ocupado en este momento.",
@@ -5212,5 +5225,25 @@
     },
     "browserMenu": "Para instalar, abre el menú del navegador y elige “Instalar app” o “Agregar a pantalla de inicio”.",
     "title": "App en este dispositivo"
+  },
+  "bandCopies": {
+    "cardTitle": "En bandas",
+    "cardDescription": "Cada banda toca su propia copia de esta canción. Editar tu versión no cambia la de ellas hasta que la actualices.",
+    "inSync": "Igual a tu versión",
+    "outdated": "Tu versión tiene cambios que la banda aún no tiene.",
+    "outdatedEdited": "Tanto tu versión como la copia de la banda cambiaron desde que entró en la banda.",
+    "updateCopy": "Actualizar copia de la banda",
+    "noPermission": "Solo quien puede gestionar las canciones de la banda puede actualizar la copia.",
+    "bannerTitle": "Tu versión de esta canción cambió",
+    "banner": "Agregaste esta canción a la banda desde tu versión, que tiene cambios que esta copia aún no tiene.",
+    "bannerEdited": "Agregaste esta canción a la banda desde tu versión. Desde entonces, cambiaron tanto tu versión como esta copia.",
+    "viewMine": "Ver mi versión",
+    "updateFromMine": "Actualizar con mi versión",
+    "syncTitle": "¿Actualizar la copia de la banda?",
+    "syncDescription": "La copia de “{title}” en {band} toma el título, el artista, los datos, la letra, los enlaces y las etiquetas de tu versión. Sigue en todos los setlists donde está.",
+    "syncAction": "Actualizar copia",
+    "bandEditedWarning": "La banda editó esta copia después de que la agregaste. Esos cambios serán reemplazados por tu versión.",
+    "synced": "Copia de “{title}” en {band} actualizada.",
+    "syncFailed": "No se pudo actualizar la copia de la banda."
   }
 }
