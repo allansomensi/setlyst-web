@@ -214,6 +214,10 @@ export interface Song {
   band_id: string | null;
   /** The personal song this band-owned copy was forked from, if any. */
   forked_from: string | null;
+  /** What sets this version apart ("Simplificada"); null for an original. */
+  version_label?: string | null;
+  /** The original this song is a version of (always the family's root). */
+  version_of?: string | null;
   tempo?: number | null;
   lyrics?: string | null;
   tonality?: Tonality | null;
@@ -295,6 +299,23 @@ export interface TagCount {
  */
 export interface SetlistSong extends Song {
   artist_name: string;
+  /**
+   * The key the setlist plays this song in, in semitones from its written
+   * `tonality` (0 = as written). See `PATCH /setlists/{id}/songs/{song_id}`.
+   */
+  transpose?: number;
+}
+
+/** `GET /songs/{id}/versions`: one song of a version family. */
+export interface SongVersion {
+  id: string;
+  title: string;
+  /** Null for the original. */
+  version_label: string | null;
+  is_original: boolean;
+  tonality: Tonality | null;
+  tempo: number | null;
+  updated_at: string;
 }
 
 export interface CreateSongPayload {
@@ -312,6 +333,9 @@ export interface CreateSongPayload {
   tuning?: string | null;
   performance_notes?: string | null;
   links?: LinkInput[];
+  /** Creates the song as a version of this one (see `SongVersion`). */
+  version_of?: string;
+  version_label?: string;
 }
 
 /**
@@ -334,6 +358,8 @@ export interface UpdateSongPayload {
   tuning?: string | null;
   performance_notes?: string | null;
   links?: LinkInput[];
+  /** Renames a version; `null` makes it unnamed. */
+  version_label?: string | null;
 }
 
 export interface Setlist {
@@ -716,11 +742,16 @@ export interface BackupSong {
   tonality?: Tonality | null;
   genre?: Genre | null;
   duration?: number | null;
+  /** Since version 3. */
+  version_label?: string | null;
+  version_of?: string | null;
 }
 
 export interface BackupSetlistSong {
   position: number;
   song_id: string;
+  /** Since version 3: the key the setlist plays it in. */
+  transpose?: number;
 }
 
 export interface BackupSetlist {

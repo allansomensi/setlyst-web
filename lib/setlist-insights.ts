@@ -18,6 +18,7 @@
  */
 
 import type { SetlistItem } from "@/types/api";
+import { playedKey } from "@/lib/music/chords";
 
 // ---------------------------------------------------------------------
 // Thresholds (tuned for typical pop/rock/MPB sets; see the tests)
@@ -130,7 +131,8 @@ export function entriesFromItems(items: SetlistItem[]): FlowEntry[] {
         title: item.song.title,
         energy: item.song.energy ?? null,
         tempo: item.song.tempo ?? null,
-        tonality: item.song.tonality ?? null,
+        // The key the setlist plays it in, not the one it is written in.
+        tonality: playedKey(item.song.tonality, item.song.transpose),
         duration: item.song.duration ?? null,
       };
     }

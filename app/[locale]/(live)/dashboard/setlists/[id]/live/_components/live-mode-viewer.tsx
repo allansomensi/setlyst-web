@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Setlist, SetlistSong } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -27,6 +27,7 @@ import { useMetronomeSettings } from "@/hooks/use-metronome-settings";
 import { MetronomeFlash } from "@/components/live/metronome-flash";
 import { MetronomeControls } from "@/components/live/metronome-controls";
 import { useTranspose } from "@/hooks/use-transpose";
+import { useSetlistKeys } from "@/hooks/use-setlist-keys";
 import { TransposeControls } from "@/components/live/transpose-controls";
 
 interface LiveModeViewerProps {
@@ -34,6 +35,8 @@ interface LiveModeViewerProps {
   songs: SetlistSong[];
   initialSongId?: string;
   initialFontSize?: number;
+  /** Whether a key changed here is saved to the setlist. */
+  canSaveKeys?: boolean;
 }
 
 /** Shown once per device, the first time Live Mode opens on a touch screen. */
@@ -45,6 +48,7 @@ export function LiveModeViewer({
   songs: initialSongs,
   initialSongId,
   initialFontSize = 100,
+  canSaveKeys = false,
 }: LiveModeViewerProps) {
   const t = useTranslations("liveMode");
   const tRepertoire = useTranslations("setlists.repertoire");
@@ -123,11 +127,26 @@ export function LiveModeViewer({
   // re-arm the key listener continuously.
   const { toggleRunning: toggleMetronome } = metronomeSettings;
 
-  // Live key changes, scoped to the song on screen. See use-transpose.ts.
+  // Each song opens in the key saved in the setlist; changing it here
+  // sticks to that song (and is saved to the setlist when allowed). See
+  // use-setlist-keys.ts and use-transpose.ts.
+  const keys = useSetlistKeys(setlist.id, songs, canSaveKeys);
+  const { semitonesFor, set: setSongKey } = keys;
+  const currentSongIdForKey = currentSong?.id;
+  const keyControl = useMemo(
+    () => ({
+      semitones: currentSongIdForKey ? semitonesFor(currentSongIdForKey) : 0,
+      onChange: (semitones: number) => {
+        if (currentSongIdForKey) setSongKey(currentSongIdForKey, semitones);
+      },
+    }),
+    [currentSongIdForKey, semitonesFor, setSongKey],
+  );
   const transpose = useTranspose(
     currentSong?.id,
     currentSong?.tonality,
     currentSong?.lyrics ?? "",
+    keyControl,
   );
   const { shift: shiftTranspose } = transpose;
 
@@ -251,7 +270,7 @@ export function LiveModeViewer({
     >
       <LiveHeader
         closeHref={`/dashboard/setlists/${setlist.id}`}
-        title={currentSong.title}
+        title={titleWithVersion(currentSong)}
         subtitle={`${setlist.is_repertoire ? tRepertoire("name") : setlist.title} · ${t(
           "songPosition",
           {
@@ -344,7 +363,7 @@ export function LiveModeViewer({
               {t("nextSong")}
             </p>
             <p className="truncate text-sm font-bold md:text-lg">
-              {nextSong ? nextSong.title : t("endOfShow")}
+              {nextSong ? titleWithVersion(nextSong) : t("endOfShow")}
             </p>
           </div>
 
@@ -392,6 +411,7 @@ export function LiveModeViewer({
             onReset={transpose.reset}
             transposedKey={transpose.key}
             capoFret={transpose.capoFret}
+            status={keys.statusFor(currentSong.id)}
           />
         }
         metronome={
@@ -411,4 +431,11 @@ export function LiveModeViewer({
       />
     </div>
   );
+}
+
+/** "Tempo Perdido · Simplificada": tells two versions of a song apart. */
+function titleWithVersion(song: SetlistSong): string {
+  return song.version_label
+    ? `${song.title} · ${song.version_label}`
+    : song.title;
 }

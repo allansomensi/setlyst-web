@@ -1,8 +1,9 @@
 import { entityTitle } from "@/lib/page-metadata";
 import { notFound } from "next/navigation";
 import { isUuid } from "@/lib/uuid";
-import { fetchAllServerPages } from "@/lib/api-server";
-import { Setlist, SetlistSong } from "@/types/api";
+import { fetchAllServerPages, fetchServerApi } from "@/lib/api-server";
+import { BandWithMembership, Setlist, SetlistSong } from "@/types/api";
+import { canManageBandSetlists } from "@/lib/band-permissions";
 import { notFoundOnMissing } from "@/lib/api-not-found";
 import { LiveModeViewer } from "./_components/live-mode-viewer";
 import { fetchServerApiOnce, getMyPreferences } from "@/lib/server-data";
@@ -53,10 +54,21 @@ export default async function SetlistLivePage({
 
   const setlistSongs = setlistSongsRes.data || [];
 
+  // Whether a key changed here can be saved to the setlist (the API
+  // refuses it otherwise; this only avoids offering it).
+  const band = setlist.band_id
+    ? await fetchServerApi<BandWithMembership>(
+        `/bands/${setlist.band_id}`,
+      ).catch(() => null)
+    : null;
+  const canSaveKeys =
+    !setlist.band_id || (!!band && canManageBandSetlists(band));
+
   return (
     <LiveModeViewer
       setlist={setlist}
       songs={setlistSongs}
+      canSaveKeys={canSaveKeys}
       initialSongId={songId}
       initialFontSize={preferences?.live_mode_font_size}
     />

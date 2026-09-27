@@ -428,6 +428,11 @@ export function SongsTable({
                       >
                         {song.title}
                       </Link>
+                      {song.version_label && (
+                        <span className="bg-secondary text-secondary-foreground max-w-32 shrink-0 truncate rounded px-1 py-0.5 text-[11px] font-medium">
+                          {song.version_label}
+                        </span>
+                      )}
                       <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span

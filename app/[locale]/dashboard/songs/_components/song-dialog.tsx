@@ -110,6 +110,8 @@ interface SongFormState {
   tuning: string;
   performanceNotes: string;
   links: LinkDraft[];
+  /** Versions only: what sets this one apart ("Simplificada"). */
+  versionLabel: string;
 }
 
 function initialState(song?: Song | null): SongFormState {
@@ -127,6 +129,7 @@ function initialState(song?: Song | null): SongFormState {
     tuning: song?.tuning ?? "",
     performanceNotes: song?.performance_notes ?? "",
     links: (song?.links ?? []).map((link) => newLinkDraft(link)),
+    versionLabel: song?.version_label ?? "",
   };
 }
 
@@ -164,6 +167,8 @@ export function SongDialog({
   // Artists created from this dialog, until the page data catches up.
   const [createdArtists, setCreatedArtists] = useState<Artist[]>([]);
   const isEditing = !!song;
+  // Versions are named; an original has no name to edit.
+  const isVersion = !!(song?.version_of || song?.version_label);
 
   const artistOptions = [
     ...artists,
@@ -242,7 +247,12 @@ export function SongDialog({
 
     startTransition(async () => {
       const result = isEditing
-        ? await updateSong(song.id, data)
+        ? await updateSong(song.id, {
+            ...data,
+            ...(isVersion
+              ? { version_label: form.versionLabel.trim() || null }
+              : {}),
+          })
         : await createSong(data);
 
       if (!result.success) {
@@ -347,6 +357,22 @@ export function SongDialog({
                     error={errors.artist}
                   />
                 </div>
+
+                {isVersion && (
+                  <div className="space-y-2">
+                    <Label htmlFor="song-version-label">
+                      {t("versionLabel")}
+                    </Label>
+                    <Input
+                      id="song-version-label"
+                      value={form.versionLabel}
+                      onChange={(e) => set("versionLabel", e.target.value)}
+                      disabled={isPending}
+                      maxLength={60}
+                      placeholder={t("versionLabelPlaceholder")}
+                    />
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">

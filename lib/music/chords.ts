@@ -301,3 +301,16 @@ export function transposeChordPro(
     return transposed === inner ? whole : `[${transposed}]`;
   });
 }
+
+/**
+ * The key a song is actually played in: its written key moved by the
+ * setlist's `transpose`. Falls back to the written key when it can't be
+ * parsed, and is null when the song has none.
+ */
+export function playedKey(
+  tonality: string | null | undefined,
+  semitones: number | null | undefined,
+): string | null {
+  if (!tonality) return null;
+  return transposeKey(tonality, semitones ?? 0) ?? tonality;
+}

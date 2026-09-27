@@ -348,7 +348,9 @@
       "notesLabel": "Performance notes",
       "notesPlaceholder": "e.g. Intro with voice and guitar only. Second chorus goes up a half step.",
       "charCount": "{count}/{max} characters",
-      "tagsHint": "Tags help you filter your repertoire (e.g. opener, ballad, encore)."
+      "tagsHint": "Tags help you filter your repertoire (e.g. opener, ballad, encore).",
+      "versionLabel": "Version name",
+      "versionLabelPlaceholder": "e.g. Simplified"
     },
     "menu": {
       "editDetails": "Edit details",
@@ -765,7 +767,19 @@
       "restoredToRepertoire": "Song back in the repertoire.",
       "newVersion": "New version",
       "newVersionHint": "Your version of this song changed since it joined the band. Click to update the band’s copy.",
-      "newVersionFor": "Update “{title}” with your version"
+      "newVersionFor": "Update “{title}” with your version",
+      "key": {
+        "set": "Key",
+        "playedIn": "Played in {key} (written in {written})",
+        "change": "Change the key of “{title}” in this setlist",
+        "title": "Key in this setlist",
+        "description": "Only this setlist changes: the song and other setlists keep their key. Live Mode and the PDF use it.",
+        "down": "Down a semitone",
+        "up": "Up a semitone",
+        "reset": "Back to the written key",
+        "written": "written",
+        "writtenIn": "Written in {key}."
+      }
     },
     "errors": {
       "titleLength": "Setlist title must be between 1 and 255 characters.",
@@ -944,7 +958,10 @@
       "reset": "Back to the written key",
       "original": "written",
       "capo": "Capo {fret}",
-      "capoHelp": "Clamp a capo here to play these shapes and still sound in the song's original key"
+      "capoHelp": "Clamp a capo here to play these shapes and still sound in the song's original key",
+      "savedInSetlist": "Saved in this setlist: it opens in this key next time.",
+      "saving": "Saving the key to the setlist…",
+      "sessionOnly": "Kept for this session only (you can’t edit this setlist, or you’re offline)."
     },
     "display": {
       "highContrast": "High contrast",
@@ -4821,6 +4838,23 @@
       "empty": "This song is not in any setlist yet.",
       "loadError": "Could not load the setlists for this song.",
       "position": "Position {position}"
+    },
+    "versions": {
+      "title": "Versions",
+      "loadError": "Couldn’t load the versions.",
+      "empty": "Keep other charts of this song — a simplified one, an acoustic arrangement — as versions of it.",
+      "original": "Original",
+      "unnamed": "Unnamed version",
+      "create": "New version",
+      "labelLength": "The version name must be 1 to 60 characters.",
+      "dialogTitle": "New version",
+      "dialogDescription": "A copy of this song — chart, key, tempo, tags and links — that you can change freely. It can go into setlists like any song.",
+      "label": "Version name",
+      "labelPlaceholder": "e.g. Simplified",
+      "duplicate": "This song already has a version with that name.",
+      "suggestions": "Simplified|Acoustic|Live|Full band|Capo",
+      "created": "Version “{label}” created",
+      "submit": "Create version"
     }
   },
   "chordproImport": {

@@ -348,7 +348,9 @@
       "notesLabel": "Notas de performance",
       "notesPlaceholder": "ex.: Entrada só com voz e violão. Segundo refrão sobe meio tom.",
       "charCount": "{count}/{max} caracteres",
-      "tagsHint": "Tags ajudam a filtrar o repertório (ex.: abertura, balada, bis)."
+      "tagsHint": "Tags ajudam a filtrar o repertório (ex.: abertura, balada, bis).",
+      "versionLabel": "Nome da versão",
+      "versionLabelPlaceholder": "ex.: Simplificada"
     },
     "menu": {
       "editDetails": "Editar dados",
@@ -765,7 +767,19 @@
       "restoredToRepertoire": "Música de volta ao repertório.",
       "newVersion": "Nova versão",
       "newVersionHint": "Sua versão desta música mudou desde que ela entrou na banda. Clique para atualizar a cópia da banda.",
-      "newVersionFor": "Atualizar “{title}” com a sua versão"
+      "newVersionFor": "Atualizar “{title}” com a sua versão",
+      "key": {
+        "set": "Tom",
+        "playedIn": "Tocada em {key} (escrita em {written})",
+        "change": "Mudar o tom de “{title}” nesta setlist",
+        "title": "Tom nesta setlist",
+        "description": "Só esta setlist muda: a música e as outras setlists mantêm o tom. O Modo ao vivo e o PDF usam este tom.",
+        "down": "Descer meio tom",
+        "up": "Subir meio tom",
+        "reset": "Voltar ao tom original",
+        "written": "original",
+        "writtenIn": "Tom original: {key}."
+      }
     },
     "errors": {
       "titleLength": "O título da setlist deve ter entre 1 e 255 caracteres.",
@@ -944,7 +958,10 @@
       "reset": "Voltar ao tom original",
       "original": "original",
       "capo": "Capo {fret}",
-      "capoHelp": "Coloque o capotraste nesta casa para tocar estas formas e soar no tom original da música"
+      "capoHelp": "Coloque o capotraste nesta casa para tocar estas formas e soar no tom original da música",
+      "savedInSetlist": "Salvo nesta setlist: na próxima vez ela já abre neste tom.",
+      "saving": "Salvando o tom na setlist…",
+      "sessionOnly": "Mantido só nesta sessão (você não pode editar esta setlist, ou está offline)."
     },
     "display": {
       "highContrast": "Alto contraste",
@@ -4821,6 +4838,23 @@
       "empty": "Esta música ainda não está em nenhuma setlist.",
       "loadError": "Não foi possível carregar as setlists desta música.",
       "position": "Posição {position}"
+    },
+    "versions": {
+      "title": "Versões",
+      "loadError": "Não foi possível carregar as versões.",
+      "empty": "Guarde outras cifras desta música — uma simplificada, um arranjo acústico — como versões dela.",
+      "original": "Original",
+      "unnamed": "Versão sem nome",
+      "create": "Nova versão",
+      "labelLength": "O nome da versão precisa ter de 1 a 60 caracteres.",
+      "dialogTitle": "Nova versão",
+      "dialogDescription": "Uma cópia desta música — cifra, tom, BPM, tags e links — que você pode alterar à vontade. Ela entra em setlists como qualquer música.",
+      "label": "Nome da versão",
+      "labelPlaceholder": "ex.: Simplificada",
+      "duplicate": "Esta música já tem uma versão com esse nome.",
+      "suggestions": "Simplificada|Acústica|Ao vivo|Banda completa|Com capotraste",
+      "created": "Versão “{label}” criada",
+      "submit": "Criar versão"
     }
   },
   "chordproImport": {

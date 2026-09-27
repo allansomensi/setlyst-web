@@ -13,6 +13,7 @@ import {
   BandCopyStatus,
   CreateSongPayload,
   Song,
+  SongVersion,
   TagCount,
   UpdateSongPayload,
 } from "@/types/api";
@@ -93,6 +94,64 @@ export async function updateSong(id: string, data: UpdateSongPayload) {
         body: JSON.stringify(payload),
       }),
     revalidateSongViews,
+  );
+}
+
+/**
+ * Creates a version of one of the person's songs ("Simplificada",
+ * "Acústica"): a copy of everything in it — chart, key, tempo, tags,
+ * links — under the same title and artist, named by `label`, to be
+ * edited from there. Returns the new song.
+ */
+export async function createSongVersion(
+  sourceId: string,
+  label: string,
+): Promise<ActionResult<Song>> {
+  if (!isUuid(sourceId)) return invalidRequest();
+  const t = await getTranslations("songDetail.versions");
+  const versionLabel = label?.trim();
+  if (!versionLabel || versionLabel.length > 60) {
+    return { success: false, error: t("labelLength") };
+  }
+
+  return guardedAction(
+    async () => {
+      const source = await fetchServerApi<Song>(apiPath`/songs/${sourceId}`);
+      const payload: CreateSongPayload = {
+        title: source.title,
+        artist_id: source.artist_id,
+        tempo: source.tempo ?? null,
+        lyrics: source.lyrics ?? null,
+        tonality: source.tonality ?? null,
+        genre: source.genre ?? null,
+        duration: source.duration ?? null,
+        tags: source.tags,
+        energy: source.energy ?? null,
+        time_signature: source.time_signature ?? null,
+        capo: source.capo ?? null,
+        tuning: source.tuning ?? null,
+        performance_notes: source.performance_notes ?? null,
+        links: (source.links ?? []).map(({ url, label }) => ({ url, label })),
+        version_of: source.id,
+        version_label: versionLabel,
+      };
+      return fetchServerApi<Song>("/songs", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    },
+    () => {
+      revalidateDashboard("/songs", "layout");
+      revalidateDashboard("");
+    },
+  );
+}
+
+/** The song's version family: the original and every version. */
+export async function getSongVersions(id: string) {
+  if (!isUuid(id)) return invalidRequest();
+  return guardedAction(() =>
+    fetchServerApi<SongVersion[]>(apiPath`/songs/${id}/versions`),
   );
 }
 

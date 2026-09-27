@@ -15,6 +15,7 @@ import {
   BandWithMembership,
   Song,
   SongSetlistRef,
+  SongVersion,
 } from "@/types/api";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { SongDetail } from "./_components/song-detail";
@@ -81,8 +82,8 @@ export default async function SongDetailPage({
     throw error;
   }
 
-  const [entitlements, band, setlists, artists, bandCopies] = await Promise.all(
-    [
+  const [entitlements, band, setlists, artists, bandCopies, versions] =
+    await Promise.all([
       getEntitlements(),
       song.band_id
         ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
@@ -97,8 +98,8 @@ export default async function SongDetailPage({
       fetchServerApi<BandCopyStatus[]>(`/songs/${id}/band-copies`).catch(
         () => [] as BandCopyStatus[],
       ),
-    ],
-  );
+      fetchServerApi<SongVersion[]>(`/songs/${id}/versions`).catch(() => null),
+    ]);
 
   const canEdit = !song.band_id || (band ? canManageBandSongs(band) : false);
   const canExport = !song.band_id || (band ? canExportBandPdf(band) : false);
@@ -118,6 +119,7 @@ export default async function SongDetailPage({
         band={band ? { id: band.id, name: band.name } : null}
         setlists={setlists}
         bandCopies={bandCopies}
+        versions={versions}
         canEdit={canEdit}
         canExport={canExport}
         canUseAdvancedPdf={hasFeature(entitlements, "advanced_pdf")}

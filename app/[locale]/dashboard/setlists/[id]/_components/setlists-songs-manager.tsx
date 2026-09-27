@@ -446,6 +446,8 @@ export function SetlistSongsManager({
                       return (
                         <SortableSongRow
                           key={row.id}
+                          setlistId={setlistId}
+                          canEditKey={!actionsDisabled}
                           row={row}
                           songNumber={songNumbers.get(row.id) ?? 0}
                           onRemove={setSongToRemove}

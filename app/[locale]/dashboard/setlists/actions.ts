@@ -304,6 +304,34 @@ export async function removeSongFromSetlist(setlistId: string, songId: string) {
   );
 }
 
+/**
+ * The key a song is played in in this setlist, as semitones from its
+ * written key (0 = as written).
+ */
+export async function setSetlistSongKey(
+  setlistId: string,
+  songId: string,
+  transpose: number,
+) {
+  if (
+    !isUuid(setlistId) ||
+    !isUuid(songId) ||
+    !Number.isInteger(transpose) ||
+    Math.abs(transpose) > 11
+  ) {
+    return invalidRequest();
+  }
+
+  return guardedAction(
+    () =>
+      fetchServerApi(apiPath`/setlists/${setlistId}/songs/${songId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ transpose }),
+      }),
+    revalidateSetlistContent,
+  );
+}
+
 export async function reorderSetlistSongs(
   setlistId: string,
   songIds: string[],

@@ -28,6 +28,8 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 
 - ✅ **Dashboard** — Centralized management of Artists, Songs, Bands, Setlists, and Gigs.
 - ✅ **Live Mode** — High-contrast, distraction-free performance viewer with a built-in metronome and live transpose.
+- ✅ **Song versions** — Keep a simplified chart, an acoustic arrangement or any other version of a song next to the original.
+- ✅ **Per-setlist keys** — Set the key each song is played in per setlist (for a singer who takes it lower); Live Mode opens every song in that key and saves any change made on stage.
 - ✅ **ChordPro Support** — Dynamic rendering and editing of lyrics and chords. Pasted charts with chords above the lyrics are aligned automatically, and section headings are recognised in English, Portuguese and Spanish.
 - ✅ **Setlist Analytics** — Visualize a setlist's tempo/energy progression before you play it.
 - ✅ **Authentication** — Secure access via NextAuth, with role-based access control.

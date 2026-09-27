@@ -61,8 +61,10 @@ import {
   BandCopyStatus,
   Song,
   SongSetlistRef,
+  SongVersion,
   formatGenre,
 } from "@/types/api";
+import { SongVersionsCard } from "@/components/songs/song-versions";
 import {
   BandCopiesCard,
   BandCopyUpdateBanner,
@@ -84,6 +86,8 @@ interface SongDetailProps {
    * copy when they contributed it (see `BandCopyStatus`).
    */
   bandCopies?: BandCopyStatus[];
+  /** The song's version family (`null` when it couldn't load). */
+  versions?: SongVersion[] | null;
   canEdit: boolean;
   /** Band songs need the band's `export_pdf` permission. */
   canExport: boolean;
@@ -105,6 +109,7 @@ export function SongDetail({
   band,
   setlists,
   bandCopies = [],
+  versions = null,
   canEdit,
   canExport,
   canUseAdvancedPdf,
@@ -209,6 +214,14 @@ export function SongDetail({
           <div className="min-w-0 space-y-1.5">
             <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
               {song.title}
+              {song.version_label && (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 align-middle text-xs font-medium"
+                >
+                  {song.version_label}
+                </Badge>
+              )}
             </h1>
             <p className="text-muted-foreground flex flex-wrap items-center gap-2 text-base">
               <span>{artistName ?? t("unknownArtist")}</span>
@@ -470,6 +483,12 @@ export function SongDetail({
               )}
             </CardContent>
           </Card>
+
+          <SongVersionsCard
+            songId={song.id}
+            versions={versions}
+            canCreate={canEdit && !song.band_id && isOnline}
+          />
 
           {!song.band_id && (
             <BandCopiesCard

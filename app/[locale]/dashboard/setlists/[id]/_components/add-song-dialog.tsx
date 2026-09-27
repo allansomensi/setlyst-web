@@ -239,6 +239,7 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
       .map((song) => ({
         id: song.id,
         title: song.title,
+        version_label: song.version_label ?? null,
         artist: artistNames.get(song.artist_id) ?? "",
         tonality: song.tonality ?? "",
         tempo: song.tempo ?? null,
@@ -471,6 +472,12 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">
                         {song.title}
+                        {song.version_label && (
+                          <span className="text-muted-foreground font-normal">
+                            {" "}
+                            · {song.version_label}
+                          </span>
+                        )}
                       </span>
                       {details && (
                         <span className="text-muted-foreground block truncate text-xs">
@@ -653,7 +660,15 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
                   className="flex items-center justify-between gap-3 px-3 py-2"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{song.title}</p>
+                    <p className="truncate text-sm font-medium">
+                      {song.title}
+                      {song.version_label && (
+                        <span className="text-muted-foreground font-normal">
+                          {" "}
+                          · {song.version_label}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-muted-foreground truncate text-xs">
                       {[
                         song.artist_name,

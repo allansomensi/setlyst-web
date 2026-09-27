@@ -5,6 +5,7 @@ import { Minus, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MAX_TRANSPOSE } from "@/hooks/use-transpose";
+import type { SetlistKeyStatus } from "@/hooks/use-setlist-keys";
 
 interface TransposeControlsProps {
   semitones: number;
@@ -13,6 +14,11 @@ interface TransposeControlsProps {
   /** The key now being played, or null when the song has none stored. */
   transposedKey: string | null;
   capoFret: number | null;
+  /**
+   * In a setlist: whether this key is the one saved in the setlist. Absent
+   * for a song on its own, whose key changes are never saved.
+   */
+  status?: SetlistKeyStatus;
   className?: string;
 }
 
@@ -22,10 +28,20 @@ export function TransposeControls({
   onReset,
   transposedKey,
   capoFret,
+  status,
   className,
 }: TransposeControlsProps) {
   const t = useTranslations("liveMode.transpose");
   const isTransposed = semitones !== 0;
+  // "Saved" only says something when the song isn't in its written key.
+  const statusText =
+    status === "saving"
+      ? t("saving")
+      : status === "local"
+        ? t("sessionOnly")
+        : status === "saved" && isTransposed
+          ? t("savedInSetlist")
+          : null;
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
@@ -97,6 +113,12 @@ export function TransposeControls({
       >
         <RotateCcw className="h-4 w-4" aria-hidden />
       </Button>
+
+      {statusText && (
+        <p className="text-muted-foreground w-full text-xs" aria-live="polite">
+          {statusText}
+        </p>
+      )}
     </div>
   );
 }

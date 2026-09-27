@@ -10,8 +10,11 @@ import { DragHandle, MoveButtons, type RowMove } from "./drag-handle";
 import type { BandCopyStatus } from "@/types/api";
 import type { SongRow as SongRowData } from "./types";
 import { useSortableRow } from "./use-sortable-row";
+import { SongKeyPicker } from "./song-key-picker";
 
 export function SortableSongRow({
+  setlistId,
+  canEditKey,
   row,
   songNumber,
   onRemove,
@@ -23,6 +26,9 @@ export function SortableSongRow({
   onUpdate,
   removeLabel,
 }: {
+  setlistId: string;
+  /** May change the key the setlist plays this song in. */
+  canEditKey: boolean;
   row: SongRowData;
   songNumber: number;
   onRemove: (songId: string) => void;
@@ -87,14 +93,22 @@ export function SortableSongRow({
               {song.title}
             </button>
           )}
-          {song.tonality && (
+          {song.version_label && (
             <Badge
-              variant="outline"
-              className="h-5 shrink-0 px-1.5 font-mono text-[10px]"
+              variant="secondary"
+              className="h-5 max-w-32 shrink-0 truncate px-1.5 text-[10px]"
             >
-              {song.tonality}
+              {song.version_label}
             </Badge>
           )}
+          <SongKeyPicker
+            setlistId={setlistId}
+            songId={song.id}
+            title={song.title}
+            tonality={song.tonality}
+            transpose={song.transpose ?? 0}
+            editable={canEditKey && !isReordering}
+          />
           {update && !isReordering && (
             <Badge
               asChild

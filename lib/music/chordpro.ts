@@ -490,15 +490,22 @@ export function isChordSymbol(text: string): boolean {
 /**
  * Words that are both a chord and a common word ("A", "E" and "Em" are
  * articles/prepositions in Portuguese and Spanish). A line consisting of
- * nothing else is read as a lyric.
+ * nothing else is only read as chords in a chart that has chords
+ * elsewhere — see `allowAmbiguous`.
  */
 const AMBIGUOUS_SINGLE = new Set(["A", "E", "Em"]);
 
 /**
  * Whether a plain-text line (no brackets) is a line of chords, as in the
  * chords-above-lyrics layout: "G    D/F#   Em   C".
+ *
+ * A line holding nothing but "A", "E" or "Em" could be either. Taken
+ * alone it is a lyric, but in a chart whose other lines carry chords it is
+ * a chord — a lyric line made of that one word is all but unheard of,
+ * while a lone "E" over the start of a verse is everywhere in pasted
+ * charts. `allowAmbiguous` says the chart is of the second kind.
  */
-function isPlainChordLine(line: string): boolean {
+function isPlainChordLine(line: string, allowAmbiguous = false): boolean {
   if (line.includes("[") || line.includes("{")) return false;
   const tokens = line.trim().split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return false;
@@ -510,8 +517,25 @@ function isPlainChordLine(line: string): boolean {
     chords++;
   }
   if (chords === 0) return false;
-  if (tokens.length === 1 && AMBIGUOUS_SINGLE.has(tokens[0])) return false;
+  if (
+    !allowAmbiguous &&
+    tokens.length === 1 &&
+    AMBIGUOUS_SINGLE.has(tokens[0])
+  ) {
+    return false;
+  }
   return true;
+}
+
+/** Whether any line of the chart carries a chord (bracketed or plain). */
+function chartHasChords(lines: readonly string[]): boolean {
+  return lines.some(
+    (line) =>
+      isPlainChordLine(line) ||
+      [...line.matchAll(/\[([^\]]+)\]/g)].some((match) =>
+        isChordSymbol(match[1]),
+      ),
+  );
 }
 
 /** Whether a line is only bracketed chords and filler: "[G] [D] | [Em]". */
@@ -559,6 +583,9 @@ export function normalizeChordPro(content: string): string {
     .replace(/ /g, " ")
     .split("\n");
 
+  // A lone "A" or "E" is a chord only in a chart that has chords.
+  const ambiguous = chartHasChords(lines);
+
   // Split "heading + chords" lines first.
   const split: string[] = [];
   for (const line of lines) {
@@ -567,7 +594,8 @@ export function normalizeChordPro(content: string): string {
       bracketed &&
       !isChordSymbol(bracketed[1]) &&
       parseSectionHeading(bracketed[1], true) &&
-      (isPlainChordLine(bracketed[2]) || isBracketChordLine(bracketed[2]))
+      (isPlainChordLine(bracketed[2], ambiguous) ||
+        isBracketChordLine(bracketed[2]))
     ) {
       split.push(`[${bracketed[1].trim()}]`, bracketed[2]);
       continue;
@@ -576,7 +604,8 @@ export function normalizeChordPro(content: string): string {
     if (
       labelled &&
       parseSectionHeading(labelled[1], true) &&
-      (isPlainChordLine(labelled[2]) || isBracketChordLine(labelled[2]))
+      (isPlainChordLine(labelled[2], ambiguous) ||
+        isBracketChordLine(labelled[2]))
     ) {
       split.push(`[${labelled[1].trim()}]`, labelled[2]);
       continue;
@@ -587,7 +616,7 @@ export function normalizeChordPro(content: string): string {
   const out: string[] = [];
   for (let i = 0; i < split.length; i++) {
     const line = split[i];
-    if (!isPlainChordLine(line) || isTabLine(line)) {
+    if (!isPlainChordLine(line, ambiguous) || isTabLine(line)) {
       out.push(line);
       continue;
     }
@@ -599,7 +628,7 @@ export function normalizeChordPro(content: string): string {
       !next.trim().startsWith("{") &&
       !next.trim().startsWith("#") &&
       !/\[[^\]]+\]/.test(next) &&
-      !isPlainChordLine(next) &&
+      !isPlainChordLine(next, ambiguous) &&
       !isTabLine(next) &&
       !parseSectionHeading(next, false);
 
