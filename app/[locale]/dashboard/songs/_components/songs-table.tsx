@@ -117,6 +117,11 @@ export function SongsTable({
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | null>(null);
+  // Part of the dialog's key: every open starts from the song's saved
+  // values (or a blank form). Keyed on the song alone, two "new song"
+  // opens in a row reused the same mounted form, still holding the song
+  // just created.
+  const [dialogSession, setDialogSession] = useState(0);
   const [songToDelete, setSongToDelete] = useState<Song | null>(null);
   const [pdfSong, setPdfSong] = useState<Song | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -207,6 +212,7 @@ export function SongsTable({
 
   const handleOpenDialog = (song?: Song) => {
     setEditingSong(song ?? null);
+    setDialogSession((n) => n + 1);
     setIsDialogOpen(true);
   };
 
@@ -601,7 +607,7 @@ export function SongsTable({
       />
 
       <SongDialog
-        key={editingSong?.id ?? "new"}
+        key={`${editingSong?.id ?? "new"}:${dialogSession}`}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         song={editingSong}
