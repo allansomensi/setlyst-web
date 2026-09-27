@@ -1000,7 +1000,10 @@
       "keyPageThenSong": "Turn the page, then change song"
     },
     "active": {
-      "pauseScroll": "Pause auto-scroll"
+      "pauseScroll": "Pause auto-scroll",
+      "startScroll": "Start auto-scroll (Space)",
+      "collapseScroll": "Collapse scroll controls",
+      "expandScroll": "Show scroll controls"
     },
     "pageTurn": {
       "title": "Page turner / Page Down",
@@ -1008,6 +1011,14 @@
       "pageHelp": "On a long song, each press scrolls one screen; at the end of the song it moves to the next one.",
       "song": "Next song right away",
       "songHelp": "Each press changes song, wherever you are in the lyrics."
+    },
+    "block": {
+      "status": "Block {name}: song {current} of {total}",
+      "number": "Block {number}",
+      "last": "Last",
+      "nextBlock": "Next block: {name}",
+      "breakThenBlock": "Break, then {name}",
+      "afterBreak": "After the break"
     }
   },
   "offlineSync": {

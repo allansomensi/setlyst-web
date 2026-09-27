@@ -132,6 +132,7 @@ export function SongLiveModeViewer({
 
         <LiveActiveControls
           controls={controls}
+          canAutoScroll={!fitToScreen}
           metronomeRunning={metronomeSettings.isRunning}
           metronomeBpm={metronomeSettings.bpm}
           onStopMetronome={toggleMetronome}

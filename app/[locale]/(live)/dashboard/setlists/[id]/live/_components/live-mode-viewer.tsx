@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Setlist, SetlistSong } from "@/types/api";
+import { Setlist, SetlistItem, SetlistSong } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { LiveLyricsArea } from "@/components/live/live-lyrics-area";
@@ -14,7 +14,7 @@ import {
   useLiveKeyboardShortcuts,
 } from "@/hooks/use-live-controls";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, Hand } from "lucide-react";
+import { ChevronLeft, ChevronRight, Coffee, Hand, Layers } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOfflineSetlistBundle } from "@/hooks/use-offline-setlist-bundle";
@@ -29,10 +29,15 @@ import { MetronomeControls } from "@/components/live/metronome-controls";
 import { useTranspose } from "@/hooks/use-transpose";
 import { useSetlistKeys } from "@/hooks/use-setlist-keys";
 import { TransposeControls } from "@/components/live/transpose-controls";
+import { LiveBlockBar } from "@/components/live/live-block-bar";
+import { liveBlocksFrom, type LiveTransition } from "@/lib/live-blocks";
+import { cn } from "@/lib/utils";
 
 interface LiveModeViewerProps {
   setlist: Setlist;
   songs: SetlistSong[];
+  /** The running order with its blocks and breaks, when it loaded. */
+  items?: SetlistItem[] | null;
   initialSongId?: string;
   initialFontSize?: number;
   /** Whether a key changed here is saved to the setlist. */
@@ -46,6 +51,7 @@ const SWIPE_HINT_MS = 3500;
 export function LiveModeViewer({
   setlist: initialSetlist,
   songs: initialSongs,
+  items: initialItems = null,
   initialSongId,
   initialFontSize = 100,
   canSaveKeys = false,
@@ -59,10 +65,13 @@ export function LiveModeViewer({
   // with — it stays fresh on a schedule instead of being frozen at
   // whatever moment this exact URL last got cached, which matters once
   // you're relying on it with no signal at a venue.
-  const { setlist, songs } = useOfflineSetlistBundle(initialSetlist.id, {
+  const { setlist, songs, items } = useOfflineSetlistBundle(initialSetlist.id, {
     setlist: initialSetlist,
     songs: initialSongs,
+    items: initialItems,
   });
+  // Which block each song is in, and what comes between it and the next.
+  const blocks = useMemo(() => liveBlocksFrom(items), [items]);
 
   const startIndex = initialSongId
     ? Math.max(
@@ -108,6 +117,11 @@ export function LiveModeViewer({
     songs.length > 0 ? ((safeIndex + 1) / songs.length) * 100 : 0;
   const canPrev = safeIndex > 0;
   const canNext = safeIndex < songs.length - 1;
+  const blockPosition = blocks.positions.get(currentSong?.id ?? "");
+  // Only when there is a next song: markers after the last one lead nowhere.
+  const transition = nextSong
+    ? blocks.transitions.get(currentSong?.id ?? "")
+    : undefined;
 
   // The metronome takes its tempo from whichever song is on screen, so
   // moving through the running order retunes it without anyone touching a
@@ -323,6 +337,7 @@ export function LiveModeViewer({
 
         <LiveActiveControls
           controls={controls}
+          canAutoScroll={!fitToScreen}
           metronomeRunning={metronomeSettings.isRunning}
           metronomeBpm={metronomeSettings.bpm}
           onStopMetronome={toggleMetronome}
@@ -344,6 +359,7 @@ export function LiveModeViewer({
           value={progress}
           className="h-1 rounded-none bg-transparent"
         />
+        {blockPosition && <LiveBlockBar position={blockPosition} />}
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] md:grid-cols-3 md:gap-4 md:py-4 md:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1rem,env(safe-area-inset-left))]">
           <div>
             <Button
@@ -359,9 +375,7 @@ export function LiveModeViewer({
           </div>
 
           <div className="overflow-hidden px-1 text-center">
-            <p className="text-muted-foreground text-[11px] font-bold tracking-[0.2em] uppercase md:text-xs">
-              {t("nextSong")}
-            </p>
+            <NextLabel transition={transition} />
             <p className="truncate text-sm font-bold md:text-lg">
               {nextSong ? titleWithVersion(nextSong) : t("endOfShow")}
             </p>
@@ -430,6 +444,34 @@ export function LiveModeViewer({
         }
       />
     </div>
+  );
+}
+
+/**
+ * What sits above the next song's title: plain "Next song", or a heads-up
+ * that a break comes first and/or that the next song opens a new block.
+ */
+function NextLabel({ transition }: { transition: LiveTransition | undefined }) {
+  const t = useTranslations("liveMode");
+  const base =
+    "flex items-center justify-center gap-1 text-[11px] font-bold tracking-[0.2em] uppercase md:text-xs";
+
+  if (!transition) {
+    return <p className={cn(base, "text-muted-foreground")}>{t("nextSong")}</p>;
+  }
+
+  const Icon = transition.nextBlock ? Layers : Coffee;
+  const text = transition.nextBlock
+    ? transition.hasBreak
+      ? t("block.breakThenBlock", { name: transition.nextBlock })
+      : t("block.nextBlock", { name: transition.nextBlock })
+    : t("block.afterBreak");
+
+  return (
+    <p className={cn(base, "text-amber-500")}>
+      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      <span className="truncate">{text}</span>
+    </p>
   );
 }
 

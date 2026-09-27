@@ -1,7 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Metronome, Minus, Pause, Plus } from "lucide-react";
+import {
+  ChevronsDown,
+  ChevronsLeft,
+  ChevronsRight,
+  Metronome,
+  Minus,
+  Pause,
+  Plus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -9,31 +17,65 @@ import {
   SCROLL_MIN,
   type LiveControls,
 } from "@/hooks/use-live-controls";
+import { useLiveScrollCollapsed } from "@/hooks/use-live-scroll-collapsed";
 
 interface LiveActiveControlsProps {
   controls: LiveControls;
+  /** Fit mode leaves nothing to scroll: no auto-scroll shortcut then. */
+  canAutoScroll: boolean;
   metronomeRunning: boolean;
   metronomeBpm: number;
   onStopMetronome: () => void;
   className?: string;
 }
 
+const formatSpeed = (speed: number) => `${speed.toFixed(2).replace(/0$/, "")}×`;
+
 /**
- * A small floating bar that only exists while something is *running* —
- * auto-scroll or the metronome — so it can be stopped or tuned in one tap
- * without opening the settings sheet mid-song. When nothing runs, the
- * lyrics have the whole screen.
+ * Live Mode's floating corner control, one thumb away on a phone:
+ *
+ *  - idle: a small, translucent round button that starts auto-scroll in one
+ *    tap, instead of opening the settings sheet mid-song;
+ *  - scrolling: a pill to pause it and tune the speed, which folds down to
+ *    just pause + speed for those who want the lyrics clear (remembered on
+ *    this device);
+ *  - with the metronome running: a button to stop it.
  */
 export function LiveActiveControls({
   controls,
+  canAutoScroll,
   metronomeRunning,
   metronomeBpm,
   onStopMetronome,
   className,
 }: LiveActiveControlsProps) {
   const t = useTranslations("liveMode");
+  const [collapsed, setCollapsed] = useLiveScrollCollapsed();
 
-  if (!controls.isAutoScroll && !metronomeRunning) return null;
+  const scrolling = controls.isAutoScroll;
+  const showStart = canAutoScroll && !scrolling;
+
+  if (!scrolling && !showStart && !metronomeRunning) return null;
+
+  // Idle with nothing else running: just the round start button, dimmed
+  // until touched so it doesn't sit on top of the lyrics.
+  if (showStart && !metronomeRunning) {
+    return (
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => controls.setAutoScroll(true)}
+        aria-label={t("active.startScroll")}
+        title={t("active.startScroll")}
+        className={cn(
+          "bg-card/80 h-12 w-12 rounded-full opacity-70 shadow-lg transition-opacity hover:opacity-100 focus-visible:opacity-100 active:opacity-100",
+          className,
+        )}
+      >
+        <ChevronsDown className="h-5 w-5" />
+      </Button>
+    );
+  }
 
   return (
     <div
@@ -42,48 +84,86 @@ export function LiveActiveControls({
         className,
       )}
     >
-      {controls.isAutoScroll && (
+      {showStart && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full"
+          onClick={() => controls.setAutoScroll(true)}
+          aria-label={t("active.startScroll")}
+          title={t("active.startScroll")}
+        >
+          <ChevronsDown className="h-5 w-5" />
+        </Button>
+      )}
+
+      {scrolling && (
         <div className="flex items-center">
           <Button
             variant="default"
             size="sm"
-            className="h-9 gap-1.5 rounded-full px-3"
+            className="h-10 gap-1.5 rounded-full px-3"
             onClick={() => controls.setAutoScroll(false)}
             aria-label={t("active.pauseScroll")}
             title={t("active.pauseScroll")}
           >
             <Pause className="h-4 w-4" />
-            <span className="text-xs font-semibold">
-              {t("sheet.autoScroll")}
+            <span className="font-mono text-xs font-semibold tabular-nums">
+              {collapsed
+                ? formatSpeed(controls.scrollSpeed)
+                : t("sheet.autoScroll")}
             </span>
           </Button>
+          {!collapsed && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full"
+                onClick={() => controls.stepScrollSpeed(-1)}
+                disabled={controls.scrollSpeed <= SCROLL_MIN}
+                aria-label={t("settings.decreaseSpeed")}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="w-10 text-center font-mono text-xs font-semibold tabular-nums">
+                {formatSpeed(controls.scrollSpeed)}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full"
+                onClick={() => controls.stepScrollSpeed(1)}
+                disabled={controls.scrollSpeed >= SCROLL_MAX}
+                aria-label={t("settings.increaseSpeed")}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-full"
-            onClick={() => controls.stepScrollSpeed(-1)}
-            disabled={controls.scrollSpeed <= SCROLL_MIN}
-            aria-label={t("settings.decreaseSpeed")}
+            className="text-muted-foreground h-10 w-7 rounded-full"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={
+              collapsed ? t("active.expandScroll") : t("active.collapseScroll")
+            }
+            aria-expanded={!collapsed}
+            title={
+              collapsed ? t("active.expandScroll") : t("active.collapseScroll")
+            }
           >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="w-10 text-center font-mono text-xs font-semibold tabular-nums">
-            {controls.scrollSpeed.toFixed(2).replace(/0$/, "")}×
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-full"
-            onClick={() => controls.stepScrollSpeed(1)}
-            disabled={controls.scrollSpeed >= SCROLL_MAX}
-            aria-label={t("settings.increaseSpeed")}
-          >
-            <Plus className="h-4 w-4" />
+            {collapsed ? (
+              <ChevronsLeft className="h-4 w-4" />
+            ) : (
+              <ChevronsRight className="h-4 w-4" />
+            )}
           </Button>
         </div>
       )}
 
-      {controls.isAutoScroll && metronomeRunning && (
+      {(scrolling || showStart) && metronomeRunning && (
         <span className="bg-border mx-0.5 h-6 w-px" aria-hidden />
       )}
 
@@ -91,7 +171,7 @@ export function LiveActiveControls({
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 gap-1.5 rounded-full px-3"
+          className="h-10 gap-1.5 rounded-full px-3"
           onClick={onStopMetronome}
           aria-label={t("metronome.stop")}
           title={t("metronome.stop")}

@@ -1000,7 +1000,10 @@
       "keyPageThenSong": "Pasar la página y luego cambiar de canción"
     },
     "active": {
-      "pauseScroll": "Pausar desplazamiento"
+      "pauseScroll": "Pausar desplazamiento",
+      "startScroll": "Iniciar desplazamiento automático (Espacio)",
+      "collapseScroll": "Contraer controles de desplazamiento",
+      "expandScroll": "Mostrar controles de desplazamiento"
     },
     "pageTurn": {
       "title": "Pedal / Av Pág",
@@ -1008,6 +1011,14 @@
       "pageHelp": "En canciones largas, cada pulsación desplaza una pantalla; al final de la canción pasa a la siguiente.",
       "song": "Siguiente canción directamente",
       "songHelp": "Cada pulsación cambia de canción, estés donde estés en la letra."
+    },
+    "block": {
+      "status": "Bloque {name}: canción {current} de {total}",
+      "number": "Bloque {number}",
+      "last": "Última",
+      "nextBlock": "Próximo bloque: {name}",
+      "breakThenBlock": "Pausa, luego {name}",
+      "afterBreak": "Después de la pausa"
     }
   },
   "offlineSync": {

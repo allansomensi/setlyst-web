@@ -4,13 +4,22 @@ import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useSession } from "next-auth/react";
 import { offlineDb } from "@/lib/offline/db";
-import { cacheSetlistLiveData } from "@/lib/offline/write";
+import {
+  cacheSetlistDetailData,
+  cacheSetlistLiveData,
+} from "@/lib/offline/write";
 import { useOnlineStatus } from "@/hooks/use-online-status";
-import type { Setlist, SetlistSong } from "@/types/api";
+import type { Setlist, SetlistItem, SetlistSong } from "@/types/api";
 
 interface SetlistBundleFallback {
   setlist: Setlist;
   songs: SetlistSong[];
+  /**
+   * The running order with its block and break markers, when the page
+   * managed to load it. Only feeds the block indicator, so it's optional:
+   * Live Mode works fine without it.
+   */
+  items?: SetlistItem[] | null;
 }
 
 interface SetlistBundleResult extends SetlistBundleFallback {
@@ -65,10 +74,13 @@ export function useOfflineSetlistBundle(
 
   useEffect(() => {
     if (!isOnline || impersonating) return;
-    // Merges rather than replaces: this screen doesn't know the setlist's
-    // block/break markers, and writing the whole row would drop them. See
-    // lib/offline/write.ts.
-    cacheSetlistLiveData(fallback.setlist, fallback.songs).catch(() => {
+    // Merges rather than replaces: without the running order this screen
+    // doesn't know the setlist's block/break markers, and writing the whole
+    // row would drop them. See lib/offline/write.ts.
+    const write = fallback.items
+      ? cacheSetlistDetailData(fallback.setlist, fallback.songs, fallback.items)
+      : cacheSetlistLiveData(fallback.setlist, fallback.songs);
+    write.catch(() => {
       // Best-effort opportunistic refresh (quota pressure, private
       // browsing without IndexedDB, etc.) — the periodic/manual full
       // sync and this render's own fresh props still work normally.
@@ -76,12 +88,19 @@ export function useOfflineSetlistBundle(
     // Re-runs whenever the data this component actually has changes, not on
     // every render (isOnline flips are the only other thing that should
     // re-trigger this, to catch up the moment connectivity returns).
-  }, [isOnline, impersonating, fallback.setlist, fallback.songs]);
+  }, [
+    isOnline,
+    impersonating,
+    fallback.setlist,
+    fallback.songs,
+    fallback.items,
+  ]);
 
   if (!isOnline && cached) {
     return {
       setlist: cached.setlist,
       songs: cached.songs,
+      items: cached.items ?? null,
       syncedAt: cached.syncedAt,
     };
   }
@@ -89,6 +108,7 @@ export function useOfflineSetlistBundle(
   return {
     setlist: fallback.setlist,
     songs: fallback.songs,
+    items: fallback.items ?? null,
     // Reflects whether an on-device copy actually exists yet (for the
     // "saved for offline use" toast/badges), even though the *content*
     // being rendered here comes from `fallback`, not `cached`.

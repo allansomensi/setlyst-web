@@ -1000,7 +1000,10 @@
       "keyPageThenSong": "Virar a página, depois trocar de música"
     },
     "active": {
-      "pauseScroll": "Pausar rolagem"
+      "pauseScroll": "Pausar rolagem",
+      "startScroll": "Iniciar rolagem automática (Espaço)",
+      "collapseScroll": "Recolher controles de rolagem",
+      "expandScroll": "Mostrar controles de rolagem"
     },
     "pageTurn": {
       "title": "Pedal / Page Down",
@@ -1008,6 +1011,14 @@
       "pageHelp": "Em músicas longas, cada toque rola uma tela; no fim da música, passa para a próxima.",
       "song": "Próxima música direto",
       "songHelp": "Cada toque troca de música, em qualquer ponto da letra."
+    },
+    "block": {
+      "status": "Bloco {name}: música {current} de {total}",
+      "number": "Bloco {number}",
+      "last": "Última",
+      "nextBlock": "Próximo bloco: {name}",
+      "breakThenBlock": "Pausa, depois {name}",
+      "afterBreak": "Depois da pausa"
     }
   },
   "offlineSync": {

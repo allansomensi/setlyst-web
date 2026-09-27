@@ -2,7 +2,12 @@ import { entityTitle } from "@/lib/page-metadata";
 import { notFound } from "next/navigation";
 import { isUuid } from "@/lib/uuid";
 import { fetchAllServerPages, fetchServerApi } from "@/lib/api-server";
-import { BandWithMembership, Setlist, SetlistSong } from "@/types/api";
+import {
+  BandWithMembership,
+  Setlist,
+  SetlistItem,
+  SetlistSong,
+} from "@/types/api";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import { notFoundOnMissing } from "@/lib/api-not-found";
 import { LiveModeViewer } from "./_components/live-mode-viewer";
@@ -43,12 +48,14 @@ export default async function SetlistLivePage({
       ? resolvedSearchParams.songId
       : undefined;
 
-  // All three reads are independent. The preferences only seed the text
-  // size, so they must never take Live Mode down; a deleted or foreign
-  // setlist is a 404, not the generic error screen.
-  const [setlist, setlistSongsRes, preferences] = await Promise.all([
+  // All four reads are independent. The preferences only seed the text
+  // size and the running order only feeds the block indicator, so neither
+  // may take Live Mode down; a deleted or foreign setlist is a 404, not the
+  // generic error screen.
+  const [setlist, setlistSongsRes, items, preferences] = await Promise.all([
     fetchServerApiOnce<Setlist>(`/setlists/${id}`),
     fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
+    fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`).catch(() => null),
     getMyPreferences().catch(() => null),
   ]).catch(notFoundOnMissing);
 
@@ -68,6 +75,7 @@ export default async function SetlistLivePage({
     <LiveModeViewer
       setlist={setlist}
       songs={setlistSongs}
+      items={items}
       canSaveKeys={canSaveKeys}
       initialSongId={songId}
       initialFontSize={preferences?.live_mode_font_size}
