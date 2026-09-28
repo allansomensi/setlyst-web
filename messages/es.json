@@ -5534,7 +5534,7 @@
       "noChord": "Este símbolo no es un acorde (p. ej. N.C.), pero igual puedes anotarlo.",
       "degree": "Grado",
       "degreeHint": "El grado del acorde en el tono vigente.",
-      "copyToSame": "Aplicar a los otros {count} {chord} de este tono",
+      "copyToSame": "{count, plural, =1 {Aplicar al otro {chord} de este tono} other {Aplicar a los otros # {chord} de este tono}}",
       "copied": "{count, plural, =1 {# acorde completado} other {# acordes completados}}.",
       "function": "Función armónica",
       "functionHint": "Tónica, subdominante o dominante.",

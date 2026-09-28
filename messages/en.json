@@ -5534,7 +5534,7 @@
       "noChord": "This symbol isn't a chord (e.g. N.C.), but you can still annotate it.",
       "degree": "Degree",
       "degreeHint": "The chord's degree in the current key.",
-      "copyToSame": "Apply to the other {count} {chord} in this key",
+      "copyToSame": "{count, plural, =1 {Apply to the other {chord} in this key} other {Apply to the other # {chord} in this key}}",
       "copied": "{count, plural, =1 {# chord filled in} other {# chords filled in}}.",
       "function": "Harmonic function",
       "functionHint": "Tonic, subdominant or dominant.",

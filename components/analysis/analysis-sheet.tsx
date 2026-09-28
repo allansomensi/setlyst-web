@@ -300,7 +300,11 @@ function Overlay({
           bracketTwoFive && connection.kind === "twoFive",
         ).map((stroke) => {
           const color = CONNECTION_COLOR[stroke.kind];
-          const dash = CONNECTION_DASH[stroke.kind];
+          // The bracket is a plain line; dotted is the arrow form.
+          const dash =
+            bracketTwoFive && stroke.kind === "twoFive"
+              ? null
+              : CONNECTION_DASH[stroke.kind];
           const strong = highlight === connection.id;
           const w = strong ? width * 1.9 : width;
           return (

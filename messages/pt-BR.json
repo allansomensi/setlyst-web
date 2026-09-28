@@ -5534,7 +5534,7 @@
       "noChord": "Este símbolo não é um acorde (ex.: N.C.), mas você ainda pode anotá-lo.",
       "degree": "Grau",
       "degreeHint": "O grau do acorde no tom em vigor.",
-      "copyToSame": "Aplicar aos outros {count} {chord} deste tom",
+      "copyToSame": "{count, plural, =1 {Aplicar ao outro {chord} deste tom} other {Aplicar aos outros # {chord} deste tom}}",
       "copied": "{count, plural, =1 {# acorde preenchido} other {# acordes preenchidos}}.",
       "function": "Função harmônica",
       "functionHint": "Tônica, subdominante ou dominante.",

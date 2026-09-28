@@ -287,7 +287,9 @@ export function AnalysisExportDialog({
   });
   const [busy, setBusy] = useState<null | "download" | "copy" | "share">(null);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
+  // The preview frame, as state: it only exists once the dialog's content
+  // has mounted, which is after `open` turns true.
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   const [preview, setPreview] = useState({ scale: 0.4, height: 400 });
 
   const set = (patch: Partial<ExportOptions>) =>
@@ -295,10 +297,8 @@ export function AnalysisExportDialog({
 
   // Fit the full-size sheet into the preview column.
   useLayoutEffect(() => {
-    if (!open) return;
     const node = nodeRef.current;
-    const frame = previewRef.current;
-    if (!node || !frame) return;
+    if (!frame || !node) return;
     const update = () => {
       const scale = Math.min(1, frame.clientWidth / node.offsetWidth);
       setPreview({ scale, height: node.offsetHeight * scale });
@@ -308,7 +308,7 @@ export function AnalysisExportDialog({
     observer.observe(node);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [open, options.width]);
+  }, [frame, options.width]);
 
   const render = async (): Promise<Blob> => {
     const node = nodeRef.current?.firstElementChild as HTMLElement | null;
@@ -414,7 +414,7 @@ export function AnalysisExportDialog({
           </div>
 
           <div
-            ref={previewRef}
+            ref={setFrame}
             className="bg-muted/40 max-h-[55vh] min-h-48 overflow-auto rounded-lg border p-0 md:max-h-[62vh]"
             aria-label={t("preview")}
           >

@@ -191,7 +191,7 @@ export function ConnectionSample({
           strokeWidth={width}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeDasharray={dash?.map((d) => d * width).join(" ")}
+          strokeDasharray={undefined}
         />
       </svg>
     );
