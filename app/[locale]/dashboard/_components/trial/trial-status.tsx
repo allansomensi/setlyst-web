@@ -12,8 +12,7 @@ import { Link } from "@/components/nav-link";
 import type { AccountPlanStatus } from "@/lib/trial";
 import { cn } from "@/lib/utils";
 
-export const SUBSCRIPTION_SETTINGS_HREF =
-  "/dashboard/settings?section=subscription";
+export const SUBSCRIPTION_SETTINGS_HREF = "/dashboard/settings/subscription";
 
 /**
  * The account's plan state, always on screen in the navigation:

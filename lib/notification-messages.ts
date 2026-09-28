@@ -68,10 +68,10 @@ export interface NotificationView {
 }
 
 /** Where the settings sections live (see the settings page). */
-export const SETTINGS_SUBSCRIPTION_HREF = "/dashboard/settings#subscription";
-export const SETTINGS_SECURITY_HREF = "/dashboard/settings#security";
+export const SETTINGS_SUBSCRIPTION_HREF = "/dashboard/settings/subscription";
+export const SETTINGS_SECURITY_HREF = "/dashboard/settings/security";
 export const SETTINGS_COMMUNICATIONS_HREF =
-  "/dashboard/settings#communications";
+  "/dashboard/settings/communications";
 export const ANNOUNCEMENTS_HREF = "/dashboard/announcements";
 export const WHATS_NEW_HREF = "/dashboard/whats-new";
 

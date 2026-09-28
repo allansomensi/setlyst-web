@@ -504,6 +504,7 @@ export function SetlistSongsManager({
                               : undefined
                           }
                           isReordering={reorder.isReordering}
+                          canEdit={canManage}
                           actionsDisabled={actionsDisabled}
                           showAddedBy={showAddedBy}
                           onCopy={canCopy(row.song) ? handleCopy : undefined}
@@ -522,6 +523,7 @@ export function SetlistSongsManager({
                             openBlockDialog({ id: row.id, name: row.name })
                           }
                           onDelete={() => setMarkerToDelete(row.id)}
+                          canEdit={canManage}
                           actionsDisabled={actionsDisabled}
                           move={move}
                         />
@@ -543,6 +545,7 @@ export function SetlistSongsManager({
                           })
                         }
                         onDelete={() => setMarkerToDelete(row.id)}
+                        canEdit={canManage}
                         actionsDisabled={actionsDisabled}
                         move={move}
                       />

@@ -17,7 +17,7 @@ const RATE_LIMIT_MAX_DURATION_MS = 15000;
  */
 const UPGRADE_CODES = new Set(["QUOTA_EXCEEDED", "FEATURE_NOT_IN_PLAN"]);
 
-const PLANS_PATH = "/dashboard/settings?section=subscription";
+const PLANS_PATH = "/dashboard/settings/subscription";
 
 /**
  * Localized label and in-app navigation for the "See plans" action,

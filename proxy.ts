@@ -193,10 +193,9 @@ async function route(
     !isStaffTwoFactorExempt(pathWithoutLocale)
   ) {
     const target = new URL(
-      `/${locale ?? DEFAULT_LOCALE}/dashboard/settings`,
+      `/${locale ?? DEFAULT_LOCALE}/dashboard/settings/security`,
       req.nextUrl.origin,
     );
-    target.searchParams.set("section", "security");
     target.searchParams.set("reason", "staff2fa");
     return NextResponse.redirect(target);
   }

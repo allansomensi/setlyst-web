@@ -98,14 +98,15 @@ async function fetchForCache(url: string): Promise<CachedImage> {
  * itself: it is user content). Falls back to a direct fetch when the cache
  * isn't available.
  */
-async function loadImage(url: string): Promise<CachedImage> {
+async function loadImage(
+  url: string,
+  revalidate: number,
+): Promise<CachedImage> {
   const key = createHash("sha256").update(url).digest("hex");
   const cached = unstable_cache(
     () => fetchForCache(url),
     ["image-proxy", key],
-    {
-      revalidate: IMAGE_CACHE_SECONDS,
-    },
+    { revalidate },
   );
   try {
     return await cached();
@@ -119,15 +120,18 @@ async function loadImage(url: string): Promise<CachedImage> {
 /**
  * Fetches a user-supplied image URL through the SSRF-safe fetcher and
  * serves it from our origin (so the page's CSP can stay `img-src 'self'`).
+ * `cacheSeconds` shortens the server-side cache (default: 1 day) for an
+ * image that changes behind the same URL.
  */
 export async function serveRemoteImage(
   url: string | null | undefined,
+  { cacheSeconds = IMAGE_CACHE_SECONDS }: { cacheSeconds?: number } = {},
 ): Promise<NextResponse> {
   if (!url) return noImage();
 
   let image: CachedImage;
   try {
-    image = await loadImage(url);
+    image = await loadImage(url, cacheSeconds);
   } catch (error) {
     image = {
       ok: false,

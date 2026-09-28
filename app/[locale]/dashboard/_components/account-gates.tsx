@@ -209,7 +209,7 @@ function EmailBanner({
 // ---------------------------------------------------------------------
 
 /** Where exporting the data and deleting the account live. */
-const DATA_SETTINGS_HREF = "/dashboard/settings?section=data";
+const DATA_SETTINGS_HREF = "/dashboard/settings/data";
 
 function TermsGate() {
   const t = useTranslations("terms.gate");

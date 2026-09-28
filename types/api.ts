@@ -471,6 +471,21 @@ export interface SetlistCollaborators {
   collaborators: SetlistCollaborator[];
 }
 
+/** Where a looked-up account already stands in the setlist. */
+export type CollaboratorCandidateStatus =
+  "available" | "invited" | "collaborator" | "owner" | "self";
+
+/**
+ * `GET /setlists/{id}/collaborators/lookup`: the account behind a
+ * username, checked before inviting it.
+ */
+export interface CollaboratorCandidate {
+  user_id: string;
+  username: string;
+  avatar_url: string | null;
+  status: CollaboratorCandidateStatus;
+}
+
 /** `GET /setlists/invitations`: an invite waiting for the caller. */
 export interface SetlistInvitation {
   setlist_id: string;

@@ -846,6 +846,19 @@
       "usernamePlaceholder": "@username",
       "roleLabel": "Permission",
       "send": "Invite",
+      "lookup": {
+        "checking": "Looking for @{username}…",
+        "notFound": "No account with the username @{username}.",
+        "failed": "Couldn't check the username right now.",
+        "found": "Account found",
+        "status": {
+          "available": "Ready to invite",
+          "invited": "Already has a pending invite",
+          "collaborator": "Already collaborates on this setlist",
+          "owner": "Owns this setlist",
+          "self": "That's you"
+        }
+      },
       "roleHints": {
         "viewer": "Viewer: sees the setlist and plays it in Live Mode.",
         "editor": "Editor: also adds, removes and reorders songs, blocks and breaks, and changes keys.",

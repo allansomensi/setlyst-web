@@ -5,7 +5,9 @@ import {
   useMemo,
   useState,
   useTransition,
+  type ComponentProps,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { useTranslations } from "next-intl";
 import { Library, Loader2, Plus, Send } from "lucide-react";
@@ -77,20 +79,36 @@ export interface AddSongDialogProps {
  * songs) and "Minhas músicas" (a personal song, copied into the band).
  * Members who can't change setlists suggest the song instead: the band
  * votes and a manager decides.
+ *
+ * Laid out as a fixed-height panel: the header, the search and filters
+ * and the footer with the add button always stay in view, and only the
+ * song list scrolls. The height doesn't follow the number of matches, so
+ * the dialog doesn't jump around while typing a search.
  */
 export function AddSongDialog(props: AddSongDialogProps) {
+  const locked =
+    !!props.band && !props.band.canManage && !props.band.canSuggest;
   return (
     <Dialog
       open={props.isOpen}
       onOpenChange={(open) => !open && props.onClose()}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent
+        className={
+          locked
+            ? "sm:max-w-md"
+            : "flex h-[min(44rem,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+        }
+      >
         {/* Remounted per open: always starts with nothing selected. */}
         {props.isOpen && <AddSongContent {...props} />}
       </DialogContent>
     </Dialog>
   );
 }
+
+/** Horizontal padding shared by every part of the panel. */
+const PANEL_X = "px-4 sm:px-6";
 
 function AddSongContent(props: AddSongDialogProps) {
   const t = useTranslations("setlists.songs.addDialog");
@@ -101,19 +119,16 @@ function AddSongContent(props: AddSongDialogProps) {
     showRepertoire ? "repertoire" : "mine",
   );
 
-  const header = (
-    <DialogHeader>
-      <DialogTitle>{suggesting ? t("suggestTitle") : t("title")}</DialogTitle>
-      <DialogDescription>
-        {suggesting ? t("suggestDescription") : t("description")}
-      </DialogDescription>
-    </DialogHeader>
-  );
+  const title = suggesting ? t("suggestTitle") : t("title");
+  const description = suggesting ? t("suggestDescription") : t("description");
 
   if (suggesting && !band.canSuggest) {
     return (
       <>
-        {header}
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         <UpgradeHint message={t("suggestLocked")} className="py-2 text-sm" />
         <DialogFooter>
           <Button variant="outline" onClick={props.onClose}>
@@ -123,6 +138,13 @@ function AddSongContent(props: AddSongDialogProps) {
       </>
     );
   }
+
+  const header = (
+    <DialogHeader className={cn("shrink-0 pt-4 pr-12 pb-3 sm:pt-5", PANEL_X)}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogDescription>{description}</DialogDescription>
+    </DialogHeader>
+  );
 
   if (!showRepertoire) {
     return (
@@ -139,24 +161,66 @@ function AddSongContent(props: AddSongDialogProps) {
       <Tabs
         value={tab}
         onValueChange={(value) => setTab(value as "repertoire" | "mine")}
+        className="flex min-h-0 flex-1 flex-col gap-0"
       >
-        <TabsList className="w-full">
-          <TabsTrigger value="repertoire" className="flex-1">
-            <Library aria-hidden />
-            {t("tabs.repertoire")}
-          </TabsTrigger>
-          <TabsTrigger value="mine" className="flex-1">
-            {t("tabs.mine")}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="repertoire" className="pt-2">
+        <div className={cn("shrink-0 pb-1", PANEL_X)}>
+          <TabsList className="w-full">
+            <TabsTrigger value="repertoire" className="flex-1">
+              <Library aria-hidden />
+              {t("tabs.repertoire")}
+            </TabsTrigger>
+            <TabsTrigger value="mine" className="flex-1">
+              {t("tabs.mine")}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="repertoire" className="flex min-h-0 flex-col">
           <RepertoirePicker {...props} suggesting={suggesting} />
         </TabsContent>
-        <TabsContent value="mine" className="pt-2">
+        <TabsContent value="mine" className="flex min-h-0 flex-col">
           <MySongsForm {...props} suggesting={suggesting} />
         </TabsContent>
       </Tabs>
     </>
+  );
+}
+
+/** The panel's scrolling area: the only part of the dialog that scrolls. */
+function ScrollArea({ className, ...props }: ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain border-y",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/**
+ * The panel's footer: a status line on the left, the buttons on the
+ * right. Always in view, under the list.
+ */
+function PanelFooter({
+  status,
+  children,
+}: {
+  status?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <DialogFooter
+      className={cn(
+        "mx-0 mb-0 shrink-0 flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 sm:flex-row",
+        PANEL_X,
+      )}
+    >
+      <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        {status}
+      </div>
+      <div className="ml-auto flex flex-wrap justify-end gap-2">{children}</div>
+    </DialogFooter>
   );
 }
 
@@ -351,27 +415,54 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
     setSongKey("");
   };
 
-  const listId = "add-song-list";
+  const status = (
+    <>
+      {!suggesting && (
+        <span role="status" aria-live="polite">
+          {t("selectedCount", { count: selected.length })}
+        </span>
+      )}
+      {!suggesting && selected.length > 0 && (
+        <Button
+          type="button"
+          variant="link"
+          size="xs"
+          className="h-auto p-0"
+          onClick={() => setSelected([])}
+          disabled={isPending}
+        >
+          {t("clearSelection")}
+        </Button>
+      )}
+    </>
+  );
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3">
-      <SearchInput
-        value={query}
-        onChange={setQuery}
-        placeholder={t("searchMine")}
-      />
-      {(tagOptions.length > 0 || keyOptions.length > 1) && (
-        <div className="grid grid-cols-2 gap-2">
-          {tagOptions.length > 0 && (
-            <div className="space-y-1">
-              <Label htmlFor="add-song-tag" className="text-xs">
-                {t("filterTag")}
-              </Label>
+    <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+      <div
+        className={cn(
+          "grid shrink-0 gap-2 pt-2 pb-3",
+          PANEL_X,
+          (tagOptions.length > 0 || keyOptions.length > 1) &&
+            "sm:grid-cols-[minmax(0,1fr)_auto]",
+        )}
+      >
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder={t("searchMine")}
+        />
+        {(tagOptions.length > 0 || keyOptions.length > 1) && (
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            {tagOptions.length > 0 && (
               <NativeSelect
                 id="add-song-tag"
+                aria-label={t("filterTag")}
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
                 disabled={isPending}
+                className="h-9"
+                wrapperClassName="sm:w-36"
               >
                 <option value="">{t("allTags")}</option>
                 {tagOptions.map((option) => (
@@ -380,18 +471,16 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
                   </option>
                 ))}
               </NativeSelect>
-            </div>
-          )}
-          {keyOptions.length > 1 && (
-            <div className="space-y-1">
-              <Label htmlFor="add-song-key" className="text-xs">
-                {t("filterKey")}
-              </Label>
+            )}
+            {keyOptions.length > 1 && (
               <NativeSelect
                 id="add-song-key"
+                aria-label={t("filterKey")}
                 value={songKey}
                 onChange={(e) => setSongKey(e.target.value)}
                 disabled={isPending}
+                className="h-9"
+                wrapperClassName="sm:w-36"
               >
                 <option value="">{t("allKeys")}</option>
                 {keyOptions.map((option) => (
@@ -400,140 +489,129 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
                   </option>
                 ))}
               </NativeSelect>
+            )}
+          </div>
+        )}
+      </div>
+
+      <ScrollArea aria-busy={isPending || undefined}>
+        {/* `min-w-0`: a fieldset is as wide as its longest line by
+            default, which pushed the dialog (and its add button) past the
+            screen's edge instead of truncating long titles. */}
+        <fieldset className="min-w-0" disabled={isPending}>
+          <legend className="sr-only">{t("listLabel")}</legend>
+          {available.length === 0 ? (
+            <p className="text-muted-foreground px-4 py-12 text-center text-sm">
+              {t("noMoreSongs")}
+            </p>
+          ) : visible.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+              <p className="text-muted-foreground text-sm">{t("noMatch")}</p>
+              {filtering && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                >
+                  {t("clearFilters")}
+                </Button>
+              )}
             </div>
+          ) : (
+            <ul className="divide-y">
+              {visible.map((song) => {
+                const inputId = `add-song-${song.id}`;
+                const checked = selected.includes(song.id);
+                const details = [
+                  song.artist,
+                  song.tonality,
+                  song.tempo ? `${song.tempo} BPM` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+                return (
+                  <li key={song.id}>
+                    <label
+                      htmlFor={inputId}
+                      className={cn(
+                        "hover:bg-muted/50 flex cursor-pointer items-center gap-3 py-2.5 pointer-coarse:py-3",
+                        PANEL_X,
+                        checked && "bg-primary/5",
+                      )}
+                    >
+                      {suggesting ? (
+                        <input
+                          id={inputId}
+                          type="radio"
+                          name="add-song-choice"
+                          className="accent-primary size-4 shrink-0"
+                          checked={checked}
+                          onChange={(e) => toggle(song.id, e.target.checked)}
+                        />
+                      ) : (
+                        <Checkbox
+                          id={inputId}
+                          checked={checked}
+                          onCheckedChange={(value) =>
+                            toggle(song.id, value === true)
+                          }
+                        />
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">
+                          {song.title}
+                          {song.version_label && (
+                            <span className="text-muted-foreground font-normal">
+                              {" "}
+                              · {song.version_label}
+                            </span>
+                          )}
+                        </span>
+                        {details && (
+                          <span className="text-muted-foreground block truncate text-xs">
+                            {details}
+                          </span>
+                        )}
+                      </span>
+                      {!suggesting && checked && (
+                        <span
+                          className="bg-primary text-primary-foreground flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-semibold tabular-nums"
+                          aria-hidden
+                        >
+                          {selected.indexOf(song.id) + 1}
+                        </span>
+                      )}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {matches.length > visible.length && (
+            <p className="text-muted-foreground border-t px-4 py-3 text-center text-xs">
+              {t("showingFirst", {
+                shown: visible.length,
+                total: matches.length,
+              })}
+            </p>
+          )}
+        </fieldset>
+      </ScrollArea>
+
+      {/* `suggesting` implies a band setlist. */}
+      {props.band && (
+        <div className={cn("shrink-0 space-y-2 pt-3", PANEL_X)}>
+          {props.band && !suggesting && (
+            <p className="text-muted-foreground text-xs">{t("copyHint")}</p>
+          )}
+          {suggesting && (
+            <NoteField value={note} onChange={setNote} disabled={isPending} />
           )}
         </div>
       )}
 
-      <fieldset
-        id={listId}
-        className="max-h-[min(20rem,45dvh)] overflow-y-auto overscroll-contain rounded-lg border"
-        aria-busy={isPending || undefined}
-        disabled={isPending}
-      >
-        <legend className="sr-only">{t("listLabel")}</legend>
-        {available.length === 0 ? (
-          <p className="text-muted-foreground px-4 py-8 text-center text-sm">
-            {t("noMoreSongs")}
-          </p>
-        ) : visible.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
-            <p className="text-muted-foreground text-sm">{t("noMatch")}</p>
-            {filtering && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={clearFilters}
-              >
-                {t("clearFilters")}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <ul className="divide-y">
-            {visible.map((song) => {
-              const inputId = `add-song-${song.id}`;
-              const checked = selected.includes(song.id);
-              const details = [
-                song.artist,
-                song.tonality,
-                song.tempo ? `${song.tempo} BPM` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ");
-              return (
-                <li key={song.id}>
-                  <label
-                    htmlFor={inputId}
-                    className={cn(
-                      "hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-3 py-2.5 pointer-coarse:py-3",
-                      checked && "bg-primary/5",
-                    )}
-                  >
-                    {suggesting ? (
-                      <input
-                        id={inputId}
-                        type="radio"
-                        name="add-song-choice"
-                        className="accent-primary size-4 shrink-0"
-                        checked={checked}
-                        onChange={(e) => toggle(song.id, e.target.checked)}
-                      />
-                    ) : (
-                      <Checkbox
-                        id={inputId}
-                        checked={checked}
-                        onCheckedChange={(value) =>
-                          toggle(song.id, value === true)
-                        }
-                      />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">
-                        {song.title}
-                        {song.version_label && (
-                          <span className="text-muted-foreground font-normal">
-                            {" "}
-                            · {song.version_label}
-                          </span>
-                        )}
-                      </span>
-                      {details && (
-                        <span className="text-muted-foreground block truncate text-xs">
-                          {details}
-                        </span>
-                      )}
-                    </span>
-                    {!suggesting && checked && (
-                      <span
-                        className="bg-primary text-primary-foreground flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-semibold tabular-nums"
-                        aria-hidden
-                      >
-                        {selected.indexOf(song.id) + 1}
-                      </span>
-                    )}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </fieldset>
-
-      <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span role="status" aria-live="polite">
-          {suggesting ? null : t("selectedCount", { count: selected.length })}
-        </span>
-        {matches.length > visible.length && (
-          <span>
-            {t("showingFirst", {
-              shown: visible.length,
-              total: matches.length,
-            })}
-          </span>
-        )}
-        {!suggesting && selected.length > 0 && (
-          <Button
-            type="button"
-            variant="link"
-            size="xs"
-            className="h-auto p-0"
-            onClick={() => setSelected([])}
-            disabled={isPending}
-          >
-            {t("clearSelection")}
-          </Button>
-        )}
-      </div>
-
-      {props.band && !suggesting && (
-        <p className="text-muted-foreground text-xs">{t("copyHint")}</p>
-      )}
-      {suggesting && (
-        <NoteField value={note} onChange={setNote} disabled={isPending} />
-      )}
-      <DialogFooter>
+      <PanelFooter status={status}>
         <Button
           type="button"
           variant="outline"
@@ -554,7 +632,7 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
             ? t("suggestButton")
             : t("addMany", { count: selected.length })}
         </Button>
-      </DialogFooter>
+      </PanelFooter>
     </form>
   );
 }
@@ -628,26 +706,25 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
   const excluded = new Set([...excludedSongIds, ...addedIds]);
 
   return (
-    <div className="space-y-3">
-      <SearchInput
-        value={query}
-        onChange={setQuery}
-        placeholder={t("searchRepertoire")}
-      />
-      {suggesting && (
-        <NoteField value={note} onChange={setNote} disabled={isPending} />
-      )}
-      <div
-        className="max-h-72 overflow-y-auto rounded-lg border"
-        aria-busy={loading}
-      >
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className={cn("shrink-0 space-y-3 pt-2 pb-3", PANEL_X)}>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder={t("searchRepertoire")}
+        />
+        {suggesting && (
+          <NoteField value={note} onChange={setNote} disabled={isPending} />
+        )}
+      </div>
+      <ScrollArea aria-busy={loading}>
         {songs === null ? (
-          <p className="text-muted-foreground flex items-center justify-center gap-2 py-8 text-sm">
+          <p className="text-muted-foreground flex items-center justify-center gap-2 py-12 text-sm">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             {t("loading")}
           </p>
         ) : songs.length === 0 ? (
-          <p className="text-muted-foreground px-4 py-8 text-center text-sm">
+          <p className="text-muted-foreground px-4 py-12 text-center text-sm">
             {query ? t("repertoireNoMatch", { query }) : t("repertoireEmpty")}
           </p>
         ) : (
@@ -657,7 +734,10 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
               return (
                 <li
                   key={song.id}
-                  className="flex items-center justify-between gap-3 px-3 py-2"
+                  className={cn(
+                    "flex items-center justify-between gap-3 py-2",
+                    PANEL_X,
+                  )}
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
@@ -720,12 +800,18 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
             })}
           </ul>
         )}
-      </div>
-      {songs && total > songs.length && (
-        <p className="text-muted-foreground text-xs">
-          {t("repertoireMore", { shown: songs.length, total })}
-        </p>
-      )}
+      </ScrollArea>
+      <PanelFooter
+        status={
+          songs && total > songs.length
+            ? t("repertoireMore", { shown: songs.length, total })
+            : null
+        }
+      >
+        <Button type="button" variant="outline" onClick={props.onClose}>
+          {addedIds.length > 0 ? t("done") : t("close")}
+        </Button>
+      </PanelFooter>
     </div>
   );
 }

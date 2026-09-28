@@ -213,7 +213,7 @@ export async function guardedAction<T>(
 
 /** Where a staff account is sent to turn on two-factor authentication. */
 export const STAFF_TWO_FACTOR_PATH =
-  "/dashboard/settings?section=security&reason=staff2fa";
+  "/dashboard/settings/security?reason=staff2fa";
 
 /** The API refused because a staff account must enable two-factor first. */
 export function isStaffTwoFactorRequired(error: unknown): boolean {

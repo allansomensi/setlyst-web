@@ -136,19 +136,22 @@ export function ReleaseNotesList({
                 </p>
               </header>
 
-              <ul className="mt-5 space-y-3.5">
+              {/* From `sm` up, one grid shared by every item (subgrid):
+                  each badge is only as wide as its label, and the texts
+                  still start on the same line, after the widest badge. */}
+              <ul className="mt-5 grid gap-y-3.5 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-x-3">
                 {note.items.map((item, itemIndex) => {
                   const kind = isKnownKind(item.kind) ? item.kind : null;
                   const Icon = kind ? KIND_ICONS[kind] : CircleDot;
                   return (
                     <li
                       key={itemIndex}
-                      className="flex flex-col gap-1.5 sm:flex-row sm:gap-3"
+                      className="flex flex-col items-start gap-1.5 sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:gap-3"
                     >
                       <Badge
                         variant="outline"
                         className={cn(
-                          "mt-0.5 h-6 w-28 shrink-0 justify-start px-2",
+                          "mt-0.5 h-6 px-2.5 sm:justify-self-start",
                           kind && KIND_STYLES[kind],
                         )}
                       >

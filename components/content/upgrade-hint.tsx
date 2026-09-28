@@ -4,7 +4,7 @@ import { Link } from "@/components/nav-link";
 import { cn } from "@/lib/utils";
 
 /** Where "Ver planos" leads from inside the app: the plan picker. */
-export const IN_APP_PLANS_HREF = "/dashboard/settings?section=subscription";
+export const IN_APP_PLANS_HREF = "/dashboard/settings/subscription";
 
 /**
  * Says a feature is not in the person's plan and where to see the plans.

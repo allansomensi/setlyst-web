@@ -108,7 +108,7 @@ export default async function ProfilePage() {
           </Card>
 
           <Link
-            href="/dashboard/settings#security"
+            href="/dashboard/settings/security"
             className="bg-card hover:bg-muted/50 focus-visible:ring-ring/50 flex items-center gap-3 rounded-xl border p-4 text-sm transition-colors outline-none focus-visible:ring-3"
           >
             <ShieldCheck className="text-primary size-5 shrink-0" />

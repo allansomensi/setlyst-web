@@ -25,6 +25,7 @@ import { Link } from "@/components/nav-link";
 import { STATUS_PATH, WIKI_URL } from "@/lib/links";
 import { Badge } from "@/components/ui/badge";
 import { AppLogo } from "@/components/app-logo";
+import { AuthorAvatar } from "@/components/about/author-avatar";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import packageJson from "@/package.json";
 import {
@@ -191,9 +192,7 @@ export default async function AboutPage() {
       <section className="space-y-3">
         <SectionTitle>{t("author")}</SectionTitle>
         <div className="bg-card flex flex-col gap-5 rounded-xl border p-5 sm:flex-row sm:items-start">
-          <span className="bg-primary/10 text-primary flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold">
-            {AUTHOR.initials}
-          </span>
+          <AuthorAvatar initials={AUTHOR.initials} />
           <div className="min-w-0 flex-1 space-y-3">
             <div>
               <p className="text-lg font-semibold">{AUTHOR.name}</p>

@@ -846,6 +846,19 @@
       "usernamePlaceholder": "@usuario",
       "roleLabel": "Permissão",
       "send": "Convidar",
+      "lookup": {
+        "checking": "Procurando @{username}…",
+        "notFound": "Nenhuma conta com o nome de usuário @{username}.",
+        "failed": "Não foi possível verificar o nome de usuário agora.",
+        "found": "Conta encontrada",
+        "status": {
+          "available": "Pronto para convidar",
+          "invited": "Já tem um convite pendente",
+          "collaborator": "Já colabora nesta setlist",
+          "owner": "É o dono desta setlist",
+          "self": "É você"
+        }
+      },
       "roleHints": {
         "viewer": "Leitor: vê a setlist e toca no Modo Ao Vivo.",
         "editor": "Editor: também adiciona, remove e reordena músicas, blocos e pausas, e muda o tom.",

@@ -22,6 +22,7 @@ export function SortableSongRow({
   onRemove,
   onPlay,
   isReordering,
+  canEdit = true,
   actionsDisabled,
   move,
   update,
@@ -44,6 +45,12 @@ export function SortableSongRow({
   /** Overrides "Remove from setlist" (the repertoire's removal differs). */
   removeLabel?: string;
   isReordering: boolean;
+  /**
+   * May change the running order. Without it (a viewer, a band member
+   * without `manage_setlists`) the remove button isn't shown at all.
+   */
+  canEdit?: boolean;
+  /** Writes are unavailable (offline, a save running): buttons disabled. */
   actionsDisabled: boolean;
   /** Reorder mode: move one step up/down without dragging. */
   move?: RowMove;
@@ -198,7 +205,7 @@ export function SortableSongRow({
             <CopyPlus className="h-4 w-4" aria-hidden />
           </Button>
         )}
-        {!isReordering && (
+        {!isReordering && canEdit && (
           <Button
             variant="ghost"
             size="icon"

@@ -13,6 +13,7 @@ import { isUuid } from "@/lib/uuid";
 import { getTranslations } from "next-intl/server";
 import {
   AddedSetlistSong,
+  CollaboratorCandidate,
   CollaboratorRole,
   CopiedSetlistSong,
   PaginatedResponse,
@@ -619,6 +620,28 @@ function revalidateCollaboration() {
   revalidateDashboard("/setlists", "layout");
   revalidateDashboard("/gigs", "layout");
   revalidateDashboard("");
+}
+
+/**
+ * The account behind a username, checked while it's typed in the invite
+ * form: whether it exists and where it already stands in the setlist.
+ * An unknown username fails with `apiCode` `USER_NOT_FOUND`.
+ */
+export async function lookupSetlistCollaborator(
+  setlistId: string,
+  username: string,
+) {
+  const name = username.trim().replace(/^@/, "");
+  if (!isUuid(setlistId) || name.length < 1 || name.length > 50) {
+    return invalidRequest();
+  }
+
+  const query = new URLSearchParams({ username: name });
+  return guardedAction(() =>
+    fetchServerApi<CollaboratorCandidate>(
+      `${apiPath`/setlists/${setlistId}/collaborators/lookup`}?${query}`,
+    ),
+  );
 }
 
 export async function inviteSetlistCollaborator(

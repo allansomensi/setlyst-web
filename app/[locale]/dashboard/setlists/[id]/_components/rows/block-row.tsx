@@ -14,6 +14,7 @@ export function SortableBlockRow({
   isReordering,
   onEdit,
   onDelete,
+  canEdit = true,
   actionsDisabled,
   move,
 }: {
@@ -21,6 +22,8 @@ export function SortableBlockRow({
   isReordering: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  /** May edit the running order; without it, no edit/delete buttons. */
+  canEdit?: boolean;
   actionsDisabled: boolean;
   /** Reorder mode: move one step up/down without dragging. */
   move?: RowMove;
@@ -67,7 +70,7 @@ export function SortableBlockRow({
       <TableCell />
       <TableCell className="text-right">
         {isReordering && move && <MoveButtons label={label} move={move} />}
-        {!isReordering && (
+        {!isReordering && canEdit && (
           <MarkerActions
             onEdit={onEdit}
             onDelete={onDelete}

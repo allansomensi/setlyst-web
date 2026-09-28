@@ -80,7 +80,7 @@ export function GoogleButton({
         intent.mode === "link"
           ? // Not used in practice: linking always comes back through the
             // settings' confirmation step (`?google=confirm`, lib/auth.ts).
-            `/${locale}/dashboard/settings?section=security`
+            `/${locale}/dashboard/settings/security`
           : `/${locale}${stripLocale(intent.callbackPath, locale) ?? "/dashboard"}`;
       await signIn("google", { callbackUrl });
     } catch {

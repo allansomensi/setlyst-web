@@ -118,7 +118,7 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "mx-auto w-full max-w-3xl space-y-6 transition-opacity duration-200",
+        "w-full space-y-6 transition-opacity duration-200",
         isPending && "pointer-events-none opacity-60",
       )}
     >

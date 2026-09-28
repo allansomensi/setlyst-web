@@ -249,9 +249,8 @@ export function PricingPlans({
                   href={
                     hasSession
                       ? {
-                          pathname: "/dashboard/settings",
+                          pathname: "/dashboard/settings/subscription",
                           query: {
-                            section: "subscription",
                             plan: plan.code,
                             interval,
                           },

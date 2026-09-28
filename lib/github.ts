@@ -79,6 +79,43 @@ export async function getLatestCommit(
   }
 }
 
+/** How long the author's GitHub avatar URL is reused: 1 hour. */
+const USER_REVALIDATE_SECONDS = 60 * 60;
+
+/**
+ * The avatar URL of a GitHub account (`GET /users/{login}`), cached like
+ * the commits. Null when GitHub can't be reached or doesn't answer.
+ */
+export async function getGitHubAvatarUrl(
+  login: string,
+): Promise<string | null> {
+  try {
+    const headers: Record<string, string> = {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "setlyst-web",
+    };
+    if (process.env.GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+
+    const response = await fetch(
+      `https://api.github.com/users/${encodeURIComponent(login)}`,
+      {
+        headers,
+        next: { revalidate: USER_REVALIDATE_SECONDS },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      },
+    );
+    if (!response.ok) return null;
+
+    const user = (await response.json()) as { avatar_url?: unknown };
+    return typeof user.avatar_url === "string" ? user.avatar_url : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Gitmoji shortcodes (`:sparkles:`) as the emoji they stand for, so commit
  * subjects read the way they do on GitHub. Unknown codes are left as-is.

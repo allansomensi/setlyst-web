@@ -9,7 +9,7 @@ import type { CommunicationCategory } from "@/types/public";
 import { confirmUnsubscribe, type UnsubscribeState } from "../actions";
 
 /** Where e-mail preferences are managed in the signed-in app. */
-const MANAGE_HREF = "/dashboard/settings#communications";
+const MANAGE_HREF = "/dashboard/settings/communications";
 
 export function UnsubscribeForm({
   token,

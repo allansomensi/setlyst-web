@@ -476,7 +476,7 @@ async function googleErrorUrl(
 }
 
 function settingsGoogleUrl(locale: string, status: string): string {
-  return `/${locale}/dashboard/settings?google=${status}#security`;
+  return `/${locale}/dashboard/settings/security?google=${status}`;
 }
 
 /**

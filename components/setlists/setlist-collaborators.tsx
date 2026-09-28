@@ -1,16 +1,34 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  useTransition,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Crown, LogOut, UserPlus, UsersRound, X } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  Crown,
+  Loader2,
+  LogOut,
+  UserPlus,
+  UsersRound,
+  X,
+} from "lucide-react";
 import {
   COLLABORATOR_ROLES,
+  type CollaboratorCandidate,
   type CollaboratorRole,
   type SetlistCollaborators as Collaborators,
 } from "@/types/api";
 import {
   inviteSetlistCollaborator,
+  lookupSetlistCollaborator,
   removeSetlistCollaborator,
   updateSetlistCollaborator,
 } from "@/app/[locale]/dashboard/setlists/actions";
@@ -154,10 +172,17 @@ function CollaboratorsDialog({
     canManageRole(myRole, r),
   );
 
+  const name = username.trim().replace(/^@/, "");
+  const lookup = useUsernameLookup(
+    setlistId,
+    canInvite && !offline ? name : "",
+  );
+  const canSend =
+    lookup.state === "found" && lookup.candidate.status === "available";
+
   const invite = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const name = username.trim().replace(/^@/, "");
-    if (!name || isPending) return;
+    if (!name || isPending || !canSend) return;
     startTransition(async () => {
       const result = await inviteSetlistCollaborator(setlistId, name, role);
       if (!result.success) {
@@ -234,6 +259,8 @@ function CollaboratorsDialog({
                   spellCheck={false}
                   maxLength={51}
                   disabled={isPending || offline}
+                  aria-describedby="collaborator-lookup"
+                  aria-invalid={lookup.state === "notFound" || undefined}
                   className="sm:flex-1"
                 />
                 <NativeSelect
@@ -252,13 +279,14 @@ function CollaboratorsDialog({
                 <Button
                   type="submit"
                   className="gap-1.5"
-                  disabled={isPending || offline || !username.trim()}
+                  disabled={isPending || offline || !canSend}
                   title={offlineDisabled.title}
                 >
                   <UserPlus className="h-4 w-4" aria-hidden />
                   {t("send")}
                 </Button>
               </div>
+              <LookupResult id="collaborator-lookup" lookup={lookup} />
               <p className="text-muted-foreground text-xs">
                 {t(`roleHints.${role}`)}
               </p>
@@ -398,6 +426,126 @@ function CollaboratorsDialog({
         pending={isPending}
       />
     </>
+  );
+}
+
+type Lookup =
+  | { state: "idle" }
+  | { state: "checking"; username: string }
+  | { state: "found"; candidate: CollaboratorCandidate }
+  | { state: "notFound"; username: string }
+  | { state: "failed" };
+
+/** Wait after the last keystroke before looking the username up. */
+const LOOKUP_DELAY_MS = 350;
+
+/**
+ * Looks `username` up as it's typed (debounced), so the form can confirm
+ * the account exists before the invite is sent. An empty name is `idle`.
+ */
+function useUsernameLookup(setlistId: string, username: string): Lookup {
+  const [result, setResult] = useState<{
+    username: string;
+    lookup: Lookup;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!username) return;
+    let cancelled = false;
+    const handle = window.setTimeout(async () => {
+      const response = await lookupSetlistCollaborator(setlistId, username);
+      if (cancelled) return;
+      const lookup: Lookup =
+        response.success && response.data
+          ? { state: "found", candidate: response.data }
+          : !response.success && response.apiCode === "USER_NOT_FOUND"
+            ? { state: "notFound", username }
+            : { state: "failed" };
+      setResult({ username, lookup });
+    }, LOOKUP_DELAY_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [setlistId, username]);
+
+  if (!username) return { state: "idle" };
+  // Only the answer for what's in the field now counts.
+  if (result?.username !== username) return { state: "checking", username };
+  return result.lookup;
+}
+
+/** The lookup's answer, right under the username field. */
+function LookupResult({ id, lookup }: { id: string; lookup: Lookup }) {
+  const t = useTranslations("setlists.collaborators.lookup");
+
+  let content: ReactNode = null;
+  if (lookup.state === "checking") {
+    content = (
+      <p className="text-muted-foreground flex items-center gap-2 text-xs">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+        {t("checking", { username: lookup.username })}
+      </p>
+    );
+  } else if (lookup.state === "notFound") {
+    content = (
+      <p className="text-destructive flex items-center gap-2 text-xs">
+        <CircleX className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        {t("notFound", { username: lookup.username })}
+      </p>
+    );
+  } else if (lookup.state === "failed") {
+    content = (
+      <p className="text-muted-foreground flex items-center gap-2 text-xs">
+        <CircleAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        {t("failed")}
+      </p>
+    );
+  } else if (lookup.state === "found") {
+    const { candidate } = lookup;
+    const available = candidate.status === "available";
+    content = (
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-lg border px-3 py-2",
+          available
+            ? "border-emerald-500/30 bg-emerald-500/5"
+            : "border-amber-500/30 bg-amber-500/5",
+        )}
+      >
+        <UserAvatar
+          userId={candidate.user_id}
+          name={candidate.username}
+          avatarUrl={candidate.avatar_url}
+          size="sm"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">@{candidate.username}</p>
+          <p
+            className={cn(
+              "flex items-center gap-1 text-xs",
+              available
+                ? "text-emerald-700 dark:text-emerald-400"
+                : "text-amber-700 dark:text-amber-400",
+            )}
+          >
+            {available ? (
+              <CircleCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            ) : (
+              <CircleAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            )}
+            <span className="sr-only">{t("found")}: </span>
+            {t(`status.${candidate.status}`)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div id={id} role="status" aria-live="polite" className="empty:hidden">
+      {content}
+    </div>
   );
 }
 

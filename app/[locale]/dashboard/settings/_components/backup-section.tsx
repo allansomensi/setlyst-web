@@ -389,7 +389,7 @@ export function BackupSection() {
                     count: skippedTours,
                     link: (chunks) => (
                       <Link
-                        href="/dashboard/settings?section=subscription"
+                        href="/dashboard/settings/subscription"
                         className="font-medium underline underline-offset-4"
                       >
                         {chunks}

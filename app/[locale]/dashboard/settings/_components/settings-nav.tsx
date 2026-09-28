@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import {
   CreditCard,
@@ -12,19 +11,16 @@ import {
   SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
-import { NativeSelect } from "@/components/ui/native-select";
+import { Link } from "@/components/nav-link";
+import { usePathname, useRouter } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
-import { scrollIntoDashboard } from "@/lib/scroll-into-dashboard";
-
-export const SETTINGS_SECTIONS = [
-  "preferences",
-  "security",
-  "communications",
-  "subscription",
-  "data",
-  "help",
-] as const;
-export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
+import {
+  SETTINGS_SECTIONS,
+  isSettingsSection,
+  sectionOfPath,
+  settingsHref,
+  type SettingsSection,
+} from "../_lib/sections";
 
 const ICONS: Record<SettingsSection, LucideIcon> = {
   preferences: SlidersHorizontal,
@@ -35,86 +31,65 @@ const ICONS: Record<SettingsSection, LucideIcon> = {
   help: CircleHelp,
 };
 
-function scrollToSection(id: SettingsSection) {
-  const target = document.getElementById(id);
-  if (!target) return;
-  scrollIntoDashboard(target, { smooth: true });
-  window.history.replaceState(null, "", `#${id}`);
-}
-
 /**
- * Settings sub-navigation: a sticky list on large screens, a select on
- * small ones. Highlights the section being read and keeps `#anchor` links
- * (e-mails link to `#communications`) working.
+ * Settings navigation, one page per category (like most apps with many
+ * settings): a sticky list beside the page on large screens, a row of
+ * tabs that scrolls sideways above it on small ones.
  */
 export function SettingsNav() {
   const t = useTranslations("settings.sections");
-  const [active, setActive] = useState<SettingsSection>("preferences");
+  const pathname = usePathname();
+  const active = sectionOfPath(pathname) ?? "preferences";
+  const tabsRef = useRef<HTMLUListElement>(null);
 
-  const sectionParam = useSearchParams()?.get("section") ?? null;
+  useLegacyAnchor(active);
 
-  // `?section=subscription` (links from the pricing page, the plan banner,
-  // upgrade prompts; also while already on this page) or a
-  // `#subscription` anchor (e-mails).
+  // The active tab in view on phones (e.g. "Help", the last one). Only
+  // the tab row scrolls: `scrollIntoView` would move the page as well.
   useEffect(() => {
-    const hash = sectionParam ?? window.location.hash.slice(1);
-    if ((SETTINGS_SECTIONS as readonly string[]).includes(hash)) {
-      // The page scrolls inside the dashboard's <main>, so make sure the
-      // anchor is honoured once everything has rendered.
-      requestAnimationFrame(() => {
-        const target = document.getElementById(hash);
-        if (target) scrollIntoDashboard(target);
-      });
+    const list = tabsRef.current;
+    const tab = list?.querySelector<HTMLElement>("[aria-current='page']");
+    if (!list || !tab) return;
+    const start = tab.offsetLeft - list.offsetLeft;
+    const end = start + tab.offsetWidth;
+    if (start < list.scrollLeft || end > list.scrollLeft + list.clientWidth) {
+      list.scrollLeft = start - 16;
     }
-  }, [sectionParam]);
-
-  useEffect(() => {
-    const visible = new Map<string, number>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          visible.set(
-            entry.target.id,
-            entry.isIntersecting ? entry.intersectionRatio : 0,
-          );
-        }
-        // The first section (in page order) that is on screen wins.
-        const current = SETTINGS_SECTIONS.find(
-          (id) => (visible.get(id) ?? 0) > 0,
-        );
-        if (current) setActive(current);
-      },
-      { rootMargin: "-10% 0px -55% 0px", threshold: [0, 0.01, 0.25] },
-    );
-    for (const id of SETTINGS_SECTIONS) {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    }
-    return () => observer.disconnect();
-  }, []);
+  }, [active]);
 
   return (
     <>
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky -top-4 z-20 -mx-4 border-b px-4 py-2 backdrop-blur md:-top-8 md:-mx-8 md:px-8 lg:hidden">
-        <label htmlFor="settings-section" className="sr-only">
-          {t("navLabel")}
-        </label>
-        <NativeSelect
-          id="settings-section"
-          value={active}
-          onChange={(event) => {
-            const id = event.target.value as SettingsSection;
-            setActive(id);
-            scrollToSection(id);
-          }}
+      <nav
+        aria-label={t("navLabel")}
+        className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky -top-4 z-20 -mx-4 border-b backdrop-blur md:-top-8 md:-mx-8 lg:hidden"
+      >
+        <ul
+          ref={tabsRef}
+          className="flex [scrollbar-width:none] gap-1 overflow-x-auto px-4 py-2 md:px-8 [&::-webkit-scrollbar]:hidden"
         >
-          {SETTINGS_SECTIONS.map((id) => (
-            <option key={id} value={id}>
-              {t(id)}
-            </option>
-          ))}
-        </NativeSelect>
-      </div>
+          {SETTINGS_SECTIONS.map((id) => {
+            const Icon = ICONS[id];
+            const isActive = active === id;
+            return (
+              <li key={id} className="shrink-0">
+                <Link
+                  href={settingsHref(id)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "focus-visible:ring-ring/50 flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" aria-hidden />
+                  {t(id)}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
 
       <nav
         aria-label={t("navLabel")}
@@ -126,14 +101,9 @@ export function SettingsNav() {
             const isActive = active === id;
             return (
               <li key={id}>
-                <a
-                  href={`#${id}`}
-                  aria-current={isActive ? "location" : undefined}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setActive(id);
-                    scrollToSection(id);
-                  }}
+                <Link
+                  href={settingsHref(id)}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "focus-visible:ring-ring/50 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-3",
                     isActive
@@ -141,9 +111,9 @@ export function SettingsNav() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  <Icon className="size-4 shrink-0" />
+                  <Icon className="size-4 shrink-0" aria-hidden />
                   {t(id)}
-                </a>
+                </Link>
               </li>
             );
           })}
@@ -153,7 +123,25 @@ export function SettingsNav() {
   );
 }
 
-/** Heading of one settings section (anchor target). */
+/**
+ * Links from before the settings were split into pages point at an anchor
+ * of the old single page (`/dashboard/settings#communications`, in
+ * e-mails and notifications already sent). The anchor never reaches the
+ * server, so the category's page is opened from here, keeping the query
+ * (`?checkout=success`, `?google=linked`).
+ */
+function useLegacyAnchor(active: SettingsSection) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (active !== "preferences") return;
+    const anchor = window.location.hash.slice(1);
+    if (!isSettingsSection(anchor) || anchor === "preferences") return;
+    router.replace(`${settingsHref(anchor)}${window.location.search}`);
+  }, [active, router]);
+}
+
+/** Heading of a settings page. */
 export function SettingsSectionHeading({
   id,
   title,
