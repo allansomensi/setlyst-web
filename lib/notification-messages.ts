@@ -18,6 +18,7 @@ import type {
   PlatformRoleChangedData,
   ReleasePublishedData,
   SecurityAlertData,
+  SetlistInvitationData,
   ShareLinkRevokedData,
   SubscriptionChangedData,
   TrialEndingData,
@@ -39,7 +40,8 @@ export type NotificationIcon =
   | "subscription"
   | "trial"
   | "credits"
-  | "security";
+  | "security"
+  | "setlistInvite";
 
 export type NotificationTone =
   "default" | "info" | "success" | "warning" | "critical";
@@ -49,6 +51,7 @@ export type NotificationValueRef =
   | { ref: "bandRole"; value: string }
   | { ref: "platformRole"; value: string }
   | { ref: "plan"; value: string }
+  | { ref: "collaboratorRole"; value: string }
   | { ref: "date"; value: string };
 
 export type NotificationValue = string | number | NotificationValueRef;
@@ -196,6 +199,20 @@ export function describeNotification(
         { band: d.band_name, role: { ref: "bandRole", value: d.role } },
         bandHref(d.band_id),
         "memberAdded",
+      );
+    }
+    case "setlist_invitation": {
+      const d = data as unknown as SetlistInvitationData;
+      return view(
+        "setlistInvitation",
+        {
+          user: d.invited_by,
+          title: d.setlist_title,
+          role: { ref: "collaboratorRole", value: d.role },
+        },
+        "/dashboard/setlists",
+        "setlistInvite",
+        "info",
       );
     }
     case "share_link_revoked": {

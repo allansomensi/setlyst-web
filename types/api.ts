@@ -304,6 +304,14 @@ export interface SetlistSong extends Song {
    * `tonality` (0 = as written). See `PATCH /setlists/{id}/songs/{song_id}`.
    */
   transpose?: number;
+  /**
+   * Who added the song to this setlist, and when. Unknown (absent) for
+   * songs added to band setlists before this was recorded.
+   */
+  added_by?: string | null;
+  added_by_username?: string | null;
+  added_by_avatar_url?: string | null;
+  added_at?: string | null;
 }
 
 /** `GET /songs/{id}/versions`: one song of a version family. */
@@ -388,10 +396,71 @@ export interface Setlist {
   /** Whether the caller pinned this setlist to the home page. */
   is_pinned?: boolean;
   owner_username?: string | null;
+  /** Accepted collaborators (personal setlists only). */
+  collaborator_count?: number;
+  /**
+   * The caller's role when someone else's personal setlist is shared with
+   * them; absent for its owner and for band setlists.
+   */
+  collaborator_role?: CollaboratorRole;
   updated_by?: string | null;
   updated_by_username?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * What a collaborator may do in someone else's personal setlist:
+ * - viewer: see it and play it in Live Mode;
+ * - editor: also change its running order (songs, blocks, breaks, keys);
+ * - manager: also edit its details and manage viewers and editors.
+ */
+export type CollaboratorRole = "viewer" | "editor" | "manager";
+
+export const COLLABORATOR_ROLES: readonly CollaboratorRole[] = [
+  "viewer",
+  "editor",
+  "manager",
+];
+
+/** One person a setlist is shared with. */
+export interface SetlistCollaborator {
+  user_id: string;
+  username: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  role: CollaboratorRole;
+  /** False while the invite waits for an answer. */
+  accepted: boolean;
+  invited_by_username: string | null;
+  created_at: string;
+  accepted_at: string | null;
+}
+
+/** `GET /setlists/{id}/collaborators`. */
+export interface SetlistCollaborators {
+  owner: {
+    user_id: string;
+    username: string;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+  };
+  /** Accepted first (managers, editors, viewers), then pending invites. */
+  collaborators: SetlistCollaborator[];
+}
+
+/** `GET /setlists/invitations`: an invite waiting for the caller. */
+export interface SetlistInvitation {
+  setlist_id: string;
+  setlist_title: string;
+  owner_id: string;
+  owner_username: string;
+  owner_avatar_url: string | null;
+  invited_by_username: string | null;
+  role: CollaboratorRole;
+  created_at: string;
 }
 
 export type SetlistMarkerType = "block" | "break";
@@ -983,7 +1052,16 @@ export type NotificationType =
   | "subscription_changed"
   | "trial_ending"
   | "credits_granted"
-  | "security_alert";
+  | "security_alert"
+  | "setlist_invitation";
+
+export interface SetlistInvitationData {
+  setlist_id: string;
+  setlist_title: string;
+  role: CollaboratorRole;
+  actor_id: string;
+  invited_by: string;
+}
 
 export interface BandRoleChangedData {
   band_id: string;
@@ -1098,7 +1176,8 @@ export interface Notification {
     | SubscriptionChangedData
     | TrialEndingData
     | CreditsGrantedData
-    | SecurityAlertData;
+    | SecurityAlertData
+    | SetlistInvitationData;
   read_at: string | null;
   created_at: string;
 }

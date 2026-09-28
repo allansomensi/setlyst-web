@@ -242,6 +242,7 @@ export async function syncAllForOffline(
   // "succeeds".
   const [
     personalSetlistsResult,
+    sharedSetlistsResult,
     personalGigsResult,
     bandsResult,
     songsResult,
@@ -249,6 +250,9 @@ export async function syncAllForOffline(
     preferencesResult,
   ] = await Promise.allSettled([
     fetchAllPages<Setlist>(fetchApi, "/setlists"),
+    // Other people's setlists shared with this account: a guest musician
+    // plays them at the show too.
+    fetchAllPages<Setlist>(fetchApi, "/setlists/shared"),
     fetchAllPages<Gig>(fetchApi, "/gigs"),
     fetchApi<BandWithMembership[]>("/bands", SYNC_FETCH_OPTIONS),
     fetchAllPages<Song>(fetchApi, "/songs"),
@@ -271,6 +275,7 @@ export async function syncAllForOffline(
     "personal setlists",
     [],
   );
+  const sharedSetlists = settled(sharedSetlistsResult, "shared setlists", []);
   const personalGigs = settled(personalGigsResult, "personal shows", []);
   const bands = settled(bandsResult, "bands", []);
   const songs = settled(songsResult, "songs", []);
@@ -300,6 +305,7 @@ export async function syncAllForOffline(
 
   const setlists = [
     ...personalSetlists,
+    ...sharedSetlists,
     ...bandRecords.flatMap((record) => record.setlists),
   ];
   const gigs = [

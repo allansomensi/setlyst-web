@@ -15,6 +15,11 @@ interface SetlistActionsProps {
   setlist: Setlist;
   /** May edit the setlist (links, description, title). */
   canEdit: boolean;
+  /**
+   * May manage its public link: not a collaborator on someone else's
+   * setlist (the link is the owner's alone).
+   */
+  canShare?: boolean;
   /** May export it to PDF (band setlists need the band's `export_pdf`). */
   canExport?: boolean;
   /** The plan includes PDF export (`pdf_export`); without it, watermarked. */
@@ -36,6 +41,7 @@ interface SetlistActionsProps {
 export function SetlistActions({
   setlist,
   canEdit,
+  canShare = true,
   canExport = true,
   pdfInPlan = true,
   setlistId,
@@ -70,16 +76,18 @@ export function SetlistActions({
         </Link>
       </Button>
 
-      <Button
-        variant="outline"
-        size="lg"
-        className="h-10 gap-2 px-3"
-        onClick={() => setIsShareDialogOpen(true)}
-        title={t("shareBtn")}
-      >
-        <Share2 className="h-4 w-4" />
-        <span className="sr-only lg:not-sr-only">{t("shareBtn")}</span>
-      </Button>
+      {canShare && (
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-10 gap-2 px-3"
+          onClick={() => setIsShareDialogOpen(true)}
+          title={t("shareBtn")}
+        >
+          <Share2 className="h-4 w-4" />
+          <span className="sr-only lg:not-sr-only">{t("shareBtn")}</span>
+        </Button>
+      )}
 
       {canExport && (
         <Button

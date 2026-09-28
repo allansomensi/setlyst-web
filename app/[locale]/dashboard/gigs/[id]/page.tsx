@@ -11,6 +11,7 @@ import {
   SetlistItem,
   Artist,
   BandWithMembership,
+  SetlistCollaborators,
 } from "@/types/api";
 import { formatWallClock } from "@/lib/dates";
 import { Link } from "@/components/nav-link";
@@ -30,6 +31,7 @@ import { GigActions } from "./_components/gig-actions";
 import { LinkSetlistPrompt } from "./_components/link-setlist-prompt";
 import { BandOption, TourOption } from "../_components/gigs-dialog";
 import { PinButton } from "@/components/content/pin-button";
+import { SetlistCollaborators as SetlistCollaboratorsRow } from "@/components/setlists/setlist-collaborators";
 import { getEntitlements, hasFeature } from "@/lib/entitlements";
 import type { Tour } from "@/types/content";
 import { getTranslations, getLocale } from "next-intl/server";
@@ -128,6 +130,7 @@ export default async function GigDetailsPage({
   let setlistItems: SetlistItem[] = [];
   let allSongs: Song[] = [];
   let allArtists: Artist[] = [];
+  let collaborators: SetlistCollaborators | null = null;
 
   if (gig.setlist_id) {
     const [
@@ -148,6 +151,13 @@ export default async function GigDetailsPage({
     setlistItems = setlistItemsRes || [];
     allSongs = allSongsRes.data || [];
     allArtists = allArtistsRes.data || [];
+    // A personal show's setlist can be shared with the other musicians
+    // playing it (a guest singer...), right from here. Never fatal.
+    if (!setlist.band_id) {
+      collaborators = await fetchServerApi<SetlistCollaborators>(
+        `/setlists/${setlist.id}/collaborators`,
+      ).catch(() => null);
+    }
   }
 
   return (
@@ -252,13 +262,25 @@ export default async function GigDetailsPage({
 
       {gig.setlist_id && setlist ? (
         <div className="space-y-2">
-          <h2 className="text-muted-foreground text-sm font-medium">
-            {t("setlistFor", {
-              title: setlist.is_repertoire
-                ? tSetlists("repertoire.name")
-                : setlist.title,
-            })}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-muted-foreground text-sm font-medium">
+              {t("setlistFor", {
+                title: setlist.is_repertoire
+                  ? tSetlists("repertoire.name")
+                  : setlist.title,
+              })}
+            </h2>
+            <AuditStamp
+              updatedAt={setlist.updated_at}
+              updatedBy={setlist.updated_by_username}
+            />
+          </div>
+          {collaborators && (
+            <SetlistCollaboratorsRow
+              setlistId={setlist.id}
+              collaborators={collaborators}
+            />
+          )}
           <SetlistSongsManager
             setlistId={setlist.id}
             setlist={setlist}
@@ -266,6 +288,10 @@ export default async function GigDetailsPage({
             setlistItems={setlistItems}
             allSongs={allSongs}
             artists={allArtists}
+            showAddedBy={
+              !!setlist.band_id ||
+              (collaborators?.collaborators.length ?? 0) > 0
+            }
             band={
               gig.band_id
                 ? {

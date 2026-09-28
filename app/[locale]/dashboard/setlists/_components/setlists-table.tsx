@@ -53,6 +53,7 @@ import {
   Star,
   Library,
   SearchX,
+  UsersRound,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
@@ -331,8 +332,13 @@ export function SetlistsTable({
                   ? bandsById?.[setlist.band_id]
                   : undefined;
                 const isBandSetlist = !!setlist.band_id;
-                const canManage =
-                  !isBandSetlist || bandInfo?.canManage === true;
+                // Someone else's setlist shared with this account: a
+                // manager edits its details, nobody but the owner deletes.
+                const sharedRole = setlist.collaborator_role;
+                const canManage = sharedRole
+                  ? false
+                  : !isBandSetlist || bandInfo?.canManage === true;
+                const canEdit = canManage || sharedRole === "manager";
 
                 return (
                   <TableRow
@@ -408,6 +414,34 @@ export function SetlistsTable({
                             {bandInfo?.name ?? t("bandSetlist")}
                           </Badge>
                         )}
+                        {sharedRole ? (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 text-xs font-normal"
+                            title={t("collaborators.sharedByTooltip", {
+                              username: setlist.owner_username ?? "",
+                              role: t(`collaborators.roles.${sharedRole}`),
+                            })}
+                          >
+                            <UsersRound className="h-3 w-3" aria-hidden />
+                            {t("collaborators.sharedBy", {
+                              username: setlist.owner_username ?? "",
+                            })}
+                          </Badge>
+                        ) : (
+                          !!setlist.collaborator_count && (
+                            <Badge
+                              variant="secondary"
+                              className="gap-1 text-xs font-normal"
+                              title={t("collaborators.countTooltip", {
+                                count: setlist.collaborator_count,
+                              })}
+                            >
+                              <UsersRound className="h-3 w-3" aria-hidden />
+                              {setlist.collaborator_count}
+                            </Badge>
+                          )
+                        )}
                         <ChevronRight className="text-muted-foreground h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
                       </div>
                     </TableCell>
@@ -459,7 +493,7 @@ export function SetlistsTable({
                               <Copy className="mr-2 h-4 w-4" />
                               {t("menu.duplicate")}
                             </DropdownMenuItem>
-                            {canManage && (
+                            {canEdit && (
                               <>
                                 <DropdownMenuItem
                                   onClick={(e) => {
@@ -470,7 +504,7 @@ export function SetlistsTable({
                                   <Pencil className="mr-2 h-4 w-4" />
                                   {t("menu.edit")}
                                 </DropdownMenuItem>
-                                {!setlist.is_repertoire && (
+                                {canManage && !setlist.is_repertoire && (
                                   <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem

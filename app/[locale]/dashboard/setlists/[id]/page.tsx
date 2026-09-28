@@ -15,6 +15,7 @@ import {
   Artist,
   BandCopyStatus,
   BandWithMembership,
+  SetlistCollaborators as Collaborators,
 } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { LinkButtons } from "@/components/content/link-buttons";
@@ -26,7 +27,15 @@ import { getEntitlements, hasFeature } from "@/lib/entitlements";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Clock, Guitar, Library, Music } from "lucide-react";
+import {
+  ChevronLeft,
+  Clock,
+  Guitar,
+  Library,
+  Music,
+  UsersRound,
+} from "lucide-react";
+import { SetlistCollaborators } from "@/components/setlists/setlist-collaborators";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
 import { SetlistActions } from "./_components/setlist-actions";
 import { SetlistOfflineStatus } from "./_components/setlist-offline-status";
@@ -83,7 +92,7 @@ export default async function SetlistDetailsPage({
       throw error;
     });
 
-  const [band, entitlements, songUpdates] = await Promise.all([
+  const [band, entitlements, songUpdates, collaborators] = await Promise.all([
     setlist.band_id
       ? fetchServerApi<BandWithMembership>(`/bands/${setlist.band_id}`).catch(
           () => null,
@@ -97,9 +106,28 @@ export default async function SetlistDetailsPage({
           `/bands/${setlist.band_id}/song-updates`,
         ).catch(() => [] as BandCopyStatus[])
       : Promise.resolve([] as BandCopyStatus[]),
+    // Who a personal setlist is shared with. Never fatal: the page works
+    // without it, only the collaborators row is missing.
+    setlist.band_id
+      ? Promise.resolve(null)
+      : fetchServerApi<Collaborators>(`/setlists/${id}/collaborators`).catch(
+          () => null,
+        ),
   ]);
-  const canManage = !setlist.band_id || (!!band && canManageBandSetlists(band));
+  // Someone else's setlist shared with this account: what they may do
+  // follows their role (see CollaboratorRole in types/api.ts).
+  const sharedRole = setlist.collaborator_role;
+  // Owner-level: delete, share publicly.
+  const canManage = sharedRole
+    ? false
+    : !setlist.band_id || (!!band && canManageBandSetlists(band));
+  const canEditItems =
+    canManage || sharedRole === "editor" || sharedRole === "manager";
+  const canEditDetails = canManage || sharedRole === "manager";
   const canExport = !setlist.band_id || (!!band && canExportBandPdf(band));
+  // Who added each song matters once more than one person edits it.
+  const showAddedBy =
+    !!setlist.band_id || (collaborators?.collaborators.length ?? 0) > 0;
   const title = setlistDisplayTitle(setlist, t("repertoire.name"));
 
   const setlistSongs = setlistSongsRes.data || [];
@@ -146,6 +174,15 @@ export default async function SetlistDetailsPage({
                   </Link>
                 </Badge>
               )}
+              {sharedRole && (
+                <Badge variant="outline" className="gap-1 font-normal">
+                  <UsersRound aria-hidden />
+                  {t("collaborators.sharedByRole", {
+                    username: setlist.owner_username ?? "",
+                    role: t(`collaborators.roles.${sharedRole}`),
+                  })}
+                </Badge>
+              )}
             </div>
             {setlist.is_repertoire && (
               <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
@@ -162,6 +199,14 @@ export default async function SetlistDetailsPage({
               updatedBy={setlist.updated_by_username}
               className="mt-1"
             />
+            {collaborators && (
+              <SetlistCollaborators
+                setlistId={setlist.id}
+                collaborators={collaborators}
+                myRole={sharedRole}
+                className="mt-2"
+              />
+            )}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
                 <Clock className="text-primary h-4 w-4" />
@@ -183,7 +228,8 @@ export default async function SetlistDetailsPage({
 
         <SetlistActions
           setlist={setlist}
-          canEdit={canManage}
+          canEdit={canEditDetails}
+          canShare={canManage}
           canExport={canExport}
           pdfInPlan={hasFeature(entitlements, "pdf_export")}
           setlistId={setlist.id}
@@ -217,6 +263,8 @@ export default async function SetlistDetailsPage({
         allSongs={allSongs}
         artists={allArtists}
         songUpdates={songUpdates}
+        canEditItems={canEditItems}
+        showAddedBy={showAddedBy}
         band={
           band
             ? {

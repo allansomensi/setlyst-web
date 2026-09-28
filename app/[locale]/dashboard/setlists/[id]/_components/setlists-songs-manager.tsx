@@ -82,6 +82,13 @@ interface SetlistSongsManagerProps {
    * changed since (`GET /bands/{id}/song-updates`).
    */
   songUpdates?: BandCopyStatus[];
+  /**
+   * May change the running order. False for a viewer of a setlist shared
+   * with them (band setlists decide through `band.canManage`).
+   */
+  canEditItems?: boolean;
+  /** Show who added each song (shared and band setlists). */
+  showAddedBy?: boolean;
 }
 
 /**
@@ -100,6 +107,8 @@ export function SetlistSongsManager({
   artists,
   band,
   songUpdates = [],
+  canEditItems = true,
+  showAddedBy = false,
 }: SetlistSongsManagerProps) {
   const router = useAppRouter();
   const t = useTranslations("setlists.songs");
@@ -108,7 +117,7 @@ export function SetlistSongsManager({
   const offlineDisabled = useOfflineDisabled();
   // Members without `manage_setlists` see the running order read-only and
   // suggest songs instead of adding them.
-  const canManage = !band || band.canManage;
+  const canManage = band ? band.canManage : canEditItems;
   const actionsDisabled = !!offlineDisabled.disabled || !canManage;
 
   // Offline, the running order comes from the on-device mirror rather than
@@ -371,24 +380,26 @@ export function SetlistSongsManager({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              <Button
-                className="gap-2"
-                onClick={() => setIsAddOpen(true)}
-                title={
-                  offlineDisabled.title ??
-                  (canManage ? t("addSong") : t("suggestSong"))
-                }
-                disabled={!!offlineDisabled.disabled}
-              >
-                {canManage ? (
-                  <Plus className="h-4 w-4" aria-hidden />
-                ) : (
-                  <Send className="h-4 w-4" aria-hidden />
-                )}
-                <span className="sr-only sm:not-sr-only">
-                  {canManage ? t("addSong") : t("suggestSong")}
-                </span>
-              </Button>
+              {(canManage || band) && (
+                <Button
+                  className="gap-2"
+                  onClick={() => setIsAddOpen(true)}
+                  title={
+                    offlineDisabled.title ??
+                    (canManage ? t("addSong") : t("suggestSong"))
+                  }
+                  disabled={!!offlineDisabled.disabled}
+                >
+                  {canManage ? (
+                    <Plus className="h-4 w-4" aria-hidden />
+                  ) : (
+                    <Send className="h-4 w-4" aria-hidden />
+                  )}
+                  <span className="sr-only sm:not-sr-only">
+                    {canManage ? t("addSong") : t("suggestSong")}
+                  </span>
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -465,6 +476,7 @@ export function SetlistSongsManager({
                           }
                           isReordering={reorder.isReordering}
                           actionsDisabled={actionsDisabled}
+                          showAddedBy={showAddedBy}
                           move={move}
                         />
                       );

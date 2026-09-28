@@ -779,7 +779,9 @@
         "reset": "Back to the written key",
         "written": "written",
         "writtenIn": "Written in {key}."
-      }
+      },
+      "addedBy": "Added by @{username}",
+      "addedByOn": "Added by @{username} on {date}"
     },
     "errors": {
       "titleLength": "Setlist title must be between 1 and 255 characters.",
@@ -822,6 +824,57 @@
     "emptyState": {
       "title": "No setlists yet",
       "description": "A setlist is the running order of a show: songs, blocks and breaks, with the total time and Live Mode on stage."
+    },
+    "collaborators": {
+      "title": "Collaborators",
+      "description": "People this setlist is shared with, no band needed. Each one joins when they accept the invite.",
+      "openList": "See who the setlist is shared with",
+      "onlyYou": "Only you",
+      "sharedWith": "{count, plural, =1 {Shared with # person} other {Shared with # people}}",
+      "invite": "Invite",
+      "inviteLabel": "Invite by username",
+      "usernamePlaceholder": "@username",
+      "roleLabel": "Permission",
+      "send": "Invite",
+      "roleHints": {
+        "viewer": "Viewer: sees the setlist and plays it in Live Mode.",
+        "editor": "Editor: also adds, removes and reorders songs, blocks and breaks, and changes keys.",
+        "manager": "Manager: also edits the details and invites, promotes and removes viewers and editors."
+      },
+      "roles": {
+        "viewer": "Viewer",
+        "editor": "Editor",
+        "manager": "Manager"
+      },
+      "owner": "Owner",
+      "you": "you",
+      "pending": "Invite pending",
+      "roleFor": "Permission of @{username}",
+      "remove": "Remove",
+      "removeFor": "Remove @{username}",
+      "cancelInvite": "Cancel invite",
+      "cancelInviteFor": "Cancel @{username}'s invite",
+      "leave": "Leave setlist",
+      "leaveTitle": "Leave the setlist?",
+      "leaveConfirm": "You lose access to this setlist, and the songs from your library you added leave it.",
+      "removeTitle": "Remove collaborator?",
+      "removeConfirm": "@{username} loses access to this setlist, and the songs from their library in it leave with them.",
+      "invited": "Invite sent to @{username}.",
+      "alreadyInvited": "@{username} was already invited to this setlist.",
+      "roleChanged": "Permission updated.",
+      "left": "You left the setlist.",
+      "removed": "Collaborator removed.",
+      "empty": "Nobody invited yet. Invite whoever plays with you: each one can add songs from their own library.",
+      "sharedBy": "by @{username}",
+      "sharedByTooltip": "Shared by @{username}. Your permission: {role}.",
+      "sharedByRole": "Shared by @{username} · {role}",
+      "countTooltip": "{count, plural, =1 {Shared with # person} other {Shared with # people}}",
+      "invitesTitle": "{count, plural, =1 {An invite to collaborate} other {# invites to collaborate}}",
+      "inviteLine": "@{username} invited you as {role}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "inviteAccepted": "Invite accepted. The setlist is now in your list.",
+      "inviteDeclined": "Invite declined."
     }
   },
   "gigs": {
@@ -1793,7 +1846,8 @@
       "login_locked": "Sign-in to your account was temporarily locked after several wrong passwords. If it wasn't you, change your password.",
       "reauth_sessions_revoked": "Too many wrong confirmations: we signed your account out on every device. If it wasn't you, change your password.",
       "other": "There was a security change on your account."
-    }
+    },
+    "setlistInvitation": "@{user} invited you to the setlist \"{title}\" as {role}."
   },
   "rateLimit": {
     "message": "Too many actions in a short time. Wait a moment and try again.",
@@ -1905,7 +1959,8 @@
       "tours": "tours",
       "band_tours": "tours in this band",
       "band_notes": "reminders in this band",
-      "pins": "pinned items"
+      "pins": "pinned items",
+      "setlist_collaborators": "collaborators on this setlist"
     },
     "passwordIssues": {
       "too_short": "At least 8 characters.",
@@ -2026,7 +2081,9 @@
     "STAFF_CANNOT_SUBSCRIBE": "Admins and moderators already have every feature and can't subscribe to plans.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {# paid subscription is live and keeps being charged.} other {# paid subscriptions are live and keep being charged.}} Confirm again to switch plans off anyway.",
     "IMPORT_IN_PROGRESS": "Another backup import is already running for this account. Wait for it to finish and try again.",
-    "PAYMENT_ACTION_REQUIRED": "Your bank needs you to confirm this payment. We'll take you to the confirmation page; the new plan applies once it's confirmed."
+    "PAYMENT_ACTION_REQUIRED": "Your bank needs you to confirm this payment. We'll take you to the confirmation page; the new plan applies once it's confirmed.",
+    "USER_NOT_FOUND": "No account with that username.",
+    "COLLABORATION_UNAVAILABLE": "Only personal setlists can have collaborators. In a band, members already share its setlists."
   },
   "downloads": {
     "failed": "Couldn't download the file. Try again.",

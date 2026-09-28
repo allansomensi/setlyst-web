@@ -779,7 +779,9 @@
         "reset": "Voltar ao tom original",
         "written": "original",
         "writtenIn": "Tom original: {key}."
-      }
+      },
+      "addedBy": "Adicionada por @{username}",
+      "addedByOn": "Adicionada por @{username} em {date}"
     },
     "errors": {
       "titleLength": "O título da setlist deve ter entre 1 e 255 caracteres.",
@@ -822,6 +824,57 @@
     "emptyState": {
       "title": "Nenhuma setlist ainda",
       "description": "A setlist é a ordem do show: músicas, blocos e intervalos, com o tempo total e o Modo Ao Vivo no palco."
+    },
+    "collaborators": {
+      "title": "Colaboradores",
+      "description": "Pessoas com quem esta setlist é compartilhada, sem precisar criar uma banda. Cada uma entra quando aceita o convite.",
+      "openList": "Ver com quem a setlist é compartilhada",
+      "onlyYou": "Só você",
+      "sharedWith": "{count, plural, =1 {Compartilhada com # pessoa} other {Compartilhada com # pessoas}}",
+      "invite": "Convidar",
+      "inviteLabel": "Convidar pelo nome de usuário",
+      "usernamePlaceholder": "@usuario",
+      "roleLabel": "Permissão",
+      "send": "Convidar",
+      "roleHints": {
+        "viewer": "Leitor: vê a setlist e toca no Modo Ao Vivo.",
+        "editor": "Editor: também adiciona, remove e reordena músicas, blocos e pausas, e muda o tom.",
+        "manager": "Gerente: também edita os detalhes e convida, promove e remove leitores e editores."
+      },
+      "roles": {
+        "viewer": "Leitor",
+        "editor": "Editor",
+        "manager": "Gerente"
+      },
+      "owner": "Dono",
+      "you": "você",
+      "pending": "Convite pendente",
+      "roleFor": "Permissão de @{username}",
+      "remove": "Remover",
+      "removeFor": "Remover @{username}",
+      "cancelInvite": "Cancelar convite",
+      "cancelInviteFor": "Cancelar o convite de @{username}",
+      "leave": "Sair da setlist",
+      "leaveTitle": "Sair da setlist?",
+      "leaveConfirm": "Você perde o acesso a esta setlist, e as músicas da sua biblioteca que você adicionou saem dela.",
+      "removeTitle": "Remover colaborador?",
+      "removeConfirm": "@{username} perde o acesso a esta setlist, e as músicas da biblioteca dele que estavam nela saem junto.",
+      "invited": "Convite enviado para @{username}.",
+      "alreadyInvited": "@{username} já foi convidado para esta setlist.",
+      "roleChanged": "Permissão atualizada.",
+      "left": "Você saiu da setlist.",
+      "removed": "Colaborador removido.",
+      "empty": "Ninguém convidado ainda. Convide quem vai tocar com você: cada um pode adicionar músicas da própria biblioteca.",
+      "sharedBy": "de @{username}",
+      "sharedByTooltip": "Compartilhada por @{username}. Sua permissão: {role}.",
+      "sharedByRole": "Compartilhada por @{username} · {role}",
+      "countTooltip": "{count, plural, =1 {Compartilhada com # pessoa} other {Compartilhada com # pessoas}}",
+      "invitesTitle": "{count, plural, =1 {Um convite para colaborar} other {# convites para colaborar}}",
+      "inviteLine": "@{username} convidou você como {role}",
+      "accept": "Aceitar",
+      "decline": "Recusar",
+      "inviteAccepted": "Convite aceito. A setlist agora aparece na sua lista.",
+      "inviteDeclined": "Convite recusado."
     }
   },
   "gigs": {
@@ -1793,7 +1846,8 @@
       "login_locked": "O acesso à sua conta foi bloqueado temporariamente depois de várias senhas erradas. Se não foi você, troque sua senha.",
       "reauth_sessions_revoked": "Muitas confirmações erradas: desconectamos sua conta de todos os dispositivos. Se não foi você, troque sua senha.",
       "other": "Houve uma alteração de segurança na sua conta."
-    }
+    },
+    "setlistInvitation": "@{user} convidou você para a setlist \"{title}\" como {role}."
   },
   "rateLimit": {
     "message": "Muitas ações em pouco tempo. Aguarde um instante e tente de novo.",
@@ -1905,7 +1959,8 @@
       "tours": "turnês",
       "band_tours": "turnês nesta banda",
       "band_notes": "lembretes nesta banda",
-      "pins": "itens fixados"
+      "pins": "itens fixados",
+      "setlist_collaborators": "colaboradores nesta setlist"
     },
     "passwordIssues": {
       "too_short": "Pelo menos 8 caracteres.",
@@ -2026,7 +2081,9 @@
     "STAFF_CANNOT_SUBSCRIBE": "Administradores e moderadores já têm acesso a todos os recursos e não podem assinar planos.",
     "BILLING_HAS_PAID_SUBSCRIPTIONS_COUNT": "{count, plural, one {Há # assinatura paga ativa, e ela continua sendo cobrada.} other {Há # assinaturas pagas ativas, e elas continuam sendo cobradas.}} Confirme de novo para desligar os planos mesmo assim.",
     "IMPORT_IN_PROGRESS": "Já existe uma importação de backup em andamento nesta conta. Aguarde a conclusão e tente de novo.",
-    "PAYMENT_ACTION_REQUIRED": "Seu banco pediu para você confirmar este pagamento. Vamos abrir a página de confirmação; o novo plano vale assim que ele for confirmado."
+    "PAYMENT_ACTION_REQUIRED": "Seu banco pediu para você confirmar este pagamento. Vamos abrir a página de confirmação; o novo plano vale assim que ele for confirmado.",
+    "USER_NOT_FOUND": "Nenhuma conta com esse nome de usuário.",
+    "COLLABORATION_UNAVAILABLE": "Só setlists pessoais podem ter colaboradores. Numa banda, os integrantes já compartilham as setlists."
   },
   "downloads": {
     "failed": "Não foi possível baixar o arquivo. Tente novamente.",

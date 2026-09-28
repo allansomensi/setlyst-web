@@ -17,6 +17,7 @@ import {
   UserMinus,
   UserPlus,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
@@ -48,6 +49,7 @@ const ICONS: Record<NotificationIcon, LucideIcon> = {
   trial: Hourglass,
   credits: Coins,
   security: ShieldCheck,
+  setlistInvite: UsersRound,
 };
 
 /** Icon circle colors per tone, unread / read. */
@@ -64,6 +66,7 @@ export function useNotificationMessage() {
   const t = useTranslations("notifications");
   const tBandRoles = useTranslations("bands.roles");
   const tPlatformRoles = useTranslations("roles");
+  const tCollaboratorRoles = useTranslations("setlists.collaborators.roles");
   const format = useFormatter();
 
   const resolve = (value: NotificationValue): string | number => {
@@ -76,6 +79,10 @@ export function useNotificationMessage() {
       case "platformRole":
         return tPlatformRoles.has(value.value)
           ? tPlatformRoles(value.value)
+          : value.value;
+      case "collaboratorRole":
+        return tCollaboratorRoles.has(value.value)
+          ? tCollaboratorRoles(value.value)
           : value.value;
       case "plan":
         return t.has(`plans.${value.value}`)

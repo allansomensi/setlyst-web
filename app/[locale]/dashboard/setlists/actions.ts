@@ -13,6 +13,7 @@ import { isUuid } from "@/lib/uuid";
 import { getTranslations } from "next-intl/server";
 import {
   AddedSetlistSong,
+  CollaboratorRole,
   PaginatedResponse,
   Setlist,
   SetlistItemRef,
@@ -574,5 +575,109 @@ export async function searchBandRepertoire(
     fetchServerApi<PaginatedResponse<SetlistSong>>(
       `/bands/${bandId}/repertoire?${params}`,
     ),
+  );
+}
+
+// ---------------------------------------------------------------------
+// Collaborators (personal setlists shared without a band)
+// ---------------------------------------------------------------------
+
+const COLLABORATOR_ROLE_VALUES = ["viewer", "editor", "manager"] as const;
+
+function isCollaboratorRole(role: unknown): role is CollaboratorRole {
+  return (COLLABORATOR_ROLE_VALUES as readonly unknown[]).includes(role);
+}
+
+/** Who a setlist is shared with changed: its pages and the shared lists. */
+function revalidateCollaboration() {
+  revalidateDashboard("/setlists", "layout");
+  revalidateDashboard("/gigs", "layout");
+  revalidateDashboard("");
+}
+
+export async function inviteSetlistCollaborator(
+  setlistId: string,
+  username: string,
+  role: CollaboratorRole,
+) {
+  const name = username.trim().replace(/^@/, "");
+  if (
+    !isUuid(setlistId) ||
+    !isCollaboratorRole(role) ||
+    name.length < 1 ||
+    name.length > 50
+  ) {
+    return invalidRequest();
+  }
+
+  return guardedAction(
+    () =>
+      fetchServerApi(apiPath`/setlists/${setlistId}/collaborators`, {
+        method: "POST",
+        body: JSON.stringify({ username: name, role }),
+      }),
+    revalidateCollaboration,
+  );
+}
+
+export async function updateSetlistCollaborator(
+  setlistId: string,
+  userId: string,
+  role: CollaboratorRole,
+) {
+  if (!isUuid(setlistId) || !isUuid(userId) || !isCollaboratorRole(role)) {
+    return invalidRequest();
+  }
+
+  return guardedAction(
+    () =>
+      fetchServerApi(apiPath`/setlists/${setlistId}/collaborators/${userId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ role }),
+      }),
+    revalidateCollaboration,
+  );
+}
+
+/** Removes a collaborator, withdraws an invite, or leaves (own id). */
+export async function removeSetlistCollaborator(
+  setlistId: string,
+  userId: string,
+) {
+  if (!isUuid(setlistId) || !isUuid(userId)) return invalidRequest();
+
+  return guardedAction(
+    () =>
+      fetchServerApi(apiPath`/setlists/${setlistId}/collaborators/${userId}`, {
+        method: "DELETE",
+      }),
+    () => {
+      revalidateCollaboration();
+      revalidateSetlistContent();
+    },
+  );
+}
+
+export async function acceptSetlistInvitation(setlistId: string) {
+  if (!isUuid(setlistId)) return invalidRequest();
+
+  return guardedAction(
+    () =>
+      fetchServerApi(apiPath`/setlists/${setlistId}/invitation/accept`, {
+        method: "POST",
+      }),
+    revalidateCollaboration,
+  );
+}
+
+export async function declineSetlistInvitation(setlistId: string) {
+  if (!isUuid(setlistId)) return invalidRequest();
+
+  return guardedAction(
+    () =>
+      fetchServerApi(apiPath`/setlists/${setlistId}/invitation`, {
+        method: "DELETE",
+      }),
+    revalidateCollaboration,
   );
 }

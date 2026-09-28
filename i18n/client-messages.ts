@@ -123,6 +123,7 @@ export const CLIENT_NAMESPACES = {
     "releaseNotes",
     "releaseNotesAdmin",
     "roles",
+    "setlists.collaborators.roles",
     "songExport",
     "staff",
     "tags",

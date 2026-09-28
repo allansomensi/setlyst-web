@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -11,6 +11,8 @@ import type { BandCopyStatus } from "@/types/api";
 import type { SongRow as SongRowData } from "./types";
 import { useSortableRow } from "./use-sortable-row";
 import { SongKeyPicker } from "./song-key-picker";
+import { UserAvatar } from "@/components/user-avatar";
+import { formatApiDateTime } from "@/lib/dates";
 
 export function SortableSongRow({
   setlistId,
@@ -25,6 +27,7 @@ export function SortableSongRow({
   update,
   onUpdate,
   removeLabel,
+  showAddedBy = false,
 }: {
   setlistId: string;
   /** May change the key the setlist plays this song in. */
@@ -42,6 +45,8 @@ export function SortableSongRow({
   actionsDisabled: boolean;
   /** Reorder mode: move one step up/down without dragging. */
   move?: RowMove;
+  /** Show who added the song (shared and band setlists). */
+  showAddedBy?: boolean;
 }) {
   const t = useTranslations("setlists.songs");
   const { song } = row;
@@ -109,6 +114,14 @@ export function SortableSongRow({
             transpose={song.transpose ?? 0}
             editable={canEditKey && !isReordering}
           />
+          {showAddedBy && song.added_by && song.added_by_username && (
+            <AddedBy
+              userId={song.added_by}
+              username={song.added_by_username}
+              avatarUrl={song.added_by_avatar_url ?? null}
+              addedAt={song.added_at ?? null}
+            />
+          )}
           {update && !isReordering && (
             <Badge
               asChild
@@ -168,5 +181,44 @@ export function SortableSongRow({
         )}
       </TableCell>
     </TableRow>
+  );
+}
+
+/**
+ * Who put the song in the setlist: a small avatar, with the name and date
+ * on hover (and for screen readers).
+ */
+function AddedBy({
+  userId,
+  username,
+  avatarUrl,
+  addedAt,
+}: {
+  userId: string;
+  username: string;
+  avatarUrl: string | null;
+  addedAt: string | null;
+}) {
+  const t = useTranslations("setlists.songs");
+  const locale = useLocale();
+  const timeZone = useTimeZone();
+  const label = addedAt
+    ? t("addedByOn", {
+        username,
+        date: formatApiDateTime(addedAt, locale, timeZone),
+      })
+    : t("addedBy", { username });
+
+  return (
+    <span className="ml-auto flex shrink-0 items-center" title={label}>
+      <UserAvatar
+        userId={userId}
+        name={username}
+        avatarUrl={avatarUrl}
+        size="xs"
+        className="size-5 text-[9px]"
+      />
+      <span className="sr-only">{label}</span>
+    </span>
   );
 }

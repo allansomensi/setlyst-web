@@ -1,8 +1,14 @@
 import { staticTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
-import { Setlist, BandWithMembership, QuotaReport } from "@/types/api";
+import {
+  Setlist,
+  BandWithMembership,
+  QuotaReport,
+  SetlistInvitation,
+} from "@/types/api";
 import { SetlistsTable } from "./_components/setlists-table";
+import { SetlistInvitations } from "./_components/setlist-invitations";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
 export async function generateMetadata() {
@@ -18,14 +24,23 @@ export default async function SetlistsPage() {
   // state — the person does have setlists, this fetch just didn't get
   // them this time (see <LoadErrorNotice />, which SetlistsTable shows
   // instead when `loadError` is true and the list ends up empty).
-  const [personalRes, bandsRaw, quotas] = await Promise.all([
-    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
-    fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
-    // Only for the usage chip next to "New setlist": never fatal.
-    fetchServerApi<QuotaReport>("/users/me/quotas").catch(() => null),
-  ]);
+  const [personalRes, sharedRes, bandsRaw, quotas, invitations] =
+    await Promise.all([
+      fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
+      // Other people's setlists shared with this account.
+      fetchOrFailed(fetchAllServerPages<Setlist>("/setlists/shared")),
+      fetchOrFailed(fetchServerApi<BandWithMembership[]>("/bands")),
+      // Only for the usage chip next to "New setlist": never fatal.
+      fetchServerApi<QuotaReport>("/users/me/quotas").catch(() => null),
+      // Invites waiting for an answer: never fatal either.
+      fetchServerApi<SetlistInvitation[]>("/setlists/invitations").catch(
+        () => [] as SetlistInvitation[],
+      ),
+    ]);
 
   const personalFailed = personalRes === FETCH_FAILED;
+  const sharedFailed = sharedRes === FETCH_FAILED;
+  const sharedSetlists = sharedFailed ? [] : (sharedRes?.data ?? []);
   const bandsFailed = bandsRaw === FETCH_FAILED;
   const personalSetlists = personalFailed ? [] : (personalRes?.data ?? []);
   const bands = bandsFailed ? [] : bandsRaw;
@@ -50,11 +65,13 @@ export default async function SetlistsPage() {
     res === FETCH_FAILED ? [] : (res?.data ?? []),
   );
 
-  const setlists = [...personalSetlists, ...bandSetlists];
-  const hadError = personalFailed || bandsFailed || bandSetlistsFailed;
+  const setlists = [...personalSetlists, ...sharedSetlists, ...bandSetlists];
+  const hadError =
+    personalFailed || sharedFailed || bandsFailed || bandSetlistsFailed;
 
   return (
     <div className="w-full space-y-4">
+      <SetlistInvitations invitations={invitations} />
       <SetlistsTable
         initialSetlists={setlists}
         bandsById={bandsById}
