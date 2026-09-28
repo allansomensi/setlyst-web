@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useSession } from "next-auth/react";
 import type { Announcements, ScreenReaderInstructions } from "@dnd-kit/core";
 import { useTranslations } from "next-intl";
 import {
@@ -30,7 +31,11 @@ import {
 } from "@/types/api";
 import { useOfflineSetlistDetail } from "@/hooks/use-offline-setlist-detail";
 import { useOfflineDisabled } from "@/components/offline-disabled";
-import { removeSongFromSetlist, deleteSetlistMarker } from "../../actions";
+import {
+  copySetlistSongToLibrary,
+  removeSongFromSetlist,
+  deleteSetlistMarker,
+} from "../../actions";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -118,6 +123,7 @@ export function SetlistSongsManager({
   // Members without `manage_setlists` see the running order read-only and
   // suggest songs instead of adding them.
   const canManage = band ? band.canManage : canEditItems;
+  const myId = useSession().data?.user?.id;
   const actionsDisabled = !!offlineDisabled.disabled || !canManage;
 
   // Offline, the running order comes from the on-device mirror rather than
@@ -277,6 +283,29 @@ export function SetlistSongsManager({
         toastActionError(result, result.error);
       }
       setMarkerToDelete(null);
+    });
+  };
+
+  // Songs of personal setlists that aren't in the person's library —
+  // someone else's, or held by the setlist — can be copied there.
+  const canCopy = (song: SetlistSong) =>
+    !band && !!myId && (!!song.held || song.user_id !== myId);
+
+  const handleCopy = (songId: string) => {
+    startTransition(async () => {
+      const result = await copySetlistSongToLibrary(setlistId, songId);
+      if (!result.success) {
+        toastActionError(
+          result,
+          result.apiCode === "SONG_ALREADY_IN_LIBRARY"
+            ? t("alreadyInLibrary")
+            : result.error,
+        );
+        return;
+      }
+      toast.success(
+        result.data?.adopted ? t("copiedAndLinked") : t("copiedToLibrary"),
+      );
     });
   };
 
@@ -477,6 +506,8 @@ export function SetlistSongsManager({
                           isReordering={reorder.isReordering}
                           actionsDisabled={actionsDisabled}
                           showAddedBy={showAddedBy}
+                          onCopy={canCopy(row.song) ? handleCopy : undefined}
+                          copyDisabled={!!offlineDisabled.disabled || busy}
                           move={move}
                         />
                       );

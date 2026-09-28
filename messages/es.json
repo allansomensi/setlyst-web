@@ -781,7 +781,14 @@
         "writtenIn": "Tono original: {key}."
       },
       "addedBy": "Agregada por @{username}",
-      "addedByOn": "Agregada por @{username} el {date}"
+      "addedByOn": "Agregada por @{username} el {date}",
+      "held": "Solo en esta setlist",
+      "heldHint": "Esta canción quedó guardada solo en esta setlist: quien la agregó ya no colabora (o la quitó de su biblioteca). No está en la biblioteca de nadie y se va si la setlist se elimina. Cópiala a tu biblioteca para conservarla.",
+      "copyToLibrary": "Copiar a mi biblioteca",
+      "copyToLibraryFor": "Copiar \"{title}\" a mi biblioteca",
+      "alreadyInLibrary": "Esta canción ya está en tu biblioteca.",
+      "copiedToLibrary": "Canción copiada a tu biblioteca.",
+      "copiedAndLinked": "Canción copiada a tu biblioteca. La setlist ahora usa tu copia."
     },
     "errors": {
       "titleLength": "El título de la setlist debe tener entre 1 y 255 caracteres.",
@@ -856,9 +863,9 @@
       "cancelInviteFor": "Cancelar la invitación de @{username}",
       "leave": "Salir de la setlist",
       "leaveTitle": "¿Salir de la setlist?",
-      "leaveConfirm": "Pierdes el acceso a esta setlist, y las canciones de tu biblioteca que agregaste salen de ella.",
+      "leaveConfirm": "Pierdes el acceso a esta setlist. Las canciones que agregaste siguen en ella, guardadas solo en la setlist (en la biblioteca de nadie).",
       "removeTitle": "¿Quitar colaborador?",
-      "removeConfirm": "@{username} pierde el acceso a esta setlist, y las canciones de su biblioteca que estaban en ella salen también.",
+      "removeConfirm": "@{username} pierde el acceso a esta setlist. Las canciones que @{username} agregó siguen en ella, guardadas solo en la setlist; puedes copiarlas a tu biblioteca cuando quieras.",
       "invited": "Invitación enviada a @{username}.",
       "alreadyInvited": "@{username} ya fue invitado a esta setlist.",
       "roleChanged": "Permiso actualizado.",
@@ -2083,7 +2090,8 @@
     "IMPORT_IN_PROGRESS": "Ya hay una importación de copia de seguridad en curso en esta cuenta. Espera a que termine e inténtalo de nuevo.",
     "PAYMENT_ACTION_REQUIRED": "Tu banco necesita que confirmes este pago. Te llevaremos a la página de confirmación; el nuevo plan se aplica en cuanto se confirme.",
     "USER_NOT_FOUND": "Ninguna cuenta con ese nombre de usuario.",
-    "COLLABORATION_UNAVAILABLE": "Solo las setlists personales pueden tener colaboradores. En una banda, los integrantes ya comparten sus setlists."
+    "COLLABORATION_UNAVAILABLE": "Solo las setlists personales pueden tener colaboradores. En una banda, los integrantes ya comparten sus setlists.",
+    "SONG_ALREADY_IN_LIBRARY": "Esta canción ya está en tu biblioteca."
   },
   "downloads": {
     "failed": "No se pudo descargar el archivo. Inténtalo de nuevo.",

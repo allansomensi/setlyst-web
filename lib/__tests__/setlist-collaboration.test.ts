@@ -38,6 +38,10 @@ describe("setlist collaboration", () => {
         expect(collaborators.roleHints[role]).toBeTruthy();
       }
       expect(messages.notifications.setlistInvitation).toContain("{role}");
+      // Songs a setlist keeps after their contributor is gone.
+      expect(messages.setlists.songs.held).toBeTruthy();
+      expect(messages.setlists.songs.copyToLibraryFor).toContain("{title}");
+      expect(messages.apiErrors.SONG_ALREADY_IN_LIBRARY).toBeTruthy();
     }
   });
 });

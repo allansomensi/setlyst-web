@@ -14,6 +14,7 @@ import { getTranslations } from "next-intl/server";
 import {
   AddedSetlistSong,
   CollaboratorRole,
+  CopiedSetlistSong,
   PaginatedResponse,
   Setlist,
   SetlistItemRef,
@@ -301,6 +302,31 @@ export async function removeSongFromSetlist(setlistId: string, songId: string) {
       revalidateSetlistContent();
       revalidateDashboard("/songs", "layout");
       revalidateDashboard("/trash");
+    },
+  );
+}
+
+/**
+ * Copies a song of a personal setlist into the caller's library: one the
+ * setlist holds, or one of someone else's library. When the owner copies
+ * a held song, the setlist uses their copy from then on.
+ */
+export async function copySetlistSongToLibrary(
+  setlistId: string,
+  songId: string,
+) {
+  if (!isUuid(setlistId) || !isUuid(songId)) return invalidRequest();
+
+  return guardedAction(
+    () =>
+      fetchServerApi<CopiedSetlistSong>(
+        apiPath`/setlists/${setlistId}/songs/${songId}/copy`,
+        { method: "POST" },
+      ),
+    () => {
+      revalidateSetlistContent();
+      revalidateDashboard("/songs", "layout");
+      revalidateDashboard("/artists", "layout");
     },
   );
 }

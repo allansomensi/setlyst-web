@@ -290,7 +290,12 @@ export default async function GigDetailsPage({
             artists={allArtists}
             showAddedBy={
               !!setlist.band_id ||
-              (collaborators?.collaborators.length ?? 0) > 0
+              (collaborators?.collaborators.length ?? 0) > 0 ||
+              setlistSongs.some(
+                (song) =>
+                  song.held ||
+                  (!!song.added_by && song.added_by !== setlist.user_id),
+              )
             }
             band={
               gig.band_id

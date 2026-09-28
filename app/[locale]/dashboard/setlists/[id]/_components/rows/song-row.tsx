@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, Trash2 } from "lucide-react";
+import { Archive, CopyPlus, RefreshCw, Trash2 } from "lucide-react";
 import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ export function SortableSongRow({
   onUpdate,
   removeLabel,
   showAddedBy = false,
+  onCopy,
+  copyDisabled = false,
 }: {
   setlistId: string;
   /** May change the key the setlist plays this song in. */
@@ -47,6 +49,12 @@ export function SortableSongRow({
   move?: RowMove;
   /** Show who added the song (shared and band setlists). */
   showAddedBy?: boolean;
+  /**
+   * Offered when the song isn't in the person's library (someone else's,
+   * or held by the setlist): copies it there.
+   */
+  onCopy?: (songId: string) => void;
+  copyDisabled?: boolean;
 }) {
   const t = useTranslations("setlists.songs");
   const { song } = row;
@@ -114,6 +122,17 @@ export function SortableSongRow({
             transpose={song.transpose ?? 0}
             editable={canEditKey && !isReordering}
           />
+          {song.held && (
+            <Badge
+              variant="outline"
+              className="text-muted-foreground h-5 shrink-0 gap-1 px-1.5 text-[10px] font-normal"
+              title={t("heldHint")}
+            >
+              <Archive className="h-3 w-3" aria-hidden />
+              <span className="hidden sm:inline">{t("held")}</span>
+              <span className="sr-only sm:hidden">{t("held")}</span>
+            </Badge>
+          )}
           {showAddedBy && song.added_by && song.added_by_username && (
             <AddedBy
               userId={song.added_by}
@@ -161,8 +180,24 @@ export function SortableSongRow({
           {song.tempo ?? "–"}
         </span>
       </TableCell>
-      <TableCell className="w-12 text-right">
+      <TableCell className="w-12 text-right whitespace-nowrap">
         {isReordering && move && <MoveButtons label={song.title} move={move} />}
+        {!isReordering && onCopy && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-primary relative z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCopy(song.id);
+            }}
+            disabled={copyDisabled}
+            aria-label={t("copyToLibraryFor", { title: song.title })}
+            title={t("copyToLibrary")}
+          >
+            <CopyPlus className="h-4 w-4" aria-hidden />
+          </Button>
+        )}
         {!isReordering && (
           <Button
             variant="ghost"

@@ -127,7 +127,12 @@ export default async function SetlistDetailsPage({
   const canExport = !setlist.band_id || (!!band && canExportBandPdf(band));
   // Who added each song matters once more than one person edits it.
   const showAddedBy =
-    !!setlist.band_id || (collaborators?.collaborators.length ?? 0) > 0;
+    !!setlist.band_id ||
+    (collaborators?.collaborators.length ?? 0) > 0 ||
+    (setlistSongsRes.data ?? []).some(
+      (song) =>
+        song.held || (!!song.added_by && song.added_by !== setlist.user_id),
+    );
   const title = setlistDisplayTitle(setlist, t("repertoire.name"));
 
   const setlistSongs = setlistSongsRes.data || [];

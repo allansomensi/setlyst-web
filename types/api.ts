@@ -312,6 +312,21 @@ export interface SetlistSong extends Song {
   added_by_username?: string | null;
   added_by_avatar_url?: string | null;
   added_at?: string | null;
+  /**
+   * The setlist holds this song itself: a collaborator's song kept after
+   * they left (or trashed it, or deleted their account). It belongs to no
+   * library (`artist_id` is nil); anyone who sees the setlist can copy it
+   * into their own (`POST /setlists/{id}/songs/{song_id}/copy`).
+   */
+  held?: boolean;
+}
+
+/** `POST /setlists/{id}/songs/{song_id}/copy`. */
+export interface CopiedSetlistSong {
+  /** The song in the caller's library (new, or an identical one). */
+  song_id: string;
+  /** The owner copied a held song: the setlist now uses their copy. */
+  adopted: boolean;
 }
 
 /** `GET /songs/{id}/versions`: one song of a version family. */

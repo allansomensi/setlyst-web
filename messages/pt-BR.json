@@ -781,7 +781,14 @@
         "writtenIn": "Tom original: {key}."
       },
       "addedBy": "Adicionada por @{username}",
-      "addedByOn": "Adicionada por @{username} em {date}"
+      "addedByOn": "Adicionada por @{username} em {date}",
+      "held": "Só nesta setlist",
+      "heldHint": "Esta música ficou guardada só nesta setlist: quem a adicionou não colabora mais (ou a removeu da própria biblioteca). Ela não está na biblioteca de ninguém e some se a setlist for excluída. Copie para a sua biblioteca para mantê-la.",
+      "copyToLibrary": "Copiar para minha biblioteca",
+      "copyToLibraryFor": "Copiar \"{title}\" para minha biblioteca",
+      "alreadyInLibrary": "Esta música já está na sua biblioteca.",
+      "copiedToLibrary": "Música copiada para a sua biblioteca.",
+      "copiedAndLinked": "Música copiada para a sua biblioteca. A setlist agora usa a sua cópia."
     },
     "errors": {
       "titleLength": "O título da setlist deve ter entre 1 e 255 caracteres.",
@@ -856,9 +863,9 @@
       "cancelInviteFor": "Cancelar o convite de @{username}",
       "leave": "Sair da setlist",
       "leaveTitle": "Sair da setlist?",
-      "leaveConfirm": "Você perde o acesso a esta setlist, e as músicas da sua biblioteca que você adicionou saem dela.",
+      "leaveConfirm": "Você perde o acesso a esta setlist. As músicas que você adicionou continuam nela, guardadas só na setlist (não na biblioteca de ninguém).",
       "removeTitle": "Remover colaborador?",
-      "removeConfirm": "@{username} perde o acesso a esta setlist, e as músicas da biblioteca dele que estavam nela saem junto.",
+      "removeConfirm": "@{username} perde o acesso a esta setlist. As músicas que @{username} adicionou continuam nela, guardadas só na setlist; você pode copiá-las para a sua biblioteca quando quiser.",
       "invited": "Convite enviado para @{username}.",
       "alreadyInvited": "@{username} já foi convidado para esta setlist.",
       "roleChanged": "Permissão atualizada.",
@@ -2083,7 +2090,8 @@
     "IMPORT_IN_PROGRESS": "Já existe uma importação de backup em andamento nesta conta. Aguarde a conclusão e tente de novo.",
     "PAYMENT_ACTION_REQUIRED": "Seu banco pediu para você confirmar este pagamento. Vamos abrir a página de confirmação; o novo plano vale assim que ele for confirmado.",
     "USER_NOT_FOUND": "Nenhuma conta com esse nome de usuário.",
-    "COLLABORATION_UNAVAILABLE": "Só setlists pessoais podem ter colaboradores. Numa banda, os integrantes já compartilham as setlists."
+    "COLLABORATION_UNAVAILABLE": "Só setlists pessoais podem ter colaboradores. Numa banda, os integrantes já compartilham as setlists.",
+    "SONG_ALREADY_IN_LIBRARY": "Esta música já está na sua biblioteca."
   },
   "downloads": {
     "failed": "Não foi possível baixar o arquivo. Tente novamente.",

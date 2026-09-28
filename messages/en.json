@@ -781,7 +781,14 @@
         "writtenIn": "Written in {key}."
       },
       "addedBy": "Added by @{username}",
-      "addedByOn": "Added by @{username} on {date}"
+      "addedByOn": "Added by @{username} on {date}",
+      "held": "Only in this setlist",
+      "heldHint": "This song is kept only in this setlist: whoever added it no longer collaborates (or removed it from their library). It's in nobody's library and goes if the setlist is deleted. Copy it to your library to keep it.",
+      "copyToLibrary": "Copy to my library",
+      "copyToLibraryFor": "Copy \"{title}\" to my library",
+      "alreadyInLibrary": "This song is already in your library.",
+      "copiedToLibrary": "Song copied to your library.",
+      "copiedAndLinked": "Song copied to your library. The setlist now uses your copy."
     },
     "errors": {
       "titleLength": "Setlist title must be between 1 and 255 characters.",
@@ -856,9 +863,9 @@
       "cancelInviteFor": "Cancel @{username}'s invite",
       "leave": "Leave setlist",
       "leaveTitle": "Leave the setlist?",
-      "leaveConfirm": "You lose access to this setlist, and the songs from your library you added leave it.",
+      "leaveConfirm": "You lose access to this setlist. The songs you added stay in it, kept only in the setlist (in nobody's library).",
       "removeTitle": "Remove collaborator?",
-      "removeConfirm": "@{username} loses access to this setlist, and the songs from their library in it leave with them.",
+      "removeConfirm": "@{username} loses access to this setlist. The songs @{username} added stay in it, kept only in the setlist; you can copy them to your library whenever you like.",
       "invited": "Invite sent to @{username}.",
       "alreadyInvited": "@{username} was already invited to this setlist.",
       "roleChanged": "Permission updated.",
@@ -2083,7 +2090,8 @@
     "IMPORT_IN_PROGRESS": "Another backup import is already running for this account. Wait for it to finish and try again.",
     "PAYMENT_ACTION_REQUIRED": "Your bank needs you to confirm this payment. We'll take you to the confirmation page; the new plan applies once it's confirmed.",
     "USER_NOT_FOUND": "No account with that username.",
-    "COLLABORATION_UNAVAILABLE": "Only personal setlists can have collaborators. In a band, members already share its setlists."
+    "COLLABORATION_UNAVAILABLE": "Only personal setlists can have collaborators. In a band, members already share its setlists.",
+    "SONG_ALREADY_IN_LIBRARY": "This song is already in your library."
   },
   "downloads": {
     "failed": "Couldn't download the file. Try again.",
