@@ -18,8 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDownload } from "@/hooks/use-download";
-import { toast } from "@/lib/toast";
+import { useSharedFileExport } from "@/hooks/use-shared-file-export";
 import type { Setlist } from "@/types/api";
 import { PinButton } from "@/components/content/pin-button";
 import { SetlistDialog } from "../../_components/setlists-dialog";
@@ -70,22 +69,11 @@ export function SetlistActions({
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isExportingFile, setIsExportingFile] = useState(false);
-  const download = useDownload();
-
   // The setlist with its songs and artists, for someone else to import.
-  const exportFile = async () => {
-    setIsExportingFile(true);
-    try {
-      const saved = await download(
-        `/api/export/setlists/${setlistId}/file`,
-        "setlist.setlyst.json",
-      );
-      if (saved) toast.success(t("exportMenu.fileDone"));
-    } finally {
-      setIsExportingFile(false);
-    }
-  };
+  const { exporting: isExportingFile, exportFile } = useSharedFileExport(
+    "setlist",
+    setlistId,
+  );
 
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-2">

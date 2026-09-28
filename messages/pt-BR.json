@@ -623,27 +623,7 @@
       "pdf": "PDF",
       "pdfHint": "Para imprimir ou ler no palco.",
       "file": "Arquivo para compartilhar",
-      "fileHint": "Leva as músicas com letra e cifra, os artistas, os blocos e os tons. Quem receber importa e fica com a setlist igual.",
-      "fileDone": "Arquivo da setlist baixado."
-    },
-    "importSetlist": {
-      "button": "Importar",
-      "title": "Importar setlist",
-      "description": "Escolha um arquivo de setlist exportado no Setlyst. Ela é criada nas suas setlists com as músicas, cifras, blocos e tons.",
-      "dropTitle": "Escolha ou arraste o arquivo",
-      "dropDesc": "Arquivo .json exportado de uma setlist",
-      "invalid": "Esse arquivo não é uma setlist do Setlyst.",
-      "isBackup": "Esse arquivo é um backup completo da conta. Importe-o em Configurações → Backup de dados.",
-      "tooLarge": "O arquivo passa de {size} MB.",
-      "songs": "{count, plural, one {# música} other {# músicas}}",
-      "artists": "{count, plural, one {# artista} other {# artistas}}",
-      "blocks": "{count, plural, one {# bloco ou intervalo} other {# blocos e intervalos}}",
-      "merge": "Músicas e artistas que você já tem são reaproveitados, sem duplicar. O resto é criado na sua conta.",
-      "choose": "Escolher outro arquivo",
-      "confirm": "Importar setlist",
-      "importing": "Importando…",
-      "success": "Setlist \"{title}\" importada.",
-      "failed": "Não foi possível importar a setlist."
+      "fileHint": "Leva as músicas com letra e cifra, os artistas, os blocos e os tons. Quem receber importa e fica com a setlist igual."
     },
     "empty": "Nenhuma setlist cadastrada.",
     "emptySearch": "Nenhuma setlist encontrada para \"{search}\".",
@@ -3062,6 +3042,56 @@
     "description": "O link público foi derrubado e não é possível criar outro por enquanto. Todo o resto continua funcionando normalmente.",
     "reason": "Motivo: {reason}",
     "contact": "Dúvidas? Escreva para {email}."
+  },
+  "sharedFiles": {
+    "exportFile": "Exportar arquivo",
+    "exportHint": {
+      "gig": "Leva o show, a setlist e as músicas com letra e cifra. Quem receber importa e fica com o show igual.",
+      "tour": "Leva a turnê, todos os shows, as setlists e as músicas com letra e cifra. Quem receber importa e fica com a turnê igual."
+    },
+    "exported": {
+      "setlist": "Arquivo da setlist baixado.",
+      "gig": "Arquivo do show baixado.",
+      "tour": "Arquivo da turnê baixado."
+    },
+    "import": {
+      "button": "Importar",
+      "title": {
+        "setlist": "Importar setlist",
+        "gig": "Importar show",
+        "tour": "Importar turnê"
+      },
+      "description": "Escolha um arquivo exportado no Setlyst, de uma setlist, de um show ou de uma turnê. Tudo o que ele leva é criado na sua conta, ligado como no original.",
+      "dropTitle": "Escolha ou arraste o arquivo",
+      "dropDesc": "Arquivo .json exportado de uma setlist, show ou turnê",
+      "invalid": "Esse arquivo não foi exportado de uma setlist, show ou turnê do Setlyst.",
+      "isBackup": "Esse arquivo é um backup completo da conta. Importe-o em Configurações → Backup de dados.",
+      "tooLarge": "O arquivo passa de {size} MB.",
+      "kind": {
+        "setlist": "Setlist",
+        "gig": "Show",
+        "tour": "Turnê"
+      },
+      "gigs": "{count, plural, one {# show} other {# shows}}",
+      "setlists": "{count, plural, one {# setlist} other {# setlists}}",
+      "songs": "{count, plural, one {# música} other {# músicas}}",
+      "artists": "{count, plural, one {# artista} other {# artistas}}",
+      "blocks": "{count, plural, one {# bloco ou intervalo} other {# blocos e intervalos}}",
+      "merge": "Músicas e artistas que você já tem são reaproveitados, sem duplicar. O resto é criado na sua conta.",
+      "choose": "Escolher outro arquivo",
+      "confirm": {
+        "setlist": "Importar setlist",
+        "gig": "Importar show",
+        "tour": "Importar turnê"
+      },
+      "importing": "Importando…",
+      "success": {
+        "setlist": "Setlist \"{title}\" importada.",
+        "gig": "Show \"{title}\" importado.",
+        "tour": "Turnê \"{title}\" importada."
+      },
+      "failed": "Não foi possível importar o arquivo."
+    }
   },
   "site": {
     "nav": {

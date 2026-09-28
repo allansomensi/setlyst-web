@@ -16,6 +16,7 @@ import {
   quotaUsageOf,
 } from "@/components/quota-usage-list";
 import { useOfflineDisabled } from "@/components/offline-disabled";
+import { ImportSharedButton } from "@/components/shared-files/import-shared-dialog";
 import type { QuotaReport } from "@/types/api";
 import { useMounted } from "@/hooks/use-mounted";
 import { groupTours, localToday, type TourPhase } from "@/lib/tours";
@@ -74,6 +75,10 @@ export function ToursView({
         <div className="flex flex-col items-start gap-1 sm:items-end">
           <div className="flex flex-wrap items-center gap-2">
             {canCreate && <QuotaChip usage={quota} resource="tours" />}
+            <ImportSharedButton
+              kind="tour"
+              disabled={!canCreate || quotaFull}
+            />
             <Button
               onClick={() => setIsCreating(true)}
               title={offlineDisabled.title}

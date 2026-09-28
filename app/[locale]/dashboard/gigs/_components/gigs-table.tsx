@@ -58,6 +58,7 @@ import { formatWallClock, parseWallClock, wallClockNow } from "@/lib/dates";
 import { useMounted } from "@/hooks/use-mounted";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
+import { ImportSharedButton } from "@/components/shared-files/import-shared-dialog";
 
 interface BandLookupEntry {
   name: string;
@@ -331,6 +332,9 @@ export function GigsTable({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <QuotaChip usage={quota} resource="gigs" />
+          {!fixedBandId && (
+            <ImportSharedButton kind="gig" disabled={quotaFull} />
+          )}
           <Button
             onClick={() => handleOpenDialog()}
             {...offlineDisabled}

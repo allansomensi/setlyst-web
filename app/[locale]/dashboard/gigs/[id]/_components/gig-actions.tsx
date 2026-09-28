@@ -22,11 +22,14 @@ import {
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import {
   CalendarPlus,
+  FileJson,
+  Loader2,
   Pencil,
   Share2,
   Trash2,
   MoreVertical,
 } from "lucide-react";
+import { useSharedFileExport } from "@/hooks/use-shared-file-export";
 import { gigToIcs } from "@/lib/ics";
 import { sanitizeFilename, saveBlob } from "@/lib/download";
 import { toast } from "@/lib/toast";
@@ -53,6 +56,9 @@ export function GigActions({
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
   const tTrash = useTranslations("trash");
+  const tFiles = useTranslations("sharedFiles");
+  // The gig with its setlist and songs, for someone else to import.
+  const { exporting, exportFile } = useSharedFileExport("gig", gig.id);
 
   const [isPending, startTransition] = useTransition();
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -124,6 +130,21 @@ export function GigActions({
           <Share2 className="h-4 w-4" aria-hidden />
           {t("shareBtn")}
         </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="gap-2"
+          onClick={() => void exportFile()}
+          disabled={exporting}
+          title={tFiles("exportHint.gig")}
+        >
+          {exporting ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <FileJson className="h-4 w-4" aria-hidden />
+          )}
+          {tFiles("exportFile")}
+        </Button>
         <ShareGigDialog
           gigId={gig.id}
           shareToken={gig.share_token}
@@ -148,7 +169,7 @@ export function GigActions({
             <span className="sr-only">{tCommon("moreActions")}</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-72">
           <DropdownMenuItem onClick={() => setIsShareOpen(true)}>
             <Share2 className="mr-2 h-4 w-4" />
             {t("shareBtn")}
@@ -156,6 +177,19 @@ export function GigActions({
           <DropdownMenuItem onClick={addToCalendar}>
             <CalendarPlus className="mr-2 h-4 w-4" />
             {t("addToCalendar")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="items-start"
+            onClick={() => void exportFile()}
+            disabled={exporting}
+          >
+            <FileJson className="mt-0.5 mr-2 h-4 w-4 shrink-0" />
+            <span className="min-w-0">
+              <span className="block">{tFiles("exportFile")}</span>
+              <span className="text-muted-foreground block text-xs">
+                {tFiles("exportHint.gig")}
+              </span>
+            </span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {

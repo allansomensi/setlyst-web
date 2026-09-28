@@ -832,6 +832,8 @@ export interface ImportBackupResponse {
   skipped_tours?: number;
   /** The setlists created, in the file's order. */
   setlist_ids?: string[];
+  gig_ids?: string[];
+  tour_ids?: string[];
 }
 
 export interface BackupArtist {
@@ -881,17 +883,28 @@ export interface BackupGig {
   setlist_id?: string | null;
   status: GigStatus;
   notes?: string | null;
+  location?: string | null;
+  tour_id?: string | null;
 }
 
 export interface ImportBackupPayload {
   version: number;
   /** What the file holds (since format 5; older files are backups). */
-  kind?: "backup" | "setlist";
+  kind?: "backup" | "setlist" | "gig" | "tour";
   exported_at: string;
   artists: BackupArtist[];
   songs: BackupSong[];
   setlists: BackupSetlist[];
   gigs?: BackupGig[];
+  tours?: BackupTour[];
+}
+
+export interface BackupTour {
+  id: string;
+  name: string;
+  description?: string | null;
+  start_date: string;
+  end_date: string;
 }
 
 export type BandRole = "owner" | "admin" | "moderator" | "member";

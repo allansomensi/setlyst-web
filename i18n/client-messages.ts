@@ -89,6 +89,7 @@ export const CLIENT_NAMESPACES = {
     "setlists",
     "settings",
     "shareLock",
+    "sharedFiles",
     "songDetail",
     "songExport",
     "songs",

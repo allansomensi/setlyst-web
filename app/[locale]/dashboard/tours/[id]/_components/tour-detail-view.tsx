@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ChevronLeft,
   Clock,
+  FileJson,
   Guitar,
   Link2,
   ListMusic,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useMounted } from "@/hooks/use-mounted";
+import { useSharedFileExport } from "@/hooks/use-shared-file-export";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +78,9 @@ export function TourDetailView({
   const tTrash = useTranslations("trash");
   const tCommon = useTranslations("common");
   const tRepertoire = useTranslations("setlists.repertoire");
+  const tFiles = useTranslations("sharedFiles");
+  // The tour with its gigs, setlists and songs, for someone else to import.
+  const { exporting, exportFile } = useSharedFileExport("tour", tour.id);
   const locale = useLocale();
   const router = useAppRouter();
   const mounted = useMounted();
@@ -223,6 +228,22 @@ export function TourDetailView({
               <span className="sr-only sm:not-sr-only">{tCommon("edit")}</span>
             </Button>
           )}
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => void exportFile()}
+            disabled={exporting}
+            title={tFiles("exportHint.tour")}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <FileJson className="h-4 w-4" aria-hidden />
+            )}
+            <span className="sr-only sm:not-sr-only">
+              {tFiles("exportFile")}
+            </span>
+          </Button>
           <PinButton
             type="tour"
             id={tour.id}

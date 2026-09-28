@@ -10,7 +10,7 @@ import {
   unfavoriteSetlist,
 } from "../actions";
 import { SetlistDialog } from "./setlists-dialog";
-import { ImportSetlistDialog } from "@/components/setlists/import-setlist-dialog";
+import { ImportSharedButton } from "@/components/shared-files/import-shared-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
@@ -45,7 +45,6 @@ import {
 import {
   MoreHorizontal,
   Plus,
-  Upload,
   Pencil,
   Trash2,
   ListMusic,
@@ -118,7 +117,6 @@ export function SetlistsTable({
 
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingSetlist, setEditingSetlist] = useState<Setlist | null>(null);
 
   const [setlistToDelete, setSetlistToDelete] = useState<Setlist | null>(null);
@@ -237,15 +235,7 @@ export function SetlistsTable({
         <div className="flex flex-wrap items-center gap-2">
           <QuotaChip usage={quota} resource="setlists" />
           {!bandId && (
-            <Button
-              variant="outline"
-              onClick={() => setIsImportOpen(true)}
-              {...offlineDisabled}
-              disabled={offlineDisabled.disabled || quotaFull}
-            >
-              <Upload className="mr-2 h-4 w-4" aria-hidden />
-              {t("importSetlist.button")}
-            </Button>
+            <ImportSharedButton kind="setlist" disabled={quotaFull} />
           )}
           <Button
             onClick={() => handleOpenDialog()}
@@ -563,13 +553,6 @@ export function SetlistsTable({
         setlist={editingSetlist}
         bandId={editingSetlist ? (editingSetlist.band_id ?? undefined) : bandId}
       />
-
-      {!bandId && (
-        <ImportSetlistDialog
-          open={isImportOpen}
-          onOpenChange={setIsImportOpen}
-        />
-      )}
 
       <ConfirmActionDialog
         open={!!setlistToDelete}

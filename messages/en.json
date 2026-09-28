@@ -623,27 +623,7 @@
       "pdf": "PDF",
       "pdfHint": "To print or read on stage.",
       "file": "File to share",
-      "fileHint": "Carries the songs with lyrics and chords, the artists, the blocks and the keys. Whoever gets it imports it and has the same setlist.",
-      "fileDone": "Setlist file downloaded."
-    },
-    "importSetlist": {
-      "button": "Import",
-      "title": "Import setlist",
-      "description": "Choose a setlist file exported from Setlyst. It's created in your setlists with its songs, chords, blocks and keys.",
-      "dropTitle": "Choose or drop the file",
-      "dropDesc": ".json file exported from a setlist",
-      "invalid": "This file isn't a Setlyst setlist.",
-      "isBackup": "This file is a full account backup. Import it in Settings → Data backup.",
-      "tooLarge": "The file is over {size} MB.",
-      "songs": "{count, plural, one {# song} other {# songs}}",
-      "artists": "{count, plural, one {# artist} other {# artists}}",
-      "blocks": "{count, plural, one {# block or break} other {# blocks and breaks}}",
-      "merge": "Songs and artists you already have are reused, not duplicated. The rest is created in your account.",
-      "choose": "Choose another file",
-      "confirm": "Import setlist",
-      "importing": "Importing…",
-      "success": "Setlist \"{title}\" imported.",
-      "failed": "Couldn't import the setlist."
+      "fileHint": "Carries the songs with lyrics and chords, the artists, the blocks and the keys. Whoever gets it imports it and has the same setlist."
     },
     "empty": "No setlists registered.",
     "emptySearch": "No setlists found for \"{search}\".",
@@ -3062,6 +3042,56 @@
     "description": "The public link was taken down and a new one can't be created for now. Everything else keeps working normally.",
     "reason": "Reason: {reason}",
     "contact": "Questions? Write to {email}."
+  },
+  "sharedFiles": {
+    "exportFile": "Export file",
+    "exportHint": {
+      "gig": "Carries the show, its setlist and the songs with lyrics and chords. Whoever gets it imports it and has the same show.",
+      "tour": "Carries the tour, all its shows, their setlists and the songs with lyrics and chords. Whoever gets it imports it and has the same tour."
+    },
+    "exported": {
+      "setlist": "Setlist file downloaded.",
+      "gig": "Show file downloaded.",
+      "tour": "Tour file downloaded."
+    },
+    "import": {
+      "button": "Import",
+      "title": {
+        "setlist": "Import setlist",
+        "gig": "Import show",
+        "tour": "Import tour"
+      },
+      "description": "Choose a file exported from Setlyst, from a setlist, a show or a tour. Everything it carries is created in your account, linked as in the original.",
+      "dropTitle": "Choose or drop the file",
+      "dropDesc": ".json file exported from a setlist, show or tour",
+      "invalid": "This file wasn't exported from a Setlyst setlist, show or tour.",
+      "isBackup": "This file is a full account backup. Import it in Settings → Data backup.",
+      "tooLarge": "The file is over {size} MB.",
+      "kind": {
+        "setlist": "Setlist",
+        "gig": "Show",
+        "tour": "Tour"
+      },
+      "gigs": "{count, plural, one {# show} other {# shows}}",
+      "setlists": "{count, plural, one {# setlist} other {# setlists}}",
+      "songs": "{count, plural, one {# song} other {# songs}}",
+      "artists": "{count, plural, one {# artist} other {# artists}}",
+      "blocks": "{count, plural, one {# block or break} other {# blocks and breaks}}",
+      "merge": "Songs and artists you already have are reused, not duplicated. The rest is created in your account.",
+      "choose": "Choose another file",
+      "confirm": {
+        "setlist": "Import setlist",
+        "gig": "Import show",
+        "tour": "Import tour"
+      },
+      "importing": "Importing…",
+      "success": {
+        "setlist": "Setlist \"{title}\" imported.",
+        "gig": "Show \"{title}\" imported.",
+        "tour": "Tour \"{title}\" imported."
+      },
+      "failed": "Couldn't import the file."
+    }
   },
   "site": {
     "nav": {
