@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { normalizeChordPro, parseChordPro } from "@/lib/music/chordpro";
+import {
+  hasChords,
+  normalizeChordPro,
+  parseChordPro,
+} from "@/lib/music/chordpro";
 
 describe("lone A, E and Em over the lyrics", () => {
   it("reads them as chords in a chart that has chords", () => {
@@ -80,5 +84,23 @@ describe("spaces before the lyric", () => {
     expect(
       block.type === "lyric" && block.words.map((w) => w.map((s) => s.text)),
     ).toEqual([["Hello "], ["my "], ["old "], ["friend"]]);
+  });
+});
+
+describe("hasChords", () => {
+  it("finds bracketed chords and chord lines over the lyric", () => {
+    expect(hasChords("[G]Amazing [D]grace")).toBe(true);
+    expect(hasChords("G      D\nAmazing grace")).toBe(true);
+    expect(hasChords("[Intro]\nC7M  A7(b13)  Dm7  G7")).toBe(true);
+  });
+
+  it("is false for a lyric alone", () => {
+    expect(hasChords(null)).toBe(false);
+    expect(hasChords("  ")).toBe(false);
+    expect(
+      hasChords("[Refrão]\nQuando eu te vi\nE a vida mudou\n{c: devagar}"),
+    ).toBe(false);
+    // A lone "E" is a word, not a chord, in a text with no other chords.
+    expect(hasChords("E\nfoi assim")).toBe(false);
   });
 });

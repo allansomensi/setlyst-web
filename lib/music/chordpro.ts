@@ -538,6 +538,22 @@ function chartHasChords(lines: readonly string[]): boolean {
   );
 }
 
+/**
+ * Whether a song's text carries chords at all — bracketed ("[G]Amazing")
+ * or on lines of their own above the lyric — rather than being a lyric
+ * alone. What the song list's "chords" tag is shown by.
+ */
+export function hasChords(content: string | null | undefined): boolean {
+  if (!content?.trim()) return false;
+  return chartHasChords(
+    content
+      .replace(/\r\n?/g, "\n")
+      .replace(/\t/g, "    ")
+      .replace(/\u00a0/g, " ")
+      .split("\n"),
+  );
+}
+
 /** Whether a line is only bracketed chords and filler: "[G] [D] | [Em]". */
 function isBracketChordLine(line: string): boolean {
   const rest = line.replace(/\[([^\]]+)\]/g, (whole, inner: string) =>

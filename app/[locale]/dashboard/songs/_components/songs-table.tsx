@@ -71,6 +71,7 @@ import { useSongChordProExport } from "@/components/songs/use-song-chordpro-expo
 import { ImportChordProDialog } from "./import-chordpro-dialog";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
+import { hasChords } from "@/lib/music/chordpro";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 
 // `lyrics` too: people often remember a line, not the title.
@@ -157,6 +158,9 @@ export function SongsTable({
       ...song,
       artist_name: getArtistName(song.artist_id),
       tags_text: (song.tags ?? []).join(" "),
+      // Whether the text carries chords or is a lyric alone: the tag
+      // that shows which songs still need their chart written.
+      has_chords: hasChords(song.lyrics),
       // Chord brackets and directives out, so "[G]Amazing [D]grace"
       // matches "amazing grace".
       lyrics_text: (song.lyrics ?? "")
@@ -450,10 +454,18 @@ export function SongsTable({
                       <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span
-                          className="bg-primary/10 text-primary rounded px-1 py-0.5 text-[11px] font-medium"
+                          className="bg-primary/10 text-primary shrink-0 rounded px-1 py-0.5 text-[11px] font-medium"
                           title={t("dialog.lyricsTitle")}
                         >
                           {t("lyricsTag")}
+                        </span>
+                      )}
+                      {song.has_chords && (
+                        <span
+                          className="shrink-0 rounded bg-emerald-500/10 px-1 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
+                          title={t("chordsTagTitle")}
+                        >
+                          {t("chordsTag")}
                         </span>
                       )}
                     </div>
