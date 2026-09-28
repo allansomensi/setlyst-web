@@ -121,6 +121,7 @@ describe("normalizeAnalysis", () => {
     expect(analysis.notes[0]).toMatchObject({ from: 1, to: 3, color: "sky" });
     expect(analysis.display).toEqual({
       showLyrics: false,
+      showChords: true,
       showFunctions: false,
       twoFiveStyle: "bracket",
     });

@@ -31,6 +31,7 @@ export interface ExportSong {
 interface ExportOptions {
   theme: "light" | "dark";
   width: "portrait" | "wide";
+  chords: boolean;
   lyrics: boolean;
   legend: boolean;
   notes: boolean;
@@ -76,7 +77,11 @@ function ExportSheet({
   const t = useTranslations("analysis");
   const shown: HarmonicAnalysis = {
     ...analysis,
-    display: { ...analysis.display, showLyrics: options.lyrics },
+    display: {
+      ...analysis.display,
+      showChords: options.chords,
+      showLyrics: options.lyrics,
+    },
   };
   const hasLegend =
     options.legend &&
@@ -280,6 +285,7 @@ export function AnalysisExportDialog({
   const [options, setOptions] = useState<ExportOptions>({
     theme: "light",
     width: "portrait",
+    chords: analysis.display.showChords,
     lyrics: analysis.display.showLyrics,
     legend: true,
     notes: true,
@@ -294,6 +300,19 @@ export function AnalysisExportDialog({
 
   const set = (patch: Partial<ExportOptions>) =>
     setOptions((o) => ({ ...o, ...patch }));
+
+  // Each opening starts from what the chart shows right now.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setOptions((o) => ({
+        ...o,
+        chords: analysis.display.showChords,
+        lyrics: analysis.display.showLyrics,
+      }));
+    }
+  }
 
   // Fit the full-size sheet into the preview column.
   useLayoutEffect(() => {
@@ -390,6 +409,11 @@ export function AnalysisExportDialog({
               ]}
             />
             <div className="space-y-1.5 pt-1">
+              <Option
+                label={t("chords")}
+                checked={options.chords}
+                onChange={(chords) => set({ chords })}
+              />
               <Option
                 label={t("lyrics")}
                 checked={options.lyrics}

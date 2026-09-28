@@ -278,6 +278,8 @@
     "exportSuccess": "Músicas exportadas.",
     "searchPlaceholder": "Buscar por título, artista, tag ou trecho da letra…",
     "lyricsTag": "letra",
+    "chordsTag": "cifra",
+    "chordsTagTitle": "Tem cifra: acordes identificados na letra",
     "table": {
       "title": "Título",
       "artist": "Artista",
@@ -5442,6 +5444,9 @@
     },
     "display": {
       "title": "Exibição",
+      "content": "Mostrar",
+      "chordsAndDegrees": "Acorde e grau",
+      "degreesOnly": "Só o grau",
       "lyrics": "Mostrar a letra",
       "functions": "Cores e letras das funções (T, SD, D)",
       "twoFive": "II–V cadencial",
@@ -5647,6 +5652,7 @@
       "format": "Formato",
       "portrait": "Retrato",
       "wide": "Largo",
+      "chords": "Acordes",
       "lyrics": "Letra",
       "legendOption": "Legenda",
       "notesOption": "Anotações",

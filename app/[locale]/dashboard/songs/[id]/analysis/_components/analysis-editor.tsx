@@ -541,6 +541,7 @@ export function AnalysisEditor({
 
   const setDisplay = (patch: Partial<AnalysisDisplay>) =>
     apply((a) => ({ ...a, display: { ...a.display, ...patch } }));
+  const keepOpen = (event: Event) => event.preventDefault();
 
   const analysed = useMemo(
     () =>
@@ -692,10 +693,30 @@ export function AnalysisEditor({
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuContent align="end" className="w-72">
+              {/* Every choice keeps the menu open: they're tried side by
+                  side, watching the chart change behind it. */}
+              <DropdownMenuLabel className="text-muted-foreground text-xs font-medium">
+                {t("display.content")}
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={analysis.display.showChords ? "both" : "degrees"}
+                onValueChange={(value) =>
+                  setDisplay({ showChords: value === "both" })
+                }
+              >
+                <DropdownMenuRadioItem value="both" onSelect={keepOpen}>
+                  {t("display.chordsAndDegrees")}
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="degrees" onSelect={keepOpen}>
+                  {t("display.degreesOnly")}
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={analysis.display.showLyrics}
                 onCheckedChange={(value) => setDisplay({ showLyrics: !!value })}
+                onSelect={keepOpen}
               >
                 {t("display.lyrics")}
               </DropdownMenuCheckboxItem>
@@ -704,6 +725,7 @@ export function AnalysisEditor({
                 onCheckedChange={(value) =>
                   setDisplay({ showFunctions: !!value })
                 }
+                onSelect={keepOpen}
               >
                 {t("display.functions")}
               </DropdownMenuCheckboxItem>
@@ -719,10 +741,10 @@ export function AnalysisEditor({
                   })
                 }
               >
-                <DropdownMenuRadioItem value="bracket">
+                <DropdownMenuRadioItem value="bracket" onSelect={keepOpen}>
                   {t("display.bracket")}
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="arrow">
+                <DropdownMenuRadioItem value="arrow" onSelect={keepOpen}>
                   {t("display.dottedArrow")}
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>

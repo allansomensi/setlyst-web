@@ -17,6 +17,13 @@ import {
 } from "./analysis-marks";
 
 /**
+ * The sample column of the legend: wide enough for the longest short
+ * label ("dim. desc."), so a badge never runs into its name, and left
+ * aligned so the names line up.
+ */
+const MARK_COLUMN = "flex min-w-[4.25rem] shrink-0 items-center text-base";
+
+/**
  * What each line and mark means. With `usedOnly`, just the ones this
  * analysis uses — what an exported image needs; without it, everything,
  * as a reference while writing.
@@ -63,13 +70,15 @@ export function AnalysisLegend({
         <ul className={grid}>
           {kinds.map((kind) => (
             <li key={kind} className="flex items-center gap-2.5">
-              <ConnectionSample
-                kind={kind}
-                bracket={
-                  kind === "twoFive" &&
-                  analysis.display.twoFiveStyle === "bracket"
-                }
-              />
+              <span className={MARK_COLUMN}>
+                <ConnectionSample
+                  kind={kind}
+                  bracket={
+                    kind === "twoFive" &&
+                    analysis.display.twoFiveStyle === "bracket"
+                  }
+                />
+              </span>
               <span>
                 <span className="font-medium">{tKind(`${kind}.name`)}</span>
                 <span className="text-muted-foreground">
@@ -85,7 +94,7 @@ export function AnalysisLegend({
         <ul className={grid}>
           {functions.map((fn) => (
             <li key={fn} className="flex items-center gap-2.5">
-              <span className="w-9 text-center text-base">
+              <span className={MARK_COLUMN}>
                 <FunctionBadge fn={fn} />
               </span>
               <span className="font-medium">{t(`functions.${fn}.name`)}</span>
@@ -93,7 +102,7 @@ export function AnalysisLegend({
           ))}
           {badges.map((badge) => (
             <li key={badge} className="flex items-center gap-2.5">
-              <span className="w-9 text-center text-base">
+              <span className={MARK_COLUMN}>
                 <MarkBadge badge={badge} label={tBadge(`${badge}.short`)} />
               </span>
               <span className="font-medium">{tBadge(`${badge}.name`)}</span>

@@ -278,6 +278,8 @@
     "exportSuccess": "Songs exported.",
     "searchPlaceholder": "Search by title, artist, tag or a line of the lyrics…",
     "lyricsTag": "lyrics",
+    "chordsTag": "chords",
+    "chordsTagTitle": "Has chords: chords found in the lyrics",
     "table": {
       "title": "Title",
       "artist": "Artist",
@@ -5442,6 +5444,9 @@
     },
     "display": {
       "title": "Display",
+      "content": "Show",
+      "chordsAndDegrees": "Chord and degree",
+      "degreesOnly": "Degree only",
       "lyrics": "Show lyrics",
       "functions": "Function colours and letters (T, SD, D)",
       "twoFive": "Cadential II–V",
@@ -5647,6 +5652,7 @@
       "format": "Format",
       "portrait": "Portrait",
       "wide": "Wide",
+      "chords": "Chords",
       "lyrics": "Lyrics",
       "legendOption": "Legend",
       "notesOption": "Notes",

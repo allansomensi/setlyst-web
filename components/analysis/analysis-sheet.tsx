@@ -10,6 +10,7 @@ import React, {
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
+  degreeIsSet,
   footnotes as buildFootnotes,
   isAnalysableChord,
   type Cell,
@@ -39,9 +40,12 @@ interface Box {
 }
 
 interface ChordGeometry {
+  /** What the arcs land on: the chord symbol, or the degree when alone. */
   chord: Box;
   cell: Box;
   degree: Box;
+  /** The strip under the degree the II–V bracket is drawn in. */
+  lane: Box;
 }
 
 interface Geometry {
@@ -79,11 +83,13 @@ function measure(container: HTMLElement): Geometry {
     const index = Number(cell.dataset.anCell);
     const chord = cell.querySelector("[data-an-chord]");
     const degree = cell.querySelector("[data-an-degree]");
-    if (!chord || !degree) return;
+    const lane = cell.querySelector("[data-an-lane]");
+    if (!chord || !degree || !lane) return;
     chords.set(index, {
       chord: relativeBox(chord, origin, scale),
       cell: relativeBox(cell, origin, scale),
       degree: relativeBox(degree, origin, scale),
+      lane: relativeBox(lane, origin, scale),
     });
   });
 
@@ -111,6 +117,8 @@ function sameGeometry(a: Geometry | null, b: Geometry): boolean {
       Math.abs(o.chord.left - g.chord.left) > 0.5 ||
       Math.abs(o.chord.top - g.chord.top) > 0.5 ||
       Math.abs(o.degree.bottom - g.degree.bottom) > 0.5 ||
+      Math.abs(o.degree.right - g.degree.right) > 0.5 ||
+      Math.abs(o.lane.bottom - g.lane.bottom) > 0.5 ||
       Math.abs(o.cell.right - g.cell.right) > 0.5
     ) {
       return false;
@@ -200,21 +208,23 @@ function connectionStrokes(
   const strokes: Stroke[] = [];
 
   if (bracket) {
-    // The II–V bracket, under the degrees.
+    // The II–V bracket, in the lane kept free for it under the degrees
+    // (see `bracketLines`), so it never runs through the marks below.
     const [first, last] = connection.from < connection.to ? [a, b] : [b, a];
-    const tick = em * 0.28;
-    const x1 = first.chord.left + em * 0.1;
-    const x2 = Math.max(last.chord.right, last.degree.right) - em * 0.25;
-    const y1 = first.degree.bottom + em * 0.18;
+    const tick = em * 0.26;
+    const laneY = (box: Box) => box.top + (box.bottom - box.top) * 0.62;
+    const x1 = Math.min(first.chord.left, first.degree.left) + em * 0.1;
+    const x2 = Math.max(last.chord.right, last.degree.right) - em * 0.1;
+    const y1 = laneY(first.lane);
     if (sameRow(first.chord, last.chord)) {
-      const y = Math.max(y1, last.degree.bottom + em * 0.18);
+      const y = Math.max(y1, laneY(last.lane));
       strokes.push({
         key: `${connection.id}`,
         d: `M${x1},${y - tick} L${x1},${y} L${x2},${y} L${x2},${y - tick}`,
         kind,
       });
     } else {
-      const y2 = last.degree.bottom + em * 0.18;
+      const y2 = laneY(last.lane);
       strokes.push({
         key: `${connection.id}-a`,
         d: `M${x1},${y1 - tick} L${x1},${y1} L${geometry.right},${y1}`,
@@ -253,21 +263,27 @@ function connectionStrokes(
     return strokes;
   }
 
-  // Across rows: the arc leaves the first chord towards the edge of the
-  // page and comes back in from the other edge onto the second, like a
-  // line of music continued on the next system.
+  // Across rows: a short arc leaves the first chord heading on, and a
+  // short one comes in onto the second, like a tie continued on the next
+  // system. (Run all the way to the page's edges they crossed every chord
+  // and arc in between.)
   const forward = b.chord.top > a.chord.top;
-  const outX = forward ? geometry.right : geometry.left;
-  const inX = forward ? geometry.left : geometry.right;
-  const lift = lane * 0.8;
+  const stub = em * 2.2;
+  const lift = lane * 0.7;
+  const outX = forward
+    ? Math.min(geometry.right, ax + stub)
+    : Math.max(geometry.left, ax - stub);
+  const inX = forward
+    ? Math.max(geometry.left, bx - stub)
+    : Math.min(geometry.right, bx + stub);
   strokes.push({
     key: `${connection.id}-out`,
-    d: `M${ax},${ay} C${ax},${ay - lift} ${ax + (outX - ax) * 0.3},${ay - lift} ${outX},${ay - lift}`,
+    d: `M${ax},${ay} C${ax},${ay - lift} ${outX - (outX - ax) * 0.35},${ay - lift} ${outX},${ay - lift}`,
     kind,
   });
   strokes.push({
     key: `${connection.id}-in`,
-    d: `M${inX},${by - lift} C${bx + (inX - bx) * 0.3},${by - lift} ${bx},${by - lift} ${bx},${by - 0.5}`,
+    d: `M${inX},${by - lift} C${inX + (bx - inX) * 0.65},${by - lift} ${bx},${by - lift * 0.9} ${bx},${by - 0.5}`,
     head: arrowHead(bx, by, bx, by - lift, head),
     kind,
   });
@@ -373,9 +389,10 @@ function Underlay({
             {rows.map((row, i) => (
               <rect
                 key={i}
-                x={row.left - em * 0.3}
+                x={row.left - em * 0.25}
                 y={row.top - em * 0.12}
-                width={row.right - row.left + em * 0.45}
+                // The cell's right edge takes in the gap to the next chord.
+                width={row.right - row.left + em * 0.05}
                 height={row.bottom - row.top + em * 0.24}
                 rx={em * 0.35}
                 fill={color}
@@ -388,13 +405,13 @@ function Underlay({
             {number !== undefined && (
               <g>
                 <circle
-                  cx={first.left - em * 0.3}
+                  cx={first.left - em * 0.25}
                   cy={first.top - em * 0.12}
                   r={em * 0.42}
                   fill={color}
                 />
                 <text
-                  x={first.left - em * 0.3}
+                  x={first.left - em * 0.25}
                   y={first.top - em * 0.12}
                   textAnchor="middle"
                   dominantBaseline="central"
@@ -464,7 +481,8 @@ export function AnalysisSheet({
   const tSection = useTranslations("lyrics.toolbar");
   const tBadge = useTranslations("analysis.badges");
   const containerRef = useRef<HTMLDivElement>(null);
-  const { showLyrics, showFunctions, twoFiveStyle } = analysis.display;
+  const { showLyrics, showChords, showFunctions, twoFiveStyle } =
+    analysis.display;
 
   const notes = useMemo(() => buildFootnotes(analysis), [analysis]);
   const chordNoteNumber = useMemo(() => {
@@ -516,6 +534,7 @@ export function AnalysisSheet({
     key: string,
     lineMarks: boolean,
     bare: boolean,
+    bracketLane: boolean,
   ) => {
     if (cell.kind === "lyric") {
       if (!showLyrics || bare) return null;
@@ -537,6 +556,8 @@ export function AnalysisSheet({
     }
 
     const entry: ChordEntry | undefined = analysis.entries[String(cell.index)];
+    const degree = entry?.degree ?? null;
+    const hasDegree = degreeIsSet(degree);
     const keyName = keyStarts.get(cell.index);
     const footnote = chordNoteNumber.get(cell.index);
     const isSelected = selected === cell.index;
@@ -551,9 +572,16 @@ export function AnalysisSheet({
         ? `var(--an-fn-${entry.fn.toLowerCase()})`
         : undefined;
     const clickable = mode === "edit" && !!onChordClick;
+    // Chord symbols hidden: the degree is what's read, clicked and pointed
+    // at by the arcs.
+    const degreeHead = !showChords;
+    const diagram = interactiveChords && analysable && !degreeHead;
 
-    const chordClass = cn(
-      "text-primary relative w-fit rounded-[0.3em] px-[0.12em] font-mono text-[0.86em] leading-[1.35] font-bold tracking-tight",
+    const headClass = cn(
+      "relative w-fit rounded-[0.3em] px-[0.12em] leading-[1.35]",
+      degreeHead
+        ? "text-[1.04em]"
+        : "text-primary font-mono text-[0.86em] font-bold",
       clickable &&
         "hover:bg-primary/10 focus-visible:ring-ring cursor-pointer outline-none focus-visible:ring-2",
       isSelected && "bg-primary/15 ring-primary ring-2",
@@ -563,16 +591,53 @@ export function AnalysisSheet({
       pending && !isSource && "hover:ring-primary/60 hover:ring-2",
     );
 
-    const chordContent = (
+    const footnoteMark = footnote !== undefined && (
+      <sup className="text-foreground ml-[0.1em] font-sans text-[0.6em] font-bold">
+        {footnote}
+      </sup>
+    );
+
+    const degreeContent = (
       <>
-        {cell.symbol}
-        {footnote !== undefined && (
-          <sup className="text-foreground ml-[0.1em] font-sans text-[0.6em] font-bold">
-            {footnote}
-          </sup>
-        )}
+        {keyName && <KeyFlag keyName={keyName} />}
+        <DegreeText degree={degree} />
       </>
     );
+
+    // With the chords hidden, a chord not analysed yet still needs
+    // something to click (the symbol, faint) while editing; elsewhere it
+    // is a rest in the line of degrees.
+    const headContent = degreeHead ? (
+      <span className="inline-flex items-baseline" style={{ color: fnColor }}>
+        {hasDegree ? (
+          degreeContent
+        ) : (
+          <>
+            {keyName && <KeyFlag keyName={keyName} />}
+            {clickable || !analysable ? (
+              <span className="text-muted-foreground font-mono text-[0.8em] font-semibold">
+                {cell.symbol}
+              </span>
+            ) : (
+              <span className="text-muted-foreground/70" aria-hidden>
+                –
+              </span>
+            )}
+          </>
+        )}
+        {footnoteMark}
+      </span>
+    ) : (
+      <>
+        {cell.symbol}
+        {footnoteMark}
+      </>
+    );
+
+    const headProps = {
+      "data-an-chord": cell.index,
+      ...(degreeHead ? { "data-an-degree": cell.index } : {}),
+    };
 
     return (
       <span
@@ -583,24 +648,25 @@ export function AnalysisSheet({
         {clickable ? (
           <button
             type="button"
-            data-an-chord={cell.index}
+            {...headProps}
             data-chord-index={cell.index}
             aria-pressed={isSelected}
             aria-label={t("sheet.chordLabel", { chord: cell.symbol })}
+            title={degreeHead ? cell.symbol : undefined}
             onClick={() => onChordClick(cell.index)}
             // Scrolled to above the inspector docked at the bottom of a
             // phone's screen.
             className={cn(
-              chordClass,
-              "mr-[0.55em] scroll-mt-24 scroll-mb-[62dvh] lg:scroll-mb-12",
+              headClass,
+              "mr-[0.6em] scroll-mt-24 scroll-mb-[62dvh] lg:scroll-mb-12",
             )}
           >
-            {chordContent}
+            {headContent}
           </button>
         ) : (
           <span
-            data-an-chord={cell.index}
-            {...(interactiveChords && analysable
+            {...headProps}
+            {...(diagram
               ? {
                   "data-chord-symbol": cell.symbol.replace(/^\((.+)\)$/, "$1"),
                   role: "button",
@@ -608,26 +674,34 @@ export function AnalysisSheet({
                 }
               : {})}
             className={cn(
-              chordClass,
-              "mr-[0.55em]",
-              interactiveChords &&
-                analysable &&
+              headClass,
+              "mr-[0.6em]",
+              diagram &&
                 "cursor-pointer decoration-dotted underline-offset-[0.2em] hover:underline",
             )}
           >
-            {chordContent}
+            {headContent}
+          </span>
+        )}
+        {!degreeHead && (
+          <span
+            data-an-degree={cell.index}
+            className="mr-[0.6em] inline-flex min-h-[1.35em] items-baseline text-[0.92em] leading-[1.35]"
+            style={{ color: fnColor }}
+          >
+            {degreeContent}
           </span>
         )}
         <span
-          data-an-degree={cell.index}
-          className="mr-[0.55em] min-h-[1.35em] pb-[0.3em] text-[0.92em] leading-[1.35]"
-          style={{ color: fnColor }}
-        >
-          {keyName && <KeyFlag keyName={keyName} />}
-          <DegreeText degree={entry?.degree ?? null} />
-        </span>
+          data-an-lane={cell.index}
+          aria-hidden
+          className={cn(
+            "block w-full",
+            bracketLane ? "h-[0.62em]" : "h-[0.22em]",
+          )}
+        />
         {lineMarks && (
-          <span className="mr-[0.55em] flex min-h-[1.2em] flex-wrap items-center gap-[0.2em] pb-[0.2em]">
+          <span className="mr-[0.6em] flex min-h-[1.2em] flex-wrap items-center gap-[0.2em] pb-[0.25em]">
             {showFunctions && entry?.fn && <FunctionBadge fn={entry.fn} />}
             {entry?.badges.map((badge) => (
               <MarkBadge
@@ -643,12 +717,29 @@ export function AnalysisSheet({
         )}
         {showLyrics && !bare && (
           <span className="leading-[1.4] whitespace-pre">
-            {cell.lyric || " "}
+            {cell.lyric || " "}
           </span>
         )}
       </span>
     );
   };
+
+  // Lines holding a II–V drawn as a bracket keep a lane free for it under
+  // the degrees.
+  const bracketed = useMemo(() => {
+    const set = new Set<number>();
+    if (twoFiveStyle !== "bracket") return set;
+    for (const c of analysis.connections) {
+      if (c.kind !== "twoFive") continue;
+      set.add(c.from);
+      set.add(c.to);
+    }
+    return set;
+  }, [analysis.connections, twoFiveStyle]);
+  const hasBracket = (words: Cell[][]) =>
+    words.some((word) =>
+      word.some((cell) => cell.kind === "chord" && bracketed.has(cell.index)),
+    );
 
   const hasMarks = (words: Cell[][]) =>
     words.some((word) =>
@@ -715,6 +806,7 @@ export function AnalysisSheet({
               );
             case "chords": {
               const marks = hasMarks(line.words);
+              const lane = hasBracket(line.words);
               const bare = line.bare || !showLyrics;
               return (
                 <div
@@ -727,7 +819,7 @@ export function AnalysisSheet({
                   {line.words.map((word, w) => (
                     <span key={w} className="inline-flex items-end">
                       {word.map((cell, c) =>
-                        renderCell(cell, `${w}-${c}`, marks, bare),
+                        renderCell(cell, `${w}-${c}`, marks, bare, lane),
                       )}
                     </span>
                   ))}

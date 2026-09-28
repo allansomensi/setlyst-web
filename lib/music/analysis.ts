@@ -157,6 +157,11 @@ export interface RangeNote {
 
 export interface AnalysisDisplay {
   showLyrics: boolean;
+  /**
+   * The chord symbols over the degrees. Off, the chart reads as degrees
+   * alone ("I7M  VIm7  IIm7  V7"), the way it's taught and transposed.
+   */
+  showChords: boolean;
   /** Colour degrees by function and show the T/SD/D letters. */
   showFunctions: boolean;
   /** II–V drawn as a bracket or as a dotted arrow. */
@@ -195,6 +200,7 @@ export const LIMITS = {
 
 export const DEFAULT_DISPLAY: AnalysisDisplay = {
   showLyrics: true,
+  showChords: true,
   showFunctions: false,
   twoFiveStyle: "bracket",
 };
@@ -399,6 +405,10 @@ export function normalizeAnalysis(raw: unknown): HarmonicAnalysis {
       typeof display.showLyrics === "boolean"
         ? display.showLyrics
         : DEFAULT_DISPLAY.showLyrics,
+    showChords:
+      typeof display.showChords === "boolean"
+        ? display.showChords
+        : DEFAULT_DISPLAY.showChords,
     showFunctions:
       typeof display.showFunctions === "boolean"
         ? display.showFunctions

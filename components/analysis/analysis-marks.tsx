@@ -69,12 +69,20 @@ export function DegreeText({
       className={cn("inline-flex items-baseline whitespace-nowrap", className)}
     >
       {degree.sub && (
-        <span className="mr-[0.05em] text-[0.78em] font-semibold tracking-tight">
+        <span className="mr-[0.14em] text-[0.74em] font-semibold tracking-tight">
           Sub
         </span>
       )}
       {degree.accidental && (
-        <span className="text-[0.95em]">{accidentals(degree.accidental)}</span>
+        // Stored bare ("b", "#"), so not caught by `accidentals`, which
+        // only reads a "b" standing before a numeral or a digit.
+        <span className="text-[0.95em]">
+          {degree.accidental === "b"
+            ? "♭"
+            : degree.accidental === "#"
+              ? "♯"
+              : ""}
+        </span>
       )}
       <span className="font-serif font-bold tracking-[0.02em]">
         {degree.numeral}

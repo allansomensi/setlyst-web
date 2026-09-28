@@ -178,7 +178,7 @@ export function AnalysisInspector({
       <div className="bg-popover/95 supports-[backdrop-filter]:bg-popover/80 sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-3 backdrop-blur">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="text-primary truncate font-mono text-2xl font-bold tracking-tight">
+            <p className="text-primary truncate font-mono text-2xl font-bold">
               {symbol}
             </p>
             {analysable && (
