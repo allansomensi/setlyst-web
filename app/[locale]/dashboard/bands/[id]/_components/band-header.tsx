@@ -21,7 +21,12 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex items-start gap-3 sm:gap-4">
-        <Button variant="outline" size="icon" asChild className="shrink-0">
+        <Button
+          variant="outline"
+          size="icon"
+          asChild
+          className="hidden shrink-0 sm:inline-flex"
+        >
           <Link href="/dashboard/bands">
             <ChevronLeft className="h-4 w-4" />
           </Link>

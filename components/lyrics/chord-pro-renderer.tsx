@@ -276,6 +276,13 @@ export interface ChordProRendererProps {
    */
   fontSize?: number | "inherit";
   fontFamily?: "sans" | "mono" | "serif";
+  /**
+   * The song's capo fret, from its details. When set (1 or more), a
+   * "Capo on the Nth fret" tag leads the lyrics and any `{capo}` directive
+   * in them is left out, so it never shows twice. Shown with the chords,
+   * like the directive: it means nothing to someone only singing.
+   */
+  capo?: number | null;
   className?: string;
 }
 
@@ -303,6 +310,7 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
   showSections = true,
   fontSize = 1.1,
   fontFamily = "sans",
+  capo = null,
   className,
 }: ChordProRendererProps) {
   const t = useTranslations("lyrics");
@@ -325,8 +333,24 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
       return label;
     };
 
+    const capoTag = (fret: string | number, key: React.Key) => (
+      <div key={key} data-line="" data-capo="" className="my-[0.3em]">
+        <span className="border-primary/40 text-primary inline-flex items-center rounded-full border px-[0.8em] py-[0.15em] text-[0.62em] font-bold tracking-[0.12em] uppercase">
+          {t("render.capo", { fret })}
+        </span>
+      </div>
+    );
+    const songCapo = capo != null && capo > 0 ? capo : null;
+
     // 1. Blocks → items, honouring what's shown.
     const items: Item[] = [];
+    if (songCapo !== null && showChords) {
+      items.push({
+        kind: "content",
+        chorus: false,
+        node: capoTag(songCapo, "song-capo"),
+      });
+    }
     blocks.forEach((block, i) => {
       switch (block.type) {
         case "blank":
@@ -396,17 +420,11 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
           });
           return;
         case "capo":
-          if (!showChords) return;
+          if (!showChords || songCapo !== null) return;
           items.push({
             kind: "content",
             chorus: false,
-            node: (
-              <div key={i} data-line="" className="my-[0.3em]">
-                <span className="border-primary/40 text-primary inline-flex items-center rounded-full border px-[0.8em] py-[0.15em] text-[0.62em] font-bold tracking-[0.12em] uppercase">
-                  {t("render.capo", { fret: block.fret })}
-                </span>
-              </div>
-            ),
+            node: capoTag(block.fret, i),
           });
           return;
         case "chorusRepeat":
@@ -510,7 +528,7 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
     });
     flushChorus();
     return output;
-  }, [blocks, showChords, showSections, t, tSection]);
+  }, [blocks, showChords, showSections, capo, t, tSection]);
 
   const cssFontSize = fontSize === "inherit" ? "1em" : `${fontSize}rem`;
 

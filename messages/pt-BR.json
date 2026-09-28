@@ -86,7 +86,8 @@
     "whatsNewUnread": "Novidades (há atualizações que você ainda não viu)",
     "profile": "Minha conta",
     "breadcrumb": "Caminho da página",
-    "contactSupport": "Falar com o suporte"
+    "contactSupport": "Falar com o suporte",
+    "more": "Mais"
   },
   "auth": {
     "login": {
@@ -402,7 +403,9 @@
     "emptyState": {
       "title": "Seu repertório começa aqui",
       "description": "Adicione uma música com tom, BPM e letra com cifras, ou importe arquivos ChordPro que você já tem."
-    }
+    },
+    "versionCount": "{count} versões",
+    "versionCountTitle": "Esta música tem outras versões (a original e as variações). Abra para ver todas."
   },
   "lyrics": {
     "editTitle": "Editar letra",

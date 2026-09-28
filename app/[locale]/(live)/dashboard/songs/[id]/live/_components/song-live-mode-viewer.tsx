@@ -122,6 +122,7 @@ export function SongLiveModeViewer({
         <LiveLyricsArea
           containerRef={scrollContainerRef}
           content={transpose.content}
+          capo={song.capo}
           showChords={display.showChords}
           showSections={display.showSections}
           fontFamily={display.fontFamily}

@@ -28,6 +28,8 @@ interface LiveLyricsAreaProps {
   /** The reader's size (rem). In fit mode, the most the text may grow to. */
   fontSize: number;
   fitToScreen: boolean;
+  /** The song's capo fret: a tag leads the lyrics when set (1+). */
+  capo?: number | null;
   /**
    * Identifies the song on screen. A change replays the entry animation,
    * sliding in from the side the performer moved towards.
@@ -57,6 +59,7 @@ export function LiveLyricsArea({
   fontFamily,
   fontSize,
   fitToScreen,
+  capo = null,
   songKey,
   direction = null,
   swipe,
@@ -156,6 +159,7 @@ export function LiveLyricsArea({
           showSections={showSections}
           fontSize={fitToScreen ? "inherit" : fontSize}
           fontFamily={fontFamily}
+          capo={capo}
           className={fitToScreen ? "max-w-none" : "mx-auto"}
         />
       </div>

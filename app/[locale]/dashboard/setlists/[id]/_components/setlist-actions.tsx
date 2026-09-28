@@ -56,10 +56,16 @@ export function SetlistActions({
 
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-2">
-      <Button asChild size="lg" className="h-10 gap-2 px-4">
+      {/* Icon-only on phones, so every action fits one row. */}
+      <Button
+        asChild
+        size="lg"
+        className="h-10 gap-2 px-3 sm:px-4"
+        title={t("liveModeBtn")}
+      >
         <Link href={`/dashboard/setlists/${setlistId}/live`}>
-          <Play className="h-4 w-4" />
-          {t("liveModeBtn")}
+          <Play className="h-4 w-4" aria-hidden />
+          <span className="sr-only sm:not-sr-only">{t("liveModeBtn")}</span>
         </Link>
       </Button>
 

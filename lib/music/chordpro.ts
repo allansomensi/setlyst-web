@@ -818,22 +818,35 @@ function splitLyricLine(line: string): {
   current.text += line.slice(last);
   if (current.chord !== null || current.text) segments.push(current);
 
-  // A chord that landed on the space *before* a word (common when chords
-  // are typed or merged a column early) belongs to that word: move the
-  // space to the previous segment. Otherwise the chord sits over a lone
-  // space and pushes the words apart ("my  old").
+  // Whether segment `i` still sits in the line's lead-in: before the
+  // first sung syllable. Spaces there are the musician's: the chord comes
+  // in before the singing does ("D#m    Till now"), and the gap says so.
+  const inLeadIn = (i: number) =>
+    segments.slice(0, i).every((segment) => !segment.text.trim());
+
+  // Past the lead-in, a chord that landed on the space *before* a word
+  // (common when chords are typed or merged a column early) belongs to
+  // that word: move the space to the previous segment. Otherwise the chord
+  // sits over a lone space and pushes the words apart ("my  old").
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
     const lead = /^(\s+)(?=\S)/.exec(segment.text);
-    if (segment.chord === null || !lead) continue;
+    if (segment.chord === null || !lead || inLeadIn(i)) continue;
     segment.text = segment.text.slice(lead[1].length);
     if (i > 0 && !/\s$/.test(segments[i - 1].text)) {
       segments[i - 1].text += lead[1];
     }
   }
 
-  // Leading indentation before the first chord is layout noise.
-  if (segments.length && segments[0].chord === null) {
+  // Indentation is kept only where it places the lyric after a chord.
+  // Without one (a lyric-only line, or spaces before the first chord of
+  // a line whose chords come in with the words) it is layout noise.
+  const firstChord = segments.findIndex((segment) => segment.chord !== null);
+  const chordLeadsIn =
+    firstChord >= 0 &&
+    inLeadIn(firstChord) &&
+    /^\s/.test(segments[firstChord].text);
+  if (segments.length && segments[0].chord === null && !chordLeadsIn) {
     segments[0].text = segments[0].text.replace(/^\s+/, "");
     if (!segments[0].text) segments.shift();
   }

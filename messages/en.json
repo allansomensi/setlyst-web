@@ -86,7 +86,8 @@
     "whatsNewUnread": "What's new (there are updates you haven't seen)",
     "profile": "My account",
     "breadcrumb": "Breadcrumb",
-    "contactSupport": "Contact support"
+    "contactSupport": "Contact support",
+    "more": "More"
   },
   "auth": {
     "login": {
@@ -402,7 +403,9 @@
     "emptyState": {
       "title": "Your repertoire starts here",
       "description": "Add a song with its key, BPM and lyrics with chords, or import ChordPro files you already have."
-    }
+    },
+    "versionCount": "{count} versions",
+    "versionCountTitle": "This song has other versions (the original and its variations). Open it to see them all."
   },
   "lyrics": {
     "editTitle": "Edit Lyrics",

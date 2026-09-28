@@ -91,6 +91,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(true);
   const [songTitle, setSongTitle] = useState("");
+  const [songCapo, setSongCapo] = useState<number | null>(null);
   const [lyrics, setLyrics] = useState("");
   // Side by side on wide screens. On a phone the two can't share the
   // width, so the preview replaces the editor instead — and it starts on
@@ -131,6 +132,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         setLyrics(song.lyrics ?? "");
         setSavedLyrics(song.lyrics ?? "");
         setSongTitle(song.title);
+        setSongCapo(song.capo ?? null);
         setIsReadOnly(fromCache);
         hasLoaded.current = !fromCache;
       };
@@ -580,6 +582,7 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
               showSections={showSections}
               fontSize={1}
               fontFamily="sans"
+              capo={songCapo}
             />
           </div>
         )}

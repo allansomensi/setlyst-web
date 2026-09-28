@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Sidebar } from "./_components/sidebar";
-import { MobileNav } from "./_components/mobile-nav";
+import {
+  MobileMenuProvider,
+  MobileNav,
+  MobileTabBar,
+} from "./_components/mobile-nav";
 import { OfflineStatusBanner } from "@/components/offline-status-banner";
 import { AnnouncementModalHost } from "@/components/announcements/announcement-modal-host";
 import { ImpersonationBanner } from "@/components/impersonation/impersonation-banner";
@@ -100,44 +104,51 @@ export default async function DashboardLayout({
           whole dashboard out from under the sidebar. `relative` makes the
           shell the containing block of absolutely positioned descendants,
           so the clip applies to them too (see DashboardScrollArea). */}
-          <div className="bg-background dashboard-clip relative flex h-dvh flex-col md:flex-row">
-            <a
-              href="#main-content"
-              className="bg-primary text-primary-foreground focus-visible:ring-ring/50 sr-only z-[60] rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:left-3 focus-visible:ring-3"
-            >
-              {tCommon("skipToContent")}
-            </a>
-            <Sidebar user={user} planStatus={planStatus} />
-            <MobileNav user={user} planStatus={planStatus} />
-            <main
-              id="main-content"
-              tabIndex={-1}
-              className="dashboard-clip flex min-h-0 flex-1 flex-col outline-none"
-            >
-              <ImpersonationBanner />
-              <PlanStatusBanner status={planStatus} readOnly={gates.readOnly} />
-              <AccountGates {...gates} />
-              <OfflineStatusBanner />
-              <ActionToastSetup
-                email={gates.email}
-                passwordSet={gates.passwordSet}
-                username={gates.username}
-                readOnly={gates.readOnly}
-              />
-              <AnnouncementModalHost />
-              {!gates.readOnly && gates.termsAccepted && (
-                <TrialWelcomeDialog
-                  trial={trial}
-                  name={me?.first_name || gates.username}
+          <MobileMenuProvider>
+            <div className="bg-background dashboard-clip relative flex h-dvh flex-col md:flex-row">
+              <a
+                href="#main-content"
+                className="bg-primary text-primary-foreground focus-visible:ring-ring/50 sr-only z-[60] rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:left-3 focus-visible:ring-3"
+              >
+                {tCommon("skipToContent")}
+              </a>
+              <Sidebar user={user} planStatus={planStatus} />
+              <MobileNav user={user} planStatus={planStatus} />
+              <main
+                id="main-content"
+                tabIndex={-1}
+                className="dashboard-clip flex min-h-0 flex-1 flex-col outline-none"
+              >
+                <ImpersonationBanner />
+                <PlanStatusBanner
+                  status={planStatus}
+                  readOnly={gates.readOnly}
                 />
-              )}
-              {/* Bottom inset: the home indicator of the installed iOS app;
-              side insets: landscape on a notched phone. */}
-              <DashboardScrollArea className="flex-1 overflow-y-auto overscroll-contain pt-4 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] md:p-8 md:pr-[max(2rem,env(safe-area-inset-right))] md:pb-[max(2rem,env(safe-area-inset-bottom))]">
-                {children}
-              </DashboardScrollArea>
-            </main>
-          </div>
+                <AccountGates {...gates} />
+                <OfflineStatusBanner />
+                <ActionToastSetup
+                  email={gates.email}
+                  passwordSet={gates.passwordSet}
+                  username={gates.username}
+                  readOnly={gates.readOnly}
+                />
+                <AnnouncementModalHost />
+                {!gates.readOnly && gates.termsAccepted && (
+                  <TrialWelcomeDialog
+                    trial={trial}
+                    name={me?.first_name || gates.username}
+                  />
+                )}
+                {/* Side insets: landscape on a notched phone. Bottom inset: the
+              home indicator of the installed iOS app — on phones the tab
+              bar below takes it. */}
+                <DashboardScrollArea className="flex-1 overflow-y-auto overscroll-contain pt-4 pr-[max(1rem,env(safe-area-inset-right))] pb-6 pl-[max(1rem,env(safe-area-inset-left))] md:p-8 md:pr-[max(2rem,env(safe-area-inset-right))] md:pb-[max(2rem,env(safe-area-inset-bottom))]">
+                  {children}
+                </DashboardScrollArea>
+              </main>
+              <MobileTabBar />
+            </div>
+          </MobileMenuProvider>
         </UiSettingsProvider>
       </OfflineSyncProvider>
     </ScopedMessages>

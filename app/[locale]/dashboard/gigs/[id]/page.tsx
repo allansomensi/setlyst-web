@@ -171,7 +171,12 @@ export default async function GigDetailsPage({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3 sm:items-center sm:gap-4">
-          <Button variant="outline" size="icon" asChild className="shrink-0">
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            className="hidden shrink-0 sm:inline-flex"
+          >
             <Link href="/dashboard/gigs">
               <ChevronLeft className="h-4 w-4" />
             </Link>
@@ -243,10 +248,17 @@ export default async function GigDetailsPage({
             variant="default"
           />
           {gig.setlist_id && setlist && (
-            <Button asChild size="lg" className="gap-2">
+            <Button
+              asChild
+              size="lg"
+              className="gap-2 px-3 sm:px-4"
+              title={t("liveModeBtn")}
+            >
               <Link href={`/dashboard/setlists/${setlist.id}/live`}>
-                <Play className="h-4 w-4" />
-                {t("liveModeBtn")}
+                <Play className="h-4 w-4" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  {t("liveModeBtn")}
+                </span>
               </Link>
             </Button>
           )}

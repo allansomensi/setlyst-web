@@ -204,7 +204,7 @@ export function SongDetail({
             variant="outline"
             size="icon"
             asChild
-            className="shrink-0"
+            className="hidden shrink-0 sm:inline-flex"
             aria-label={tCommon("back")}
           >
             <Link href="/dashboard/songs">
@@ -251,10 +251,17 @@ export function SongDetail({
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Button asChild className="h-10 gap-2 px-4">
+          {/* Icon-only on phones, so every action fits one row. */}
+          <Button
+            asChild
+            className="h-10 gap-2 px-3 sm:px-4"
+            title={t("actions.liveMode")}
+          >
             <Link href={`/dashboard/songs/${song.id}/live`}>
               <Play className="h-4 w-4" aria-hidden />
-              {t("actions.liveMode")}
+              <span className="sr-only sm:not-sr-only">
+                {t("actions.liveMode")}
+              </span>
             </Link>
           </Button>
           {canEdit && (
@@ -379,7 +386,11 @@ export function SongDetail({
           </CardHeader>
           <CardContent>
             {song.lyrics?.trim() ? (
-              <ChordProRenderer content={song.lyrics} fontSize={1} />
+              <ChordProRenderer
+                content={song.lyrics}
+                fontSize={1}
+                capo={song.capo}
+              />
             ) : (
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-4 py-10 text-center">
                 <p className="text-muted-foreground text-sm">

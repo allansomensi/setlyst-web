@@ -239,6 +239,11 @@ export interface Song {
   links?: Link[];
   /** Whether the caller pinned this song to the home page. */
   is_pinned?: boolean;
+  /**
+   * `GET /songs`: live songs in its version family (the original and its
+   * versions, this one included); 1 when it has no versions.
+   */
+  version_count?: number;
   /** Who last changed the song (null if never edited or account deleted). */
   updated_by?: string | null;
   updated_by_username?: string | null;

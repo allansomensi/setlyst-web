@@ -130,7 +130,11 @@ export default async function AdminSongPage({ params }: { params: Params }) {
           <CardTitle>{t("lyrics")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChordProRenderer content={song.lyrics ?? ""} fontSize={1} />
+          <ChordProRenderer
+            content={song.lyrics ?? ""}
+            fontSize={1}
+            capo={song.capo}
+          />
         </CardContent>
       </Card>
     </>

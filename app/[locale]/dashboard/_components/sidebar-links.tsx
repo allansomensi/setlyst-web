@@ -189,7 +189,7 @@ interface SidebarLinksProps {
   userRole?: UserRole;
 }
 
-function isActive(pathname: string, href: string) {
+export function isActive(pathname: string, href: string) {
   return href === "/dashboard"
     ? pathname === "/dashboard"
     : pathname === href || pathname.startsWith(`${href}/`);

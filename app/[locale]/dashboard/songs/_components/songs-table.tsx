@@ -439,6 +439,14 @@ export function SongsTable({
                           {song.version_label}
                         </span>
                       )}
+                      {(song.version_count ?? 1) > 1 && (
+                        <span
+                          className="text-muted-foreground shrink-0 text-[11px] whitespace-nowrap"
+                          title={t("versionCountTitle")}
+                        >
+                          {t("versionCount", { count: song.version_count! })}
+                        </span>
+                      )}
                       <OfflineIndicator kind="song" id={song.id} />
                       {song.lyrics && (
                         <span

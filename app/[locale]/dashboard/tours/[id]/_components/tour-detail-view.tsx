@@ -169,7 +169,7 @@ export function TourDetailView({
             variant="outline"
             size="icon"
             asChild
-            className="shrink-0"
+            className="hidden shrink-0 sm:inline-flex"
             aria-label={tCommon("back")}
           >
             <Link href="/dashboard/tours">
