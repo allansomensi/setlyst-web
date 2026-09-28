@@ -619,6 +619,32 @@
       "defaultNotSaved": "The PDF was created, but the options couldn't be saved as default.",
       "watermarkOnly": "Without a subscription, setlist PDFs always carry the Setlyst watermark."
     },
+    "exportMenu": {
+      "pdf": "PDF",
+      "pdfHint": "To print or read on stage.",
+      "file": "File to share",
+      "fileHint": "Carries the songs with lyrics and chords, the artists, the blocks and the keys. Whoever gets it imports it and has the same setlist.",
+      "fileDone": "Setlist file downloaded."
+    },
+    "importSetlist": {
+      "button": "Import",
+      "title": "Import setlist",
+      "description": "Choose a setlist file exported from Setlyst. It's created in your setlists with its songs, chords, blocks and keys.",
+      "dropTitle": "Choose or drop the file",
+      "dropDesc": ".json file exported from a setlist",
+      "invalid": "This file isn't a Setlyst setlist.",
+      "isBackup": "This file is a full account backup. Import it in Settings → Data backup.",
+      "tooLarge": "The file is over {size} MB.",
+      "songs": "{count, plural, one {# song} other {# songs}}",
+      "artists": "{count, plural, one {# artist} other {# artists}}",
+      "blocks": "{count, plural, one {# block or break} other {# blocks and breaks}}",
+      "merge": "Songs and artists you already have are reused, not duplicated. The rest is created in your account.",
+      "choose": "Choose another file",
+      "confirm": "Import setlist",
+      "importing": "Importing…",
+      "success": "Setlist \"{title}\" imported.",
+      "failed": "Couldn't import the setlist."
+    },
     "empty": "No setlists registered.",
     "emptySearch": "No setlists found for \"{search}\".",
     "menu": {

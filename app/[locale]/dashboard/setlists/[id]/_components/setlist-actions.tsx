@@ -2,7 +2,24 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Download, Share2, ChartSpline, Pencil } from "lucide-react";
+import {
+  Play,
+  Download,
+  Share2,
+  ChartSpline,
+  Pencil,
+  FileText,
+  FileJson,
+  Loader2,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useDownload } from "@/hooks/use-download";
+import { toast } from "@/lib/toast";
 import type { Setlist } from "@/types/api";
 import { PinButton } from "@/components/content/pin-button";
 import { SetlistDialog } from "../../_components/setlists-dialog";
@@ -53,6 +70,22 @@ export function SetlistActions({
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isExportingFile, setIsExportingFile] = useState(false);
+  const download = useDownload();
+
+  // The setlist with its songs and artists, for someone else to import.
+  const exportFile = async () => {
+    setIsExportingFile(true);
+    try {
+      const saved = await download(
+        `/api/export/setlists/${setlistId}/file`,
+        "setlist.setlyst.json",
+      );
+      if (saved) toast.success(t("exportMenu.fileDone"));
+    } finally {
+      setIsExportingFile(false);
+    }
+  };
 
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -96,16 +129,52 @@ export function SetlistActions({
       )}
 
       {canExport && (
-        <Button
-          variant="outline"
-          size="lg"
-          className="h-10 gap-2 px-3"
-          onClick={() => setIsPdfDialogOpen(true)}
-          title={t("exportPdf.title")}
-        >
-          <Download className="h-4 w-4" />
-          <span className="sr-only lg:not-sr-only">{t("exportBtn")}</span>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-10 gap-2 px-3"
+              title={t("exportBtn")}
+              disabled={isExportingFile}
+            >
+              {isExportingFile ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Download className="h-4 w-4" aria-hidden />
+              )}
+              <span className="sr-only lg:not-sr-only">{t("exportBtn")}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuItem
+              className="items-start gap-3 py-2"
+              onSelect={() => setIsPdfDialogOpen(true)}
+            >
+              <FileText className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span className="min-w-0">
+                <span className="block font-medium">{t("exportMenu.pdf")}</span>
+                <span className="text-muted-foreground block text-xs">
+                  {t("exportMenu.pdfHint")}
+                </span>
+              </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="items-start gap-3 py-2"
+              onSelect={() => void exportFile()}
+            >
+              <FileJson className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span className="min-w-0">
+                <span className="block font-medium">
+                  {t("exportMenu.file")}
+                </span>
+                <span className="text-muted-foreground block text-xs">
+                  {t("exportMenu.fileHint")}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
       {canEdit && (

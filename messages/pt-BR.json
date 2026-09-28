@@ -619,6 +619,32 @@
       "defaultNotSaved": "O PDF foi gerado, mas as opções não puderam ser salvas como padrão.",
       "watermarkOnly": "Sem assinatura, o PDF da setlist sai sempre com a marca d'água do Setlyst."
     },
+    "exportMenu": {
+      "pdf": "PDF",
+      "pdfHint": "Para imprimir ou ler no palco.",
+      "file": "Arquivo para compartilhar",
+      "fileHint": "Leva as músicas com letra e cifra, os artistas, os blocos e os tons. Quem receber importa e fica com a setlist igual.",
+      "fileDone": "Arquivo da setlist baixado."
+    },
+    "importSetlist": {
+      "button": "Importar",
+      "title": "Importar setlist",
+      "description": "Escolha um arquivo de setlist exportado no Setlyst. Ela é criada nas suas setlists com as músicas, cifras, blocos e tons.",
+      "dropTitle": "Escolha ou arraste o arquivo",
+      "dropDesc": "Arquivo .json exportado de uma setlist",
+      "invalid": "Esse arquivo não é uma setlist do Setlyst.",
+      "isBackup": "Esse arquivo é um backup completo da conta. Importe-o em Configurações → Backup de dados.",
+      "tooLarge": "O arquivo passa de {size} MB.",
+      "songs": "{count, plural, one {# música} other {# músicas}}",
+      "artists": "{count, plural, one {# artista} other {# artistas}}",
+      "blocks": "{count, plural, one {# bloco ou intervalo} other {# blocos e intervalos}}",
+      "merge": "Músicas e artistas que você já tem são reaproveitados, sem duplicar. O resto é criado na sua conta.",
+      "choose": "Escolher outro arquivo",
+      "confirm": "Importar setlist",
+      "importing": "Importando…",
+      "success": "Setlist \"{title}\" importada.",
+      "failed": "Não foi possível importar a setlist."
+    },
     "empty": "Nenhuma setlist cadastrada.",
     "emptySearch": "Nenhuma setlist encontrada para \"{search}\".",
     "menu": {

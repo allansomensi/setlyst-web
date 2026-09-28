@@ -830,6 +830,8 @@ export interface ImportBackupResponse {
    * (their gigs are imported without a tour).
    */
   skipped_tours?: number;
+  /** The setlists created, in the file's order. */
+  setlist_ids?: string[];
 }
 
 export interface BackupArtist {
@@ -863,6 +865,13 @@ export interface BackupSetlist {
   title: string;
   description?: string | null;
   songs: BackupSetlistSong[];
+  /** Blocks and breaks, in the songs' position space (since format 5). */
+  markers?: Array<{
+    marker_type: "block" | "break";
+    label?: string | null;
+    duration_minutes?: number | null;
+    position: number;
+  }>;
 }
 
 export interface BackupGig {
@@ -876,6 +885,8 @@ export interface BackupGig {
 
 export interface ImportBackupPayload {
   version: number;
+  /** What the file holds (since format 5; older files are backups). */
+  kind?: "backup" | "setlist";
   exported_at: string;
   artists: BackupArtist[];
   songs: BackupSong[];

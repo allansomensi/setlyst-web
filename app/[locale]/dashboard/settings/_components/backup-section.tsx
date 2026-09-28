@@ -41,7 +41,7 @@ import { useOfflineDisabled } from "@/components/offline-disabled";
 import { cn } from "@/lib/utils";
 import type { ImportBackupResponse } from "@/types/api";
 
-/** Same ceiling as app/api/import/backup/route.ts (and the API). */
+/** Same ceiling as lib/server/json-upload.ts (and the API). */
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
 function isJsonFile(file: File): boolean {
