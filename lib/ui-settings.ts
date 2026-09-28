@@ -51,8 +51,25 @@ export interface OnboardingState {
   trialWelcomeSeen: boolean;
 }
 
+/** Instruments a chord diagram can be drawn for. */
+export const CHORD_INSTRUMENTS = [
+  "guitar",
+  "keyboard",
+  "ukulele",
+  "cavaquinho",
+] as const;
+export type ChordInstrument = (typeof CHORD_INSTRUMENTS)[number];
+
+export interface ChordDiagramSettings {
+  /** What a tapped chord is drawn for. */
+  instrument: ChordInstrument;
+  /** Fretboards mirrored, low string on the right. */
+  leftHanded: boolean;
+}
+
 export interface UiSettings {
   live: LiveDefaults;
+  chords: ChordDiagramSettings;
   pdf: PdfExportOptions;
   lists: ListSettings;
   whatsNew: WhatsNewState;
@@ -70,8 +87,14 @@ export const DEFAULT_LIVE: LiveDefaults = {
   fontFamily: "sans",
 };
 
+export const DEFAULT_CHORD_DIAGRAMS: ChordDiagramSettings = {
+  instrument: "guitar",
+  leftHanded: false,
+};
+
 export const DEFAULT_UI_SETTINGS: UiSettings = {
   live: DEFAULT_LIVE,
+  chords: DEFAULT_CHORD_DIAGRAMS,
   pdf: DEFAULT_PDF_OPTIONS,
   lists: { pageSize: DEFAULT_PAGE_SIZE },
   whatsNew: { lastSeen: null },
@@ -103,6 +126,18 @@ export function normalizeLiveDefaults(raw: unknown): LiveDefaults {
   };
 }
 
+export function normalizeChordDiagrams(raw: unknown): ChordDiagramSettings {
+  const source = record(raw);
+  return {
+    instrument: (CHORD_INSTRUMENTS as readonly unknown[]).includes(
+      source.instrument,
+    )
+      ? (source.instrument as ChordInstrument)
+      : DEFAULT_CHORD_DIAGRAMS.instrument,
+    leftHanded: bool(source.leftHanded, DEFAULT_CHORD_DIAGRAMS.leftHanded),
+  };
+}
+
 /** Coerces any stored blob into a complete, valid settings object. */
 export function normalizeUiSettings(raw: unknown): UiSettings {
   const source = record(raw);
@@ -112,6 +147,7 @@ export function normalizeUiSettings(raw: unknown): UiSettings {
 
   return {
     live: normalizeLiveDefaults(source.live),
+    chords: normalizeChordDiagrams(source.chords),
     pdf: normalizePdfOptions(source.pdf),
     lists: {
       pageSize: (PAGE_SIZE_OPTIONS as readonly unknown[]).includes(

@@ -22,6 +22,11 @@ import type { ActionResult } from "@/lib/action-guard";
 interface UiSettingsContextValue {
   settings: UiSettings;
   /**
+   * Whether these are the account's settings. False outside a signed-in
+   * area (public share pages), where `update` saves nothing.
+   */
+  persisted: boolean;
+  /**
    * Applies `patch` immediately and persists it on the account. Resolves
    * with the server result; on failure the previous value is restored.
    */
@@ -30,6 +35,7 @@ interface UiSettingsContextValue {
 
 const UiSettingsContext = createContext<UiSettingsContextValue>({
   settings: DEFAULT_UI_SETTINGS,
+  persisted: false,
   update: async () => ({ success: true }),
 });
 
@@ -68,7 +74,10 @@ export function UiSettingsProvider({
     return result;
   }, []);
 
-  const value = useMemo(() => ({ settings, update }), [settings, update]);
+  const value = useMemo(
+    () => ({ settings, persisted: true, update }),
+    [settings, update],
+  );
 
   return (
     <UiSettingsContext.Provider value={value}>

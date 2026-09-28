@@ -1390,3 +1390,16 @@ export interface AuditLogEntry {
   ip_address: string | null;
   created_at: string;
 }
+
+/**
+ * A song's manual harmonic analysis (`GET /songs/{id}/analysis`). The API
+ * stores `content` as an opaque JSON object; its shape is owned by
+ * lib/music/analysis.ts (`normalizeAnalysis`).
+ */
+export interface SongAnalysis {
+  song_id: string;
+  content: unknown;
+  created_at: string;
+  updated_at: string;
+  updated_by_username: string | null;
+}

@@ -31,6 +31,8 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 - ✅ **Song versions** — Keep a simplified chart, an acoustic arrangement or any other version of a song next to the original.
 - ✅ **Per-setlist keys** — Set the key each song is played in per setlist (for a singer who takes it lower); Live Mode opens every song in that key and saves any change made on stage.
 - ✅ **ChordPro Support** — Dynamic rendering and editing of lyrics and chords. Pasted charts with chords above the lyrics are aligned automatically, and section headings are recognised in English, Portuguese and Spanish.
+- ✅ **Chord diagrams** — Tap any chord in a chart to see how to play it on guitar, keyboard, ukulele or cavaquinho, with every playable shape and the chord's notes and intervals. Brazilian chord symbols (`7M`, `7(9)`, `m7(b5)`, `°`, `4/7`…) are read as written; the instrument is a synced preference, with a left-handed option.
+- ✅ **Harmonic analysis** — Write a manual analysis over a song's chart, the way Brazilian harmony books do: roman-numeral degrees (`IIm7`, `V7/IV`, `SubV7/II`), T/SD/D functions, AEM and diminished marks, solid and dashed resolution arrows, II–V brackets, key changes, numbered notes and highlighted passages. Autosaved with undo/redo, kept attached to the right chords when the chart is edited, and exported as a clean PNG. Nothing is guessed: every mark is the musician's.
 - ✅ **Setlist Analytics** — Visualize a setlist's tempo/energy progression before you play it.
 - ✅ **Authentication** — Secure access via NextAuth, with role-based access control.
 - ✅ **Band Collaboration** — Multiple members share the same song library, setlists, and gigs.

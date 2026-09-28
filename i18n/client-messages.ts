@@ -43,6 +43,7 @@ export const CLIENT_NAMESPACES = {
   dashboard: [
     "account.delete",
     "account.emailChange",
+    "analysis",
     "analytics",
     "announcements",
     "apiErrors",
@@ -53,6 +54,7 @@ export const CLIENT_NAMESPACES = {
     "bands",
     "billing",
     "changePassword",
+    "chordDiagram",
     "chordproImport",
     "common",
     "communication",
@@ -130,6 +132,7 @@ export const CLIENT_NAMESPACES = {
     "usernamePolicy",
   ],
   live: [
+    "chordDiagram",
     "common",
     "error",
     "liveMode",

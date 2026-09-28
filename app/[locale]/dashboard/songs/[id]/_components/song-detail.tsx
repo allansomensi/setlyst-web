@@ -14,6 +14,7 @@ import {
   Loader2,
   NotebookPen,
   Pencil,
+  Waypoints,
   Play,
   Trash2,
   WifiOff,
@@ -48,6 +49,9 @@ import { AuditStamp } from "@/components/audit-stamp";
 import { ClientDate } from "@/components/client-date";
 import { TagChip } from "@/components/tags/tag-chip";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
+import { ChordDiagramHost } from "@/components/chords/chord-diagram-popover";
+import { findFirstChord } from "@/lib/music/chords";
+import { normalizeChordPro } from "@/lib/music/chordpro";
 import { LinkButtons } from "@/components/content/link-buttons";
 import { EnergyMeter } from "@/components/content/energy";
 import { PinButton } from "@/components/content/pin-button";
@@ -73,6 +77,16 @@ import { setlistDisplayTitle } from "@/lib/repertoire";
 import { deleteSong } from "../../actions";
 import { SongDialog } from "../../_components/song-dialog";
 
+export interface AnalysisSummary {
+  updatedAt: string;
+  updatedBy: string | null;
+  /** Chords with a degree written. */
+  degrees: number;
+  /** Arrows and brackets. */
+  lines: number;
+  notes: number;
+}
+
 interface SongDetailProps {
   song: Song;
   artistName: string | null;
@@ -88,6 +102,8 @@ interface SongDetailProps {
   bandCopies?: BandCopyStatus[];
   /** The song's version family (`null` when it couldn't load). */
   versions?: SongVersion[] | null;
+  /** Where the song's harmonic analysis stands, or null if it has none. */
+  analysis?: AnalysisSummary | null;
   canEdit: boolean;
   /** Band songs need the band's `export_pdf` permission. */
   canExport: boolean;
@@ -110,6 +126,7 @@ export function SongDetail({
   setlists,
   bandCopies = [],
   versions = null,
+  analysis = null,
   canEdit,
   canExport,
   canUseAdvancedPdf,
@@ -185,6 +202,8 @@ export function SongDetail({
   };
 
   const lineCount = song.lyrics?.trim() ? song.lyrics.split("\n").length : 0;
+  const hasChords =
+    !!song.lyrics && findFirstChord(normalizeChordPro(song.lyrics)) !== null;
 
   return (
     <div className="space-y-6">
@@ -287,6 +306,21 @@ export function SongDetail({
               </Button>
             </>
           )}
+          {(hasChords || analysis) && (
+            <Button
+              asChild
+              variant="outline"
+              className="h-10 gap-2"
+              title={t("actions.analysis")}
+            >
+              <Link href={`/dashboard/songs/${song.id}/analysis`}>
+                <Waypoints className="h-4 w-4" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  {t("actions.analysis")}
+                </span>
+              </Link>
+            </Button>
+          )}
           {canExport && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -381,16 +415,25 @@ export function SongDetail({
                 {lineCount > 0
                   ? tSongs("dialog.lyricsLines", { count: lineCount })
                   : tSongs("dialog.noLyrics")}
+                {hasChords && (
+                  <span className="hidden sm:inline">
+                    {" · "}
+                    {t("lyrics.chordHint")}
+                  </span>
+                )}
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             {song.lyrics?.trim() ? (
-              <ChordProRenderer
-                content={song.lyrics}
-                fontSize={1}
-                capo={song.capo}
-              />
+              <ChordDiagramHost>
+                <ChordProRenderer
+                  content={song.lyrics}
+                  fontSize={1}
+                  capo={song.capo}
+                  interactiveChords
+                />
+              </ChordDiagramHost>
             ) : (
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-4 py-10 text-center">
                 <p className="text-muted-foreground text-sm">
@@ -447,6 +490,54 @@ export function SongDetail({
               )}
             </CardContent>
           </Card>
+
+          {(hasChords || analysis) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Waypoints className="h-4 w-4" aria-hidden />
+                  {t("analysis.title")}
+                </CardTitle>
+                <CardDescription>
+                  {analysis ? (
+                    <>
+                      {t("analysis.summary", {
+                        degrees: analysis.degrees,
+                        lines: analysis.lines,
+                        notes: analysis.notes,
+                      })}
+                    </>
+                  ) : (
+                    t("analysis.empty")
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {analysis && (
+                  <p className="text-muted-foreground text-xs">
+                    {t("analysis.updated")}{" "}
+                    <ClientDate value={analysis.updatedAt} />
+                    {analysis.updatedBy && ` · @${analysis.updatedBy}`}
+                  </p>
+                )}
+                <Button
+                  asChild
+                  variant={analysis ? "outline" : "default"}
+                  size="sm"
+                  className="w-full gap-2"
+                >
+                  <Link href={`/dashboard/songs/${song.id}/analysis`}>
+                    <Waypoints className="h-4 w-4" aria-hidden />
+                    {analysis
+                      ? t("analysis.open")
+                      : canEdit
+                        ? t("analysis.create")
+                        : t("analysis.view")}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

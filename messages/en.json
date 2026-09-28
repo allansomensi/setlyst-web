@@ -1568,6 +1568,20 @@
       "description": "Download everything we keep about your account — profile, preferences, consents, subscription, payments and security log — as a JSON file. Your repertoire is in the backup above.",
       "button": "Download my data",
       "done": "Your personal data was downloaded."
+    },
+    "chordDiagrams": {
+      "title": "Chord diagrams",
+      "description": "Tap any chord in a chart to see how to play it. Pick your instrument — it applies on all your devices and can also be switched right in the diagram.",
+      "instrument": "Instrument",
+      "hints": {
+        "guitar": "Acoustic and electric guitar in standard tuning (E A D G B E), easiest shapes first.",
+        "keyboard": "Keyboard and piano: bass in the left hand, the chord in close position in the right, with its inversions.",
+        "ukulele": "Ukulele in standard tuning (G C E A).",
+        "cavaquinho": "Cavaquinho in standard Brazilian tuning (D G B D)."
+      },
+      "leftHanded": "Left-handed",
+      "leftHandedHint": "Mirrors the fretboard: lowest string on the right.",
+      "nextSample": "Show another chord"
     }
   },
   "error": {
@@ -2172,7 +2186,8 @@
     "setlistAnalytics": "{name} · Statistics",
     "band": "{name}",
     "bandGigs": "{name} · Shows",
-    "bandSetlists": "{name} · Setlists"
+    "bandSetlists": "{name} · Setlists",
+    "harmonicAnalysis": "{name} · Harmonic analysis"
   },
   "usernamePolicy": {
     "rules": "3–20 characters: letters, numbers, dots, hyphens or underscores. Must start with a letter.",
@@ -4897,7 +4912,8 @@
       "export": "Export",
       "exportPdf": "Export PDF",
       "exportChordpro": "Export ChordPro",
-      "delete": "Delete"
+      "delete": "Delete",
+      "analysis": "Analysis"
     },
     "facts": {
       "title": "Song details",
@@ -4913,7 +4929,8 @@
     "lyrics": {
       "title": "Lyrics and chords",
       "empty": "This song has no lyrics yet.",
-      "add": "Add lyrics"
+      "add": "Add lyrics",
+      "chordHint": "tap a chord to see its diagram"
     },
     "links": {
       "title": "Links",
@@ -4945,6 +4962,15 @@
       "suggestions": "Simplified|Acoustic|Live|Full band|Capo",
       "created": "Version “{label}” created",
       "submit": "Create version"
+    },
+    "analysis": {
+      "title": "Harmonic analysis",
+      "summary": "{degrees, plural, =0 {No degrees} =1 {# degree} other {# degrees}} · {lines, plural, =0 {no arrows} =1 {# arrow} other {# arrows}} · {notes, plural, =0 {no notes} =1 {# note} other {# notes}}",
+      "empty": "Write down the degrees, resolutions and remarks on this song's harmony.",
+      "updated": "Updated",
+      "open": "Open analysis",
+      "create": "Create analysis",
+      "view": "View analysis"
     }
   },
   "chordproImport": {
@@ -5370,5 +5396,277 @@
     "bandEditedWarning": "The band edited this copy after you added it. Those edits will be replaced by your version.",
     "synced": "Copy of “{title}” in {band} updated.",
     "syncFailed": "Couldn’t update the band’s copy."
+  },
+  "chordDiagram": {
+    "fretsLabel": "{chord} diagram: {frets}",
+    "keysLabel": "{chord} on the keyboard: {notes}",
+    "fretNumber": "{fret}fr",
+    "unknown": "There's no diagram for this chord.",
+    "noVoicing": "No comfortable shape found for this chord on this instrument.",
+    "bass": "bass",
+    "previous": "Previous shape",
+    "next": "Next shape",
+    "voicing": "Shape {index} of {total}",
+    "inversion": "{index, plural, =0 {Root position} =1 {1st inversion} =2 {2nd inversion} =3 {3rd inversion} other {#th inversion}}",
+    "instruments": {
+      "label": "Instrument",
+      "guitar": "Guitar",
+      "keyboard": "Keys",
+      "ukulele": "Ukulele",
+      "cavaquinho": "Cavaco"
+    }
+  },
+  "analysis": {
+    "title": "Harmonic analysis",
+    "unknownArtist": "Unknown artist",
+    "keyOf": "Key: {key}",
+    "exportPng": "Export PNG",
+    "undo": "Undo",
+    "redo": "Redo",
+    "undoShortcut": "Undo (Ctrl+Z)",
+    "redoShortcut": "Redo (Ctrl+Shift+Z)",
+    "deleted": "Analysis removed.",
+    "shortcuts": "Shortcuts: ← → move between chords · Delete clears a chord · Esc cancels · Ctrl+Z undoes",
+    "mode": {
+      "label": "Mode",
+      "edit": "Edit",
+      "view": "View"
+    },
+    "save": {
+      "offline": "Offline — changes will be saved when you're back",
+      "saved": "Saved",
+      "dirty": "Unsaved changes",
+      "saving": "Saving…",
+      "error": "Couldn't save",
+      "conflict": "Save conflict"
+    },
+    "display": {
+      "title": "Display",
+      "lyrics": "Show lyrics",
+      "functions": "Function colours and letters (T, SD, D)",
+      "twoFive": "Cadential II–V",
+      "bracket": "Bracket",
+      "dottedArrow": "Dotted arrow",
+      "readOnlyHint": "In this view only: you can't edit this analysis."
+    },
+    "delete": {
+      "action": "Remove analysis",
+      "title": "Remove the harmonic analysis?",
+      "description": "Every degree, arrow, mark and note on this song will be deleted. The chart itself isn't changed.",
+      "confirm": "Remove analysis"
+    },
+    "reconciled": {
+      "moved": "The chart changed since the last analysis: the marks were realigned to their chords.",
+      "lost": "The chart changed since the last analysis: the marks were realigned, but {count, plural, =1 {# mark was} other {# marks were}} on chords that no longer exist and {count, plural, =1 {was} other {were}} removed. Use Undo to review."
+    },
+    "conflict": {
+      "description": "Someone else (or another tab) saved this analysis while you were editing.",
+      "reload": "Load the saved version",
+      "overwrite": "Keep mine"
+    },
+    "start": {
+      "title": "Start with a chord",
+      "description": "Tap a chord to write its degree, function and marks, draw resolution arrows and annotate passages."
+    },
+    "noChords": {
+      "title": "This song has no chords yet",
+      "description": "A harmonic analysis is written over the chart's chords. Add them and come back.",
+      "action": "Edit lyrics and chords"
+    },
+    "pick": {
+      "connection": "Tap the chord {chord} resolves to",
+      "range": "Tap the last chord of the passage starting at {chord}",
+      "next": "Next chord",
+      "justThis": "Just this chord",
+      "cancel": "Cancel"
+    },
+    "sheet": {
+      "chordLabel": "Chord {chord}"
+    },
+    "overview": {
+      "progress": "Progress",
+      "progressCount": "{analysed} of {total} chords with a degree",
+      "hint": "Select a chord in the chart to analyse it.",
+      "summary": "General remarks",
+      "summaryPlaceholder": "Form, tonal centre, modulations, what makes this harmony interesting…",
+      "notes": "Notes",
+      "noNotes": "Chord and passage notes show up here, numbered.",
+      "legend": "Legend",
+      "nothingYet": "No arrows or marks yet."
+    },
+    "footnotes": {
+      "chord": "{chord}",
+      "passage": "{from} → {to}",
+      "empty": "no text"
+    },
+    "degree": {
+      "placeholder": "E.g. IIm7, V7/IV, SubV7, bVII7",
+      "input": "Degree",
+      "clear": "Clear degree",
+      "invalid": "Start with a roman numeral (I to VII), optionally preceded by ♭/♯ or Sub.",
+      "presetsMajor": "Common degrees (major key)",
+      "presetsMinor": "Common degrees (minor key)",
+      "build": "Build the degree step by step",
+      "numeral": "Degree",
+      "quality": "Quality",
+      "majorTriad": "Major triad",
+      "triad": "triad",
+      "target": "Secondary dominant of…",
+      "noTarget": "none",
+      "sub": "SubV",
+      "subHint": "substitute dominant",
+      "accidental": {
+        "flat": "Flat",
+        "natural": "Natural",
+        "sharp": "Sharp"
+      }
+    },
+    "inspector": {
+      "position": "Chord {position} of {total}",
+      "inKey": "key of {key}",
+      "chordAt": "{chord} ({position})",
+      "diagram": "See chord diagram",
+      "previous": "Previous chord",
+      "next": "Next chord",
+      "previousShortcut": "Previous chord (←)",
+      "nextShortcut": "Next chord (→)",
+      "close": "Close",
+      "noChord": "This symbol isn't a chord (e.g. N.C.), but you can still annotate it.",
+      "degree": "Degree",
+      "degreeHint": "The chord's degree in the current key.",
+      "copyToSame": "Apply to the other {count} {chord} in this key",
+      "copied": "{count, plural, =1 {# chord filled in} other {# chords filled in}}.",
+      "function": "Harmonic function",
+      "functionHint": "Tonic, subdominant or dominant.",
+      "marks": "Marks",
+      "marksHint": "Modal interchange, diminished chords, passing chords…",
+      "custom": "Your own mark",
+      "customPlaceholder": "Your own mark (e.g. Relative tonic)",
+      "lines": "Arrows and brackets",
+      "linesHint": "Pick a type, then tap the target chord.",
+      "from": "from",
+      "removeLine": "Remove",
+      "key": "Key",
+      "keyStartsHere": "A new key starts at this chord.",
+      "keyHint": "Current key: {key}. Mark a modulation here.",
+      "noKeyChange": "No key change here",
+      "keyOption": "Key of {key}",
+      "note": "Note on this chord",
+      "noteHint": "Shown numbered in the analysis.",
+      "notePlaceholder": "E.g. extended dominant, resolves in the bridge…",
+      "passages": "Passages",
+      "passagesHint": "Highlight a passage and write about it.",
+      "addPassage": "Annotate passage",
+      "noPassages": "No annotated passage goes through this chord.",
+      "passageRange": "{from} → {to} · {count, plural, =1 {# chord} other {# chords}}",
+      "passagePlaceholder": "E.g. II–V–I in the key of the subdominant",
+      "passageText": "Passage text",
+      "removePassage": "Remove passage",
+      "clearChord": "Clear everything on this chord"
+    },
+    "functions": {
+      "T": {
+        "name": "Tonic"
+      },
+      "SD": {
+        "name": "Subdominant"
+      },
+      "D": {
+        "name": "Dominant"
+      }
+    },
+    "badges": {
+      "aem": {
+        "short": "MI",
+        "name": "Modal interchange (borrowed chord)"
+      },
+      "dimAsc": {
+        "short": "dim. asc.",
+        "name": "Ascending passing diminished"
+      },
+      "dimDesc": {
+        "short": "dim. desc.",
+        "name": "Descending passing diminished"
+      },
+      "dimAux": {
+        "short": "dim. aux.",
+        "name": "Auxiliary diminished"
+      },
+      "passing": {
+        "short": "passing",
+        "name": "Passing chord"
+      },
+      "approach": {
+        "short": "approach",
+        "name": "Approach chord"
+      },
+      "pedal": {
+        "short": "pedal",
+        "name": "Pedal point"
+      },
+      "cliche": {
+        "short": "cliché",
+        "name": "Harmonic cliché"
+      }
+    },
+    "connections": {
+      "dominant": {
+        "name": "Dominant resolution",
+        "hint": "solid arrow (V7 → I)"
+      },
+      "subV": {
+        "name": "SubV resolution",
+        "hint": "dashed arrow (SubV7 → I)"
+      },
+      "twoFive": {
+        "name": "Cadential II–V",
+        "hint": "joins the II to the V it prepares"
+      },
+      "deceptive": {
+        "name": "Deceptive resolution",
+        "hint": "the dominant resolves somewhere unexpected"
+      },
+      "other": {
+        "name": "Other relation",
+        "hint": "a free link between two chords"
+      }
+    },
+    "noteColors": {
+      "amber": "Amber",
+      "sky": "Blue",
+      "violet": "Violet",
+      "rose": "Pink",
+      "emerald": "Green"
+    },
+    "export": {
+      "title": "Export analysis",
+      "description": "An image of the analysis, ready to study, print or share.",
+      "theme": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "format": "Format",
+      "portrait": "Portrait",
+      "wide": "Wide",
+      "lyrics": "Lyrics",
+      "legendOption": "Legend",
+      "notesOption": "Notes",
+      "summaryOption": "General remarks",
+      "preview": "Preview",
+      "download": "Download PNG",
+      "copy": "Copy image",
+      "share": "Share",
+      "downloaded": "Image downloaded.",
+      "copied": "Image copied.",
+      "failed": "Couldn't create the image.",
+      "fileSuffix": "harmonic analysis",
+      "kicker": "Harmonic analysis",
+      "key": "Key of {key}",
+      "bpm": "{bpm} BPM",
+      "legend": "Legend",
+      "notes": "Notes",
+      "summary": "Remarks",
+      "byline": "Analysis by {author}",
+      "bylineAnonymous": "Harmonic analysis"
+    }
   }
 }

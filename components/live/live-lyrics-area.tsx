@@ -4,6 +4,7 @@ import { RefObject, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { ScrollText } from "lucide-react";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
+import { ChordDiagramHost } from "@/components/chords/chord-diagram-popover";
 import { useFitToScreen } from "@/hooks/use-fit-to-screen";
 import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
 import type { LiveFontFamily } from "@/hooks/use-live-display-prefs";
@@ -153,15 +154,18 @@ export function LiveLyricsArea({
             : "mx-auto max-w-5xl",
         )}
       >
-        <ChordProRenderer
-          content={content}
-          showChords={showChords}
-          showSections={showSections}
-          fontSize={fitToScreen ? "inherit" : fontSize}
-          fontFamily={fontFamily}
-          capo={capo}
-          className={fitToScreen ? "max-w-none" : "mx-auto"}
-        />
+        <ChordDiagramHost>
+          <ChordProRenderer
+            content={content}
+            showChords={showChords}
+            showSections={showSections}
+            fontSize={fitToScreen ? "inherit" : fontSize}
+            fontFamily={fontFamily}
+            capo={capo}
+            interactiveChords
+            className={fitToScreen ? "max-w-none" : "mx-auto"}
+          />
+        </ChordDiagramHost>
       </div>
     </main>
   );

@@ -14,9 +14,11 @@ import {
   BandCopyStatus,
   BandWithMembership,
   Song,
+  SongAnalysis,
   SongSetlistRef,
   SongVersion,
 } from "@/types/api";
+import { degreeIsSet, normalizeAnalysis } from "@/lib/music/analysis";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { SongDetail } from "./_components/song-detail";
 
@@ -82,24 +84,52 @@ export default async function SongDetailPage({
     throw error;
   }
 
-  const [entitlements, band, setlists, artists, bandCopies, versions] =
-    await Promise.all([
-      getEntitlements(),
-      song.band_id
-        ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
-            () => null,
-          )
-        : Promise.resolve(null),
-      fetchServerApi<SongSetlistRef[]>(`/songs/${id}/setlists`).catch(
-        () => null,
-      ),
-      editableArtists(song),
-      // Only a secondary panel: the page works without it.
-      fetchServerApi<BandCopyStatus[]>(`/songs/${id}/band-copies`).catch(
-        () => [] as BandCopyStatus[],
-      ),
-      fetchServerApi<SongVersion[]>(`/songs/${id}/versions`).catch(() => null),
-    ]);
+  const [
+    entitlements,
+    band,
+    setlists,
+    artists,
+    bandCopies,
+    versions,
+    analysis,
+  ] = await Promise.all([
+    getEntitlements(),
+    song.band_id
+      ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
+          () => null,
+        )
+      : Promise.resolve(null),
+    fetchServerApi<SongSetlistRef[]>(`/songs/${id}/setlists`).catch(() => null),
+    editableArtists(song),
+    // Only a secondary panel: the page works without it.
+    fetchServerApi<BandCopyStatus[]>(`/songs/${id}/band-copies`).catch(
+      () => [] as BandCopyStatus[],
+    ),
+    fetchServerApi<SongVersion[]>(`/songs/${id}/versions`).catch(() => null),
+    // Only a secondary card too.
+    fetchServerApi<SongAnalysis | null>(`/songs/${id}/analysis`).catch(
+      () => null,
+    ),
+  ]);
+
+  // What the analysis card shows: how far along it is, not the document.
+  const analysisSummary = analysis
+    ? (() => {
+        const content = normalizeAnalysis(analysis.content);
+        return {
+          updatedAt: analysis.updated_at,
+          updatedBy: analysis.updated_by_username,
+          degrees: Object.values(content.entries).filter((entry) =>
+            degreeIsSet(entry.degree),
+          ).length,
+          lines: content.connections.length,
+          notes:
+            content.notes.length +
+            Object.values(content.entries).filter((entry) => entry.note.trim())
+              .length,
+        };
+      })()
+    : null;
 
   const canEdit = !song.band_id || (band ? canManageBandSongs(band) : false);
   const canExport = !song.band_id || (band ? canExportBandPdf(band) : false);
@@ -120,6 +150,7 @@ export default async function SongDetailPage({
         setlists={setlists}
         bandCopies={bandCopies}
         versions={versions}
+        analysis={analysisSummary}
         canEdit={canEdit}
         canExport={canExport}
         canUseAdvancedPdf={hasFeature(entitlements, "advanced_pdf")}

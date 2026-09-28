@@ -27,6 +27,7 @@ import {
   type SectionKey,
   type Word,
 } from "@/lib/music/chordpro";
+import { parseChord } from "@/lib/music/chords";
 
 const ICONS: Partial<Record<SectionKey, LucideIcon>> = {
   intro: Play,
@@ -125,9 +126,32 @@ function plainText(words: Word[]): string {
     .trim();
 }
 
+/**
+ * Props that make a chord open its diagram (see ChordDiagramHost): only
+ * real chord symbols — "N.C." has nothing to draw.
+ */
+function chordProps(chord: string, interactive: boolean) {
+  if (!interactive) return {};
+  const symbol = chord.replace(/^\((.+)\)$/, "$1");
+  if (!parseChord(symbol)) return {};
+  return {
+    "data-chord-symbol": symbol,
+    role: "button",
+    tabIndex: 0,
+    className:
+      "cursor-pointer rounded-[0.2em] decoration-dotted underline-offset-[0.2em] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
+  } as const;
+}
+
 // Pieces
 
-function ChordLine({ words }: { words: Word[] }) {
+function ChordLine({
+  words,
+  interactive,
+}: {
+  words: Word[];
+  interactive: boolean;
+}) {
   // A chord only needs breathing room after it when another chord follows
   // straight away — otherwise the padding just pushes the lyric apart.
   const flat = words.flat();
@@ -156,13 +180,17 @@ function ChordLine({ words }: { words: Word[] }) {
             // Padding on the chord only widens the segment when the chord is
             // wider than its syllable, which is exactly when it's needed.
             const crowded = next?.chord != null;
+            const { className: interactiveClass, ...interactiveProps } =
+              chordProps(segment.chord, interactive);
             return (
               <span key={s} className="inline-flex flex-col">
                 <span
                   data-chord=""
+                  {...interactiveProps}
                   className={cn(
-                    "text-primary font-mono text-[0.72em] leading-[1.35] font-bold tracking-tight",
-                    crowded ? "pr-[0.6em]" : "pr-[0.15em]",
+                    "text-primary w-fit font-mono text-[0.72em] leading-[1.35] font-bold tracking-tight",
+                    crowded ? "mr-[0.6em]" : "mr-[0.15em]",
+                    interactiveClass,
                   )}
                 >
                   {segment.chord}
@@ -190,8 +218,10 @@ function TextLine({ text }: { text: string }) {
 
 function ChordsRow({
   items,
+  interactive,
 }: {
   items: Array<{ chord: boolean; text: string }>;
+  interactive: boolean;
 }) {
   return (
     <div
@@ -199,24 +229,35 @@ function ChordsRow({
       data-chord-line=""
       className="flex flex-wrap items-baseline gap-x-[0.9em] gap-y-[0.2em] py-[0.1em]"
     >
-      {items.map((item, i) =>
-        item.chord ? (
+      {items.map((item, i) => {
+        if (!item.chord) {
+          return (
+            <span
+              key={i}
+              className="text-muted-foreground font-mono text-[0.7em]"
+            >
+              {item.text}
+            </span>
+          );
+        }
+        const { className: interactiveClass, ...interactiveProps } = chordProps(
+          item.text,
+          interactive,
+        );
+        return (
           <span
             key={i}
             data-chord=""
-            className="text-primary font-mono text-[0.8em] font-bold tracking-tight"
+            {...interactiveProps}
+            className={cn(
+              "text-primary font-mono text-[0.8em] font-bold tracking-tight",
+              interactiveClass,
+            )}
           >
             {item.text}
           </span>
-        ) : (
-          <span
-            key={i}
-            className="text-muted-foreground font-mono text-[0.7em]"
-          >
-            {item.text}
-          </span>
-        ),
-      )}
+        );
+      })}
     </div>
   );
 }
@@ -283,6 +324,11 @@ export interface ChordProRendererProps {
    * like the directive: it means nothing to someone only singing.
    */
   capo?: number | null;
+  /**
+   * Chords open their diagram when clicked (wrap the renderer in a
+   * ChordDiagramHost, which shows it).
+   */
+  interactiveChords?: boolean;
   className?: string;
 }
 
@@ -311,6 +357,7 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
   fontSize = 1.1,
   fontFamily = "sans",
   capo = null,
+  interactiveChords = false,
   className,
 }: ChordProRendererProps) {
   const t = useTranslations("lyrics");
@@ -380,7 +427,13 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
             items.push({
               kind: "content",
               chorus: block.chorus,
-              node: <ChordLine key={i} words={block.words} />,
+              node: (
+                <ChordLine
+                  key={i}
+                  words={block.words}
+                  interactive={interactiveChords}
+                />
+              ),
             });
             return;
           }
@@ -399,7 +452,13 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
           items.push({
             kind: "content",
             chorus: block.chorus,
-            node: <ChordsRow key={i} items={block.items} />,
+            node: (
+              <ChordsRow
+                key={i}
+                items={block.items}
+                interactive={interactiveChords}
+              />
+            ),
           });
           return;
         case "tab":
@@ -528,7 +587,7 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
     });
     flushChorus();
     return output;
-  }, [blocks, showChords, showSections, capo, t, tSection]);
+  }, [blocks, showChords, showSections, capo, interactiveChords, t, tSection]);
 
   const cssFontSize = fontSize === "inherit" ? "1em" : `${fontSize}rem`;
 

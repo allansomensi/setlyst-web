@@ -13,10 +13,12 @@ import {
   BandCopyStatus,
   CreateSongPayload,
   Song,
+  SongAnalysis,
   SongVersion,
   TagCount,
   UpdateSongPayload,
 } from "@/types/api";
+import { normalizeAnalysis } from "@/lib/music/analysis";
 import type { ChordProPreview, ImportChordProPayload } from "@/types/content";
 import { CHORDPRO_MAX_BYTES, utf8Size } from "@/lib/chordpro-file";
 import { getTranslations } from "next-intl/server";
@@ -277,5 +279,47 @@ export async function importChordPro(
           revalidateDashboard("");
           revalidateDashboard("/analytics");
         },
+  );
+}
+
+/**
+ * Saves a song's harmonic analysis. `baseUpdatedAt` is the version the
+ * editor started from: when someone else saved in between, the API
+ * answers a conflict instead of overwriting their work (pass null to
+ * overwrite on purpose).
+ */
+export async function saveSongAnalysis(
+  id: string,
+  content: unknown,
+  baseUpdatedAt: string | null,
+): Promise<ActionResult<SongAnalysis>> {
+  if (
+    !isUuid(id) ||
+    !content ||
+    typeof content !== "object" ||
+    Array.isArray(content) ||
+    (baseUpdatedAt !== null && typeof baseUpdatedAt !== "string")
+  ) {
+    return invalidRequest();
+  }
+  // Coerced here too: only a well-formed document is ever sent.
+  const document = normalizeAnalysis(content);
+  return guardedAction(() =>
+    fetchServerApi<SongAnalysis>(apiPath`/songs/${id}/analysis`, {
+      method: "PUT",
+      body: JSON.stringify({
+        content: document,
+        base_updated_at: baseUpdatedAt,
+      }),
+    }),
+  );
+}
+
+/** Removes a song's harmonic analysis. */
+export async function deleteSongAnalysis(id: string) {
+  if (!isUuid(id)) return invalidRequest();
+  return guardedAction(
+    () => fetchServerApi(apiPath`/songs/${id}/analysis`, { method: "DELETE" }),
+    () => revalidateDashboard(`/songs/${id}`),
   );
 }

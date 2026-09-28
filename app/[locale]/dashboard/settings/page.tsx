@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/routing";
 import { getMyPreferences } from "@/lib/server-data";
+import { ChordDiagramsSection } from "./_components/chord-diagrams-section";
 import { DisplayDefaultsSection } from "./_components/display-defaults-section";
 import { OfflineSection } from "./_components/offline-section";
 import { PdfDefaultsSection } from "./_components/pdf-defaults-section";
@@ -49,6 +50,7 @@ export default async function PreferencesSettingsPage({
     <SettingsPage section="preferences">
       <SettingsForm initialPreferences={preferences} />
       <DisplayDefaultsSection />
+      <ChordDiagramsSection />
       <PdfDefaultsSection />
       <OfflineSection />
     </SettingsPage>

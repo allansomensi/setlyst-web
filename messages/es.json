@@ -1568,6 +1568,20 @@
       "description": "Descarga todo lo que guardamos sobre tu cuenta (perfil, preferencias, consentimientos, suscripción, pagos y registro de seguridad) en un archivo JSON. Tu repertorio está en la copia de seguridad de arriba.",
       "button": "Descargar mis datos",
       "done": "Tus datos personales se descargaron."
+    },
+    "chordDiagrams": {
+      "title": "Diagramas de acordes",
+      "description": "Toca cualquier acorde de una partitura para ver cómo tocarlo. Elige el instrumento: la elección vale en todos tus dispositivos y también se puede cambiar en el propio diagrama.",
+      "instrument": "Instrumento",
+      "hints": {
+        "guitar": "Guitarra en afinación estándar (Mi La Re Sol Si Mi), con las posiciones más fáciles primero.",
+        "keyboard": "Teclado y piano: bajo en la mano izquierda, el acorde en posición cerrada en la derecha, con sus inversiones.",
+        "ukulele": "Ukelele en afinación estándar (Sol Do Mi La).",
+        "cavaquinho": "Cavaquinho en afinación brasileña (Re Sol Si Re)."
+      },
+      "leftHanded": "Zurdo",
+      "leftHandedHint": "Refleja el mástil: la cuerda más grave a la derecha.",
+      "nextSample": "Mostrar otro acorde"
     }
   },
   "error": {
@@ -2172,7 +2186,8 @@
     "setlistAnalytics": "{name} · Estadísticas",
     "band": "{name}",
     "bandGigs": "{name} · Conciertos",
-    "bandSetlists": "{name} · Setlists"
+    "bandSetlists": "{name} · Setlists",
+    "harmonicAnalysis": "{name} · Análisis armónico"
   },
   "usernamePolicy": {
     "rules": "3 a 20 caracteres: letras, números, puntos, guiones o guiones bajos. Debe empezar por una letra.",
@@ -4897,7 +4912,8 @@
       "export": "Exportar",
       "exportPdf": "Exportar PDF",
       "exportChordpro": "Exportar ChordPro",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "analysis": "Análisis"
     },
     "facts": {
       "title": "Datos de la canción",
@@ -4913,7 +4929,8 @@
     "lyrics": {
       "title": "Letra y acordes",
       "empty": "Esta canción aún no tiene letra.",
-      "add": "Añadir letra"
+      "add": "Añadir letra",
+      "chordHint": "toca un acorde para ver su diagrama"
     },
     "links": {
       "title": "Enlaces",
@@ -4945,6 +4962,15 @@
       "suggestions": "Simplificada|Acústica|En vivo|Banda completa|Con cejilla",
       "created": "Versión “{label}” creada",
       "submit": "Crear versión"
+    },
+    "analysis": {
+      "title": "Análisis armónico",
+      "summary": "{degrees, plural, =0 {Ningún grado} =1 {# grado} other {# grados}} · {lines, plural, =0 {ninguna flecha} =1 {# flecha} other {# flechas}} · {notes, plural, =0 {ninguna nota} =1 {# nota} other {# notas}}",
+      "empty": "Escribe los grados, las resoluciones y las observaciones sobre la armonía de esta canción.",
+      "updated": "Actualizado",
+      "open": "Abrir análisis",
+      "create": "Crear análisis",
+      "view": "Ver análisis"
     }
   },
   "chordproImport": {
@@ -5370,5 +5396,277 @@
     "bandEditedWarning": "La banda editó esta copia después de que la agregaste. Esos cambios serán reemplazados por tu versión.",
     "synced": "Copia de “{title}” en {band} actualizada.",
     "syncFailed": "No se pudo actualizar la copia de la banda."
+  },
+  "chordDiagram": {
+    "fretsLabel": "Diagrama de {chord}: {frets}",
+    "keysLabel": "{chord} en el teclado: {notes}",
+    "fretNumber": "{fret}ª",
+    "unknown": "No hay diagrama para este acorde.",
+    "noVoicing": "No se encontró una posición cómoda para este acorde en este instrumento.",
+    "bass": "bajo",
+    "previous": "Posición anterior",
+    "next": "Siguiente posición",
+    "voicing": "Posición {index} de {total}",
+    "inversion": "{index, plural, =0 {Estado fundamental} other {#ª inversión}}",
+    "instruments": {
+      "label": "Instrumento",
+      "guitar": "Guitarra",
+      "keyboard": "Teclado",
+      "ukulele": "Ukelele",
+      "cavaquinho": "Cavaco"
+    }
+  },
+  "analysis": {
+    "title": "Análisis armónico",
+    "unknownArtist": "Artista desconocido",
+    "keyOf": "Tono: {key}",
+    "exportPng": "Exportar PNG",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "undoShortcut": "Deshacer (Ctrl+Z)",
+    "redoShortcut": "Rehacer (Ctrl+Shift+Z)",
+    "deleted": "Análisis eliminado.",
+    "shortcuts": "Atajos: ← → recorren los acordes · Supr limpia el acorde · Esc cancela · Ctrl+Z deshace",
+    "mode": {
+      "label": "Modo",
+      "edit": "Editar",
+      "view": "Ver"
+    },
+    "save": {
+      "offline": "Sin conexión — los cambios se guardarán al volver",
+      "saved": "Guardado",
+      "dirty": "Cambios sin guardar",
+      "saving": "Guardando…",
+      "error": "No se pudo guardar",
+      "conflict": "Conflicto al guardar"
+    },
+    "display": {
+      "title": "Visualización",
+      "lyrics": "Mostrar la letra",
+      "functions": "Colores y letras de las funciones (T, SD, D)",
+      "twoFive": "II–V cadencial",
+      "bracket": "Corchete",
+      "dottedArrow": "Flecha punteada",
+      "readOnlyHint": "Solo en esta vista: no puedes editar este análisis."
+    },
+    "delete": {
+      "action": "Eliminar análisis",
+      "title": "¿Eliminar el análisis armónico?",
+      "description": "Se borrarán todos los grados, flechas, marcas y notas de esta canción. La partitura no se modifica.",
+      "confirm": "Eliminar análisis"
+    },
+    "reconciled": {
+      "moved": "La partitura cambió desde el último análisis: las marcas se realinearon con sus acordes.",
+      "lost": "La partitura cambió desde el último análisis: las marcas se realinearon, pero {count, plural, =1 {# marca estaba} other {# marcas estaban}} en acordes que ya no existen y {count, plural, =1 {se eliminó} other {se eliminaron}}. Usa Deshacer para revisarlo."
+    },
+    "conflict": {
+      "description": "Otra persona (u otra pestaña) guardó este análisis mientras editabas.",
+      "reload": "Cargar la versión guardada",
+      "overwrite": "Mantener la mía"
+    },
+    "start": {
+      "title": "Empieza por un acorde",
+      "description": "Toca un acorde para escribir su grado, función y marcas, dibujar las flechas de resolución y anotar pasajes."
+    },
+    "noChords": {
+      "title": "Esta canción aún no tiene acordes",
+      "description": "El análisis armónico se escribe sobre los acordes de la partitura. Añádelos y vuelve aquí.",
+      "action": "Editar letra y acordes"
+    },
+    "pick": {
+      "connection": "Toca el acorde donde resuelve {chord}",
+      "range": "Toca el último acorde del pasaje que empieza en {chord}",
+      "next": "Siguiente acorde",
+      "justThis": "Solo este acorde",
+      "cancel": "Cancelar"
+    },
+    "sheet": {
+      "chordLabel": "Acorde {chord}"
+    },
+    "overview": {
+      "progress": "Progreso",
+      "progressCount": "{analysed} de {total} acordes con grado",
+      "hint": "Selecciona un acorde de la partitura para analizarlo.",
+      "summary": "Comentarios generales",
+      "summaryPlaceholder": "Forma, centro tonal, modulaciones, qué hace interesante esta armonía…",
+      "notes": "Notas",
+      "noNotes": "Las notas de acordes y pasajes aparecen aquí, numeradas.",
+      "legend": "Leyenda",
+      "nothingYet": "Aún no hay flechas ni marcas."
+    },
+    "footnotes": {
+      "chord": "{chord}",
+      "passage": "{from} → {to}",
+      "empty": "sin texto"
+    },
+    "degree": {
+      "placeholder": "Ej.: IIm7, V7/IV, SubV7, bVII7",
+      "input": "Grado",
+      "clear": "Borrar grado",
+      "invalid": "Empieza con un número romano (I a VII), opcionalmente precedido de ♭/♯ o Sub.",
+      "presetsMajor": "Grados comunes (tono mayor)",
+      "presetsMinor": "Grados comunes (tono menor)",
+      "build": "Construir el grado paso a paso",
+      "numeral": "Grado",
+      "quality": "Calidad",
+      "majorTriad": "Tríada mayor",
+      "triad": "tríada",
+      "target": "Dominante secundaria de…",
+      "noTarget": "ninguno",
+      "sub": "SubV",
+      "subHint": "dominante sustituta",
+      "accidental": {
+        "flat": "Bemol",
+        "natural": "Becuadro",
+        "sharp": "Sostenido"
+      }
+    },
+    "inspector": {
+      "position": "Acorde {position} de {total}",
+      "inKey": "tono de {key}",
+      "chordAt": "{chord} ({position})",
+      "diagram": "Ver diagrama del acorde",
+      "previous": "Acorde anterior",
+      "next": "Siguiente acorde",
+      "previousShortcut": "Acorde anterior (←)",
+      "nextShortcut": "Siguiente acorde (→)",
+      "close": "Cerrar",
+      "noChord": "Este símbolo no es un acorde (p. ej. N.C.), pero igual puedes anotarlo.",
+      "degree": "Grado",
+      "degreeHint": "El grado del acorde en el tono vigente.",
+      "copyToSame": "Aplicar a los otros {count} {chord} de este tono",
+      "copied": "{count, plural, =1 {# acorde completado} other {# acordes completados}}.",
+      "function": "Función armónica",
+      "functionHint": "Tónica, subdominante o dominante.",
+      "marks": "Marcas",
+      "marksHint": "Intercambio modal, disminuidos, acordes de paso…",
+      "custom": "Marca propia",
+      "customPlaceholder": "Marca propia (p. ej. Tónica relativa)",
+      "lines": "Flechas y corchetes",
+      "linesHint": "Elige el tipo y toca el acorde de destino.",
+      "from": "desde",
+      "removeLine": "Eliminar",
+      "key": "Tonalidad",
+      "keyStartsHere": "Un nuevo tono empieza en este acorde.",
+      "keyHint": "Vigente: {key}. Marca aquí una modulación.",
+      "noKeyChange": "Sin cambio de tono aquí",
+      "keyOption": "Tono de {key}",
+      "note": "Nota sobre el acorde",
+      "noteHint": "Aparece numerada en el análisis.",
+      "notePlaceholder": "Ej.: dominante extendida, resuelve en el puente…",
+      "passages": "Pasajes",
+      "passagesHint": "Destaca un pasaje y escribe sobre él.",
+      "addPassage": "Anotar pasaje",
+      "noPassages": "Ningún pasaje anotado pasa por este acorde.",
+      "passageRange": "{from} → {to} · {count, plural, =1 {# acorde} other {# acordes}}",
+      "passagePlaceholder": "Ej.: cadencia II–V–I en el tono de la subdominante",
+      "passageText": "Texto del pasaje",
+      "removePassage": "Eliminar pasaje",
+      "clearChord": "Borrar todo de este acorde"
+    },
+    "functions": {
+      "T": {
+        "name": "Tónica"
+      },
+      "SD": {
+        "name": "Subdominante"
+      },
+      "D": {
+        "name": "Dominante"
+      }
+    },
+    "badges": {
+      "aem": {
+        "short": "IM",
+        "name": "Acorde de intercambio modal"
+      },
+      "dimAsc": {
+        "short": "dim. asc.",
+        "name": "Disminuido ascendente"
+      },
+      "dimDesc": {
+        "short": "dim. desc.",
+        "name": "Disminuido descendente"
+      },
+      "dimAux": {
+        "short": "dim. aux.",
+        "name": "Disminuido auxiliar"
+      },
+      "passing": {
+        "short": "paso",
+        "name": "Acorde de paso"
+      },
+      "approach": {
+        "short": "aprox.",
+        "name": "Acorde de aproximación"
+      },
+      "pedal": {
+        "short": "pedal",
+        "name": "Nota pedal"
+      },
+      "cliche": {
+        "short": "cliché",
+        "name": "Cliché armónico"
+      }
+    },
+    "connections": {
+      "dominant": {
+        "name": "Resolución de dominante",
+        "hint": "flecha continua (V7 → I)"
+      },
+      "subV": {
+        "name": "Resolución del SubV",
+        "hint": "flecha discontinua (SubV7 → I)"
+      },
+      "twoFive": {
+        "name": "II–V cadencial",
+        "hint": "une el II con el V que prepara"
+      },
+      "deceptive": {
+        "name": "Resolución deceptiva",
+        "hint": "la dominante resuelve de forma inesperada"
+      },
+      "other": {
+        "name": "Otra relación",
+        "hint": "un vínculo libre entre dos acordes"
+      }
+    },
+    "noteColors": {
+      "amber": "Ámbar",
+      "sky": "Azul",
+      "violet": "Violeta",
+      "rose": "Rosa",
+      "emerald": "Verde"
+    },
+    "export": {
+      "title": "Exportar análisis",
+      "description": "Una imagen del análisis, lista para estudiar, imprimir o compartir.",
+      "theme": "Tema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "format": "Formato",
+      "portrait": "Vertical",
+      "wide": "Ancho",
+      "lyrics": "Letra",
+      "legendOption": "Leyenda",
+      "notesOption": "Notas",
+      "summaryOption": "Comentarios generales",
+      "preview": "Vista previa",
+      "download": "Descargar PNG",
+      "copy": "Copiar imagen",
+      "share": "Compartir",
+      "downloaded": "Imagen descargada.",
+      "copied": "Imagen copiada.",
+      "failed": "No se pudo generar la imagen.",
+      "fileSuffix": "analisis armonico",
+      "kicker": "Análisis armónico",
+      "key": "Tono {key}",
+      "bpm": "{bpm} BPM",
+      "legend": "Leyenda",
+      "notes": "Notas",
+      "summary": "Comentarios",
+      "byline": "Análisis de {author}",
+      "bylineAnonymous": "Análisis armónico"
+    }
   }
 }

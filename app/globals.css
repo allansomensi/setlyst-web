@@ -303,3 +303,79 @@
     overflow: hidden;
   }
 }
+
+/*
+ * Harmonic analysis (components/analysis).
+ *
+ * The marks of an analysis carry meaning in their colour as much as in
+ * their shape, the way a teacher's red and blue pens do: dominant
+ * resolutions warm, substitute dominants violet, II–V cadences blue; the
+ * tonic, subdominant and dominant functions blue, green and red. Each has
+ * a light and a dark value tuned against the card surface.
+ *
+ * `[data-analysis-theme]` pins a subtree to one palette regardless of the
+ * app's theme — the PNG export is rendered in the palette the person
+ * picked, not in whatever theme they happen to be using. It re-points the
+ * app's own tokens too, so every utility inside follows.
+ */
+:root,
+[data-analysis-theme="light"] {
+  --an-dominant: oklch(0.55 0.19 28);
+  --an-subv: oklch(0.5 0.2 305);
+  --an-twofive: oklch(0.5 0.16 245);
+  --an-deceptive: oklch(0.6 0.15 65);
+  --an-other: oklch(0.55 0.02 280);
+  --an-fn-t: oklch(0.5 0.15 250);
+  --an-fn-sd: oklch(0.52 0.13 155);
+  --an-fn-d: oklch(0.54 0.2 25);
+  --an-aem: oklch(0.55 0.17 330);
+  --an-note-amber: oklch(0.82 0.15 80);
+  --an-note-sky: oklch(0.78 0.11 230);
+  --an-note-violet: oklch(0.75 0.13 300);
+  --an-note-rose: oklch(0.76 0.14 10);
+  --an-note-emerald: oklch(0.78 0.13 160);
+}
+
+.dark,
+[data-analysis-theme="dark"] {
+  --an-dominant: oklch(0.74 0.16 28);
+  --an-subv: oklch(0.74 0.15 305);
+  --an-twofive: oklch(0.74 0.13 240);
+  --an-deceptive: oklch(0.8 0.14 75);
+  --an-other: oklch(0.72 0.02 280);
+  --an-fn-t: oklch(0.75 0.12 245);
+  --an-fn-sd: oklch(0.77 0.13 155);
+  --an-fn-d: oklch(0.74 0.16 25);
+  --an-aem: oklch(0.76 0.14 330);
+  --an-note-amber: oklch(0.72 0.14 80);
+  --an-note-sky: oklch(0.68 0.11 230);
+  --an-note-violet: oklch(0.66 0.13 300);
+  --an-note-rose: oklch(0.66 0.14 10);
+  --an-note-emerald: oklch(0.68 0.12 160);
+}
+
+[data-analysis-theme="light"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.004 280);
+  --foreground: oklch(0.2 0.03 280);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.03 280);
+  --primary: oklch(0.48 0.2 280);
+  --primary-foreground: oklch(0.985 0.01 280);
+  --muted: oklch(0.955 0.01 280);
+  --muted-foreground: oklch(0.47 0.03 280);
+  --border: oklch(0.88 0.018 280);
+}
+
+[data-analysis-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.17 0.015 280);
+  --foreground: oklch(0.97 0.008 280);
+  --card: oklch(0.205 0.02 280);
+  --card-foreground: oklch(0.97 0.008 280);
+  --primary: oklch(0.76 0.15 280);
+  --primary-foreground: oklch(0.15 0.035 280);
+  --muted: oklch(0.25 0.022 280);
+  --muted-foreground: oklch(0.7 0.018 278);
+  --border: oklch(1 0 0 / 12%);
+}
