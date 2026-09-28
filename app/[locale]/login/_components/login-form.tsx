@@ -49,6 +49,7 @@ import {
   takeGoogleTwoFactorChallenge,
 } from "@/lib/actions/google-auth";
 import { clearOfflineDataIfOwned } from "@/lib/offline/owner";
+import { isAppLocale } from "@/i18n/locales";
 
 const NOTICES = [
   "registered",
@@ -288,8 +289,15 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     if (session?.user?.isFirstLogin === false) {
       toast.success(t("welcomeBack"));
     }
+    // From here on the account's language wins over the one the public
+    // pages were shown in (the browser's, usually): proxy.ts would redirect
+    // anyway, this saves the extra hop.
+    const accountLocale = isAppLocale(session.user?.language)
+      ? session.user.language
+      : locale;
     router.replace(
       callbackPath ? stripLocale(callbackPath, locale) : "/dashboard",
+      { locale: accountLocale },
     );
     router.refresh();
   };
@@ -313,6 +321,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
       const result = await credentialsSignIn({
         username: identifier.trim(),
         password,
+        locale,
       });
       if (result?.error) {
         const failure = parseSignInError(result.error);
@@ -349,6 +358,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     try {
       const result = await credentialsSignIn({
         challengeToken: challenge.token,
+        locale,
         ...(useRecovery ? { recoveryCode } : { code: typedCode }),
       });
       if (result?.error) {

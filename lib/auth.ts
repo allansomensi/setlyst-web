@@ -123,6 +123,7 @@ function getApiBaseUrl(): string {
 async function fetchPreferredLanguage(
   apiToken: string,
   internalHeaders: Record<string, string>,
+  signInLocale: string | null,
 ): Promise<string | null> {
   const apiUrl = getApiBaseUrl();
   if (!apiUrl) return null;
@@ -131,6 +132,10 @@ async function fetchPreferredLanguage(
     const res = await fetch(`${apiUrl}/users/me/preferences`, {
       headers: {
         ...internalHeaders,
+        // An account that never saved its preferences gets the language
+        // it signed in with, not the API's English default: the first
+        // access decides (see fallback_language_from_headers in the API).
+        ...(signInLocale ? { "x-app-locale": signInLocale } : {}),
         Authorization: `Bearer ${apiToken}`,
         Accept: "application/json",
       },
@@ -224,6 +229,7 @@ async function userFromLogin(
   body: unknown,
   internalHeaders: Record<string, string>,
   twoFactor: boolean,
+  signInLocale: string | null,
 ): Promise<NextAuthUser | null> {
   if (
     typeof body !== "object" ||
@@ -277,7 +283,11 @@ async function userFromLogin(
     isNewAccount: login.is_new_account === true,
     language: mustChangePassword
       ? null
-      : await fetchPreferredLanguage(login.token, internalHeaders),
+      : await fetchPreferredLanguage(
+          login.token,
+          internalHeaders,
+          signInLocale,
+        ),
   };
 }
 
@@ -631,7 +641,7 @@ async function completeGoogleSignIn(
     return `/${locale}/login?step=2fa`;
   }
 
-  const account = await userFromLogin(body, internalHeaders, false);
+  const account = await userFromLogin(body, internalHeaders, false, locale);
   if (!account) return await googleErrorUrl(locale, "SERVICE_UNAVAILABLE");
 
   // The Google profile object becomes the Setlyst user (next-auth passes
@@ -670,6 +680,8 @@ export const authOptions: NextAuthOptions = {
         challengeToken: { label: "Challenge", type: "text" },
         code: { label: "Code", type: "text" },
         recoveryCode: { label: "Recovery code", type: "text" },
+        /** The language the login page was showing. */
+        locale: { label: "Locale", type: "text" },
       },
       async authorize(credentials, req) {
         const challengeToken = credentials?.challengeToken?.trim();
@@ -772,7 +784,12 @@ export const authOptions: NextAuthOptions = {
             });
           }
 
-          return await userFromLogin(body, internalHeaders, secondStep);
+          return await userFromLogin(
+            body,
+            internalHeaders,
+            secondStep,
+            isSupportedLocale(credentials?.locale) ? credentials.locale : null,
+          );
         } catch (err) {
           // Our own, already-classified failures pass straight through.
           if (err instanceof Error && err.message.startsWith("{")) throw err;

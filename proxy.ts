@@ -31,10 +31,11 @@ function isSupportedLocale(value: unknown): value is string {
  * The locale this request should be served in, when the URL itself doesn't
  * say — in preference order:
  *
- *  1. The `NEXT_LOCALE` cookie, which records a choice made explicitly in
- *     the app (the settings page writes it; see the settings action).
- *  2. The language saved on the account, carried in the session token
- *     since sign-in (see lib/auth.ts).
+ *  1. The language saved on the account, carried in the session token
+ *     since sign-in (see lib/auth.ts) and kept in step by the settings
+ *     page. Once signed in, the account decides.
+ *  2. The `NEXT_LOCALE` cookie, which records the last locale used on
+ *     this device (next-intl writes it on the public pages too).
  *
  * Returning null hands the decision back to next-intl, which falls back to
  * the `Accept-Language` header and then the default locale.
@@ -50,12 +51,23 @@ function resolvePreferredLocale(
   req: NextRequest,
   token: JWT | null,
 ): string | null {
+  if (isSupportedLocale(token?.language)) return token.language;
+
   const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value;
   if (isSupportedLocale(cookieLocale)) return cookieLocale;
 
-  if (isSupportedLocale(token?.language)) return token.language;
-
   return null;
+}
+
+/** Redirects to `target`, remembering `locale` for later requests. */
+function redirectWithLocale(target: URL, locale: string): NextResponse {
+  const response = NextResponse.redirect(target);
+  response.cookies.set(LOCALE_COOKIE, locale, {
+    path: "/",
+    maxAge: LOCALE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+  });
+  return response;
 }
 
 const CSP_ENV = cspEnvironment();
@@ -221,6 +233,25 @@ async function route(
     );
   }
 
+  // Signed in, the account's language wins over the one in the URL. The
+  // public pages follow the browser, so without this someone whose
+  // account is in English but whose browser is in Portuguese signed in
+  // from /pt-BR/login and stayed in Portuguese all the way through the
+  // dashboard. Only page loads (GET): a server action posts to the page's
+  // URL and must not be redirected.
+  if (
+    isProtected &&
+    session &&
+    hasLocalePrefix &&
+    (req.method === "GET" || req.method === "HEAD") &&
+    isSupportedLocale(session.language) &&
+    session.language !== localeSegment
+  ) {
+    const target = new URL(req.nextUrl.href);
+    target.pathname = `/${session.language}${pathWithoutLocale === "/" ? "" : pathWithoutLocale}`;
+    return redirectWithLocale(target, session.language);
+  }
+
   // No locale in the URL: send the person to their preferred one rather
   // than letting `Accept-Language` decide, and remember it so every later
   // request — including ones this middleware never sees — agrees.
@@ -231,14 +262,7 @@ async function route(
   if (!hasLocalePrefix && locale) {
     const target = new URL(req.nextUrl.href);
     target.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-
-    const response = NextResponse.redirect(target);
-    response.cookies.set(LOCALE_COOKIE, locale, {
-      path: "/",
-      maxAge: LOCALE_COOKIE_MAX_AGE,
-      sameSite: "lax",
-    });
-    return response;
+    return redirectWithLocale(target, locale);
   }
 
   const response = intlMiddleware(req);

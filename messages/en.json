@@ -1478,8 +1478,6 @@
     "themeSystem": "System",
     "liveModeFontSize": "Font size (Live Mode)",
     "liveModeFontSizeHelp": "Base text size in Live Mode, from 50% to 300%.",
-    "save": "Save preferences",
-    "saveSuccess": "Preferences saved.",
     "backupTitle": "Data backup",
     "backupDescription": "Export your complete repertoire or restore it from a previous backup file (.json).",
     "backupExportBtn": "Export backup",

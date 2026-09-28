@@ -1478,8 +1478,6 @@
     "themeSystem": "Sistema",
     "liveModeFontSize": "Tamaño de fuente (Modo en vivo)",
     "liveModeFontSizeHelp": "Tamaño base del texto en el Modo en vivo, del 50% al 300%.",
-    "save": "Guardar preferencias",
-    "saveSuccess": "Preferencias guardadas.",
     "backupTitle": "Respaldo de datos",
     "backupDescription": "Exporta tu repertorio completo o restaura desde un archivo de respaldo anterior (.json).",
     "backupExportBtn": "Exportar respaldo",

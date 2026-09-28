@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
-import { LOCALE_NAMES } from "@/i18n/locales";
+import { useState, useTransition } from "react";
+import { LOCALE_NAMES, isAppLocale } from "@/i18n/locales";
 import { routing, useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -10,13 +10,11 @@ import { updatePreferences } from "../actions";
 import { FONT_SIZE_PRESETS, normalizeFontSize } from "@/lib/preferences";
 import { UserPreferences, UserTheme } from "@/types/api";
 
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -28,15 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  Save,
-  Loader2,
-  Globe,
-  Palette,
-  Type,
-  SlidersHorizontal,
-} from "lucide-react";
-import { toast } from "@/lib/toast";
+import { Loader2, Globe, Palette, Type, SlidersHorizontal } from "lucide-react";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
 
@@ -56,8 +46,9 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   const pathname = usePathname();
   const { update: updateSession } = useSession();
   const { setTheme } = useTheme();
-  const [isPending, startTransition] = useTransition();
+  const [isSavingLanguage, startSavingLanguage] = useTransition();
   const [isSavingTheme, startSavingTheme] = useTransition();
+  const [isSavingFontSize, startSavingFontSize] = useTransition();
   const [language, setLanguage] = useState(initialPreferences.language || "en");
   const [theme, setThemeChoice] = useState<UserTheme>(
     initialPreferences.theme || "system",
@@ -67,9 +58,31 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
   );
 
   /**
-   * The theme applies the moment it's picked and is saved right away, so
-   * there's no "preview until you press Save" state to explain.
+   * Every preference applies and is saved the moment it's picked, so
+   * there's no "preview until you press Save" state to explain. A failed
+   * save puts the previous choice back.
    */
+  const changeLanguage = (value: string) => {
+    if (!isAppLocale(value) || value === language) return;
+    const previous = language;
+    setLanguage(value);
+    startSavingLanguage(async () => {
+      const result = await updatePreferences({ language: value });
+      if (!result.success) {
+        setLanguage(previous);
+        toastActionError(result, result.error);
+        return;
+      }
+
+      // Keep the language on the session token in step with what was just
+      // saved: the token is what decides the locale of every signed-in
+      // page (see proxy.ts), so leaving it stale would send the person
+      // straight back to the previous language. See lib/auth.ts.
+      await updateSession({ language: value });
+      router.replace(pathname, { locale: value });
+    });
+  };
+
   const changeTheme = (value: string) => {
     if (!isUserTheme(value) || value === theme) return;
     const previous = theme;
@@ -85,41 +98,24 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
     });
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const payload = { language, theme, live_mode_font_size: fontSize };
-
-    startTransition(async () => {
-      const result = await updatePreferences(payload);
-
+  const changeFontSize = (value: number) => {
+    if (value === fontSize) return;
+    const previous = fontSize;
+    setFontSize(value);
+    startSavingFontSize(async () => {
+      const result = await updatePreferences({ live_mode_font_size: value });
       if (!result.success) {
+        setFontSize(previous);
         toastActionError(result, result.error);
-        return;
-      }
-
-      toast.success(t("saveSuccess"));
-
-      // Keep the language on the session token in step with what was just
-      // saved. The token is what decides the locale when the app is opened
-      // at a URL with no locale in it (an installed PWA's start_url, say),
-      // so leaving it stale here would send the person back to their
-      // previous language on the next launch. See lib/auth.ts.
-      await updateSession({ language: payload.language });
-
-      if (payload.language !== initialPreferences.language) {
-        router.replace(pathname, { locale: payload.language });
-      } else {
-        router.refresh();
       }
     });
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
+    <div
       className={cn(
         "w-full space-y-6 transition-opacity duration-200",
-        isPending && "pointer-events-none opacity-60",
+        isSavingLanguage && "pointer-events-none opacity-60",
       )}
     >
       <Card>
@@ -143,8 +139,8 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                 <Globe className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
                 <Select
                   value={language}
-                  onValueChange={setLanguage}
-                  disabled={isPending}
+                  onValueChange={changeLanguage}
+                  disabled={isSavingLanguage}
                 >
                   <SelectTrigger
                     id="language"
@@ -173,7 +169,7 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                 <Select
                   value={theme}
                   onValueChange={changeTheme}
-                  disabled={isPending || isSavingTheme}
+                  disabled={isSavingLanguage || isSavingTheme}
                 >
                   <SelectTrigger
                     id="theme"
@@ -217,8 +213,8 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                 type="button"
                 role="radio"
                 aria-checked={fontSize === preset}
-                disabled={isPending}
-                onClick={() => setFontSize(preset)}
+                disabled={isSavingLanguage}
+                onClick={() => changeFontSize(preset)}
                 className={cn(
                   "focus-visible:ring-ring rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
                   fontSize === preset
@@ -229,24 +225,15 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                 {preset}%
               </button>
             ))}
+            {isSavingFontSize && (
+              <Loader2
+                aria-hidden
+                className="text-muted-foreground h-4 w-4 animate-spin"
+              />
+            )}
           </div>
         </CardContent>
-
-        <CardFooter className="justify-end">
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="w-full sm:w-auto"
-          >
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            {t("save")}
-          </Button>
-        </CardFooter>
       </Card>
-    </form>
+    </div>
   );
 }
