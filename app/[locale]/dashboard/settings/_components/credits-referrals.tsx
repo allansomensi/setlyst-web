@@ -56,6 +56,7 @@ function usePagedList<T>(
     | { success: false; error: string }
   >,
 ) {
+  const tApi = useTranslations("apiErrors");
   const [items, setItems] = useState<T[]>(initial?.data ?? []);
   const [page, setPage] = useState(initial?.meta.current_page ?? 1);
   const [totalPages, setTotalPages] = useState(initial?.meta.total_pages ?? 0);
@@ -63,15 +64,20 @@ function usePagedList<T>(
 
   const loadMore = async () => {
     setLoading(true);
-    const result = await load(page + 1);
-    setLoading(false);
-    if (!result.success || !result.data) {
-      if (!result.success) toastActionError(result, result.error);
-      return;
+    try {
+      const result = await load(page + 1);
+      if (!result.success || !result.data) {
+        if (!result.success) toastActionError(result, result.error);
+        return;
+      }
+      setItems((current) => [...current, ...result.data!.data]);
+      setPage(result.data.meta.current_page);
+      setTotalPages(result.data.meta.total_pages);
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setLoading(false);
     }
-    setItems((current) => [...current, ...result.data!.data]);
-    setPage(result.data.meta.current_page);
-    setTotalPages(result.data.meta.total_pages);
   };
 
   return { items, hasMore: page < totalPages, loading, loadMore };
@@ -95,6 +101,7 @@ export function CreditsCard({
   disabled: boolean;
 }) {
   const t = useTranslations("billing.credits");
+  const tApi = useTranslations("apiErrors");
   const locale = useLocale();
   const router = useAppRouter();
   const [confirming, setConfirming] = useState<CreditReward | null>(null);
@@ -105,17 +112,25 @@ export function CreditsCard({
   const redeem = async () => {
     if (!confirming) return;
     setPending(true);
-    const result = await redeemReward(confirming.id);
-    setPending(false);
-    if (!result.success) {
-      toastActionError(result, result.error);
-      return;
+    try {
+      const result = await redeemReward(confirming.id);
+      if (!result.success) {
+        toastActionError(result, result.error);
+        return;
+      }
+      toast.success(
+        t("redeemed", {
+          days: confirming.days,
+          plan: planName(confirming.plan),
+        }),
+      );
+      setConfirming(null);
+      router.refresh();
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    toast.success(
-      t("redeemed", { days: confirming.days, plan: planName(confirming.plan) }),
-    );
-    setConfirming(null);
-    router.refresh();
   };
 
   return (

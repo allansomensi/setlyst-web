@@ -88,7 +88,12 @@ export async function fetchServerApi<T>(
 ): Promise<T> {
   validateEndpoint(endpoint);
 
-  const token = await getApiToken();
+  // Independent request-scoped reads: resolved together, not one by one.
+  const [token, locale, internalHeaders] = await Promise.all([
+    getApiToken(),
+    getLocale().catch(() => null),
+    getInternalApiHeaders(),
+  ]);
 
   const requestHeaders = new Headers(options.headers);
   requestHeaders.set("Content-Type", "application/json");
@@ -101,15 +106,12 @@ export async function fetchServerApi<T>(
   // Lets the backend fall back sensibly (e.g. a brand-new user's default
   // preferences) to the locale actually being rendered, instead of always
   // assuming English. Never overrides an already-saved preference.
-  try {
-    const locale = await getLocale();
-    requestHeaders.set("x-app-locale", locale);
-  } catch {}
+  if (locale) requestHeaders.set("x-app-locale", locale);
 
   // The visitor's address travels in a header the API only believes when
   // it comes with the internal secret; the browser's own X-Forwarded-For
   // is never passed along (see lib/server/client-ip.ts).
-  for (const [name, value] of Object.entries(await getInternalApiHeaders())) {
+  for (const [name, value] of Object.entries(internalHeaders)) {
     requestHeaders.set(name, value);
   }
 

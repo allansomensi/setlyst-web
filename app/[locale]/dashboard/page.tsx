@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { staticTitle } from "@/lib/page-metadata";
 import { getTranslations } from "next-intl/server";
 import {
@@ -88,20 +89,30 @@ export async function generateMetadata() {
   return staticTitle("dashboard");
 }
 
+/**
+ * The "next show" card, streamed in on its own: finding it takes a chain
+ * of requests (bands, then each band's shows, then their setlists) that
+ * the rest of the page shouldn't wait for.
+ */
+async function NextGigSection() {
+  const tSetlists = await getTranslations("setlists");
+  const nextGigs = await upcomingGigs(tSetlists("repertoire.name"));
+  return nextGigs.length > 0 ? <NextGigCard candidates={nextGigs} /> : null;
+}
+
 export default async function DashboardPage() {
-  const session = await getSession();
-  const t = await getTranslations("dashboard");
-  const tNav = await getTranslations("nav");
-  const tTours = await getTranslations("tours");
+  const [session, t, tNav, tTours] = await Promise.all([
+    getSession(),
+    getTranslations("dashboard"),
+    getTranslations("nav"),
+    getTranslations("tours"),
+  ]);
 
   const userRole = session?.user?.role;
 
-  const tSetlists = await getTranslations("setlists");
-
-  const [metrics, pins, nextGigs] = await Promise.all([
+  const [metrics, pins] = await Promise.all([
     getDashboardMetrics(),
     fetchServerApi<PinnedItem[]>("/users/me/pins").catch(() => null),
-    upcomingGigs(tSetlists("repertoire.name")),
   ]);
 
   const quickLinks = [
@@ -179,7 +190,9 @@ export default async function DashboardPage() {
         />
       )}
 
-      {nextGigs.length > 0 && <NextGigCard candidates={nextGigs} />}
+      <Suspense fallback={null}>
+        <NextGigSection />
+      </Suspense>
 
       {pins && <PinnedItems initial={pins} />}
 

@@ -46,6 +46,7 @@ export function DeleteAccountSection({
   readOnly: boolean;
 }) {
   const t = useTranslations("account.delete");
+  const tApi = useTranslations("apiErrors");
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -69,25 +70,30 @@ export function DeleteAccountSection({
     if (!canDelete) return;
     setPending(true);
     setError(null);
-    const result = await deleteOwnAccount({
-      confirmation: confirmation.trim(),
-      ...reauth.proof,
-    });
-    if (!result.success) {
-      setPending(false);
-      if (reauth.handleFailure(result)) {
+    try {
+      const result = await deleteOwnAccount({
+        confirmation: confirmation.trim(),
+        ...reauth.proof,
+      });
+      if (!result.success) {
+        setPending(false);
+        if (reauth.handleFailure(result)) {
+          setError(result.error);
+          return;
+        }
+        if (result.code) {
+          toastActionError(result, result.error);
+          return;
+        }
         setError(result.error);
         return;
       }
-      if (result.code) {
-        toastActionError(result, result.error);
-        return;
-      }
-      setError(result.error);
-      return;
+      toast.success(t("deleted"));
+      await secureSignOut({ callbackUrl: `/${locale}` });
+    } catch {
+      setPending(false);
+      toast.error(tApi("generic"));
     }
-    toast.success(t("deleted"));
-    await secureSignOut({ callbackUrl: `/${locale}` });
   };
 
   return (

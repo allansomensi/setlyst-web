@@ -349,7 +349,7 @@ export default async function LandingPage({ params }: { params: Params }) {
             description={t("plans.description")}
           />
           <div className="mt-6 flex justify-center">
-            <BillingNote />
+            <BillingNote enforced={enforced} />
           </div>
           {plans && plans.length > 0 && (
             <ul className="mt-12 grid gap-4 md:grid-cols-3">

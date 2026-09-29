@@ -252,22 +252,28 @@ function StaffTwoFactorNotice({
 /** "Sign out everywhere": revokes every session, then signs this device out. */
 function SessionsCard({ readOnly }: { readOnly: boolean }) {
   const t = useTranslations("security.sessions");
+  const tApi = useTranslations("apiErrors");
   const locale = useLocale();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
   const signOutEverywhere = async () => {
     setPending(true);
-    const result = await revokeAllSessions();
-    if (!result.success) {
+    try {
+      const result = await revokeAllSessions();
+      if (!result.success) {
+        setPending(false);
+        setConfirmOpen(false);
+        toastActionError(result, result.error);
+        return;
+      }
+      await secureSignOut({
+        callbackUrl: `/${locale}/login?reason=signed_out_everywhere`,
+      });
+    } catch {
       setPending(false);
-      setConfirmOpen(false);
-      toastActionError(result, result.error);
-      return;
+      toast.error(tApi("generic"));
     }
-    await secureSignOut({
-      callbackUrl: `/${locale}/login?reason=signed_out_everywhere`,
-    });
   };
 
   return (
@@ -400,6 +406,7 @@ function GoogleCard({
   status: GoogleLinkStatus | null;
 }) {
   const t = useTranslations("security.google");
+  const tApi = useTranslations("apiErrors");
   const locale = useLocale();
   const router = useAppRouter();
   const tCommon = useTranslations("common");
@@ -445,35 +452,40 @@ function GoogleCard({
     if (pending || !reauth.complete) return;
     setPending(true);
     setError(null);
-    const result = await linkGoogle(reauth.proof);
-    setPending(false);
-    if (!result.success) {
-      if (reauth.handleFailure(result)) {
-        setError(result.error);
-        return;
+    try {
+      const result = await linkGoogle(reauth.proof);
+      if (!result.success) {
+        if (reauth.handleFailure(result)) {
+          setError(result.error);
+          return;
+        }
+        setLinkOpen(false);
+        reauth.reset();
+        clearStatusParam();
+        switch (result.apiCode) {
+          case "ALREADY_EXISTS":
+            setLinkOutcome("mismatch");
+            return;
+          case "GOOGLE_LINK_EXPIRED":
+          case "INVALID_GOOGLE_TOKEN":
+            setLinkOutcome("expired");
+            return;
+          default:
+            toastActionError(result, result.error);
+            return;
+        }
       }
       setLinkOpen(false);
       reauth.reset();
       clearStatusParam();
-      switch (result.apiCode) {
-        case "ALREADY_EXISTS":
-          setLinkOutcome("mismatch");
-          return;
-        case "GOOGLE_LINK_EXPIRED":
-        case "INVALID_GOOGLE_TOKEN":
-          setLinkOutcome("expired");
-          return;
-        default:
-          toastActionError(result, result.error);
-          return;
-      }
+      setLinkOutcome(null);
+      toast.success(t("status.linked"));
+      router.refresh();
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    setLinkOpen(false);
-    reauth.reset();
-    clearStatusParam();
-    setLinkOutcome(null);
-    toast.success(t("status.linked"));
-    router.refresh();
   };
 
   const closeDialog = () => {
@@ -488,26 +500,31 @@ function GoogleCard({
     if (pending || !reauth.complete) return;
     setPending(true);
     setError(null);
-    const result = await unlinkGoogle(reauth.proof);
-    setPending(false);
-    if (!result.success) {
-      if (reauth.handleFailure(result)) {
-        setError(result.error);
+    try {
+      const result = await unlinkGoogle(reauth.proof);
+      if (!result.success) {
+        if (reauth.handleFailure(result)) {
+          setError(result.error);
+          return;
+        }
+        setConfirmOpen(false);
+        reauth.reset();
+        if (result.apiCode === "PASSWORD_NOT_SET") {
+          setNeedsPassword(true);
+          return;
+        }
+        toastActionError(result, result.error);
         return;
       }
       setConfirmOpen(false);
       reauth.reset();
-      if (result.apiCode === "PASSWORD_NOT_SET") {
-        setNeedsPassword(true);
-        return;
-      }
-      toastActionError(result, result.error);
-      return;
+      toast.success(t("unlinked"));
+      router.refresh();
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    setConfirmOpen(false);
-    reauth.reset();
-    toast.success(t("unlinked"));
-    router.refresh();
   };
 
   return (

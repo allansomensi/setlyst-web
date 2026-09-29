@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { LEGAL_HREFS } from "@/lib/legal";
 import { getBillingMode, getPublicPlans } from "@/lib/public-api";
 import { publicPageMetadata } from "@/lib/seo";
+import { isSignedIn } from "@/lib/site-session";
 
 type Params = Promise<{ locale: string }>;
 
@@ -43,11 +44,19 @@ const FAQ_KEYS = [
 export default async function PricingPage({ params }: { params: Params }) {
   const { locale } = await params;
   const t = await getTranslations("pricing");
-  const [plans, billingMode] = await Promise.all([
+  // The header reads the session anyway (same request-cached read), and
+  // knowing it here keeps the plan buttons from switching wording once
+  // the client session loads.
+  const [plans, billingMode, signedIn] = await Promise.all([
     getPublicPlans(),
     getBillingMode(),
+    isSignedIn(),
   ]);
   const enforced = !billingMode.beta;
+  // A server component renders once per request, so reading the clock
+  // here is stable; handed to the client so both sides agree on it.
+  // eslint-disable-next-line react-hooks/purity
+  const renderedAt = Date.now();
 
   const docLink = (href: string) =>
     function DocLink(chunks: React.ReactNode) {
@@ -85,13 +94,17 @@ export default async function PricingPage({ params }: { params: Params }) {
         description={t("description")}
       >
         <div className="mt-6 flex justify-center">
-          <BillingNote />
+          <BillingNote enforced={enforced} />
         </div>
       </PageIntro>
 
       <section aria-label={t("plansLabel")} className="mt-12">
         {plans && plans.length > 0 ? (
-          <PricingPlans plans={plans} />
+          <PricingPlans
+            plans={plans}
+            signedIn={signedIn}
+            renderedAt={renderedAt}
+          />
         ) : (
           <div
             role="status"

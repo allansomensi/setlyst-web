@@ -83,17 +83,39 @@ export default async function GigDetailsPage({
     throw err;
   }
 
-  const [personalSetlistsRes, bands, toursRes, entitlements] =
-    await Promise.all([
-      fetchAllServerPages<Setlist>("/setlists"),
-      fetchServerApi<BandWithMembership[]>("/bands"),
-      fetchAllServerPages<Tour>(
-        gig.band_id
-          ? `/bands/${gig.band_id}/tours?status=all`
-          : "/tours?status=all",
-      ).catch(() => ({ data: [] as Tour[] })),
-      getEntitlements(),
-    ]);
+  // Everything below depends only on the gig, so it loads in one round
+  // instead of a chain of waves (bands, then their setlists, then this
+  // gig's setlist, then its collaborators).
+  const bandsPromise = fetchServerApi<BandWithMembership[]>("/bands");
+  const [
+    personalSetlistsRes,
+    bands,
+    toursRes,
+    entitlements,
+    bandSetlistsResults,
+    gigSetlist,
+  ] = await Promise.all([
+    fetchAllServerPages<Setlist>("/setlists"),
+    bandsPromise,
+    fetchAllServerPages<Tour>(
+      gig.band_id
+        ? `/bands/${gig.band_id}/tours?status=all`
+        : "/tours?status=all",
+    ).catch(() => ({ data: [] as Tour[] })),
+    getEntitlements(),
+    bandsPromise.then((all) =>
+      Promise.all(
+        all
+          .filter((band) => canManageBandSetlists(band))
+          .map((band) =>
+            fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`).then(
+              (res) => ({ id: band.id, name: band.name, res }),
+            ),
+          ),
+      ),
+    ),
+    gig.setlist_id ? loadGigSetlist(gig.setlist_id) : Promise.resolve(null),
+  ]);
   const tours: TourOption[] = toursRes.data.map((tour) => ({
     id: tour.id,
     name: tour.name,
@@ -110,55 +132,19 @@ export default async function GigDetailsPage({
   const bandInfo = gig.band_id ? bandsById[gig.band_id] : undefined;
   const canManage = !gig.band_id || bandInfo?.canManage === true;
 
-  const bandSetlistsResults = await Promise.all(
-    bands
-      .filter((band) => bandsById[band.id]?.canManage)
-      .map((band) =>
-        fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`).then(
-          (res) => ({ id: band.id, name: band.name, res }),
-        ),
-      ),
-  );
   const manageableBands: BandOption[] = bandSetlistsResults.map((b) => ({
     id: b.id,
     name: b.name,
     setlists: b.res.data || [],
   }));
 
-  let setlist: Setlist | null = null;
-  let setlistSongs: SetlistSong[] = [];
-  let setlistItems: SetlistItem[] = [];
-  let allSongs: Song[] = [];
-  let allArtists: Artist[] = [];
-  let collaborators: SetlistCollaborators | null = null;
-
-  if (gig.setlist_id) {
-    const [
-      setlistRes,
-      setlistSongsRes,
-      setlistItemsRes,
-      allSongsRes,
-      allArtistsRes,
-    ] = await Promise.all([
-      fetchServerApi<Setlist>(`/setlists/${gig.setlist_id}`),
-      fetchAllServerPages<SetlistSong>(`/setlists/${gig.setlist_id}/songs`),
-      fetchServerApi<SetlistItem[]>(`/setlists/${gig.setlist_id}/items`),
-      fetchAllServerPages<Song>("/songs"),
-      fetchAllServerPages<Artist>("/artists"),
-    ]);
-    setlist = setlistRes;
-    setlistSongs = setlistSongsRes.data || [];
-    setlistItems = setlistItemsRes || [];
-    allSongs = allSongsRes.data || [];
-    allArtists = allArtistsRes.data || [];
-    // A personal show's setlist can be shared with the other musicians
-    // playing it (a guest singer...), right from here. Never fatal.
-    if (!setlist.band_id) {
-      collaborators = await fetchServerApi<SetlistCollaborators>(
-        `/setlists/${setlist.id}/collaborators`,
-      ).catch(() => null);
-    }
-  }
+  const setlist: Setlist | null = gigSetlist?.setlist ?? null;
+  const setlistSongs: SetlistSong[] = gigSetlist?.setlistSongs ?? [];
+  const setlistItems: SetlistItem[] = gigSetlist?.setlistItems ?? [];
+  const allSongs: Song[] = gigSetlist?.allSongs ?? [];
+  const allArtists: Artist[] = gigSetlist?.allArtists ?? [];
+  const collaborators: SetlistCollaborators | null =
+    gigSetlist?.collaborators ?? null;
 
   return (
     <div className="w-full space-y-6">
@@ -341,4 +327,40 @@ export default async function GigDetailsPage({
       )}
     </div>
   );
+}
+
+/** The gig's setlist with what its running-order editor needs. */
+async function loadGigSetlist(setlistId: string) {
+  const setlistPromise = fetchServerApi<Setlist>(`/setlists/${setlistId}`);
+  const [
+    setlist,
+    setlistSongsRes,
+    setlistItems,
+    allSongsRes,
+    allArtistsRes,
+    collaborators,
+  ] = await Promise.all([
+    setlistPromise,
+    fetchAllServerPages<SetlistSong>(`/setlists/${setlistId}/songs`),
+    fetchServerApi<SetlistItem[]>(`/setlists/${setlistId}/items`),
+    fetchAllServerPages<Song>("/songs"),
+    fetchAllServerPages<Artist>("/artists"),
+    // A personal show's setlist can be shared with the other musicians
+    // playing it (a guest singer...), right from here. Never fatal.
+    setlistPromise.then((loaded) =>
+      loaded.band_id
+        ? null
+        : fetchServerApi<SetlistCollaborators>(
+            `/setlists/${loaded.id}/collaborators`,
+          ).catch(() => null),
+    ),
+  ]);
+  return {
+    setlist,
+    setlistSongs: setlistSongsRes.data || [],
+    setlistItems: setlistItems || [],
+    allSongs: allSongsRes.data || [],
+    allArtists: allArtistsRes.data || [],
+    collaborators,
+  };
 }

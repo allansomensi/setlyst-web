@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSession } from "next-auth/react";
 import { credentialsSignIn } from "@/lib/credentials-sign-in";
 import { useLocale, useTranslations } from "next-intl";
@@ -75,6 +75,7 @@ export function RegisterForm({
   const t = useTranslations("auth.register");
   const locale = useLocale();
   const tPassword = useTranslations("passwordPolicy");
+  const tLogin = useTranslations("auth.login");
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -92,6 +93,10 @@ export function RegisterForm({
   const [attempted, setAttempted] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // `pending` only blocks a second submit once it has re-rendered: a
+  // double click could otherwise create the account and then fail the
+  // second request as "username taken", hiding the success.
+  const inFlight = useRef(false);
 
   // Remember the invitation for a while: people often read the pricing
   // page or leave for Google before actually signing up.
@@ -130,13 +135,16 @@ export function RegisterForm({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setAttempted(true);
-    if (!canSubmit || pending) {
+    if (!canSubmit || pending || inFlight.current) {
       if (!canSubmit) setError(t("errors.incomplete"));
       return;
     }
+    inFlight.current = true;
     setPending(true);
     setError(null);
 
+    // A server action rejects when the request itself fails (offline, a
+    // new deployment): without the catch the button would spin forever.
     const result = await registerAccount({
       username,
       email,
@@ -147,10 +155,11 @@ export function RegisterForm({
       ageConfirmed: true,
       marketingOptIn: marketing,
       referralCode: normalizeReferralCode(referral),
-    });
+    }).catch(() => null);
+    inFlight.current = false;
 
-    if (!result.success) {
-      setError(result.error);
+    if (!result?.success) {
+      setError(result ? result.error : tLogin("connectionError"));
       setPending(false);
       return;
     }
@@ -161,7 +170,8 @@ export function RegisterForm({
       username,
       password: form.password,
     }).catch(() => null);
-    const session = login && !login.error ? await getSession() : null;
+    const session =
+      login && !login.error ? await getSession().catch(() => null) : null;
 
     if (!session) {
       // Signing in has to happen by hand (e-mail confirmation first, a

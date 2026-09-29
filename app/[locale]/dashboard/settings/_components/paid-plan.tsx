@@ -102,6 +102,7 @@ export function PaidPlanActions({
   preselect?: PlanPreselection | null;
 }) {
   const t = useTranslations("billing.checkout");
+  const tApi = useTranslations("apiErrors");
   const locale = useLocale();
   const router = useAppRouter();
   const paidNow = isPaidAndLive(billing.subscription);
@@ -144,35 +145,45 @@ export function PaidPlanActions({
   const withdraw = async () => {
     if (withdrawPending) return;
     setWithdrawPending(true);
-    const result = await withdrawSubscription();
-    setWithdrawPending(false);
-    if (!result.success || !result.data) {
-      if (!result.success) toastActionError(result, result.error);
-      return;
+    try {
+      const result = await withdrawSubscription();
+      if (!result.success || !result.data) {
+        if (!result.success) toastActionError(result, result.error);
+        return;
+      }
+      setWithdrawOpen(false);
+      toast.success(
+        t("withdraw.done", {
+          amount: formatMoney(
+            result.data.refunded_cents,
+            result.data.currency.toUpperCase(),
+            locale,
+          ),
+        }),
+      );
+      router.refresh();
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setWithdrawPending(false);
     }
-    setWithdrawOpen(false);
-    toast.success(
-      t("withdraw.done", {
-        amount: formatMoney(
-          result.data.refunded_cents,
-          result.data.currency.toUpperCase(),
-          locale,
-        ),
-      }),
-    );
-    router.refresh();
   };
 
   const goToPortal = async () => {
     if (portalPending) return;
     setPortalPending(true);
-    const result = await openBillingPortal();
-    if (!result.success || !result.data) {
+    try {
+      const result = await openBillingPortal();
+      if (!result.success || !result.data) {
+        setPortalPending(false);
+        if (!result.success) toastActionError(result, result.error);
+        return;
+      }
+      window.location.assign(result.data.url);
+    } catch {
       setPortalPending(false);
-      if (!result.success) toastActionError(result, result.error);
-      return;
+      toast.error(tApi("generic"));
     }
-    window.location.assign(result.data.url);
   };
 
   const changeBlocked =
@@ -350,6 +361,7 @@ function PlanPickerBody({
   close: () => void;
 }) {
   const t = useTranslations("billing.checkout");
+  const tApi = useTranslations("apiErrors");
   const tPricing = useTranslations("pricing");
   const locale = useLocale();
   const router = useAppRouter();
@@ -402,43 +414,48 @@ function PlanPickerBody({
   const confirm = async () => {
     if (!chosen || pending || unchanged) return;
     setPending(true);
-    if (mode === "checkout") {
-      const result = await startCheckout(chosen.code, interval);
-      if (!result.success || !result.data) {
-        setPending(false);
-        if (!result.success) toastActionError(result, result.error);
+    try {
+      if (mode === "checkout") {
+        const result = await startCheckout(chosen.code, interval);
+        if (!result.success || !result.data) {
+          setPending(false);
+          if (!result.success) toastActionError(result, result.error);
+          return;
+        }
+        // Stays "pending" while the browser leaves for Stripe.
+        window.location.assign(result.data.url);
         return;
       }
-      // Stays "pending" while the browser leaves for Stripe.
-      window.location.assign(result.data.url);
-      return;
-    }
-    const result = await changePaidPlan(chosen.code, interval);
-    if (!result.success) {
-      // The bank asks for confirmation (3-D Secure): finish on Stripe's
-      // invoice page; the new plan applies once the charge is confirmed.
-      const confirmUrl = result.meta?.hosted_invoice_url;
-      if (
-        result.apiCode === "PAYMENT_ACTION_REQUIRED" &&
-        typeof confirmUrl === "string"
-      ) {
-        toast.info(t("actionRequired"), { duration: 10000 });
-        // Stays "pending" while the browser leaves for Stripe.
-        window.location.assign(confirmUrl);
+      const result = await changePaidPlan(chosen.code, interval);
+      if (!result.success) {
+        // The bank asks for confirmation (3-D Secure): finish on Stripe's
+        // invoice page; the new plan applies once the charge is confirmed.
+        const confirmUrl = result.meta?.hosted_invoice_url;
+        if (
+          result.apiCode === "PAYMENT_ACTION_REQUIRED" &&
+          typeof confirmUrl === "string"
+        ) {
+          toast.info(t("actionRequired"), { duration: 10000 });
+          // Stays "pending" while the browser leaves for Stripe.
+          window.location.assign(confirmUrl);
+          return;
+        }
+        setPending(false);
+        toastActionError(result, result.error);
         return;
       }
       setPending(false);
-      toastActionError(result, result.error);
-      return;
+      toast.success(
+        t("changed", {
+          plan: pickLocalized(chosen.name, locale) || chosen.code,
+        }),
+      );
+      close();
+      router.refresh();
+    } catch {
+      setPending(false);
+      toast.error(tApi("generic"));
     }
-    setPending(false);
-    toast.success(
-      t("changed", {
-        plan: pickLocalized(chosen.name, locale) || chosen.code,
-      }),
-    );
-    close();
-    router.refresh();
   };
 
   return (

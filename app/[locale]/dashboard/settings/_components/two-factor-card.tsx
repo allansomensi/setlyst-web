@@ -193,6 +193,7 @@ function SetupDialog({
   onClose: () => void;
 }) {
   const t = useTranslations("twoFactor.setup");
+  const tApi = useTranslations("apiErrors");
   const tReauth = useTranslations("security.reauth");
   const router = useAppRouter();
   const { update } = useSession();
@@ -212,56 +213,66 @@ function SetupDialog({
     if (pending || !reauth.complete) return;
     setPending(true);
     setError(null);
-    const result = await startTwoFactorSetup(reauth.proof);
-    setPending(false);
-    if (!result.success || !result.data) {
-      if (!result.success && reauth.handleFailure(result)) {
-        setError(result.error);
+    try {
+      const result = await startTwoFactorSetup(reauth.proof);
+      if (!result.success || !result.data) {
+        if (!result.success && reauth.handleFailure(result)) {
+          setError(result.error);
+          return;
+        }
+        if (!result.success && result.apiCode === "EMAIL_NOT_VERIFIED") {
+          // 2FA needs a verified address (recovery goes through it): the
+          // toast offers to send the verification code.
+          onClose();
+          toastActionError(result, result.error);
+          return;
+        }
+        if (!result.success && result.code) {
+          toastActionError(result, result.error);
+          return;
+        }
+        setError(result.success ? null : result.error);
         return;
       }
-      if (!result.success && result.apiCode === "EMAIL_NOT_VERIFIED") {
-        // 2FA needs a verified address (recovery goes through it): the
-        // toast offers to send the verification code.
-        onClose();
-        toastActionError(result, result.error);
-        return;
-      }
-      if (!result.success && result.code) {
-        toastActionError(result, result.error);
-        return;
-      }
-      setError(result.success ? null : result.error);
-      return;
+      setSetup(result.data);
+      setStep("scan");
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    setSetup(result.data);
-    setStep("scan");
   };
 
   const verify = async (value: string) => {
     if (value.length !== 6 || pending) return;
     setPending(true);
     setError(null);
-    const result = await enableTwoFactor(value);
-    setPending(false);
-    if (!result.success || !result.data) {
-      if (!result.success && result.apiCode === "CODE_EXPIRED") {
-        setSetup(null);
+    try {
+      const result = await enableTwoFactor(value);
+      if (!result.success || !result.data) {
+        if (!result.success && result.apiCode === "CODE_EXPIRED") {
+          setSetup(null);
+          setCode("");
+          setStep("password");
+          setError(t("expired"));
+          return;
+        }
+        if (!result.success && result.code) {
+          toastActionError(result, result.error);
+          return;
+        }
+        setError(result.success ? null : t("invalid"));
         setCode("");
-        setStep("password");
-        setError(t("expired"));
         return;
       }
-      if (!result.success && result.code) {
-        toastActionError(result, result.error);
-        return;
-      }
-      setError(result.success ? null : t("invalid"));
-      setCode("");
-      return;
+      setCodes(result.data.recovery_codes);
+      setStep("codes");
+      await update({ refreshAccount: true }).catch(() => null);
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    setCodes(result.data.recovery_codes);
-    setStep("codes");
-    await update({ refreshAccount: true }).catch(() => null);
   };
 
   const finish = () => {
@@ -493,6 +504,7 @@ function DisableDialog({
   onClose: () => void;
 }) {
   const t = useTranslations("twoFactor.disableDialog");
+  const tApi = useTranslations("apiErrors");
   const router = useAppRouter();
   const { update } = useSession();
   const reauth = useReauthProof(passwordSet);
@@ -510,24 +522,29 @@ function DisableDialog({
     if (!valid || pending) return;
     setPending(true);
     setError(null);
-    const result = await disableTwoFactor({ ...reauth.proof, code });
-    setPending(false);
-    if (!result.success) {
-      if (reauth.handleFailure(result)) {
+    try {
+      const result = await disableTwoFactor({ ...reauth.proof, code });
+      if (!result.success) {
+        if (reauth.handleFailure(result)) {
+          setError(result.error);
+          return;
+        }
+        if (result.code) {
+          toastActionError(result, result.error);
+          return;
+        }
         setError(result.error);
         return;
       }
-      if (result.code) {
-        toastActionError(result, result.error);
-        return;
-      }
-      setError(result.error);
-      return;
+      await update({ refreshAccount: true }).catch(() => null);
+      toast.success(t("done"));
+      onClose();
+      router.refresh();
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    await update({ refreshAccount: true }).catch(() => null);
-    toast.success(t("done"));
-    onClose();
-    router.refresh();
   };
 
   return (
@@ -610,6 +627,7 @@ function RegenerateDialog({
   onClose: () => void;
 }) {
   const t = useTranslations("twoFactor.regenerateDialog");
+  const tApi = useTranslations("apiErrors");
   const router = useAppRouter();
   const [code, setCode] = useState("");
   const [codes, setCodes] = useState<string[] | null>(null);
@@ -621,18 +639,23 @@ function RegenerateDialog({
     if (value.length !== 6 || pending) return;
     setPending(true);
     setError(null);
-    const result = await regenerateRecoveryCodes(value);
-    setPending(false);
-    if (!result.success || !result.data) {
-      if (!result.success && result.code) {
-        toastActionError(result, result.error);
+    try {
+      const result = await regenerateRecoveryCodes(value);
+      if (!result.success || !result.data) {
+        if (!result.success && result.code) {
+          toastActionError(result, result.error);
+          return;
+        }
+        setError(result.success ? null : result.error);
+        setCode("");
         return;
       }
-      setError(result.success ? null : result.error);
-      setCode("");
-      return;
+      setCodes(result.data.recovery_codes);
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    setCodes(result.data.recovery_codes);
   };
 
   const finish = () => {

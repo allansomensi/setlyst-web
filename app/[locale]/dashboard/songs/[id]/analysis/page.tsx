@@ -6,6 +6,7 @@ import { ApiError, fetchServerApi } from "@/lib/api-server";
 import { canManageBandSongs } from "@/lib/band-permissions";
 import type { BandWithMembership, Song, SongAnalysis } from "@/types/api";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+import { fetchServerApiOnce } from "@/lib/server-data";
 import { AnalysisEditor } from "./_components/analysis-editor";
 
 export async function generateMetadata({
@@ -35,9 +36,17 @@ export default async function SongAnalysisPage({
   const tNav = await getTranslations("nav");
   const t = await getTranslations("analysis");
 
+  // Needs only the id, so it loads alongside the song rather than after
+  // it. Marked handled here: if the song turns out missing, the page 404s
+  // before this is awaited, and its failure must not go unhandled.
+  const analysisPromise = fetchServerApi<SongAnalysis | null>(
+    `/songs/${id}/analysis`,
+  );
+  analysisPromise.catch(() => {});
+
   let song: Song;
   try {
-    song = await fetchServerApi<Song>(`/songs/${id}`);
+    song = await fetchServerApiOnce<Song>(`/songs/${id}`);
   } catch (error) {
     if (
       error instanceof ApiError &&
@@ -49,7 +58,7 @@ export default async function SongAnalysisPage({
   }
 
   const [analysis, band] = await Promise.all([
-    fetchServerApi<SongAnalysis | null>(`/songs/${id}/analysis`),
+    analysisPromise,
     song.band_id
       ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
           () => null,

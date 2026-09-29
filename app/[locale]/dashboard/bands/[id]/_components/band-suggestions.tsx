@@ -99,6 +99,7 @@ export function BandSuggestions({
   bandSongs,
 }: BandSuggestionsProps) {
   const t = useTranslations("suggestions");
+  const tApi = useTranslations("apiErrors");
   const tRepertoire = useTranslations("setlists.repertoire");
   const [filter, setFilter] = useState<SuggestionFilter>("open");
   const [items, setItems] = useState(initial);
@@ -136,28 +137,38 @@ export function BandSuggestions({
   const vote = async (suggestion: Suggestion, value: -1 | 1) => {
     setBusyId(suggestion.id);
     const next = suggestion.my_vote === value ? 0 : value;
-    const result = await voteSuggestion(bandId, suggestion.id, next);
-    setBusyId(null);
-    if (!result.success || !result.data) {
-      if (!result.success)
-        toastActionError(result, result.error || t("voteFailed"));
-      return;
+    try {
+      const result = await voteSuggestion(bandId, suggestion.id, next);
+      if (!result.success || !result.data) {
+        if (!result.success)
+          toastActionError(result, result.error || t("voteFailed"));
+        return;
+      }
+      if (result.data.status === "accepted") {
+        toast.success(t("autoAccepted", { title: result.data.song_title }));
+      }
+      replace(result.data);
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setBusyId(null);
     }
-    if (result.data.status === "accepted") {
-      toast.success(t("autoAccepted", { title: result.data.song_title }));
-    }
-    replace(result.data);
   };
 
   const withdraw = async (suggestion: Suggestion) => {
     setBusyId(suggestion.id);
-    const result = await resolveSuggestion(bandId, suggestion.id, "withdraw");
-    setBusyId(null);
-    if (result.success && result.data) {
-      toast.success(t("withdrawn"));
-      replace(result.data);
-    } else if (!result.success) {
-      toastActionError(result, result.error);
+    try {
+      const result = await resolveSuggestion(bandId, suggestion.id, "withdraw");
+      if (result.success && result.data) {
+        toast.success(t("withdrawn"));
+        replace(result.data);
+      } else if (!result.success) {
+        toastActionError(result, result.error);
+      }
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setBusyId(null);
     }
   };
 

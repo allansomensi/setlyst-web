@@ -7,6 +7,7 @@ import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { openBillingPortal } from "@/lib/actions/billing";
 import { toastActionError } from "@/lib/action-toast";
+import { toast } from "@/lib/toast";
 import { parseApiTimestamp } from "@/lib/dates";
 import type { AccountPlanStatus } from "@/lib/trial";
 import { cn } from "@/lib/utils";
@@ -73,6 +74,7 @@ export function PlanStatusBanner({
   readOnly?: boolean;
 }) {
   const t = useTranslations("trial");
+  const tApi = useTranslations("apiErrors");
   const format = useFormatter();
   const [portalPending, setPortalPending] = useState(false);
   // Hidden for this page view even if storage refuses the write.
@@ -117,13 +119,18 @@ export function PlanStatusBanner({
   const goToPortal = async () => {
     if (portalPending) return;
     setPortalPending(true);
-    const result = await openBillingPortal();
-    if (!result.success || !result.data) {
+    try {
+      const result = await openBillingPortal();
+      if (!result.success || !result.data) {
+        setPortalPending(false);
+        if (!result.success) toastActionError(result, result.error);
+        return;
+      }
+      window.location.assign(result.data.url);
+    } catch {
       setPortalPending(false);
-      if (!result.success) toastActionError(result, result.error);
-      return;
+      toast.error(tApi("generic"));
     }
-    window.location.assign(result.data.url);
   };
 
   const { Icon } = describe(status, t);

@@ -23,7 +23,7 @@ interface SetlistBundleFallback {
 }
 
 interface SetlistBundleResult extends SetlistBundleFallback {
-  /** epoch ms this data was last synced, or null if it's straight from the server-rendered fallback. */
+  /** epoch ms the on-device copy shown was synced, or null when showing the server-rendered fallback. */
   syncedAt: number | null;
 }
 
@@ -64,12 +64,17 @@ export function useOfflineSetlistBundle(
   // note in offline-sync-provider.tsx. Falling back to `fallback` (the
   // server-rendered props) is always a safe, correct result even if the
   // offline mirror itself is broken.
+  //
+  // Only read offline, the one time it's shown. Online, every write to the
+  // mirror — the write-through below, each background sync — re-ran this
+  // query: the whole bundle, every song's lyrics included, deserialised on
+  // the main thread and a Live Mode re-render, mid-song, for nothing.
   const cached = useLiveQuery(
     () =>
-      impersonating
+      impersonating || isOnline
         ? undefined
         : offlineDb.setlists.get(setlistId).catch(() => undefined),
-    [setlistId, impersonating],
+    [setlistId, impersonating, isOnline],
   );
 
   useEffect(() => {
@@ -109,9 +114,6 @@ export function useOfflineSetlistBundle(
     setlist: fallback.setlist,
     songs: fallback.songs,
     items: fallback.items ?? null,
-    // Reflects whether an on-device copy actually exists yet (for the
-    // "saved for offline use" toast/badges), even though the *content*
-    // being rendered here comes from `fallback`, not `cached`.
-    syncedAt: cached?.syncedAt ?? null,
+    syncedAt: null,
   };
 }

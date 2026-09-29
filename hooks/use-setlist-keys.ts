@@ -64,7 +64,10 @@ export function useSetlistKeys(
     for (const [songId, semitones] of batch) {
       const result = await setSetlistSongKey(setlistId, songId, semitones);
       if (result.success) {
-        setSaving((previous) => ({ ...previous, [songId]: false }));
+        // Changed again while this was saving: still on its way.
+        if (!pending.current.has(songId)) {
+          setSaving((previous) => ({ ...previous, [songId]: false }));
+        }
         continue;
       }
       if (result.code === "rate_limited" || !navigator.onLine) {

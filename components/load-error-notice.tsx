@@ -16,6 +16,19 @@ import { cn } from "@/lib/utils";
 // are few and spaced out: an overloaded server needs room to recover.
 const AUTO_RETRY_DELAYS_MS = [3000, 10000];
 
+// A page can show more than one notice (Admin → Billing has two), all on
+// the same schedule: one refresh re-renders them all, so the automatic
+// ones are coalesced instead of re-rendering the page once per notice.
+const COALESCE_MS = 1000;
+let lastAutoRefreshAt = 0;
+
+function autoRefresh(refresh: () => void) {
+  const now = Date.now();
+  if (now - lastAutoRefreshAt < COALESCE_MS) return;
+  lastAutoRefreshAt = now;
+  refresh();
+}
+
 /**
  * Shown instead of a list's normal "no results" empty state when it came
  * back empty because the server-side fetch failed (a transient rate
@@ -55,7 +68,7 @@ export function LoadErrorNotice() {
       AUTO_RETRY_DELAYS_MS[AUTO_RETRY_DELAYS_MS.length - retriesLeft];
     timerRef.current = setTimeout(() => {
       setRetriesLeft((n) => n - 1);
-      router.refresh();
+      autoRefresh(() => router.refresh());
     }, delay);
 
     return () => {
@@ -70,7 +83,7 @@ export function LoadErrorNotice() {
     // there was no connection to retry over) and kick one off right away.
     if (isOnline && !wasOnlineRef.current) {
       setRetriesLeft(AUTO_RETRY_DELAYS_MS.length);
-      router.refresh();
+      autoRefresh(() => router.refresh());
     }
     wasOnlineRef.current = isOnline;
   }, [isOnline, router]);

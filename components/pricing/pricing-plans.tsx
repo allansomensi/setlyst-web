@@ -81,6 +81,7 @@ export function IntervalToggle({
 export function PricingPlans({
   plans,
   signedIn,
+  renderedAt,
 }: {
   plans: PublicPlan[];
   /**
@@ -89,6 +90,12 @@ export function PricingPlans({
    * can stay static.
    */
   signedIn?: boolean;
+  /**
+   * The server's clock at render (ms), so a promotion ending between the
+   * server render and hydration shows the same on both sides instead of
+   * a hydration mismatch. Defaults to the current time.
+   */
+  renderedAt?: number;
 }) {
   const t = useTranslations("pricing");
   const locale = useLocale();
@@ -121,7 +128,11 @@ export function PricingPlans({
         {plans.map((plan) => {
           const name = pickLocalized(plan.name, locale) || plan.code;
           const promotion =
-            plan.promotion && isPromotionActive(plan.promotion.ends_at)
+            plan.promotion &&
+            isPromotionActive(
+              plan.promotion.ends_at,
+              renderedAt === undefined ? undefined : new Date(renderedAt),
+            )
               ? plan.promotion
               : null;
           const price = planPrice({ ...plan, promotion }, interval);

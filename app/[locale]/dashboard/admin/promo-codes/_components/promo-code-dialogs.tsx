@@ -493,11 +493,15 @@ export function RedemptionsDialog({
 
   useEffect(() => {
     let cancelled = false;
-    getPromoRedemptions(promo.id).then((result) => {
-      if (cancelled) return;
-      if (result.success) setItems(result.data ?? []);
-      else setFailed(true);
-    });
+    getPromoRedemptions(promo.id)
+      .then((result) => {
+        if (cancelled) return;
+        if (result.success) setItems(result.data ?? []);
+        else setFailed(true);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
     return () => {
       cancelled = true;
     };

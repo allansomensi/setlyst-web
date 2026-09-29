@@ -7,6 +7,7 @@ import {
   fetchServerApi,
 } from "@/lib/api-server";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
+import { fetchServerApiOnce } from "@/lib/server-data";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import type { BandWithMembership, Gig, Setlist } from "@/types/api";
 import type { TourDetail } from "@/types/content";
@@ -24,7 +25,7 @@ export async function generateMetadata({
   if (!isUuid(id)) notFound();
   const t = await getTranslations("tours");
   try {
-    const tour = await fetchServerApi<TourDetail>(`/tours/${id}`);
+    const tour = await fetchServerApiOnce<TourDetail>(`/tours/${id}`);
     return { title: tour.name };
   } catch {
     return { title: t("title") };
@@ -45,7 +46,7 @@ export default async function TourPage({
 
   let tour: TourDetail;
   try {
-    tour = await fetchServerApi<TourDetail>(`/tours/${id}`);
+    tour = await fetchServerApiOnce<TourDetail>(`/tours/${id}`);
   } catch (error) {
     if (error instanceof ApiError && [400, 403, 404].includes(error.status)) {
       notFound();

@@ -48,6 +48,7 @@ export function AnnouncementsHistory({
   announcements: UserAnnouncement[];
 }) {
   const t = useTranslations("announcements");
+  const tApi = useTranslations("apiErrors");
   const [items, setItems] = useState(announcements);
   const [filter, setFilter] = useState<Filter>("all");
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -93,26 +94,31 @@ export function AnnouncementsHistory({
 
   const acknowledge = async (a: UserAnnouncement) => {
     setPendingId(a.id);
-    const result = await acknowledgeAnnouncement(a.id);
-    setPendingId(null);
-    if (!result.success) {
-      toastActionError(result, result.error);
-      return;
+    try {
+      const result = await acknowledgeAnnouncement(a.id);
+      if (!result.success) {
+        toastActionError(result, result.error);
+        return;
+      }
+      setItems((list) =>
+        list.map((item) =>
+          item.id === a.id
+            ? {
+                ...item,
+                receipt: result.data ?? {
+                  ...item.receipt,
+                  acknowledged_at: new Date().toISOString(),
+                },
+              }
+            : item,
+        ),
+      );
+      toast.success(t("acknowledged"));
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPendingId(null);
     }
-    setItems((list) =>
-      list.map((item) =>
-        item.id === a.id
-          ? {
-              ...item,
-              receipt: result.data ?? {
-                ...item.receipt,
-                acknowledged_at: new Date().toISOString(),
-              },
-            }
-          : item,
-      ),
-    );
-    toast.success(t("acknowledged"));
   };
 
   if (announcements.length === 0) {

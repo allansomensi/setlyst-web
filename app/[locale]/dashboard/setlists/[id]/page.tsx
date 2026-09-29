@@ -73,9 +73,54 @@ export default async function SetlistDetailsPage({
   const t = await getTranslations("setlists");
   const tNav = await getTranslations("nav");
 
+  // What depends on the setlist itself (its band, the band's song updates,
+  // its collaborators) starts as soon as the setlist arrives, rather than
+  // after the paged song and artist lists, which are much slower.
+  const setlistPromise = fetchServerApiOnce<Setlist>(`/setlists/${id}`);
+  const afterSetlist = <T,>(
+    load: (setlist: Setlist) => Promise<T>,
+    fallback: T,
+  ): Promise<T> =>
+    // A failed setlist is handled (as a 404 or an error) below; here it
+    // only must not surface as an unhandled rejection.
+    setlistPromise.then(load, () => fallback);
+
+  const bandPromise = afterSetlist(
+    (s) =>
+      s.band_id
+        ? fetchServerApi<BandWithMembership>(`/bands/${s.band_id}`).catch(
+            () => null,
+          )
+        : Promise.resolve(null),
+    null,
+  );
+  // Band songs whose original (the person's own) changed since: offered
+  // as a one-tap update on their rows.
+  const songUpdatesPromise = afterSetlist(
+    (s) =>
+      s.band_id
+        ? fetchServerApi<BandCopyStatus[]>(
+            `/bands/${s.band_id}/song-updates`,
+          ).catch(() => [] as BandCopyStatus[])
+        : Promise.resolve([] as BandCopyStatus[]),
+    [] as BandCopyStatus[],
+  );
+  // Who a personal setlist is shared with. Never fatal: the page works
+  // without it, only the collaborators row is missing.
+  const collaboratorsPromise = afterSetlist(
+    (s) =>
+      s.band_id
+        ? Promise.resolve(null)
+        : fetchServerApi<Collaborators>(`/setlists/${id}/collaborators`).catch(
+            () => null,
+          ),
+    null,
+  );
+  const entitlementsPromise = getEntitlements();
+
   const [setlist, setlistSongsRes, setlistItems, allSongsRes, allArtistsRes] =
     await Promise.all([
-      fetchServerApiOnce<Setlist>(`/setlists/${id}`),
+      setlistPromise,
       fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
       fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
       fetchAllServerPages<Song>("/songs"),
@@ -93,26 +138,10 @@ export default async function SetlistDetailsPage({
     });
 
   const [band, entitlements, songUpdates, collaborators] = await Promise.all([
-    setlist.band_id
-      ? fetchServerApi<BandWithMembership>(`/bands/${setlist.band_id}`).catch(
-          () => null,
-        )
-      : Promise.resolve(null),
-    getEntitlements(),
-    // Band songs whose original (the person's own) changed since: offered
-    // as a one-tap update on their rows.
-    setlist.band_id
-      ? fetchServerApi<BandCopyStatus[]>(
-          `/bands/${setlist.band_id}/song-updates`,
-        ).catch(() => [] as BandCopyStatus[])
-      : Promise.resolve([] as BandCopyStatus[]),
-    // Who a personal setlist is shared with. Never fatal: the page works
-    // without it, only the collaborators row is missing.
-    setlist.band_id
-      ? Promise.resolve(null)
-      : fetchServerApi<Collaborators>(`/setlists/${id}/collaborators`).catch(
-          () => null,
-        ),
+    bandPromise,
+    entitlementsPromise,
+    songUpdatesPromise,
+    collaboratorsPromise,
   ]);
   // Someone else's setlist shared with this account: what they may do
   // follows their role (see CollaboratorRole in types/api.ts).

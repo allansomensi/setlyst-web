@@ -72,6 +72,7 @@ export function BandsGrid({
 }: BandsGridProps) {
   const t = useTranslations("bands");
   const tCommon = useTranslations("common");
+  const tApi = useTranslations("apiErrors");
   const offlineDisabled = useOfflineDisabled();
   const quota = quotaUsageOf(quotas, "bands_owned");
   const quotaFull = quotaState(quota).full;
@@ -139,13 +140,18 @@ export function BandsGrid({
 
   const handleToggleFavorite = async (band: BandWithMembership) => {
     setFavoritePendingId(band.id);
-    const result = band.is_favorite
-      ? await unfavoriteBand(band.id)
-      : await favoriteBand(band.id);
-    if (!result.success) {
-      toastActionError(result, result.error);
+    try {
+      const result = band.is_favorite
+        ? await unfavoriteBand(band.id)
+        : await favoriteBand(band.id);
+      if (!result.success) {
+        toastActionError(result, result.error);
+      }
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setFavoritePendingId(null);
     }
-    setFavoritePendingId(null);
   };
 
   return (

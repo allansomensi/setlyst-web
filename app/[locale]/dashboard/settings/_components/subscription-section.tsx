@@ -412,6 +412,7 @@ function PromoCodeCard({
   disabled: boolean;
 }) {
   const t = useTranslations("billing.promo");
+  const tApi = useTranslations("apiErrors");
   const router = useAppRouter();
   const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
@@ -445,21 +446,26 @@ function PromoCodeCard({
     setPending(true);
     setError(null);
     setGranted(null);
-    const result = await redeemPromoCode(value);
-    setPending(false);
-    if (!result.success || !result.data) {
-      if (!result.success && result.code) {
-        toastActionError(result, result.error);
+    try {
+      const result = await redeemPromoCode(value);
+      if (!result.success || !result.data) {
+        if (!result.success && result.code) {
+          toastActionError(result, result.error);
+          return;
+        }
+        setError(result.success ? null : result.error);
         return;
       }
-      setError(result.success ? null : result.error);
-      return;
+      const message = describe(result.data.redemption);
+      setGranted(message);
+      setCode("");
+      toast.success(t("success"));
+      router.refresh();
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    const message = describe(result.data.redemption);
-    setGranted(message);
-    setCode("");
-    toast.success(t("success"));
-    router.refresh();
   };
 
   return (

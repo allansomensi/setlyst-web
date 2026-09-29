@@ -73,6 +73,8 @@ export function useImpersonation() {
         viewedUserId ? `/dashboard/users/${viewedUserId}` : "/dashboard",
       );
       router.refresh();
+    } catch {
+      toast.error(t("failed"));
     } finally {
       setIsSwitching(false);
     }

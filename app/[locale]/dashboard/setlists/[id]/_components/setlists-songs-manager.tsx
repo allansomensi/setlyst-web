@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
 import type { Announcements, ScreenReaderInstructions } from "@dnd-kit/core";
 import { useTranslations } from "next-intl";
@@ -291,27 +291,34 @@ export function SetlistSongsManager({
   const canCopy = (song: SetlistSong) =>
     !band && !!myId && (!!song.held || song.user_id !== myId);
 
-  const handleCopy = (songId: string) => {
-    startTransition(async () => {
-      const result = await copySetlistSongToLibrary(setlistId, songId);
-      if (!result.success) {
-        toastActionError(
-          result,
-          result.apiCode === "SONG_ALREADY_IN_LIBRARY"
-            ? t("alreadyInLibrary")
-            : result.error,
+  // Stable, like the rest of what a song row gets, so the memoised rows
+  // skip the manager's re-renders.
+  const handleCopy = useCallback(
+    (songId: string) =>
+      startTransition(async () => {
+        const result = await copySetlistSongToLibrary(setlistId, songId);
+        if (!result.success) {
+          toastActionError(
+            result,
+            result.apiCode === "SONG_ALREADY_IN_LIBRARY"
+              ? t("alreadyInLibrary")
+              : result.error,
+          );
+          return;
+        }
+        toast.success(
+          result.data?.adopted ? t("copiedAndLinked") : t("copiedToLibrary"),
         );
-        return;
-      }
-      toast.success(
-        result.data?.adopted ? t("copiedAndLinked") : t("copiedToLibrary"),
-      );
-    });
-  };
+      }),
+    [setlistId, t],
+  );
 
-  const handlePlay = (songId: string) => {
-    router.push(`/dashboard/setlists/${setlistId}/live?songId=${songId}`);
-  };
+  const handlePlay = useCallback(
+    (songId: string) => {
+      router.push(`/dashboard/setlists/${setlistId}/live?songId=${songId}`);
+    },
+    [router, setlistId],
+  );
 
   const songsInSetlist =
     availableSongs.length > 0

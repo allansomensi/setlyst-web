@@ -29,7 +29,7 @@ import { requireStaffPage } from "@/lib/staff-guard";
 import { getPlanOptions } from "@/lib/staff-data";
 import { cn } from "@/lib/utils";
 import type { FinanceOverview } from "@/types/finance";
-import { RevenueChart } from "./_components/revenue-chart";
+import { LazyRevenueChart as RevenueChart } from "./_components/lazy-revenue-chart";
 import { SyncButton } from "./_components/sync-button";
 
 export async function generateMetadata(): Promise<Metadata> {

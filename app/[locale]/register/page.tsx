@@ -30,22 +30,24 @@ export default async function RegisterPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const locale = await getLocale();
+  const planCode = planCodeOf(firstParam(params.plan));
+
+  // Independent reads, side by side rather than one after the other.
+  const [locale, cookieStore, billingMode, plans] = await Promise.all([
+    getLocale(),
+    cookies(),
+    getBillingMode(),
+    planCode ? getPublicPlans() : null,
+  ]);
 
   // `?ref=` wins; otherwise a code remembered from an earlier visit.
   const fromLink = normalizeReferralCode(firstParam(params.ref));
   const fromCookie = normalizeReferralCode(
-    (await cookies()).get(REFERRAL_COOKIE)?.value,
+    cookieStore.get(REFERRAL_COOKIE)?.value,
   );
 
-  const billingMode = await getBillingMode();
-  const planCode = planCodeOf(firstParam(params.plan));
-  let planName: string | null = null;
-  if (planCode) {
-    const plans = await getPublicPlans();
-    const plan = plans?.find((p) => p.code === planCode);
-    planName = plan ? pickLocalized(plan.name, locale) || plan.code : null;
-  }
+  const plan = planCode ? plans?.find((p) => p.code === planCode) : undefined;
+  const planName = plan ? pickLocalized(plan.name, locale) || plan.code : null;
 
   return (
     <AuthShell>

@@ -213,6 +213,7 @@ const DATA_SETTINGS_HREF = "/dashboard/settings/data";
 
 function TermsGate() {
   const t = useTranslations("terms.gate");
+  const tApi = useTranslations("apiErrors");
   const locale = useLocale();
   const router = useAppRouter();
   const pathname = usePathname();
@@ -235,21 +236,31 @@ function TermsGate() {
   const accept = async () => {
     if (!checked || pending) return;
     setPending(true);
-    const result = await acceptCurrentTerms();
-    if (!result.success) {
+    try {
+      const result = await acceptCurrentTerms();
+      if (!result.success) {
+        setPending(false);
+        toastActionError(result, result.error);
+        return;
+      }
+      await update({ refreshAccount: true }).catch(() => null);
+      setAccepted(true);
+      toast.success(t("accepted"));
+      router.refresh();
+    } catch {
       setPending(false);
-      toastActionError(result, result.error);
-      return;
+      toast.error(tApi("generic"));
     }
-    await update({ refreshAccount: true }).catch(() => null);
-    setAccepted(true);
-    toast.success(t("accepted"));
-    router.refresh();
   };
 
   const leave = async () => {
     setLeaving(true);
-    await secureSignOut({ callbackUrl: `/${locale}/login` });
+    try {
+      await secureSignOut({ callbackUrl: `/${locale}/login` });
+    } catch {
+      setLeaving(false);
+      toast.error(tApi("generic"));
+    }
   };
 
   const goToData = () => {

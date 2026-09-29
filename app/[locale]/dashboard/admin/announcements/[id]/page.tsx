@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -10,7 +11,10 @@ import { isUuid } from "@/lib/uuid";
 
 type Params = Promise<{ id: string }>;
 
-async function load(id: string): Promise<AdminAnnouncement | null> {
+// Request-scoped: generateMetadata and the page both need it.
+const load = cache(async function load(
+  id: string,
+): Promise<AdminAnnouncement | null> {
   if (!isUuid(id)) return null;
   try {
     return await fetchServerApi<AdminAnnouncement>(
@@ -25,7 +29,7 @@ async function load(id: string): Promise<AdminAnnouncement | null> {
     }
     throw error;
   }
-}
+});
 
 export async function generateMetadata({
   params,

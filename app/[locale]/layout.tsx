@@ -31,13 +31,16 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const [messages, nonce] = await Promise.all([getMessages(), getNonce()]);
+  const [messages, nonce, session] = await Promise.all([
+    getMessages(),
+    getNonce(),
+    getSession(),
+  ]);
 
   let userTheme: UserTheme | null = null;
 
   // Only fetch preferences when the user is authenticated; skip the API round-trip
   // on public pages (login, register) to avoid unnecessary latency and silent errors.
-  const session = await getSession();
   const isAuthenticated = Boolean(
     session && session.error !== "TokenExpired" && session.user?.id,
   );

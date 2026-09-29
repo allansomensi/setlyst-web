@@ -1,15 +1,23 @@
 import { getTranslations } from "next-intl/server";
 import { Gift, Info } from "lucide-react";
-import { getBillingMode } from "@/lib/public-api";
 import { cn } from "@/lib/utils";
 
 /**
  * "Everything is free during the beta" or "30 days of Pro, no card",
- * depending on the API's billing switch (`GET /public/billing`).
+ * depending on the API's billing switch (`GET /public/billing`). The page
+ * passes the switch it already read: `fetchPublicApi` calls carry a
+ * timeout signal, which Next.js never dedupes, so reading it here again
+ * meant a second request (and, across a revalidation, a possibly
+ * different answer from the rest of the page).
  */
-export async function BillingNote({ className }: { className?: string }) {
+export async function BillingNote({
+  enforced,
+  className,
+}: {
+  enforced: boolean;
+  className?: string;
+}) {
   const t = await getTranslations("pricing");
-  const enforced = !(await getBillingMode()).beta;
   const Icon = enforced ? Gift : Info;
 
   return (

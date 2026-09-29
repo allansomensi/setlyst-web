@@ -113,6 +113,7 @@ export function SetlistsTable({
   const offlineDisabled = useOfflineDisabled();
   const t = useTranslations("setlists");
   const tCommon = useTranslations("common");
+  const tApi = useTranslations("apiErrors");
   const tTrash = useTranslations("trash");
   const repertoireName = t("repertoire.name");
   const quota = bandId ? null : quotaUsageOf(quotas, "setlists");
@@ -218,13 +219,18 @@ export function SetlistsTable({
 
   const handleToggleFavorite = async (setlist: Setlist) => {
     setFavoritePendingId(setlist.id);
-    const result = setlist.is_favorite
-      ? await unfavoriteSetlist(setlist.id)
-      : await favoriteSetlist(setlist.id);
-    if (!result.success) {
-      toastActionError(result, result.error);
+    try {
+      const result = setlist.is_favorite
+        ? await unfavoriteSetlist(setlist.id)
+        : await favoriteSetlist(setlist.id);
+      if (!result.success) {
+        toastActionError(result, result.error);
+      }
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setFavoritePendingId(null);
     }
-    setFavoritePendingId(null);
   };
 
   return (

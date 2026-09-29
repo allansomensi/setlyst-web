@@ -10,6 +10,19 @@ import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 import { isGoneShareLinkError } from "@/lib/api-not-found";
 import { clientMessages } from "@/i18n/client-messages";
 
+async function getPublicGig(token: string): Promise<PublicGig | null> {
+  try {
+    // Encoded rather than interpolated raw: this token arrives from a link
+    // a stranger can craft. See lib/api-endpoint.ts.
+    return await fetchServerApiOnce<PublicGig>(apiPath`/public/gigs/${token}`);
+  } catch (error) {
+    // Only a link that doesn't exist (any more) is a 404; an outage goes
+    // to error.tsx ("temporarily unavailable", with a retry).
+    if (isGoneShareLinkError(error)) return null;
+    throw error;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -53,22 +66,14 @@ export default async function PublicGigPage({
 }) {
   const [{ token }, { lang }] = await Promise.all([params, searchParams]);
 
-  let gig: PublicGig;
-  try {
-    // Encoded rather than interpolated raw: this token arrives from a link
-    // a stranger can craft. See lib/api-endpoint.ts.
-    gig = await fetchServerApiOnce<PublicGig>(apiPath`/public/gigs/${token}`);
-  } catch (error) {
-    // Only a link that doesn't exist (any more) is a 404; an outage goes
-    // to error.tsx ("temporarily unavailable", with a retry).
-    if (isGoneShareLinkError(error)) notFound();
-    throw error;
-  }
-
-  const [{ locale, messages }, nonce] = await Promise.all([
+  // The locale and nonce don't depend on the gig: resolved alongside the
+  // API call rather than after it.
+  const [gig, { locale, messages }, nonce] = await Promise.all([
+    getPublicGig(token),
     resolvePublicLocale(lang),
     getNonce(),
   ]);
+  if (!gig) notFound();
 
   return (
     <PublicShell

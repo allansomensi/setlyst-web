@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { assertSafeEndpoint } from "@/lib/api-endpoint";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { isBillingEnforced } from "@/lib/pricing";
@@ -86,12 +87,19 @@ export interface BillingMode {
 }
 
 /**
+ * The loaders below are request-scoped (React `cache`): a page, its
+ * metadata and its components often need the same answer, and Next.js
+ * doesn't dedupe these fetches itself because each carries a timeout
+ * signal. Outside a render `cache` is a plain pass-through.
+ */
+
+/**
  * The beta switch, read from the API (`GET /public/billing`, the admin
  * panel's "Enforce plans" setting), so the public site and the API never
  * disagree. Falls back to `NEXT_PUBLIC_BILLING_ENFORCED` while the API
  * can't be reached.
  */
-export async function getBillingMode(): Promise<BillingMode> {
+export const getBillingMode = cache(async (): Promise<BillingMode> => {
   const result = await fetchPublicApi<PublicBillingMode>("/public/billing", {
     revalidate: 60,
   });
@@ -103,24 +111,29 @@ export async function getBillingMode(): Promise<BillingMode> {
     };
   }
   return { beta: !isBillingEnforced(), trialDays: 30, details: null };
-}
+});
 
 /** Public plans in display order, or `null` when the API can't be reached. */
-export async function getPublicPlans(): Promise<PublicPlan[] | null> {
+export const getPublicPlans = cache(async (): Promise<PublicPlan[] | null> => {
   const result = await fetchPublicApi<PublicPlan[]>("/public/plans", {
     revalidate: 300,
   });
   if (!result.ok || !Array.isArray(result.data)) return null;
   return [...result.data].sort((a, b) => a.sort_order - b.sort_order);
-}
+});
 
 /** Published release notes, newest first, or `null` on failure. */
-export async function getPublicReleaseNotes(): Promise<ReleaseNote[] | null> {
-  const result = await fetchPublicApi<ReleaseNote[]>("/public/release-notes", {
-    revalidate: 300,
-  });
-  return result.ok && Array.isArray(result.data) ? result.data : null;
-}
+export const getPublicReleaseNotes = cache(
+  async (): Promise<ReleaseNote[] | null> => {
+    const result = await fetchPublicApi<ReleaseNote[]>(
+      "/public/release-notes",
+      {
+        revalidate: 300,
+      },
+    );
+    return result.ok && Array.isArray(result.data) ? result.data : null;
+  },
+);
 
 /** What an unsubscribe token refers to (`null` when the API is down). */
 export async function inspectUnsubscribeToken(

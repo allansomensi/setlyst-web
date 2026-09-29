@@ -27,6 +27,23 @@ export class ApiError extends Error {
 /** Same-origin route that adds the API token server-side. */
 const CLIENT_API_BASE = "/api/client";
 
+/**
+ * The sign-out a 401 started, shared by every call that fails the same
+ * way while it runs: a page whose session ran out typically has several
+ * requests in flight, and each used to wipe the offline data and post its
+ * own sign-out.
+ */
+let pendingSignOut: Promise<void> | null = null;
+
+function signOutOnce(): Promise<void> {
+  pendingSignOut ??= secureSignOut({
+    callbackUrl: `${localePrefix()}/login?reason=session`,
+  }).finally(() => {
+    pendingSignOut = null;
+  });
+  return pendingSignOut;
+}
+
 function localePrefix(): string {
   if (typeof window === "undefined") return "";
   const segment = window.location.pathname.split("/")[1];
@@ -109,11 +126,7 @@ export function useApi() {
         }
 
         if (res.status === 401) {
-          if (!suppressAuthRedirect) {
-            await secureSignOut({
-              callbackUrl: `${localePrefix()}/login?reason=session`,
-            });
-          }
+          if (!suppressAuthRedirect) await signOutOnce();
           throw new ApiError(401, "Session expired. Please sign in again.");
         }
 

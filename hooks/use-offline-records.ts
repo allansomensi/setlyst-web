@@ -63,9 +63,16 @@ export function useOfflineRecords<TValue>({
   loadError = false,
 }: OfflineRecordsOptions<TValue>): OfflineRecordsResult<TValue> {
   const isOnline = useOnlineStatus();
-  const cached = useLiveQuery(read, []);
-
   const serverDataUsable = isOnline && !loadError;
+  // Only read while the mirror is what gets shown. `read` loads a whole
+  // table (every song with its lyrics, say), and a live query re-runs on
+  // every write to it — including this hook's own write-through below and
+  // each background sync — so reading it while online meant a full-table
+  // read and a re-render of the list for a result that was never used.
+  const cached = useLiveQuery(
+    () => (serverDataUsable ? undefined : read()),
+    [serverDataUsable],
+  );
 
   useEffect(() => {
     if (!serverDataUsable) return;

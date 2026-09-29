@@ -27,6 +27,11 @@ const PAGE_SIZE = 100;
 // calls already in flight.
 const BAND_CONCURRENCY = 2;
 
+// Setlists whose songs and running order are fetched at once (two calls
+// each). One at a time made the slowest phase of a sync a chain of round
+// trips as long as the library; two keeps the burst as small as the bands'.
+const SETLIST_CONCURRENCY = 2;
+
 /** `fn` over `items`, at most `limit` at a time, results in order. */
 async function mapWithConcurrency<T, R>(
   items: readonly T[],
@@ -82,28 +87,32 @@ export interface SyncResult {
   error?: SyncErrorCode;
 }
 
-/** Fetches every page of a paginated endpoint and returns the combined rows. */
+/**
+ * Fetches every page of a paginated endpoint and returns the combined rows.
+ * Once the first page says how many there are, the rest are requested two
+ * at a time rather than one after the other.
+ */
 async function fetchAllPages<T>(
   fetchApi: FetchApi,
   basePath: string,
 ): Promise<T[]> {
   const separator = basePath.includes("?") ? "&" : "?";
+  const pageUrl = (page: number) =>
+    `${basePath}${separator}page=${page}&per_page=${PAGE_SIZE}`;
   const first = await fetchApi<PaginatedResponse<T>>(
-    `${basePath}${separator}page=1&per_page=${PAGE_SIZE}`,
+    pageUrl(1),
     SYNC_FETCH_OPTIONS,
   );
-  const rows = [...(first.data ?? [])];
   const totalPages = first.meta?.total_pages ?? 1;
+  if (totalPages <= 1) return first.data ?? [];
 
-  for (let page = 2; page <= totalPages; page++) {
-    const next = await fetchApi<PaginatedResponse<T>>(
-      `${basePath}${separator}page=${page}&per_page=${PAGE_SIZE}`,
-      SYNC_FETCH_OPTIONS,
-    );
-    rows.push(...(next.data ?? []));
-  }
+  const rest = await mapWithConcurrency(
+    Array.from({ length: totalPages - 1 }, (_, i) => i + 2),
+    2,
+    (page) => fetchApi<PaginatedResponse<T>>(pageUrl(page), SYNC_FETCH_OPTIONS),
+  );
 
-  return rows;
+  return [first, ...rest].flatMap((page) => page.data ?? []);
 }
 
 /**
@@ -395,8 +404,6 @@ export async function syncAllForOffline(
     `/${locale}/dashboard/gigs`,
     `/${locale}/dashboard/bands`,
     `/${locale}/dashboard/artists`,
-    `/${locale}/dashboard/profile`,
-    `/${locale}/dashboard/settings`,
   ];
 
   for (const song of songs) {
@@ -418,8 +425,9 @@ export async function syncAllForOffline(
 
   const knownSetlistIds = new Set<string>();
   let setlistsSynced = 0;
+  let setlistsDone = 0;
 
-  for (const [index, setlist] of setlists.entries()) {
+  await mapWithConcurrency(setlists, SETLIST_CONCURRENCY, async (setlist) => {
     try {
       const [songsRes, itemsRes] = await Promise.allSettled([
         fetchAllPages<SetlistSong>(fetchApi, `/setlists/${setlist.id}/songs`),
@@ -434,7 +442,7 @@ export async function syncAllForOffline(
       // data loss, which is worse than it plainly not being downloaded.
       if (songsRes.status === "rejected") {
         fail(`"${setlist.title}"`, songsRes.reason);
-        continue;
+        return;
       }
 
       await offlineDb.setlists.put({
@@ -453,14 +461,14 @@ export async function syncAllForOffline(
       );
     } catch (err) {
       fail(`"${setlist.title}"`, err);
+    } finally {
+      report({
+        phase: "setlists",
+        completed: ++setlistsDone,
+        total: setlists.length,
+      });
     }
-
-    report({
-      phase: "setlists",
-      completed: index + 1,
-      total: setlists.length,
-    });
-  }
+  });
 
   // Setlists are written one at a time (each needs its own calls and can
   // fail on its own), so the sweep for deleted ones happens here instead

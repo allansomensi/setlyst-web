@@ -68,11 +68,15 @@ export function ServiceWorkerRegister() {
     // trigger it, and only once the person has approved it (see below).
     const hadControllerAtLoad = Boolean(navigator.serviceWorker.controller);
     let hasReloaded = false;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
+    const onControllerChange = () => {
       if (!hadControllerAtLoad || hasReloaded) return;
       hasReloaded = true;
       window.location.reload();
-    });
+    };
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      onControllerChange,
+    );
 
     const notifyUpdate = (worker: ServiceWorker) => {
       toast(strings.message, {
@@ -110,6 +114,13 @@ export function ServiceWorkerRegister() {
       .catch((error) => {
         console.error("[ServiceWorker] registration failed", error);
       });
+
+    return () => {
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        onControllerChange,
+      );
+    };
   }, []);
 
   return null;

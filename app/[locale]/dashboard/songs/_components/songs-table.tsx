@@ -151,8 +151,10 @@ export function SongsTable({
   });
 
   const songsWithArtistName = useMemo(() => {
+    // A lookup table, not a scan of the artists for every song.
+    const artistNames = new Map(availableArtists.map((a) => [a.id, a.name]));
     const getArtistName = (artistId: string) =>
-      availableArtists.find((a) => a.id === artistId)?.name ?? "—";
+      artistNames.get(artistId) ?? "—";
 
     return availableSongs.map((song) => ({
       ...song,

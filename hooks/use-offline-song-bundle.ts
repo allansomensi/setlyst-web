@@ -28,12 +28,14 @@ export function useOfflineSongBundle(
   const impersonating = Boolean(useSession().data?.user?.impersonator);
   // See the identical note in use-offline-setlist-bundle.ts: swallow a
   // query failure into "no cached copy" rather than letting it propagate.
+  // Only read offline, where it's shown — see the same note there on why
+  // reading it online is wasted work.
   const cached = useLiveQuery(
     () =>
-      impersonating
+      impersonating || isOnline
         ? undefined
         : offlineDb.songs.get(songId).catch(() => undefined),
-    [songId, impersonating],
+    [songId, impersonating, isOnline],
   );
 
   useEffect(() => {
@@ -49,5 +51,5 @@ export function useOfflineSongBundle(
     return { song: cached.song, syncedAt: cached.syncedAt };
   }
 
-  return { song: fallback, syncedAt: cached?.syncedAt ?? null };
+  return { song: fallback, syncedAt: null };
 }

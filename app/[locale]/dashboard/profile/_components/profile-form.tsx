@@ -72,6 +72,9 @@ export function ProfileForm({
   const [isPending, startTransition] = useTransition();
   const [availability, setAvailability] = useState<AvailabilityStatus>("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Bumped on every keystroke: only the latest check may set the status,
+  // so a slow answer about an earlier spelling never overwrites it.
+  const checkRef = useRef(0);
 
   const dirty = JSON.stringify(values) !== JSON.stringify(saved);
   const set = <K extends keyof typeof values>(
@@ -84,6 +87,7 @@ export function ProfileForm({
   const handleUsernameChange = (value: string) => {
     set("username", value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    const check = ++checkRef.current;
     const trimmed = value.trim();
     if (trimmed === saved.username || inCooldown) {
       setAvailability("idle");
@@ -95,15 +99,18 @@ export function ProfileForm({
     }
     setAvailability("checking");
     debounceRef.current = setTimeout(() => {
-      checkUsernameAvailability(trimmed).then((result) => {
-        setAvailability(
-          result === null
-            ? "idle"
-            : result.available
-              ? "available"
-              : "unavailable",
-        );
-      });
+      checkUsernameAvailability(trimmed)
+        .catch(() => null)
+        .then((result) => {
+          if (check !== checkRef.current) return;
+          setAvailability(
+            result === null
+              ? "idle"
+              : result.available
+                ? "available"
+                : "unavailable",
+          );
+        });
     }, 400);
   };
 

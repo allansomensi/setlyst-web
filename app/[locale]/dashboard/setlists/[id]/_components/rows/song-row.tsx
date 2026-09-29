@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Archive, CopyPlus, RefreshCw, Trash2 } from "lucide-react";
 import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,12 @@ import { SongKeyPicker } from "./song-key-picker";
 import { UserAvatar } from "@/components/user-avatar";
 import { formatApiDateTime } from "@/lib/dates";
 
-export function SortableSongRow({
+/**
+ * Memoised: opening a dialog, a pending action or a "Move" announcement
+ * re-renders the manager, and with it every row of a long running order
+ * (each with its key picker) — none of which changed.
+ */
+export const SortableSongRow = memo(function SortableSongRow({
   setlistId,
   canEditKey,
   row,
@@ -224,7 +230,7 @@ export function SortableSongRow({
       </TableCell>
     </TableRow>
   );
-}
+});
 
 /**
  * Who put the song in the setlist: a small avatar, with the name and date

@@ -52,8 +52,22 @@ export default async function SetlistLivePage({
   // size and the running order only feeds the block indicator, so neither
   // may take Live Mode down; a deleted or foreign setlist is a 404, not the
   // generic error screen.
+  const setlistPromise = fetchServerApiOnce<Setlist>(`/setlists/${id}`);
+  // Whether a key changed here can be saved to the setlist (the API
+  // refuses it otherwise; this only avoids offering it). Starts as soon as
+  // the setlist is in rather than after its (paged) songs; a failed
+  // setlist is handled below.
+  const bandPromise = setlistPromise.then(
+    (loaded) =>
+      loaded.band_id
+        ? fetchServerApi<BandWithMembership>(`/bands/${loaded.band_id}`).catch(
+            () => null,
+          )
+        : null,
+    () => null,
+  );
   const [setlist, setlistSongsRes, items, preferences] = await Promise.all([
-    fetchServerApiOnce<Setlist>(`/setlists/${id}`),
+    setlistPromise,
     fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
     fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`).catch(() => null),
     getMyPreferences().catch(() => null),
@@ -61,13 +75,7 @@ export default async function SetlistLivePage({
 
   const setlistSongs = setlistSongsRes.data || [];
 
-  // Whether a key changed here can be saved to the setlist (the API
-  // refuses it otherwise; this only avoids offering it).
-  const band = setlist.band_id
-    ? await fetchServerApi<BandWithMembership>(
-        `/bands/${setlist.band_id}`,
-      ).catch(() => null)
-    : null;
+  const band = await bandPromise;
   const canSaveKeys =
     !setlist.band_id || (!!band && canManageBandSetlists(band));
 

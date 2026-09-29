@@ -42,6 +42,7 @@ type Step = "identify" | "reset" | "done";
 export function ForgotPasswordFlow() {
   const t = useTranslations("forgotPassword");
   const tPassword = useTranslations("passwordPolicy");
+  const tLogin = useTranslations("auth.login");
   const locale = useLocale();
   const searchParams = useSearchParams();
 
@@ -60,6 +61,10 @@ export function ForgotPasswordFlow() {
   // holds back the identifier it was started for, not a corrected one.
   const [cooldownFor, setCooldownFor] = useState<string | null>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  // `pending` only blocks a second submit once it has re-rendered; a
+  // double click would otherwise send two codes (the second refused by
+  // the one-per-minute limit) or spend the code twice.
+  const inFlight = useRef(false);
 
   // The password rules forbid the username: only known when that's what
   // was typed (not an e-mail address).
@@ -72,11 +77,19 @@ export function ForgotPasswordFlow() {
 
   const sendCode = async (isResend: boolean) => {
     const value = identifier.trim();
-    if (!value || pending) return;
+    if (!value || pending || inFlight.current) return;
+    inFlight.current = true;
     setPending(true);
     setError(null);
-    const result = await requestPasswordReset(value);
+    // A server action rejects when the request itself fails (offline, a
+    // new deployment): without the catch the button would spin forever.
+    const result = await requestPasswordReset(value).catch(() => null);
+    inFlight.current = false;
     setPending(false);
+    if (!result) {
+      setError(tLogin("connectionError"));
+      return;
+    }
     if (!result.success) {
       setError(result.error);
       if (result.retryAfterSeconds) {
@@ -96,14 +109,21 @@ export function ForgotPasswordFlow() {
 
   const submitReset = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canReset) return;
+    if (!canReset || inFlight.current) return;
+    inFlight.current = true;
     setPending(true);
     setError(null);
     const result = await resetPassword({
       identifier: identifier.trim(),
       code,
       newPassword: password,
-    });
+    }).catch(() => null);
+    inFlight.current = false;
+    if (!result) {
+      setPending(false);
+      setError(tLogin("connectionError"));
+      return;
+    }
     if (!result.success) {
       setPending(false);
       setError(result.error);

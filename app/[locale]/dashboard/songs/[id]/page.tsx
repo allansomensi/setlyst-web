@@ -20,6 +20,7 @@ import {
 } from "@/types/api";
 import { degreeIsSet, normalizeAnalysis } from "@/lib/music/analysis";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+import { fetchServerApiOnce } from "@/lib/server-data";
 import { SongDetail } from "./_components/song-detail";
 
 export async function generateMetadata({
@@ -32,7 +33,7 @@ export async function generateMetadata({
   // UUID (`<id>?per_page=…`, `<id>#`) is not a page of this app.
   if (!isUuid(id)) notFound();
   try {
-    const song = await fetchServerApi<Song>(`/songs/${id}`);
+    const song = await fetchServerApiOnce<Song>(`/songs/${id}`);
     return { title: song.title };
   } catch {
     return staticTitle("songs");
@@ -71,9 +72,28 @@ export default async function SongDetailPage({
   if (!isUuid(id)) notFound();
   const tNav = await getTranslations("nav");
 
+  // Everything keyed only on the id starts alongside the song itself
+  // rather than after it. Each one tolerates failure, so a song that turns
+  // out missing leaves nothing unhandled behind.
+  const setlistsPromise = fetchServerApi<SongSetlistRef[]>(
+    `/songs/${id}/setlists`,
+  ).catch(() => null);
+  // Only a secondary panel: the page works without it.
+  const bandCopiesPromise = fetchServerApi<BandCopyStatus[]>(
+    `/songs/${id}/band-copies`,
+  ).catch(() => [] as BandCopyStatus[]);
+  const versionsPromise = fetchServerApi<SongVersion[]>(
+    `/songs/${id}/versions`,
+  ).catch(() => null);
+  // Only a secondary card too.
+  const analysisPromise = fetchServerApi<SongAnalysis | null>(
+    `/songs/${id}/analysis`,
+  ).catch(() => null);
+  const entitlementsPromise = getEntitlements();
+
   let song: Song;
   try {
-    song = await fetchServerApi<Song>(`/songs/${id}`);
+    song = await fetchServerApiOnce<Song>(`/songs/${id}`);
   } catch (error) {
     if (
       error instanceof ApiError &&
@@ -93,23 +113,17 @@ export default async function SongDetailPage({
     versions,
     analysis,
   ] = await Promise.all([
-    getEntitlements(),
+    entitlementsPromise,
     song.band_id
       ? fetchServerApi<BandWithMembership>(`/bands/${song.band_id}`).catch(
           () => null,
         )
       : Promise.resolve(null),
-    fetchServerApi<SongSetlistRef[]>(`/songs/${id}/setlists`).catch(() => null),
+    setlistsPromise,
     editableArtists(song),
-    // Only a secondary panel: the page works without it.
-    fetchServerApi<BandCopyStatus[]>(`/songs/${id}/band-copies`).catch(
-      () => [] as BandCopyStatus[],
-    ),
-    fetchServerApi<SongVersion[]>(`/songs/${id}/versions`).catch(() => null),
-    // Only a secondary card too.
-    fetchServerApi<SongAnalysis | null>(`/songs/${id}/analysis`).catch(
-      () => null,
-    ),
+    bandCopiesPromise,
+    versionsPromise,
+    analysisPromise,
   ]);
 
   // What the analysis card shows: how far along it is, not the document.

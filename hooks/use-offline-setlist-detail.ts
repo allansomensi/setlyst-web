@@ -40,12 +40,16 @@ export function useOfflineSetlistDetail(
   // viewed account's library must not land in the staff member's offline
   // copy) and the mirror isn't read either (it isn't that account's).
   const impersonating = Boolean(useSession().data?.user?.impersonator);
+  // Only read offline, the one time it's shown: online, every write to the
+  // mirror (the write-through below, each background sync) would otherwise
+  // re-read the whole bundle, lyrics included, and re-render the running
+  // order for nothing.
   const cached = useLiveQuery(
     () =>
-      impersonating
+      impersonating || isOnline
         ? undefined
         : offlineDb.setlists.get(setlist.id).catch(() => undefined),
-    [setlist.id, impersonating],
+    [setlist.id, impersonating, isOnline],
   );
 
   useEffect(() => {

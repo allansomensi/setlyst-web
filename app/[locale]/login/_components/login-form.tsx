@@ -129,6 +129,11 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const [recoveryCode, setRecoveryCode] = useState("");
   const [useRecovery, setUseRecovery] = useState(false);
   const [pending, setPending] = useState(false);
+  // `pending` only blocks a second submit once it has re-rendered: the
+  // code field's auto-submit followed by Enter (or a double click) could
+  // otherwise send the same one-time code twice, the second try failing
+  // as "invalid" and burning one of the challenge's attempts.
+  const inFlight = useRef(false);
   const codeRef = useRef<HTMLInputElement>(null);
   const challengeRequest = useRef<ReturnType<
     typeof takeGoogleTwoFactorChallenge
@@ -314,7 +319,10 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   const submitCredentials = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (pending || !identifier.trim() || !password) return;
+    if (inFlight.current || pending || !identifier.trim() || !password) {
+      return;
+    }
+    inFlight.current = true;
     setPending(true);
     setError(null);
     try {
@@ -340,11 +348,13 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     } catch {
       setError(t("connectionError"));
       setPending(false);
+    } finally {
+      inFlight.current = false;
     }
   };
 
   const submitSecondFactor = async (appCode?: string) => {
-    if (pending || !challenge) return;
+    if (inFlight.current || pending || !challenge) return;
     const typedCode = appCode ?? code;
     if (
       useRecovery
@@ -353,6 +363,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     ) {
       return;
     }
+    inFlight.current = true;
     setPending(true);
     setError(null);
     try {
@@ -394,6 +405,8 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     } catch {
       setError(t("connectionError"));
       setPending(false);
+    } finally {
+      inFlight.current = false;
     }
   };
 

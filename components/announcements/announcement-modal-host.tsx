@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toastActionError } from "@/lib/action-toast";
+import { toast } from "@/lib/toast";
 import type { UserAnnouncement } from "@/types/communication";
 import {
   acknowledgeAnnouncement,
@@ -55,6 +56,7 @@ function rememberContinued(id: string) {
  */
 export function AnnouncementModalHost() {
   const t = useTranslations("announcements");
+  const tApi = useTranslations("apiErrors");
   const [modals, setModals] = useState<UserAnnouncement[]>([]);
   const [banners, setBanners] = useState<UserAnnouncement[]>([]);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -114,26 +116,36 @@ export function AnnouncementModalHost() {
     const action = announcement.requires_acknowledgement
       ? acknowledgeAnnouncement
       : dismissAnnouncement;
-    const result = await action(announcement.id);
-    setPendingId(null);
-    if (!result.success && result.code !== "read_only") {
-      toastActionError(result, result.error);
-      return;
+    try {
+      const result = await action(announcement.id);
+      if (!result.success && result.code !== "read_only") {
+        toastActionError(result, result.error);
+        return;
+      }
+      next(announcement.id);
+      // A dismissed or acknowledged announcement is done everywhere.
+      setBanners((list) => list.filter((a) => a.id !== announcement.id));
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPendingId(null);
     }
-    next(announcement.id);
-    // A dismissed or acknowledged announcement is done everywhere.
-    setBanners((list) => list.filter((a) => a.id !== announcement.id));
   };
 
   const dismissBanner = async (announcement: UserAnnouncement) => {
     setPendingId(announcement.id);
-    const result = await dismissAnnouncement(announcement.id);
-    setPendingId(null);
-    if (!result.success && result.code !== "read_only") {
-      toastActionError(result, result.error);
-      return;
+    try {
+      const result = await dismissAnnouncement(announcement.id);
+      if (!result.success && result.code !== "read_only") {
+        toastActionError(result, result.error);
+        return;
+      }
+      setBanners((list) => list.filter((a) => a.id !== announcement.id));
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPendingId(null);
     }
-    setBanners((list) => list.filter((a) => a.id !== announcement.id));
   };
 
   const closable =

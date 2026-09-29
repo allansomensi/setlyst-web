@@ -73,13 +73,14 @@ export default async function PublicSetlistPage({
 }: PublicSetlistPageProps) {
   const [{ token }, { lang }] = await Promise.all([params, searchParams]);
 
-  const setlist = await getPublicSetlist(token);
-  if (!setlist) notFound();
-
-  const [{ locale, messages }, nonce] = await Promise.all([
+  // The locale and nonce don't depend on the setlist: resolved alongside
+  // the API call rather than after it.
+  const [setlist, { locale, messages }, nonce] = await Promise.all([
+    getPublicSetlist(token),
     resolvePublicLocale(lang),
     getNonce(),
   ]);
+  if (!setlist) notFound();
 
   return (
     <PublicShell

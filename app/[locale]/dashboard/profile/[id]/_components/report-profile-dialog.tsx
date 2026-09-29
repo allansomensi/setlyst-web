@@ -31,6 +31,7 @@ export function ReportProfileButton({
   username: string;
 }) {
   const t = useTranslations("userProfile.report");
+  const tApi = useTranslations("apiErrors");
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState("");
@@ -48,23 +49,28 @@ export function ReportProfileButton({
     event.preventDefault();
     if (!reason || pending) return;
     setPending(true);
-    const result = await reportUser({ userId, reason, details });
-    setPending(false);
-    if (!result.success) {
-      if (result.apiCode === "ALREADY_EXISTS") {
-        toast.info(t("alreadyReported"));
-        setDone(true);
-        close();
+    try {
+      const result = await reportUser({ userId, reason, details });
+      if (!result.success) {
+        if (result.apiCode === "ALREADY_EXISTS") {
+          toast.info(t("alreadyReported"));
+          setDone(true);
+          close();
+          return;
+        }
+        toastActionError(result, result.error);
         return;
       }
-      toastActionError(result, result.error);
-      return;
+      toast.success(t("sent"));
+      setDone(true);
+      setOpen(false);
+      setReason(null);
+      setDetails("");
+    } catch {
+      toast.error(tApi("generic"));
+    } finally {
+      setPending(false);
     }
-    toast.success(t("sent"));
-    setDone(true);
-    setOpen(false);
-    setReason(null);
-    setDetails("");
   };
 
   return (

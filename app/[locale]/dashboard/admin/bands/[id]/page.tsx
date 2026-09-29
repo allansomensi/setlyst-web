@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -24,7 +25,10 @@ import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ id: string }>;
 
-async function loadBand(id: string): Promise<AdminBandDetail | null> {
+// Request-scoped: generateMetadata and the page both need it.
+const loadBand = cache(async function loadBand(
+  id: string,
+): Promise<AdminBandDetail | null> {
   try {
     return await fetchServerApi<AdminBandDetail>(
       `/admin/bands/${encodeURIComponent(id)}`,
@@ -38,7 +42,7 @@ async function loadBand(id: string): Promise<AdminBandDetail | null> {
     }
     throw error;
   }
-}
+});
 
 export async function generateMetadata({
   params,

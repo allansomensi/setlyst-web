@@ -40,14 +40,20 @@ export function ManageTagsDialog({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    listSongTags().then((result) => {
-      if (cancelled) return;
-      if (result.success) setTags(result.data ?? []);
-      else {
-        setTags([]);
-        toastActionError(result, result.error);
-      }
-    });
+    listSongTags()
+      .then((result) => {
+        if (cancelled) return;
+        if (result.success) setTags(result.data ?? []);
+        else {
+          setTags([]);
+          toastActionError(result, result.error);
+        }
+      })
+      .catch(() => {
+        // The request itself failed (offline): an empty list, not a
+        // spinner that never ends.
+        if (!cancelled) setTags([]);
+      });
     return () => {
       cancelled = true;
     };

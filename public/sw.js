@@ -108,6 +108,26 @@ const PAGE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const CACHED_AT_HEADER = "x-setlyst-cached-at";
 
 /**
+ * The build assets a stored page references (space-separated), recorded
+ * when it's stored so pruneCaches() can tell which assets are still needed
+ * from the headers alone, without reading every page back.
+ */
+const ASSETS_HEADER = "x-setlyst-assets";
+
+/**
+ * Nothing expires on its own inside a cache version: each deploy adds its
+ * content-hashed chunks to the static cache next to the previous ones, and
+ * every page URL ever visited (query strings included) stays in the pages
+ * cache after it stops being served. pruneCaches() removes what can no
+ * longer be used, at most this often.
+ */
+const PRUNE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+let lastPrunedAt = 0;
+
+/** Most entries kept in the runtime cache (icons, images, public files). */
+const RUNTIME_MAX_ENTRIES = 150;
+
+/**
  * Set by proxy.ts on every page rendered while staff view the app as
  * someone else: such a page is never stored.
  */
@@ -375,6 +395,86 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/**
+ * Deletes what the caches hold but can never serve again:
+ *
+ *  - pages past PAGE_MAX_AGE_MS (findCachedPage() already refuses them, but
+ *    they stayed on disk);
+ *  - build assets no stored page references and the server no longer has
+ *    (404/410): the chunks of past deploys. An asset a stored page still
+ *    needs is kept whatever the server says, and one the server still
+ *    serves (a lazily loaded chunk of the current build) is kept too;
+ *  - the oldest runtime entries past RUNTIME_MAX_ENTRIES.
+ *
+ * Best-effort and throttled (PRUNE_INTERVAL_MS): it runs in the background,
+ * after a page load or a sync's precache, and never holds either up. (Not
+ * on activate: fetches wait for activation to finish.)
+ */
+async function pruneCaches() {
+  const now = Date.now();
+  if (now - lastPrunedAt < PRUNE_INTERVAL_MS) return;
+  lastPrunedAt = now;
+
+  const pages = await caches.open(PAGES_CACHE);
+  const referenced = new Set();
+  for (const request of await pages.keys()) {
+    if (new URL(request.url).pathname === OFFLINE_URL) continue;
+    const response = await pages.match(request);
+    if (!isFreshPage(response, now)) {
+      await pages.delete(request);
+      continue;
+    }
+    const recorded = response.headers.get(ASSETS_HEADER);
+    // Stored before the header existed: read the page itself.
+    const assets =
+      recorded !== null
+        ? recorded.split(" ").filter(Boolean)
+        : extractStaticAssetPaths(await response.text().catch(() => ""));
+    // Compared by pathname: a deployment query (`?dpl=`) may differ.
+    for (const path of assets) referenced.add(path.split("?")[0]);
+  }
+
+  const assets = await caches.open(STATIC_CACHE);
+  const assetRequests = await assets.keys();
+  // Fonts are referenced by the stylesheets, not by the pages.
+  for (const request of assetRequests) {
+    const { pathname } = new URL(request.url);
+    if (!pathname.endsWith(".css") || !referenced.has(pathname)) continue;
+    const css = await (await assets.match(request)).text().catch(() => "");
+    for (const path of extractCssAssetPaths(css)) {
+      referenced.add(path.split("?")[0]);
+    }
+  }
+  const unreferenced = assetRequests.filter(
+    (request) => !referenced.has(new URL(request.url).pathname),
+  );
+  await mapWithConcurrency(unreferenced, 4, async (request) => {
+    try {
+      const head = await fetch(request.url, {
+        method: "HEAD",
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      if (head.status === 404 || head.status === 410) {
+        await assets.delete(request);
+      }
+    } catch {
+      // Offline or unreachable: nothing can be concluded, keep it.
+    }
+  });
+
+  const runtime = await caches.open(RUNTIME_CACHE);
+  // Oldest first: keys() lists entries in the order they were stored, and
+  // staleWhileRevalidate() re-stores an entry each time it's refreshed.
+  const runtimeRequests = (await runtime.keys()).filter(
+    (request) => new URL(request.url).pathname !== OFFLINE_SCRIPT_URL,
+  );
+  const excess = runtimeRequests.length - RUNTIME_MAX_ENTRIES;
+  for (const request of runtimeRequests.slice(0, Math.max(0, excess))) {
+    await runtime.delete(request);
+  }
+}
+
 // Lets the app proactively cache page shells it knows will matter offline
 // (a setlist's detail/Live Mode pages, a song's Live Mode page) as soon as
 // that data is synced — not only once someone has actually visited that
@@ -454,6 +554,7 @@ self.addEventListener("message", (event) => {
           // page fallback or /offline.html if not).
         }
       });
+      await pruneCaches().catch(() => {});
     })(),
   );
 });
@@ -641,9 +742,14 @@ async function findCachedPage(cache, request) {
 async function cachePage(cache, request, response) {
   try {
     const body = await response.clone().blob();
-    // Stamped with the time it was stored, for PAGE_MAX_AGE_MS.
+    // Stamped with the time it was stored, for PAGE_MAX_AGE_MS, and with
+    // the assets it needs, for pruneCaches().
     const headers = new Headers(response.headers);
     headers.set(CACHED_AT_HEADER, String(Date.now()));
+    headers.set(
+      ASSETS_HEADER,
+      extractStaticAssetPaths(await body.text()).join(" "),
+    );
     const storable = new Response(body, {
       status: response.status,
       statusText: response.statusText,
@@ -685,6 +791,7 @@ async function networkFirst(request, event) {
         if (await isUsableForCache(copy)) {
           await cachePage(cache, request, copy);
         }
+        await pruneCaches();
       })().catch(() => {}),
     );
     return response;
