@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import {
   CalendarDays,
@@ -13,10 +13,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  Artist,
   Gig,
   MetricsResponse,
-  Song,
   TimeseriesResponse,
   formatGenre,
 } from "@/types/api";
@@ -40,7 +38,7 @@ import {
 import { useMounted } from "@/hooks/use-mounted";
 import { parseWallClock, wallClockNow } from "@/lib/dates";
 import { toast } from "@/lib/toast";
-import { repertoireStats } from "@/lib/repertoire-stats";
+import type { RepertoireStats } from "@/lib/repertoire-stats";
 import {
   ENERGY_CHART_COLORS,
   ENERGY_KEYS,
@@ -56,8 +54,9 @@ interface AnalyticsDashboardProps {
   metrics: MetricsResponse | null;
   initialTimeseries: TimeseriesResponse | null;
   initialDays: number;
-  songs: Song[];
-  artists: Artist[];
+  /** Computed on the server (lib/repertoire-stats.ts): the songs themselves, lyrics included, never reach the browser. */
+  stats: RepertoireStats;
+  artistCount: number;
   setlistCount: number | null;
   gigs: Gig[];
   loadError: boolean;
@@ -75,8 +74,8 @@ export function AnalyticsDashboard({
   metrics,
   initialTimeseries,
   initialDays,
-  songs,
-  artists,
+  stats,
+  artistCount,
   setlistCount,
   gigs,
   loadError,
@@ -92,10 +91,6 @@ export function AnalyticsDashboard({
   const [days, setDays] = useState(initialDays);
   const [timeseries, setTimeseries] = useState(initialTimeseries);
 
-  const stats = useMemo(
-    () => repertoireStats(songs, new Map(artists.map((a) => [a.id, a.name]))),
-    [songs, artists],
-  );
   const now = mounted ? wallClockNow() : null;
   const upcomingGigs =
     now === null
@@ -170,7 +165,7 @@ export function AnalyticsDashboard({
     hint?: string;
   }> = [
     { icon: Music, label: t("kpi.songs"), value: String(stats.totalSongs) },
-    { icon: Disc3, label: t("kpi.artists"), value: String(artists.length) },
+    { icon: Disc3, label: t("kpi.artists"), value: String(artistCount) },
     {
       icon: ListMusic,
       label: t("kpi.setlists"),

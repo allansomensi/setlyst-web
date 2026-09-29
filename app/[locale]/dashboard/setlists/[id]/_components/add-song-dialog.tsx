@@ -8,10 +8,11 @@ import {
   type ComponentProps,
   type FormEvent,
   type ReactNode,
+  useRef,
 } from "react";
 import { useTranslations } from "next-intl";
 import { Library, Loader2, Plus, Send } from "lucide-react";
-import { Song, Artist, SetlistSong } from "@/types/api";
+import { Artist, SetlistSong } from "@/types/api";
 import {
   addSongToSetlist,
   addSongsToSetlist,
@@ -38,6 +39,7 @@ import {
 import { UpgradeHint } from "@/components/content/upgrade-hint";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
+import type { PickerSong } from "@/lib/picker-song";
 
 /** Band context of a band setlist. */
 export interface AddSongBandContext {
@@ -54,7 +56,7 @@ export interface AddSongDialogProps {
   /** The setlist songs are added to. */
   setlistId: string;
   /** Songs that can be picked (the caller decides the source). */
-  songs: Song[];
+  songs: PickerSong[];
   /** Used to show each song's artist next to its title. */
   artists: Artist[];
   /**
@@ -686,15 +688,18 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
     },
   });
 
+  // Only the newest request may fill the list: a slow answer for "ab"
+  // must not land after the one for "abc". Keyed on the band's id, not
+  // the band object, which the page rebuilds after every addition.
+  const bandId = band?.id;
+  const latestRequest = useRef(0);
   useEffect(() => {
-    if (!band) return;
-    // Set when the query changes again (or the picker closes): a slower,
-    // older search that answers late must not overwrite the newer results.
-    let stale = false;
+    if (!bandId) return;
     const handle = window.setTimeout(() => {
+      const request = ++latestRequest.current;
       startLoading(async () => {
-        const result = await searchBandRepertoire(band.id, query);
-        if (stale) return;
+        const result = await searchBandRepertoire(bandId, query);
+        if (request !== latestRequest.current) return;
         if (result.success && result.data) {
           setSongs(result.data.data);
           setTotal(result.data.meta.total_items);
@@ -704,11 +709,8 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
         }
       });
     }, 250);
-    return () => {
-      stale = true;
-      window.clearTimeout(handle);
-    };
-  }, [band, query]);
+    return () => window.clearTimeout(handle);
+  }, [bandId, query]);
 
   const excluded = new Set([...excludedSongIds, ...addedIds]);
 

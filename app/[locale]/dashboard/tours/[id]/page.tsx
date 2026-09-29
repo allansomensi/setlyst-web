@@ -54,36 +54,37 @@ export default async function TourPage({
     throw error;
   }
 
-  const band = tour.band_id
-    ? await fetchServerApi<BandWithMembership>(`/bands/${tour.band_id}`).catch(
-        () => null,
-      )
-    : null;
+  // The band (for what the person may do) and the same-scope gigs (to
+  // link) and setlists (for "Adicionar show") all depend on the tour
+  // alone, so they load together; whether the lists are *used* is
+  // decided afterwards.
+  const [band, gigsRes, setlistsRes] = await Promise.all([
+    tour.band_id
+      ? fetchServerApi<BandWithMembership>(`/bands/${tour.band_id}`).catch(
+          () => null,
+        )
+      : Promise.resolve(null),
+    fetchOrFailed(
+      fetchAllServerPages<Gig>(
+        tour.band_id ? `/bands/${tour.band_id}/gigs` : "/gigs",
+      ),
+    ),
+    fetchOrFailed(
+      fetchAllServerPages<Setlist>(
+        tour.band_id ? `/bands/${tour.band_id}/setlists` : "/setlists",
+      ),
+    ),
+  ]);
   const canManage = !tour.band_id || (!!band && canManageBandSetlists(band));
 
-  // Same-scope gigs (to link) and setlists (for "Adicionar show").
-  const [gigsRes, setlistsRes] = canManage
-    ? await Promise.all([
-        fetchOrFailed(
-          fetchAllServerPages<Gig>(
-            tour.band_id ? `/bands/${tour.band_id}/gigs` : "/gigs",
-          ),
-        ),
-        fetchOrFailed(
-          fetchAllServerPages<Setlist>(
-            tour.band_id ? `/bands/${tour.band_id}/setlists` : "/setlists",
-          ),
-        ),
-      ])
-    : ([FETCH_FAILED, FETCH_FAILED] as const);
-
   const linkableGigs =
-    gigsRes === FETCH_FAILED
+    !canManage || gigsRes === FETCH_FAILED
       ? []
       : gigsRes.data.filter(
           (gig) => !gig.tour_id && (gig.band_id ?? null) === tour.band_id,
         );
-  const setlists = setlistsRes === FETCH_FAILED ? [] : setlistsRes.data;
+  const setlists =
+    !canManage || setlistsRes === FETCH_FAILED ? [] : setlistsRes.data;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">

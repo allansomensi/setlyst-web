@@ -25,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  return pages.flatMap((page) => {
+  const localized = pages.flatMap((page) => {
     const languages = Object.fromEntries(
       Object.entries(localeAlternates(page.path)).map(([lang, href]) => [
         lang,
@@ -40,4 +40,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       alternates: { languages },
     }));
   });
+
+  // The status page lives outside the locale segment (app/status) and is
+  // indexable (it says so in its metadata).
+  return [
+    ...localized,
+    { url: `${origin}/status`, changeFrequency: "weekly", priority: 0.2 },
+  ];
 }

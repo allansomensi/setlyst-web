@@ -83,6 +83,16 @@ export function useLiveControls({
     );
   }, []);
 
+  // Fit mode has nothing to scroll: switch the auto-scroll off rather than
+  // merely pausing it, or leaving fit mode would set the song moving
+  // again on its own. Adjusted during render (the transition is known
+  // right here), not in an effect after it.
+  const [wasFitToScreen, setWasFitToScreen] = useState(fitToScreen);
+  if (wasFitToScreen !== fitToScreen) {
+    setWasFitToScreen(fitToScreen);
+    if (fitToScreen) setAutoScroll(false);
+  }
+
   useEffect(() => {
     // Nothing to scroll through when the whole song is already on screen.
     if (!isAutoScroll || fitToScreen) return;
@@ -174,9 +184,13 @@ const INTERACTIVE_SELECTOR =
   "button, a[href], summary, [role=button], [role=slider], [role=switch], [role=radio], [role=checkbox], [role=tab], [role=menuitem], [role=option], [contenteditable=true]";
 
 function isInteractiveTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof Element && target.closest(INTERACTIVE_SELECTOR) !== null
-  );
+  if (!(target instanceof Element)) return false;
+  // A chord in the chart is a button too (it opens its diagram), and it
+  // keeps the focus after the diagram closes. The arrows and Space must
+  // keep turning pages and songs from there — a pedal sends exactly
+  // those keys — and the chord handles its own Enter/Space itself.
+  if (target.closest("[data-chord-symbol]")) return false;
+  return target.closest(INTERACTIVE_SELECTOR) !== null;
 }
 
 /** Shortcuts that switch something on/off, ignored on key auto-repeat. */

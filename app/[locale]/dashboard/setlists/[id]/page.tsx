@@ -37,6 +37,8 @@ import {
 } from "lucide-react";
 import { SetlistCollaborators } from "@/components/setlists/setlist-collaborators";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
+import { toPickerSong } from "@/lib/picker-song";
+import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 import { SetlistActions } from "./_components/setlist-actions";
 import { SetlistOfflineStatus } from "./_components/setlist-offline-status";
 import { getTranslations } from "next-intl/server";
@@ -123,8 +125,11 @@ export default async function SetlistDetailsPage({
       setlistPromise,
       fetchAllServerPages<SetlistSong>(`/setlists/${id}/songs`),
       fetchServerApi<SetlistItem[]>(`/setlists/${id}/items`),
-      fetchAllServerPages<Song>("/songs"),
-      fetchAllServerPages<Artist>("/artists"),
+      // The library, for the "add song" picker only: never fatal (the
+      // picker shows nothing to add), and projected down to what the
+      // picker shows so no lyric travels with the page.
+      fetchOrFailed(fetchAllServerPages<Song>("/songs")),
+      fetchOrFailed(fetchAllServerPages<Artist>("/artists")),
     ]).catch((error) => {
       // A deleted setlist, or one the person can't see (anymore), is a
       // "not found" — not an unexpected error screen.
@@ -165,8 +170,9 @@ export default async function SetlistDetailsPage({
   const title = setlistDisplayTitle(setlist, t("repertoire.name"));
 
   const setlistSongs = setlistSongsRes.data || [];
-  const allSongs = allSongsRes.data || [];
-  const allArtists = allArtistsRes.data || [];
+  const allSongs =
+    allSongsRes === FETCH_FAILED ? [] : allSongsRes.data.map(toPickerSong);
+  const allArtists = allArtistsRes === FETCH_FAILED ? [] : allArtistsRes.data;
 
   return (
     <div className="w-full space-y-6">

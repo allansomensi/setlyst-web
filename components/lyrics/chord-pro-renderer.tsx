@@ -329,6 +329,8 @@ export interface ChordProRendererProps {
    * ChordDiagramHost, which shows it).
    */
   interactiveChords?: boolean;
+  /** `content` is already normalized (see `parseChordPro`). */
+  normalized?: boolean;
   className?: string;
 }
 
@@ -358,14 +360,15 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
   fontFamily = "sans",
   capo = null,
   interactiveChords = false,
+  normalized = false,
   className,
 }: ChordProRendererProps) {
   const t = useTranslations("lyrics");
   const tSection = useTranslations("lyrics.toolbar");
 
   const blocks = useMemo<Block[]>(
-    () => (content?.trim() ? parseChordPro(content) : []),
-    [content],
+    () => (content?.trim() ? parseChordPro(content, { normalized }) : []),
+    [content, normalized],
   );
 
   // The block → item → grouping pass only depends on these inputs, so the

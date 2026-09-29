@@ -60,7 +60,7 @@ export default async function LocaleLayout({
       locale={locale}
       messages={clientMessages(messages, "shell")}
     >
-      <AuthProvider>
+      <AuthProvider session={session}>
         {/* Never remounted: changing the theme must not reset the page
               (open dialogs, scroll, Live Mode). The saved preference is
               the initial default and ThemeSync keeps it in step. */}

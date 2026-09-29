@@ -174,6 +174,8 @@ export function LiveLyricsArea({
             fontFamily={fontFamily}
             capo={capo}
             interactiveChords
+            // From useTranspose, which normalized it already.
+            normalized
             className={fitToScreen ? "max-w-none" : "mx-auto"}
           />
         </ChordDiagramHost>

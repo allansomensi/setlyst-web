@@ -86,7 +86,7 @@ export default async function BandDetailPage({
     // A stale or inaccessible band id (e.g. from an old notification for a
     // band the user is no longer part of, or a malformed id) shouldn't
     // crash the page — degrade to the standard 404 instead.
-    if (err instanceof ApiError && (err.status === 404 || err.status === 400)) {
+    if (err instanceof ApiError && [400, 403, 404].includes(err.status)) {
       notFound();
     }
     throw err;

@@ -182,14 +182,29 @@ export function useFitToScreen({
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(fit);
     };
-    const observer = new ResizeObserver(schedule);
+    // A ResizeObserver always reports the element once when it starts
+    // observing it; that first report describes the box `fit()` has just
+    // measured, and re-running the whole search for it (several forced
+    // layouts of the sheet) doubled the cost of every song change.
+    let initialReport = true;
+    const observer = new ResizeObserver(() => {
+      if (initialReport) {
+        initialReport = false;
+        return;
+      }
+      schedule();
+    });
     observer.observe(container);
 
-    // Web fonts finishing their load change every line's width.
+    // Web fonts finishing their load change every line's width. Once
+    // they're loaded, `ready` resolves at once and would only repeat the
+    // search just done.
     let cancelled = false;
-    document.fonts?.ready.then(() => {
-      if (!cancelled) schedule();
-    });
+    if (document.fonts && document.fonts.status !== "loaded") {
+      document.fonts.ready.then(() => {
+        if (!cancelled) schedule();
+      });
+    }
 
     return () => {
       cancelled = true;

@@ -52,6 +52,14 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
+/** `items` with a single entry per id (the first one wins). */
+function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) =>
+    seen.has(item.id) ? false : (seen.add(item.id), true),
+  );
+}
+
 // Every call this module makes is a silent background operation — never a
 // direct response to something the person clicked and is watching. A 401
 // here (a token mid-refresh, a momentary auth hiccup) must never trigger
@@ -297,6 +305,18 @@ export async function syncAllForOffline(
   // Per-band records, each failing independently for the same reason as
   // above: one band's data not loading shouldn't cost the person every
   // other band's.
+  // Whether every listing of a kind loaded. A listing that failed
+  // contributes nothing to the lists below, so "not in the list" would
+  // otherwise read as "deleted upstream" and the write-as-a-whole /
+  // sweep steps would wipe a perfectly good local copy.
+  let setlistListingsComplete =
+    personalSetlistsResult.status === "fulfilled" &&
+    sharedSetlistsResult.status === "fulfilled" &&
+    bandsResult.status === "fulfilled";
+  let gigListingsComplete =
+    personalGigsResult.status === "fulfilled" &&
+    bandsResult.status === "fulfilled";
+
   const bandRecords = await mapWithConcurrency(
     bands,
     BAND_CONCURRENCY,
@@ -305,6 +325,8 @@ export async function syncAllForOffline(
         fetchAllPages<Setlist>(fetchApi, `/bands/${band.id}/setlists`),
         fetchAllPages<Gig>(fetchApi, `/bands/${band.id}/gigs`),
       ]);
+      if (setlistsRes.status === "rejected") setlistListingsComplete = false;
+      if (gigsRes.status === "rejected") gigListingsComplete = false;
       return {
         setlists: settled(setlistsRes, `${band.name} setlists`, []),
         gigs: settled(gigsRes, `${band.name} shows`, []),
@@ -312,15 +334,17 @@ export async function syncAllForOffline(
     },
   );
 
-  const setlists = [
+  // A setlist can appear in more than one listing (a band setlist the
+  // person is also a collaborator on): synced once, not once per listing.
+  const setlists = uniqueById([
     ...personalSetlists,
     ...sharedSetlists,
     ...bandRecords.flatMap((record) => record.setlists),
-  ];
-  const gigs = [
+  ]);
+  const gigs = uniqueById([
     ...personalGigs,
     ...bandRecords.flatMap((record) => record.gigs),
-  ];
+  ]);
 
   report({ phase: "library", completed: 6, total: 6 });
 
@@ -369,11 +393,16 @@ export async function syncAllForOffline(
     }
   }
 
+  // Written as a whole only when every listing loaded; otherwise what did
+  // load is merged in, and the rows a failed listing would have covered
+  // stay as they were rather than vanishing from the device.
   try {
-    await replaceAll(
-      offlineDb.gigs,
-      gigs.map((gig) => ({ id: gig.id, gig, syncedAt })),
-    );
+    const rows = gigs.map((gig) => ({ id: gig.id, gig, syncedAt }));
+    if (gigListingsComplete) {
+      await replaceAll(offlineDb.gigs, rows);
+    } else if (rows.length > 0) {
+      await offlineDb.gigs.bulkPut(rows);
+    }
     gigsSynced = gigs.length;
   } catch (err) {
     fail(`saving shows`, err);
@@ -428,6 +457,10 @@ export async function syncAllForOffline(
   let setlistsDone = 0;
 
   await mapWithConcurrency(setlists, SETLIST_CONCURRENCY, async (setlist) => {
+    // Known to exist upstream whatever happens to its own calls below: a
+    // setlist whose songs failed to load this time is not stored anew,
+    // but a copy from an earlier sync must not be swept away either.
+    knownSetlistIds.add(setlist.id);
     try {
       const [songsRes, itemsRes] = await Promise.allSettled([
         fetchAllPages<SetlistSong>(fetchApi, `/setlists/${setlist.id}/songs`),
@@ -452,7 +485,6 @@ export async function syncAllForOffline(
         items: itemsRes.status === "fulfilled" ? itemsRes.value : undefined,
         syncedAt,
       });
-      knownSetlistIds.add(setlist.id);
       setlistsSynced++;
 
       precacheTargets.push(
@@ -475,10 +507,7 @@ export async function syncAllForOffline(
   // of through replaceAll. Only done when the listings themselves loaded —
   // otherwise "not in the list" means "the list failed", and this would
   // wipe a perfectly good local copy.
-  const listingsComplete =
-    personalSetlistsResult.status === "fulfilled" &&
-    bandsResult.status === "fulfilled";
-  if (listingsComplete) {
+  if (setlistListingsComplete) {
     try {
       const storedIds = await offlineDb.setlists.toCollection().primaryKeys();
       const removed = storedIds.filter((id) => !knownSetlistIds.has(id));
@@ -490,7 +519,9 @@ export async function syncAllForOffline(
   }
 
   report({ phase: "pages", completed: 0, total: precacheTargets.length });
-  precacheUrls(precacheTargets);
+  // In the background: the data is safe in IndexedDB already, and the
+  // page shells trickle in over a while. Never rejects.
+  void precacheUrls(precacheTargets);
 
   // Only a sync that saved essentially nothing (and had something to
   // report about why) counts as a failure — anything that got real data

@@ -34,6 +34,10 @@
  * the previous one's pages.
  */
 
+// v9: navigations time out after NAVIGATION_TIMEOUT_MS and fall back to
+// the stored page (also on a 5xx); the prune timestamp is persisted;
+// precache batches run one after the other and are acknowledged.
+//
 // v8: stored pages carry the time they were stored and expire after a
 // week (PAGE_MAX_AGE_MS); pages rendered while impersonating or answered
 // with the login page are never stored. Pages from v7 had no timestamp:
@@ -52,7 +56,7 @@
 // stuck in their cache needs it evicted, not just future ones avoided. Old
 // caches are deleted on activate (see the "activate" handler below) rather
 // than reused.
-const CACHE_VERSION = "setlyst-v8";
+const CACHE_VERSION = "setlyst-v9";
 const CACHE_PREFIX = "setlyst";
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
@@ -122,7 +126,13 @@ const ASSETS_HEADER = "x-setlyst-assets";
  * longer be used, at most this often.
  */
 const PRUNE_INTERVAL_MS = 24 * 60 * 60 * 1000;
-let lastPrunedAt = 0;
+/**
+ * When the caches were last pruned, kept in the runtime cache under a
+ * synthetic URL: a service worker is stopped after a few seconds idle, so
+ * an in-memory timestamp would reset on nearly every app open, and each
+ * would walk every stored page and HEAD every lazily loaded chunk again.
+ */
+const PRUNED_AT_URL = "/__setlyst/pruned-at";
 
 /** Most entries kept in the runtime cache (icons, images, public files). */
 const RUNTIME_MAX_ENTRIES = 150;
@@ -387,7 +397,10 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((key) => !key.startsWith(CACHE_VERSION))
+          .filter(
+            (key) =>
+              key.startsWith(CACHE_PREFIX) && !key.startsWith(CACHE_VERSION),
+          )
           .map((key) => caches.delete(key)),
       );
       await self.clients.claim();
@@ -412,8 +425,13 @@ self.addEventListener("activate", (event) => {
  */
 async function pruneCaches() {
   const now = Date.now();
-  if (now - lastPrunedAt < PRUNE_INTERVAL_MS) return;
-  lastPrunedAt = now;
+  const runtime = await caches.open(RUNTIME_CACHE);
+  const stamp = await runtime.match(PRUNED_AT_URL);
+  const lastPrunedAt = stamp ? Number(await stamp.text().catch(() => 0)) : 0;
+  if (Number.isFinite(lastPrunedAt) && now - lastPrunedAt < PRUNE_INTERVAL_MS) {
+    return;
+  }
+  await runtime.put(PRUNED_AT_URL, new Response(String(now)));
 
   const pages = await caches.open(PAGES_CACHE);
   const referenced = new Set();
@@ -463,12 +481,12 @@ async function pruneCaches() {
     }
   });
 
-  const runtime = await caches.open(RUNTIME_CACHE);
   // Oldest first: keys() lists entries in the order they were stored, and
   // staleWhileRevalidate() re-stores an entry each time it's refreshed.
-  const runtimeRequests = (await runtime.keys()).filter(
-    (request) => new URL(request.url).pathname !== OFFLINE_SCRIPT_URL,
-  );
+  const runtimeRequests = (await runtime.keys()).filter((request) => {
+    const { pathname } = new URL(request.url);
+    return pathname !== OFFLINE_SCRIPT_URL && pathname !== PRUNED_AT_URL;
+  });
   const excess = runtimeRequests.length - RUNTIME_MAX_ENTRIES;
   for (const request of runtimeRequests.slice(0, Math.max(0, excess))) {
     await runtime.delete(request);
@@ -524,40 +542,59 @@ self.addEventListener("message", (event) => {
       }
     },
   );
-  if (urls.length === 0) return;
+  const port = event.ports && event.ports[0];
+  const done = () => {
+    if (port) port.postMessage({ type: "PRECACHE_DONE" });
+  };
+  if (urls.length === 0) {
+    done();
+    return;
+  }
 
-  event.waitUntil(
-    (async () => {
-      const cache = await caches.open(PAGES_CACHE);
-      // Two at a time: these are full server renders, and a sync can ask
-      // for hundreds of them.
-      await mapWithConcurrency(urls, 2, async (url) => {
-        try {
-          if (isRecentlyStored(await cache.match(url))) return;
-          const response = await fetch(url, { credentials: "same-origin" });
-          if (await isUsableForCache(response)) {
-            const html = await response.clone().text();
-            // Same rebuild-before-storing treatment a real navigation gets
-            // (see cachePage): a redirected response can't go into the
-            // cache as-is, and silently failing here would leave a setlist
-            // looking "saved for offline use" while its page was never
-            // actually stored.
-            await cachePage(cache, new Request(url), response);
-            // The page's own JS/CSS, without which it can be served offline
-            // and still fail the moment React tries to hydrate it.
-            await precachePageAssets(html);
-          }
-        } catch {
-          // Best-effort: a page that fails to precache here just falls
-          // back to whatever networkFirst() does the next time it's
-          // actually opened (a fresh fetch if online, the cached-landing-
-          // page fallback or /offline.html if not).
-        }
-      });
-      await pruneCaches().catch(() => {});
-    })(),
-  );
+  // Batches run one after the other: two senders (a "Sync now" right
+  // after the automatic sync, two tabs) used to crawl the same pages at
+  // the same time, doubling the server renders. The client sends its
+  // list in small batches and waits for each to finish
+  // (lib/offline/precache.ts), so no single event outlives the browser's
+  // limit for an extended event.
+  precacheQueue = precacheQueue
+    .then(() => precachePages(urls))
+    .catch(() => {})
+    .then(done);
+  event.waitUntil(precacheQueue);
 });
+
+let precacheQueue = Promise.resolve();
+
+async function precachePages(urls) {
+  const cache = await caches.open(PAGES_CACHE);
+  // Two at a time: these are full server renders, and a sync can ask
+  // for hundreds of them.
+  await mapWithConcurrency(urls, 2, async (url) => {
+    try {
+      if (isRecentlyStored(await cache.match(url))) return;
+      const response = await fetch(url, { credentials: "same-origin" });
+      if (await isUsableForCache(response)) {
+        const html = await response.clone().text();
+        // Same rebuild-before-storing treatment a real navigation gets
+        // (see cachePage): a redirected response can't go into the
+        // cache as-is, and silently failing here would leave a setlist
+        // looking "saved for offline use" while its page was never
+        // actually stored.
+        await cachePage(cache, new Request(url), response, html);
+        // The page's own JS/CSS, without which it can be served offline
+        // and still fail the moment React tries to hydrate it.
+        await precachePageAssets(html);
+      }
+    } catch {
+      // Best-effort: a page that fails to precache here just falls
+      // back to whatever networkFirst() does the next time it's
+      // actually opened (a fresh fetch if online, the cached-landing-
+      // page fallback or /offline.html if not).
+    }
+  });
+  await pruneCaches().catch(() => {});
+}
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
@@ -739,16 +776,17 @@ async function findCachedPage(cache, request) {
  * both the requested URL and the final one means a later offline visit
  * resolves from either direction.
  */
-async function cachePage(cache, request, response) {
+async function cachePage(cache, request, response, html) {
   try {
     const body = await response.clone().blob();
     // Stamped with the time it was stored, for PAGE_MAX_AGE_MS, and with
-    // the assets it needs, for pruneCaches().
+    // the assets it needs, for pruneCaches(). The markup is read once:
+    // callers that already have it pass it in.
     const headers = new Headers(response.headers);
     headers.set(CACHED_AT_HEADER, String(Date.now()));
     headers.set(
       ASSETS_HEADER,
-      extractStaticAssetPaths(await body.text()).join(" "),
+      extractStaticAssetPaths(html ?? (await body.text())).join(" "),
     );
     const storable = new Response(body, {
       status: response.status,
@@ -773,53 +811,107 @@ async function cachePage(cache, request, response) {
   }
 }
 
+/**
+ * How long a page navigation waits for the network before the stored
+ * copy is used instead. A venue with a weak-but-present signal reports
+ * itself online, and without a deadline a tap on a fully cached setlist
+ * hung until the browser's own (much longer) timeout.
+ */
+const NAVIGATION_TIMEOUT_MS = 8_000;
+const TIMED_OUT = Symbol("timed-out");
+
 async function networkFirst(request, event) {
   const cache = await caches.open(PAGES_CACHE);
-  try {
-    const response = await fetch(request);
-    // Only cache a response actually worth replaying offline later — the
-    // live page is still returned either way, this only decides whether
-    // it's trusted enough to keep around. See isUsableForCache() above.
-    //
-    // In the background, on a copy: deciding means reading the whole body,
-    // and awaiting that here held the page back until the server had
-    // finished rendering it, so loading skeletons and streamed sections
-    // never showed on a full load.
-    const copy = response.clone();
-    event.waitUntil(
-      (async () => {
-        if (await isUsableForCache(copy)) {
-          await cachePage(cache, request, copy);
-        }
-        await pruneCaches();
-      })().catch(() => {}),
-    );
-    return response;
-  } catch {
+
+  // The network request is never aborted: a page that streams (a section
+  // in Suspense) keeps its body coming long after the headers, and an
+  // abort at the deadline would cut it short. The deadline only decides
+  // whether to stop waiting for the *headers* when a copy is stored; the
+  // request itself runs on and refreshes that copy in the background.
+  const network = fetch(request);
+  let timer;
+  const deadline = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), NAVIGATION_TIMEOUT_MS);
+  });
+  let response = await Promise.race([network.catch(() => undefined), deadline]);
+  clearTimeout(timer);
+
+  if (response === TIMED_OUT) {
+    const cached = await findCachedPage(cache, request);
+    if (cached) {
+      event.waitUntil(
+        network
+          .then(async (late) => {
+            if (late.status < 500 && (await isUsableForCache(late))) {
+              await cachePage(cache, request, late);
+            }
+          })
+          .catch(() => {}),
+      );
+      return cached;
+    }
+    // Nothing stored: the live answer, however long it takes.
+    response = await network.catch(() => undefined);
+  }
+
+  if (!response) {
     const cached = await findCachedPage(cache, request);
     if (cached) return cached;
-
-    // No cache entry for this exact URL. Rather than dead-end on the
-    // generic "not saved" page while synced setlists and songs are ready
-    // and waiting in IndexedDB, redirect to whatever page shell we do have
-    // cached — the browser re-navigates, this handler runs again, and that
-    // URL hits the exact-match branch above. Guarantees offline data is
-    // always reachable, not just from the one URL that happened to be open
-    // when the app was last closed.
-    const requestPathname = new URL(request.url).pathname;
-    const landingPath = await findCachedLandingPath(cache, requestPathname);
-    if (landingPath && landingPath !== requestPathname) {
-      // Absolute: Response.redirect() throws a TypeError on a bare
-      // pathname, which inside this catch block would escape as a failed
-      // navigation — the exact dead end this fallback exists to avoid.
-      return Response.redirect(
-        new URL(landingPath, self.location.origin).href,
-        302,
-      );
-    }
-
-    return offlineResponse(cache, requestPathname);
+    return offlineFallback(cache, request);
   }
+
+  // A server that answered but is failing (a 502 from the proxy, a 503
+  // while the API is down) is no better than no server for someone with
+  // a stored copy of the page: the copy wins, the error only shows when
+  // there is nothing else.
+  if (response.status >= 500) {
+    const cached = await findCachedPage(cache, request);
+    if (cached) return cached;
+    return response;
+  }
+
+  // Only cache a response actually worth replaying offline later — the
+  // live page is still returned either way, this only decides whether
+  // it's trusted enough to keep around. See isUsableForCache() above.
+  //
+  // In the background, on a copy: deciding means reading the whole body,
+  // and awaiting that here held the page back until the server had
+  // finished rendering it, so loading skeletons and streamed sections
+  // never showed on a full load.
+  const copy = response.clone();
+  event.waitUntil(
+    (async () => {
+      if (await isUsableForCache(copy)) {
+        await cachePage(cache, request, copy);
+      }
+      await pruneCaches();
+    })().catch(() => {}),
+  );
+  return response;
+}
+
+/** What a navigation gets when neither the network nor its own cache entry can answer it. */
+async function offlineFallback(cache, request) {
+  // No cache entry for this exact URL. Rather than dead-end on the
+  // generic "not saved" page while synced setlists and songs are ready
+  // and waiting in IndexedDB, redirect to whatever page shell we do have
+  // cached — the browser re-navigates, this handler runs again, and that
+  // URL hits the exact-match branch of findCachedPage(). Guarantees
+  // offline data is always reachable, not just from the one URL that
+  // happened to be open when the app was last closed.
+  const requestPathname = new URL(request.url).pathname;
+  const landingPath = await findCachedLandingPath(cache, requestPathname);
+  if (landingPath && landingPath !== requestPathname) {
+    // Absolute: Response.redirect() throws a TypeError on a bare
+    // pathname, which would escape as a failed navigation — the exact
+    // dead end this fallback exists to avoid.
+    return Response.redirect(
+      new URL(landingPath, self.location.origin).href,
+      302,
+    );
+  }
+
+  return offlineResponse(cache, requestPathname);
 }
 
 /** The generic "you're offline" page. */

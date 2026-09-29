@@ -4,6 +4,7 @@ import {
   normalizeChordPro,
   parseChordPro,
 } from "@/lib/music/chordpro";
+import { transposeChordPro } from "@/lib/music/chords";
 
 describe("lone A, E and Em over the lyrics", () => {
   it("reads them as chords in a chart that has chords", () => {
@@ -102,5 +103,19 @@ describe("hasChords", () => {
     ).toBe(false);
     // A lone "E" is a word, not a chord, in a text with no other chords.
     expect(hasChords("E\nfoi assim")).toBe(false);
+  });
+});
+
+describe("parseChordPro with already-normalized content", () => {
+  it("gives the same blocks whether or not it normalizes again", () => {
+    const chart = "Intro\nG   D\nOlá mundo\n\n[Em]Segunda [C]linha";
+    const normalized = normalizeChordPro(chart);
+    expect(normalizeChordPro(normalized)).toBe(normalized);
+    expect(parseChordPro(normalized, { normalized: true })).toEqual(
+      parseChordPro(chart),
+    );
+    // Transposed content stays in the normalized (inline) form.
+    const transposed = transposeChordPro(normalized, 2, false);
+    expect(normalizeChordPro(transposed)).toBe(transposed);
   });
 });

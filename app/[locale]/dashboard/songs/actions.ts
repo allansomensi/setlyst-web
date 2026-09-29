@@ -320,6 +320,7 @@ export async function deleteSongAnalysis(id: string) {
   if (!isUuid(id)) return invalidRequest();
   return guardedAction(
     () => fetchServerApi(apiPath`/songs/${id}/analysis`, { method: "DELETE" }),
-    () => revalidateDashboard(`/songs/${id}`),
+    // The route pattern, not the id: revalidatePath matches routes.
+    () => revalidateDashboard("/songs/[id]", "layout"),
   );
 }

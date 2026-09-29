@@ -25,6 +25,7 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { PlatformRoleBadge } from "@/components/role-badge";
 import { UserStatusBadges } from "@/components/staff/user-status-badges";
 import { useTableControls } from "@/hooks/use-table-controls";
+import { LoadErrorNotice } from "@/components/load-error-notice";
 import { Link } from "@/i18n/routing";
 import { formatApiDate } from "@/lib/dates";
 import type { StaffActor } from "@/lib/staff-permissions";
@@ -59,10 +60,16 @@ function matchesState(user: User, filter: StateFilter): boolean {
 
 interface UsersTableProps {
   initialUsers: User[];
+  /** The server-side fetch failed (see components/load-error-notice.tsx). */
+  loadError?: boolean;
   actor: StaffActor;
 }
 
-export function UsersTable({ initialUsers, actor }: UsersTableProps) {
+export function UsersTable({
+  initialUsers,
+  loadError = false,
+  actor,
+}: UsersTableProps) {
   const t = useTranslations("staff.users");
   const locale = useLocale();
   const timeZone = useTimeZone();
@@ -120,6 +127,8 @@ export function UsersTable({ initialUsers, actor }: UsersTableProps) {
           {t("add")}
         </Button>
       </div>
+
+      {loadError && initialUsers.length === 0 && <LoadErrorNotice />}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <SearchInput

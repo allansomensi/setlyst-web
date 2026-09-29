@@ -77,7 +77,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "bg-sidebar text-sidebar-foreground border-sidebar-border relative hidden flex-col border-r transition-all duration-300 md:flex",
+        "bg-sidebar text-sidebar-foreground border-sidebar-border relative hidden flex-col border-r transition-[width] duration-300 md:flex",
         isCollapsed ? "w-20" : "w-64",
       )}
     >
@@ -102,7 +102,7 @@ export function Sidebar({
 
       <div
         className={cn(
-          "border-sidebar-border flex h-16 shrink-0 items-center border-b transition-all duration-300",
+          "border-sidebar-border flex h-16 shrink-0 items-center border-b transition-[padding] duration-300",
           isCollapsed ? "justify-center px-0" : "justify-between px-6",
         )}
       >

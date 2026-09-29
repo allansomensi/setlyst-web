@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import {
   KeyboardSensor,
   PointerSensor,
@@ -27,9 +27,8 @@ export function useSetlistReorder(setlistId: string, baseRows: Row[]) {
   const t = useTranslations("setlists.songs");
   const [isReordering, setIsReordering] = useState(false);
   const [draft, setDraft] = useState<Row[]>([]);
-  const [saved, setSaved] = useState<{ rows: Row[]; basedOn: Row[] } | null>(
-    null,
-  );
+  // The order last saved (row ids), kept until the page data catches up.
+  const [savedOrder, setSavedOrder] = useState<string[] | null>(null);
   const [isSaving, startSaving] = useTransition();
 
   const sensors = useSensors(
@@ -39,11 +38,31 @@ export function useSetlistReorder(setlistId: string, baseRows: Row[]) {
     }),
   );
 
-  const rows = isReordering
-    ? draft
-    : saved && saved.basedOn === baseRows
-      ? saved.rows
-      : baseRows;
+  // Compared by content rather than by the identity of `baseRows`: any
+  // refresh landing between the save and the reorder's own (a debounced
+  // key change, a bandmate's edit) brings the *old* order in a new array,
+  // which used to snap the table back for a moment. As long as the page
+  // still lists the same rows, they're shown in the saved order; a
+  // different set of rows is newer than the save and wins.
+  const rows = useMemo(() => {
+    if (isReordering) return draft;
+    if (!savedOrder) return baseRows;
+    const position = new Map(savedOrder.map((id, index) => [id, index]));
+    if (
+      baseRows.length !== position.size ||
+      !baseRows.every((row) => position.has(row.id))
+    ) {
+      return baseRows;
+    }
+    const alreadyInOrder = baseRows.every(
+      (row, index) => position.get(row.id) === index,
+    );
+    return alreadyInOrder
+      ? baseRows
+      : [...baseRows].sort(
+          (a, b) => (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0),
+        );
+  }, [isReordering, draft, savedOrder, baseRows]);
 
   const start = () => {
     setDraft(rows);
@@ -67,16 +86,17 @@ export function useSetlistReorder(setlistId: string, baseRows: Row[]) {
 
   /**
    * Moves a row one step up or down (the "Move up/down" buttons, the
-   * alternative to dragging). Returns its new 0-based index, or null when
-   * it was already at that end.
+   * alternative to dragging). A no-op at that end of the list. Stable:
+   * the rows keep their memoized render across moves.
    */
-  const move = (id: string, delta: -1 | 1): number | null => {
-    const from = draft.findIndex((row) => row.id === id);
-    const to = from + delta;
-    if (from < 0 || to < 0 || to >= draft.length) return null;
-    setDraft(arrayMove(draft, from, to));
-    return to;
-  };
+  const move = useCallback((id: string, delta: -1 | 1) => {
+    setDraft((prev) => {
+      const from = prev.findIndex((row) => row.id === id);
+      const to = from + delta;
+      if (from < 0 || to < 0 || to >= prev.length) return prev;
+      return arrayMove(prev, from, to);
+    });
+  }, []);
 
   const save = () => {
     const order = draft;
@@ -86,7 +106,7 @@ export function useSetlistReorder(setlistId: string, baseRows: Row[]) {
         order.map((row) => ({ item_type: row.kind, id: row.id })),
       );
       if (result.success) {
-        setSaved({ rows: order, basedOn: baseRows });
+        setSavedOrder(order.map((row) => row.id));
         setIsReordering(false);
         toast.success(t("orderSaved"));
       } else {

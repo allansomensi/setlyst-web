@@ -20,6 +20,19 @@ import type {
  */
 
 const TIMEOUT_MS = 8_000;
+/**
+ * Cached calls (the landing page's plans, the beta switch) wait less:
+ * while the API hangs, every visitor's page render was held for the full
+ * timeout, and a fallback is always available for these.
+ */
+const CACHED_TIMEOUT_MS = 4_000;
+/**
+ * How long a failed cached call is remembered. Next's data cache keeps
+ * only 200s, so with the API down every request repeated the doomed
+ * call (and its wait); one attempt per this window is plenty.
+ */
+const FAILURE_MEMORY_MS = 30_000;
+const recentFailures = new Map<string, number>();
 
 function apiBaseUrl(): string | null {
   const url = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -51,6 +64,42 @@ export async function fetchPublicApi<T>(
   if (!base) return { ok: false, status: null };
   assertSafeEndpoint(endpoint);
 
+  const cached = revalidate !== false;
+  if (cached) {
+    const failedAt = recentFailures.get(endpoint);
+    if (failedAt !== undefined) {
+      if (Date.now() - failedAt < FAILURE_MEMORY_MS) {
+        return { ok: false, status: null };
+      }
+      recentFailures.delete(endpoint);
+    }
+  }
+
+  const result = await fetchPublicApiUncached<T>(endpoint, base, {
+    method,
+    body,
+    revalidate,
+    forwardClientIp,
+    timeoutMs: cached ? CACHED_TIMEOUT_MS : TIMEOUT_MS,
+  });
+  if (cached && !result.ok) recentFailures.set(endpoint, Date.now());
+  return result;
+}
+
+async function fetchPublicApiUncached<T>(
+  endpoint: string,
+  base: string,
+  {
+    method,
+    body,
+    revalidate,
+    forwardClientIp,
+    timeoutMs,
+  }: Required<Pick<PublicFetchOptions, "method" | "revalidate">> &
+    Pick<PublicFetchOptions, "body" | "forwardClientIp"> & {
+      timeoutMs: number;
+    },
+): Promise<PublicResult<T>> {
   try {
     const response = await fetch(`${base}${endpoint}`, {
       method,
@@ -65,7 +114,7 @@ export async function fetchPublicApi<T>(
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
       redirect: "error",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
       ...(revalidate === false
         ? { cache: "no-store" as const }
         : { next: { revalidate } }),

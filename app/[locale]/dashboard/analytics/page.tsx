@@ -11,6 +11,7 @@ import type {
   Song,
 } from "@/types/api";
 import { getDashboardMetrics, getTimeseriesMetrics } from "../actions";
+import { repertoireStats } from "@/lib/repertoire-stats";
 import { AnalyticsDashboard } from "./_components/analytics-dashboard";
 
 const DEFAULT_DAYS = 30;
@@ -42,6 +43,14 @@ export default async function AnalyticsPage() {
     getEntitlements(),
   ]);
 
+  // Reduced here: the page only needs the counts and breakdowns, not the
+  // whole library (lyrics included) serialized into the client payload.
+  const artists = artistsRes === FETCH_FAILED ? [] : artistsRes.data;
+  const stats = repertoireStats(
+    songsRes === FETCH_FAILED ? [] : songsRes.data,
+    new Map(artists.map((a) => [a.id, a.name])),
+  );
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-10">
       <AnalyticsDashboard
@@ -50,8 +59,8 @@ export default async function AnalyticsPage() {
         metrics={metrics}
         initialTimeseries={timeseries}
         initialDays={DEFAULT_DAYS}
-        songs={songsRes === FETCH_FAILED ? [] : songsRes.data}
-        artists={artistsRes === FETCH_FAILED ? [] : artistsRes.data}
+        stats={stats}
+        artistCount={artists.length}
         setlistCount={
           setlistsRes === FETCH_FAILED ? null : setlistsRes.meta.total_items
         }

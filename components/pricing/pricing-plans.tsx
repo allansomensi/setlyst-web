@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
 import { Check, Sparkles, Tag } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Badge } from "@/components/ui/badge";
@@ -84,12 +83,8 @@ export function PricingPlans({
   renderedAt,
 }: {
   plans: PublicPlan[];
-  /**
-   * Whether the visitor has a session (lib/site-session.ts, from a server
-   * page). When not given, the client session decides, so the page itself
-   * can stay static.
-   */
-  signedIn?: boolean;
+  /** Whether the visitor has a session (lib/site-session.ts, from the page). */
+  signedIn: boolean;
   /**
    * The server's clock at render (ms), so a promotion ending between the
    * server render and hydration shows the same on both sides instead of
@@ -99,8 +94,7 @@ export function PricingPlans({
 }) {
   const t = useTranslations("pricing");
   const locale = useLocale();
-  const { status } = useSession();
-  const hasSession = signedIn ?? status === "authenticated";
+  const hasSession = signedIn;
   const [interval, setInterval] = useState<BillingInterval>("monthly");
   const savings = maxYearlySavings(plans);
   const dateFormat = new Intl.DateTimeFormat(locale, {

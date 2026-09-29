@@ -27,6 +27,7 @@ import {
   Route,
 } from "lucide-react";
 import { SetlistSongsManager } from "../../setlists/[id]/_components/setlists-songs-manager";
+import { toPickerSong, type PickerSong } from "@/lib/picker-song";
 import { GigActions } from "./_components/gig-actions";
 import { LinkSetlistPrompt } from "./_components/link-setlist-prompt";
 import { BandOption, TourOption } from "../_components/gigs-dialog";
@@ -76,6 +77,39 @@ export default async function GigDetailsPage({
   const tSetlists = await getTranslations("setlists");
   const locale = await getLocale();
 
+  // What the gig's own dialogs need (bands, setlists to link, the plan)
+  // doesn't depend on the gig: started before it, so the page loads in
+  // two rounds instead of three (bands and their setlists, this gig's
+  // setlist and its collaborators all overlap the gig itself).
+  //
+  // None of it is the gig itself, so none of it may take the page down: a
+  // failed list degrades to empty (the edit dialog offers fewer choices, a
+  // band gig reads as not manageable), and a linked setlist that can't be
+  // loaded (trashed, deleted, share revoked) falls back to the "link a
+  // setlist" prompt below.
+  const bandsPromise = fetchOrFailed(
+    fetchServerApi<BandWithMembership[]>("/bands"),
+  ).then((res) => (res === FETCH_FAILED ? [] : res));
+  const personalSetlistsPromise = fetchOrFailed(
+    fetchAllServerPages<Setlist>("/setlists"),
+  );
+  const bandSetlistsPromise = bandsPromise.then((all) =>
+    Promise.all(
+      all
+        .filter((band) => canManageBandSetlists(band))
+        .map((band) =>
+          fetchOrFailed(
+            fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`),
+          ).then((res) => ({
+            id: band.id,
+            name: band.name,
+            setlists: res === FETCH_FAILED ? [] : res.data || [],
+          })),
+        ),
+    ),
+  );
+  const entitlementsPromise = getEntitlements();
+
   let gig: Gig;
   try {
     gig = await fetchServerApiOnce<Gig>(`/gigs/${id}`);
@@ -88,18 +122,6 @@ export default async function GigDetailsPage({
     throw err;
   }
 
-  // Everything below depends only on the gig, so it loads in one round
-  // instead of a chain of waves (bands, then their setlists, then this
-  // gig's setlist, then its collaborators).
-  //
-  // None of it is the gig itself, so none of it may take the page down: a
-  // failed list degrades to empty (the edit dialog offers fewer choices, a
-  // band gig reads as not manageable), and a linked setlist that can't be
-  // loaded (trashed, deleted, share revoked) falls back to the "link a
-  // setlist" prompt below.
-  const bandsPromise = fetchOrFailed(
-    fetchServerApi<BandWithMembership[]>("/bands"),
-  ).then((res) => (res === FETCH_FAILED ? [] : res));
   const [
     personalSetlistsRes,
     bands,
@@ -108,29 +130,15 @@ export default async function GigDetailsPage({
     bandSetlistsResults,
     gigSetlistRes,
   ] = await Promise.all([
-    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
+    personalSetlistsPromise,
     bandsPromise,
     fetchAllServerPages<Tour>(
       gig.band_id
         ? `/bands/${gig.band_id}/tours?status=all`
         : "/tours?status=all",
     ).catch(() => ({ data: [] as Tour[] })),
-    getEntitlements(),
-    bandsPromise.then((all) =>
-      Promise.all(
-        all
-          .filter((band) => canManageBandSetlists(band))
-          .map((band) =>
-            fetchOrFailed(
-              fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`),
-            ).then((res) => ({
-              id: band.id,
-              name: band.name,
-              setlists: res === FETCH_FAILED ? [] : res.data || [],
-            })),
-          ),
-      ),
-    ),
+    entitlementsPromise,
+    bandSetlistsPromise,
     gig.setlist_id
       ? fetchOrFailed(loadGigSetlist(gig.setlist_id))
       : Promise.resolve(null),
@@ -159,7 +167,7 @@ export default async function GigDetailsPage({
   const setlist: Setlist | null = gigSetlist?.setlist ?? null;
   const setlistSongs: SetlistSong[] = gigSetlist?.setlistSongs ?? [];
   const setlistItems: SetlistItem[] = gigSetlist?.setlistItems ?? [];
-  const allSongs: Song[] = gigSetlist?.allSongs ?? [];
+  const allSongs: PickerSong[] = gigSetlist?.allSongs ?? [];
   const allArtists: Artist[] = gigSetlist?.allArtists ?? [];
   const collaborators: SetlistCollaborators | null =
     gigSetlist?.collaborators ?? null;
@@ -362,7 +370,8 @@ async function loadGigSetlist(setlistId: string) {
     fetchAllServerPages<SetlistSong>(`/setlists/${setlistId}/songs`),
     fetchServerApi<SetlistItem[]>(`/setlists/${setlistId}/items`),
     // The library only feeds the "add song" picker: an empty one beats
-    // losing the whole setlist over it.
+    // losing the whole setlist over it, and it is projected down to what
+    // the picker shows (no lyrics in the payload).
     fetchAllServerPages<Song>("/songs").catch(() => ({ data: [] as Song[] })),
     fetchAllServerPages<Artist>("/artists").catch(() => ({
       data: [] as Artist[],
@@ -381,7 +390,7 @@ async function loadGigSetlist(setlistId: string) {
     setlist,
     setlistSongs: setlistSongsRes.data || [],
     setlistItems: setlistItems || [],
-    allSongs: allSongsRes.data || [],
+    allSongs: (allSongsRes.data || []).map(toPickerSong),
     allArtists: allArtistsRes.data || [],
     collaborators,
   };

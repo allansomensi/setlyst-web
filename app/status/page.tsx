@@ -48,7 +48,23 @@ const STATUS_CACHE_SECONDS = 15;
  * Identifies this server with the internal secret but names no visitor:
  * the response is shared, and a per-visitor header would split the cache.
  */
+/**
+ * Next's data cache only keeps 200s, so a degraded report (a 503 that
+ * still carries which dependency is down) or an unreachable API was
+ * re-checked by every visitor and by every tab's auto-refresh — exactly
+ * when the API could least afford it. Those answers are shared here for
+ * the same window.
+ */
+let lastReport: { until: number; status: ApiStatus | null } | null = null;
+
 async function fetchSystemStatus(): Promise<ApiStatus | null> {
+  if (lastReport && lastReport.until > Date.now()) return lastReport.status;
+  const status = await fetchSystemStatusUncached();
+  lastReport = { until: Date.now() + STATUS_CACHE_SECONDS * 1000, status };
+  return status;
+}
+
+async function fetchSystemStatusUncached(): Promise<ApiStatus | null> {
   try {
     const res = await fetch(`${getApiBaseUrl()}/status`, {
       next: { revalidate: STATUS_CACHE_SECONDS },

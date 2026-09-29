@@ -66,10 +66,16 @@ export function ServiceWorkerRegister() {
     // one would refresh every new visitor's very first load for no reason;
     // only an update — this page already had a controller before — should
     // trigger it, and only once the person has approved it (see below).
+    // ...and only in the tab that pressed "Reload": the new worker claims
+    // every open tab at once, so each of them sees this event. The others
+    // keep their prompt (and whatever they were doing, Live Mode
+    // included) until they choose to reload; the next full navigation
+    // picks the new version up anyway.
     const hadControllerAtLoad = Boolean(navigator.serviceWorker.controller);
+    let reloadRequested = false;
     let hasReloaded = false;
     const onControllerChange = () => {
-      if (!hadControllerAtLoad || hasReloaded) return;
+      if (!hadControllerAtLoad || !reloadRequested || hasReloaded) return;
       hasReloaded = true;
       window.location.reload();
     };
@@ -83,7 +89,10 @@ export function ServiceWorkerRegister() {
         duration: Infinity,
         action: {
           label: strings.reload,
-          onClick: () => worker.postMessage({ type: "SKIP_WAITING" }),
+          onClick: () => {
+            reloadRequested = true;
+            worker.postMessage({ type: "SKIP_WAITING" });
+          },
         },
       });
     };

@@ -81,6 +81,10 @@ export async function forwardToApi(
   const headers = new Headers(await getInternalApiHeaders());
   if (token) headers.set("Authorization", `Bearer ${token}`);
   headers.set("Accept", options.accept ?? "*/*");
+  // The body is streamed through as-is with the API's own Content-Length:
+  // a compressed answer would be decoded by fetch on the way in and the
+  // length would then be short, so the browser truncated the download.
+  headers.set("Accept-Encoding", "identity");
   if (options.contentType) headers.set("Content-Type", options.contentType);
 
   let upstream: Response;
@@ -138,7 +142,9 @@ export async function forwardToApi(
     "Cache-Control": NO_STORE,
     "X-Content-Type-Options": "nosniff",
   });
+  const decoded = upstream.headers.has("content-encoding");
   for (const name of PASSTHROUGH_HEADERS) {
+    if (name === "content-length" && decoded) continue;
     const value = upstream.headers.get(name);
     if (value) responseHeaders.set(name, value);
   }

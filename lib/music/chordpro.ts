@@ -904,8 +904,18 @@ export const ANNOTATION_MARK = "⁣";
  * `blank` blocks; collapsing them is left to the renderer, because what
  * counts as a redundant gap depends on what it chooses to show.
  */
-export function parseChordPro(content: string): Block[] {
-  const lines = normalizeChordPro(content).split("\n");
+export function parseChordPro(
+  content: string,
+  options: {
+    /**
+     * `content` already went through `normalizeChordPro` (Live Mode's
+     * transposition does it first): skip doing it again.
+     */
+    normalized?: boolean;
+  } = {},
+): Block[] {
+  const source = options.normalized ? content : normalizeChordPro(content);
+  const lines = source.split("\n");
   const blocks: Block[] = [];
 
   let section: SectionKey | null = null;

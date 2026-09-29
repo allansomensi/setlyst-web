@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePageSize } from "@/hooks/use-page-size";
 import { useSyncSearchParams } from "@/hooks/use-url-state";
-import { filterBySearch } from "@/lib/search";
+import { buildSearchIndex, filterByIndexedSearch } from "@/lib/search";
 import { DASHBOARD_SCROLL_ATTR } from "@/lib/scroll-into-dashboard";
 
 export type SortDirection = "asc" | "desc" | null;
@@ -72,9 +72,19 @@ export function useTableControls<T>(
     setCurrentPage(1);
   }, []);
 
+  // The keystroke lands in the box at once; the (heavier) filtering of
+  // the list follows when React gets to it, so typing never stutters.
+  const deferredSearch = useDeferredValue(search);
+
+  // Folded once per list, not once per keystroke (see lib/search.ts).
+  const searchIndex = useMemo(
+    () => buildSearchIndex(data, searchableKeys),
+    [data, searchableKeys],
+  );
+
   const filteredAndSortedData = useMemo(() => {
     // Case- and accent-insensitive: "cancao" finds "Canção".
-    const result = filterBySearch(data, searchableKeys, search);
+    const result = filterByIndexedSearch(data, searchIndex, deferredSearch);
 
     if (sortConfig.key && sortConfig.direction) {
       const { key, direction } = sortConfig;
@@ -101,7 +111,7 @@ export function useTableControls<T>(
     }
 
     return result;
-  }, [data, search, searchableKeys, sortConfig]);
+  }, [data, searchIndex, deferredSearch, sortConfig]);
 
   const totalItems = filteredAndSortedData.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));

@@ -212,6 +212,7 @@ export function SetlistsTable({
         t("dialog.copyTitle", {
           title: setlistDisplayTitle(setlist, repertoireName),
         }),
+        bandId,
       );
       if (result.success) {
         const skipped = result.data?.skipped_band_songs ?? 0;

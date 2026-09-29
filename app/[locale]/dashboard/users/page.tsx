@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/routing";
 import { fetchAllServerPages } from "@/lib/api-server";
+import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 import { isStaffRole } from "@/lib/staff-permissions";
 import type { User } from "@/types/api";
 import { UsersTable } from "./_components/users-table";
@@ -24,12 +25,15 @@ export default async function UsersPage({
     return redirect({ href: "/dashboard", locale });
   }
 
-  const response = await fetchAllServerPages<User>("/users");
+  // Every account, in pages of 100: a transient failure on any page shows
+  // the retrying notice instead of the error boundary.
+  const response = await fetchOrFailed(fetchAllServerPages<User>("/users"));
 
   return (
     <div className="w-full space-y-4">
       <UsersTable
-        initialUsers={response.data ?? []}
+        initialUsers={response === FETCH_FAILED ? [] : (response.data ?? [])}
+        loadError={response === FETCH_FAILED}
         actor={{ id: session.user.id, role: session.user.role }}
       />
     </div>

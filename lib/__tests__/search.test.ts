@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { filterBySearch, foldForSearch } from "@/lib/search";
+import {
+  buildSearchIndex,
+  filterByIndexedSearch,
+  filterBySearch,
+  foldForSearch,
+} from "@/lib/search";
 
 describe("foldForSearch", () => {
   it("drops accents and case", () => {
@@ -37,5 +42,21 @@ describe("filterBySearch", () => {
 
   it("keeps everything for a blank term", () => {
     expect(filterBySearch(rows, ["title"], "   ")).toHaveLength(3);
+  });
+});
+
+describe("buildSearchIndex / filterByIndexedSearch", () => {
+  const rows = [
+    { title: "Canção da América", lyrics: "[G]Oh, [D]terra" },
+    { title: "Aquarela", lyrics: null },
+  ];
+
+  it("matches through a prebuilt index like filterBySearch does", () => {
+    const index = buildSearchIndex(rows, ["title", "lyrics"]);
+    expect(index[0]).toEqual(["cancao da america", "[g]oh, [d]terra"]);
+    expect(index[1]).toEqual(["aquarela"]);
+    expect(filterByIndexedSearch(rows, index, "TERRA")).toEqual([rows[0]]);
+    expect(filterByIndexedSearch(rows, index, "aquarelá")).toEqual([rows[1]]);
+    expect(filterByIndexedSearch(rows, index, "  ")).toHaveLength(2);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Check,
@@ -118,10 +118,15 @@ export function BandSuggestions({
     if (filter === "open") setItems(initial);
   }
 
+  // Two quick filter changes answer out of order: only the latest one
+  // may fill the list, or "open" could show "accepted" items.
+  const latestFilterRequest = useRef(0);
   const changeFilter = (next: SuggestionFilter) => {
     setFilter(next);
+    const request = ++latestFilterRequest.current;
     startLoading(async () => {
       const result = await listSuggestions(bandId, next);
+      if (request !== latestFilterRequest.current) return;
       if (result.success && result.data) setItems(result.data.data);
       else if (!result.success) toastActionError(result, result.error);
     });

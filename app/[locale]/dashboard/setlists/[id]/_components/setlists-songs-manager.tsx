@@ -22,7 +22,6 @@ import {
 } from "@dnd-kit/sortable";
 import { useAppRouter } from "@/hooks/use-app-router";
 import {
-  Song,
   SetlistSong,
   SetlistItem,
   Setlist,
@@ -58,6 +57,7 @@ import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { SyncBandCopyDialog } from "@/components/songs/sync-band-copy-dialog";
 import { AddSongDialog, type AddSongBandContext } from "./add-song-dialog";
+import type { PickerSong } from "@/lib/picker-song";
 import { BlockDialog, type BlockDraft } from "./block-dialog";
 import { BreakDialog, type BreakDraft } from "./break-dialog";
 import { SortableBlockRow } from "./rows/block-row";
@@ -78,7 +78,7 @@ interface SetlistSongsManagerProps {
   setlist: Setlist;
   setlistSongs: SetlistSong[];
   setlistItems: SetlistItem[];
-  allSongs: Song[];
+  allSongs: PickerSong[];
   artists: Artist[];
   /** Band setlists: permissions and repertoire (see AddSongDialog). */
   band?: AddSongBandContext;
@@ -171,70 +171,81 @@ export function SetlistSongsManager({
   // Screen-reader support for reordering: dnd-kit's default announcements
   // are English and name rows by their UUID. These use the song (or block,
   // break) name and its position in the running order.
-  const labelOf = (row: Row | undefined): string =>
-    !row
-      ? ""
-      : row.kind === "song"
-        ? row.song.title
-        : row.kind === "block"
-          ? row.name
-          : row.label || t("breakDefaultLabel");
-  const rowById = (id: string | number) =>
-    displayRows.find((row) => row.id === String(id));
-  const positionOf = (id: string | number) =>
-    displayRows.findIndex((row) => row.id === String(id)) + 1;
-  const total = displayRows.length;
-  const screenReaderInstructions: ScreenReaderInstructions = {
-    draggable: t("dnd.instructions"),
-  };
-  const announcements: Announcements = {
-    onDragStart: ({ active }) =>
-      t("dnd.pickedUp", {
-        title: labelOf(rowById(active.id)),
-        position: positionOf(active.id),
-        total,
-      }),
-    onDragOver: ({ active, over }) =>
-      over
-        ? t("dnd.movedOver", {
-            title: labelOf(rowById(active.id)),
-            position: positionOf(over.id),
-            total,
-          })
-        : undefined,
-    onDragEnd: ({ active, over }) =>
-      t("dnd.dropped", {
-        title: labelOf(rowById(active.id)),
-        position: positionOf(over?.id ?? active.id),
-        total,
-      }),
-    onDragCancel: ({ active }) =>
-      t("dnd.cancelled", {
-        title: labelOf(rowById(active.id)),
-        position: positionOf(active.id),
-      }),
-  };
+  const labelOf = useCallback(
+    (row: Row | undefined): string =>
+      !row
+        ? ""
+        : row.kind === "song"
+          ? row.song.title
+          : row.kind === "block"
+            ? row.name
+            : row.label || t("breakDefaultLabel"),
+    [t],
+  );
+  const screenReaderInstructions = useMemo<ScreenReaderInstructions>(
+    () => ({ draggable: t("dnd.instructions") }),
+    [t],
+  );
+  // Memoized (DndContext takes them as props): a fresh object per render
+  // re-configured the accessibility layer on every announcement.
+  const announcements = useMemo<Announcements>(() => {
+    const rowById = (id: string | number) =>
+      displayRows.find((row) => row.id === String(id));
+    const positionOf = (id: string | number) =>
+      displayRows.findIndex((row) => row.id === String(id)) + 1;
+    const total = displayRows.length;
+    return {
+      onDragStart: ({ active }) =>
+        t("dnd.pickedUp", {
+          title: labelOf(rowById(active.id)),
+          position: positionOf(active.id),
+          total,
+        }),
+      onDragOver: ({ active, over }) =>
+        over
+          ? t("dnd.movedOver", {
+              title: labelOf(rowById(active.id)),
+              position: positionOf(over.id),
+              total,
+            })
+          : undefined,
+      onDragEnd: ({ active, over }) =>
+        t("dnd.dropped", {
+          title: labelOf(rowById(active.id)),
+          position: positionOf(over?.id ?? active.id),
+          total,
+        }),
+      onDragCancel: ({ active }) =>
+        t("dnd.cancelled", {
+          title: labelOf(rowById(active.id)),
+          position: positionOf(active.id),
+        }),
+    };
+  }, [displayRows, labelOf, t]);
 
   // What the "Move up/down" buttons did, for screen readers.
   const [moveAnnouncement, setMoveAnnouncement] = useState("");
-  const moveOf = (row: Row, index: number): RowMove | undefined =>
-    reorder.isReordering
-      ? {
-          canUp: index > 0 && !busy,
-          canDown: index < displayRows.length - 1 && !busy,
-          onMove: (delta) => {
-            const to = reorder.move(row.id, delta);
-            if (to === null) return;
-            setMoveAnnouncement(
-              t("dnd.moved", {
-                title: labelOf(row),
-                position: to + 1,
-                total,
-              }),
-            );
-          },
-        }
-      : undefined;
+  // One `RowMove` per row, rebuilt only when the order (or `busy`)
+  // changes: a fresh object per row per render defeated the rows' memo
+  // exactly in reorder mode, where every announcement and drag frame
+  // re-rendered the whole table.
+  const { isReordering, move: moveRow } = reorder;
+  const moves = useMemo<(RowMove | undefined)[]>(() => {
+    if (!isReordering) return [];
+    const total = displayRows.length;
+    return displayRows.map((row, index) => ({
+      canUp: index > 0 && !busy,
+      canDown: index < total - 1 && !busy,
+      onMove: (delta) => {
+        const to = index + delta;
+        if (to < 0 || to >= total) return;
+        moveRow(row.id, delta);
+        setMoveAnnouncement(
+          t("dnd.moved", { title: labelOf(row), position: to + 1, total }),
+        );
+      },
+    }));
+  }, [isReordering, displayRows, busy, moveRow, labelOf, t]);
 
   const openBlockDialog = (draft: BlockDraft) => {
     setDialogSession((n) => n + 1);
@@ -326,6 +337,15 @@ export function SetlistSongsManager({
       : baseRows
           .filter((row): row is SongRow => row.kind === "song")
           .map((row) => row.song);
+  // Memoized: the picker sorts the whole library against this list, and
+  // a fresh array per render redid that on every render while it's open.
+  const excludedSongIds = useMemo(
+    () =>
+      songsInSetlist.flatMap((song) =>
+        [song.id, song.forked_from].filter((id): id is string => !!id),
+      ),
+    [songsInSetlist],
+  );
 
   return (
     <div className="space-y-4">
@@ -488,7 +508,7 @@ export function SetlistSongsManager({
                   strategy={verticalListSortingStrategy}
                 >
                   {displayRows.map((row, index) => {
-                    const move = moveOf(row, index);
+                    const move = moves[index];
                     if (row.kind === "song") {
                       return (
                         <SortableSongRow
@@ -575,9 +595,7 @@ export function SetlistSongsManager({
         setlistId={setlistId}
         songs={allSongs}
         artists={artists}
-        excludedSongIds={songsInSetlist.flatMap((song) =>
-          [song.id, song.forked_from].filter((id): id is string => !!id),
-        )}
+        excludedSongIds={excludedSongIds}
         band={band}
       />
 

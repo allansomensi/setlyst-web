@@ -33,15 +33,21 @@ export async function clearAppCaches(): Promise<void> {
 
   if ("serviceWorker" in navigator) {
     try {
-      navigator.serviceWorker.controller?.postMessage({ type: "CLEAR" });
+      // Once per worker: the controller usually *is* the active worker,
+      // and each message clears (and re-seeds) every cache.
       const registration = await withTimeout(
         navigator.serviceWorker.getRegistration(),
         1_000,
       );
-      if (registration) {
-        registration.active?.postMessage({ type: "CLEAR" });
-        registration.waiting?.postMessage({ type: "CLEAR" });
+      const workers = new Set<ServiceWorker>();
+      if (navigator.serviceWorker.controller) {
+        workers.add(navigator.serviceWorker.controller);
       }
+      if (registration) {
+        if (registration.active) workers.add(registration.active);
+        if (registration.waiting) workers.add(registration.waiting);
+      }
+      for (const worker of workers) worker.postMessage({ type: "CLEAR" });
     } catch {
       // No service worker: nothing to tell.
     }

@@ -127,6 +127,7 @@ export async function updateSetlist(
 export async function duplicateSetlist(
   id: string,
   title?: string,
+  bandId?: string,
 ): Promise<ActionResult<Setlist & DuplicateSetlistExtras>> {
   if (!isUuid(id)) return invalidRequest();
 
@@ -143,7 +144,8 @@ export async function duplicateSetlist(
           }),
         },
       ),
-    () => revalidateDashboard("/setlists"),
+    // The table also lives on the band's setlists page.
+    () => revalidateSetlistViews(bandId),
   );
 }
 
