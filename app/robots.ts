@@ -7,6 +7,12 @@ import { getSiteOrigin } from "@/lib/seo";
  */
 export default function robots(): MetadataRoute.Robots {
   const origin = getSiteOrigin();
+
+  // Only the production deployment is indexable
+  if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
+    return { rules: [{ userAgent: "*", disallow: "/" }] };
+  }
+
   return {
     rules: [
       {
