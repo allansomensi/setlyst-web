@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Users2, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/components/nav-link";
+import { toastActionError } from "@/lib/action-toast";
 
 export function AcceptInviteCard({ code }: { code: string }) {
   const t = useTranslations("bands.acceptInvite");
@@ -22,6 +23,10 @@ export function AcceptInviteCard({ code }: { code: string }) {
       if (result.success) {
         const band = result.data;
         router.push(band ? `/dashboard/bands/${band.id}` : "/dashboard/bands");
+      } else if (result.code) {
+        // Rate limit, expired session, read-only "viewing as"...: the
+        // shared toast knows how to handle those (wait, sign in again).
+        toastActionError(result, result.error);
       } else {
         setError(result.error);
       }
@@ -37,12 +42,24 @@ export function AcceptInviteCard({ code }: { code: string }) {
         {code}
       </p>
 
-      {error && <p className="text-destructive text-sm">{error}</p>}
+      {error && (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      )}
 
       <div className="mt-4 flex gap-2">
-        <Button variant="outline" asChild disabled={isPending}>
-          <Link href="/dashboard/bands">{t("cancel")}</Link>
-        </Button>
+        {/* `disabled` does nothing on an asChild link, so while accepting
+            it's a plain disabled button instead. */}
+        {isPending ? (
+          <Button variant="outline" disabled>
+            {t("cancel")}
+          </Button>
+        ) : (
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/bands">{t("cancel")}</Link>
+          </Button>
+        )}
         <Button onClick={handleAccept} disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {t("accept")}

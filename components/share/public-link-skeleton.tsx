@@ -1,17 +1,26 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Loading state for the public share pages (/s/[token], /g/[token]): the
  * same frame as their views — logo row, title and meta, then the song
- * table. No text at all, since the page's translations arrive with the
- * page itself (the route layout only carries a small subset).
+ * table. No visible text, since the page's translations arrive with the
+ * page itself; only a "Loading…" for screen readers, from `common`, one
+ * of the few namespaces the route layout carries. A client component so
+ * it reads the layout's provider, in the visitor's locale (the server's
+ * request config doesn't know it on these routes).
  */
 export function PublicLinkSkeleton() {
+  const tCommon = useTranslations("common");
   return (
     <div
-      className="bg-background flex min-h-dvh flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10"
+      className="bg-background flex min-h-dvh flex-col items-center pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-10 pl-[max(1rem,env(safe-area-inset-left))] sm:pt-10"
+      role="status"
       aria-busy="true"
     >
+      <span className="sr-only">{tCommon("loading")}</span>
       <div className="w-full max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-3">
           <Skeleton className="h-6 w-24" />

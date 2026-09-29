@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   CalendarDays,
   Clock,
@@ -39,13 +39,14 @@ import {
 } from "@/components/content/report-export-menu";
 import { useMounted } from "@/hooks/use-mounted";
 import { parseWallClock, wallClockNow } from "@/lib/dates";
+import { toast } from "@/lib/toast";
 import { repertoireStats } from "@/lib/repertoire-stats";
 import {
   ENERGY_CHART_COLORS,
   ENERGY_KEYS,
   type EnergyLevel,
 } from "@/lib/song-fields";
-import { cn, formatDuration } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const RANGE_OPTIONS = [7, 30, 90] as const;
 
@@ -83,6 +84,8 @@ export function AnalyticsDashboard({
 }: AnalyticsDashboardProps) {
   const t = useTranslations("analytics");
   const tEnergy = useTranslations("songs.energy");
+  const tApi = useTranslations("apiErrors");
+  const format = useFormatter();
   const reportRef = useRef<HTMLDivElement>(null);
   const mounted = useMounted();
   const [isPending, startTransition] = useTransition();
@@ -104,9 +107,19 @@ export function AnalyticsDashboard({
         ).length;
 
   const handleRangeChange = (value: number) => {
+    const previous = days;
     setDays(value);
     startTransition(async () => {
-      setTimeseries(await getTimeseriesMetrics(value));
+      const next = await getTimeseriesMetrics(value);
+      // A failed fetch (null) must not blank charts that were showing
+      // fine: keep them, put the range back to the one they belong to,
+      // and say so instead of silently emptying the section.
+      if (next === null) {
+        setDays(previous);
+        toast.error(tApi("generic"));
+        return;
+      }
+      setTimeseries(next);
     });
   };
 
@@ -190,7 +203,11 @@ export function AnalyticsDashboard({
         stats.averageEnergy === null
           ? undefined
           : t("kpi.energyValue", {
-              value: stats.averageEnergy.toFixed(1).replace(".", ","),
+              // The locale's own decimal separator (3.4 / 3,4).
+              value: format.number(stats.averageEnergy, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              }),
             }),
     },
   ];
@@ -340,6 +357,10 @@ export function AnalyticsDashboard({
             </div>
           </div>
 
+          {/* The first fetch failed: nothing to chart, so offer the
+              retry rather than an empty section (the page-level notice
+              above already covers it when the rest failed too). */}
+          {timeseries === null && !loadError && <LoadErrorNotice />}
           {timeseries?.scope === "admin" && (
             <div className="grid gap-4 md:grid-cols-2">
               <ActivityChart
@@ -524,10 +545,14 @@ function BreakdownCard({
   );
 }
 
-/** "12 h 40 min" style total for the whole repertoire. */
+/**
+ * "12h40" style total for the whole repertoire, the same shape under an
+ * hour ("0h45"). Rounded to whole minutes first, so 1:59:40 becomes
+ * "2h00" rather than "1h60".
+ */
 function formatHours(seconds: number): string {
-  if (seconds < 3600) return formatDuration(seconds);
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.round((seconds % 3600) / 60);
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   return `${hours}h${String(minutes).padStart(2, "0")}`;
 }

@@ -43,7 +43,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       role="group"
       aria-label={t("theme")}
       className={cn(
-        "bg-muted flex h-9 w-fit items-center rounded-lg p-0.5",
+        "bg-muted flex h-9 w-fit items-center rounded-lg p-0.5 pointer-coarse:h-11",
         className,
       )}
     >
@@ -58,7 +58,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             title={labels[value]}
             onClick={() => setTheme(value)}
             className={cn(
-              "focus-visible:ring-ring/50 flex size-8 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3",
+              "focus-visible:ring-ring/50 flex size-8 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3 pointer-coarse:size-10",
               active
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { Plus } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,6 +42,7 @@ export function UserBandsSection({
   const t = useTranslations("staff.userBands");
   const tBandRoles = useTranslations("bands.roles");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [open, setOpen] = useState(false);
   const [band, setBand] = useState<PickerOption | null>(null);
   const [role, setRole] = useState<AddableRole>("member");
@@ -108,7 +109,12 @@ export function UserBandsSection({
                   {b.band_name}
                 </Link>
                 <span className="text-muted-foreground text-xs">
-                  {t("joined", { date: formatApiDate(b.joined_at, locale) })}
+                  {t("joined", {
+                    date: formatApiDate(b.joined_at, locale, {
+                      dateStyle: "medium",
+                      timeZone,
+                    }),
+                  })}
                 </span>
               </div>
               <BandRoleBadge role={b.role} />

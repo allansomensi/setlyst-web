@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
-import { Pin, PinOff } from "lucide-react";
+import { Pin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,8 +62,6 @@ export function PinButton({
     });
   };
 
-  const Icon = optimistic ? PinOff : Pin;
-
   if (variant === "default") {
     return (
       <Button
@@ -76,7 +74,14 @@ export function PinButton({
         aria-label={label}
         className={cn("gap-2", className)}
       >
-        <Icon className="h-4 w-4" aria-hidden />
+        {/* The same state icon as in rows: a filled pin when pinned. It
+            used to be a crossed-out pin here, the action rather than the
+            state, so the two variants disagreed about what "on" looks
+            like. The label next to it says what a press does. */}
+        <Pin
+          className={cn("h-4 w-4", optimistic && "fill-current")}
+          aria-hidden
+        />
         <span className="sr-only sm:not-sr-only">{short}</span>
       </Button>
     );

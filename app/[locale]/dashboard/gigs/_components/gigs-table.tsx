@@ -89,6 +89,12 @@ interface GigsTableProps {
    * (personal shows only; a band's limit is per band).
    */
   quotas?: QuotaReport | null;
+  /**
+   * Whether "New show" is offered. A band member without the right to
+   * manage its shows (`manage_setlists`) would only get a refusal from the
+   * API, so the buttons are hidden rather than left to fail.
+   */
+  canCreate?: boolean;
 }
 
 const STATUS_VARIANT: Record<
@@ -110,6 +116,7 @@ export function GigsTable({
   tours = [],
   tourFilter = null,
   quotas = null,
+  canCreate = true,
 }: GigsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -137,6 +144,8 @@ export function GigsTable({
   const { records: availableGigs, isFromCache } = useOfflineGigs({
     fallback: initialGigs,
     loadError,
+    // A band's page lists that band's shows only; the mirror has them all.
+    filter: fixedBandId ? (gig) => gig.band_id === fixedBandId : undefined,
   });
 
   const filtered = useMemo(() => {
@@ -186,17 +195,18 @@ export function GigsTable({
         gigToDelete.id,
         gigToDelete.band_id ?? undefined,
       );
-      if (result.success) {
-        toastMovedToTrash("gig", gigToDelete.id, {
-          message: t("dialog.deleted"),
-          undoLabel: tTrash("undo"),
-          restoring: tTrash("restoring"),
-          restored: t("dialog.restored"),
-          restoreFailed: tTrash("restoreFailed"),
-        });
-      } else {
+      if (!result.success) {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
+        return;
       }
+      toastMovedToTrash("gig", gigToDelete.id, {
+        message: t("dialog.deleted"),
+        undoLabel: tTrash("undo"),
+        restoring: tTrash("restoring"),
+        restored: t("dialog.restored"),
+        restoreFailed: tTrash("restoreFailed"),
+      });
       setGigToDelete(null);
     });
   };
@@ -303,6 +313,7 @@ export function GigsTable({
                         e.stopPropagation();
                         handleOpenDialog(gig);
                       }}
+                      disabled={offlineDisabled.disabled}
                     >
                       <Pencil className="mr-2 h-4 w-4" />
                       {t("menu.edit")}
@@ -314,6 +325,7 @@ export function GigsTable({
                         setGigToDelete(gig);
                       }}
                       variant="destructive"
+                      disabled={offlineDisabled.disabled}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       {t("menu.delete")}
@@ -335,7 +347,9 @@ export function GigsTable({
         {/* A band's page has its own title above this table. */}
         {!fixedBandId && (
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("title")}
+            </h1>
             <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
         )}
@@ -344,14 +358,16 @@ export function GigsTable({
           {!fixedBandId && (
             <ImportSharedButton kind="gig" disabled={quotaFull} />
           )}
-          <Button
-            onClick={() => handleOpenDialog()}
-            {...offlineDisabled}
-            disabled={offlineDisabled.disabled || quotaFull}
-          >
-            <Plus className="mr-2 h-4 w-4" aria-hidden />
-            {t("addGig")}
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={() => handleOpenDialog()}
+              {...offlineDisabled}
+              disabled={offlineDisabled.disabled || quotaFull}
+            >
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              {t("addGig")}
+            </Button>
+          )}
         </div>
       </div>
       <QuotaLimitNotice usage={quota} resource="gigs" className="-mt-3" />
@@ -423,14 +439,16 @@ export function GigsTable({
                       title={t("emptyState.title")}
                       description={t("emptyState.description")}
                       actions={
-                        <Button
-                          onClick={() => handleOpenDialog()}
-                          {...offlineDisabled}
-                          disabled={offlineDisabled.disabled || quotaFull}
-                        >
-                          <Plus className="mr-2 h-4 w-4" aria-hidden />
-                          {t("addGig")}
-                        </Button>
+                        canCreate ? (
+                          <Button
+                            onClick={() => handleOpenDialog()}
+                            {...offlineDisabled}
+                            disabled={offlineDisabled.disabled || quotaFull}
+                          >
+                            <Plus className="mr-2 h-4 w-4" aria-hidden />
+                            {t("addGig")}
+                          </Button>
+                        ) : undefined
                       }
                     />
                   )}

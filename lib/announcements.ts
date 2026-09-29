@@ -348,7 +348,8 @@ export const LEVEL_STYLES: Record<
     border: "border-red-500/50",
     icon: "text-red-600 dark:text-red-400",
     dot: "bg-red-500",
-    button: "bg-destructive text-white hover:bg-destructive/90",
+    button:
+      "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   },
 };
 

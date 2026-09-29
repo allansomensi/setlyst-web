@@ -376,7 +376,7 @@ export function AnalysisInspector({
                     </Select>
                     <button
                       type="button"
-                      className="text-muted-foreground hover:text-foreground flex items-center gap-1 px-1"
+                      className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex items-center gap-1 rounded-sm px-1 outline-none focus-visible:ring-3"
                       onClick={() =>
                         actions.select(out ? connection.to : connection.from)
                       }
@@ -461,7 +461,11 @@ export function AnalysisInspector({
               actions.setKey(value === "none" ? null : value)
             }
           >
-            <SelectTrigger className="h-9 flex-1">
+            <SelectTrigger
+              className="h-9 flex-1"
+              // The visible "Key" heading isn't a <label>: name it here.
+              aria-label={t("inspector.key")}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-72">
@@ -577,8 +581,10 @@ export function PassageEditor({
               aria-label={t(`noteColors.${color}`)}
               aria-pressed={note.color === color}
               onClick={() => onChange({ color })}
+              // 24px (28px on touch) rather than 16px: a target that small
+              // is easy to miss, and needs a visible keyboard focus too.
               className={cn(
-                "h-4 w-4 rounded-full border-2 transition-transform",
+                "focus-visible:ring-ring/50 size-6 rounded-full border-2 transition-transform outline-none focus-visible:ring-3 pointer-coarse:size-7",
                 note.color === color
                   ? "border-foreground scale-110"
                   : "border-transparent",

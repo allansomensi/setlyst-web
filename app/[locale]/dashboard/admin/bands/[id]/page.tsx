@@ -90,7 +90,7 @@ export default async function AdminBandDetailPage({
             className="h-14 w-14"
           />
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
               {band.name}
             </h1>
             <p className="text-muted-foreground text-sm">

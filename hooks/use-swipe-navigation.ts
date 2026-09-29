@@ -23,6 +23,12 @@ const EDGE_GUARD_PX = 24;
 const DRAG_FOLLOW = 0.35;
 /** Travel past the first/last song is damped further — a rubber band. */
 const EDGE_RESISTANCE = 0.12;
+/**
+ * Marks content that scrolls sideways on its own (guitar-tab blocks, which
+ * are wider than a phone): a horizontal pan there is the reader scrolling
+ * the tab, not asking for the next song.
+ */
+const NO_SWIPE_SELECTOR = "[data-no-swipe]";
 
 interface UseSwipeNavigationOptions {
   /** The element the gesture is read from and that follows the finger. */
@@ -106,6 +112,13 @@ export function useSwipeNavigation({
         touch.clientX < EDGE_GUARD_PX ||
         touch.clientX > window.innerWidth - EDGE_GUARD_PX
       ) {
+        return;
+      }
+      if (
+        event.target instanceof Element &&
+        event.target.closest(NO_SWIPE_SELECTOR)
+      ) {
+        tracking = false;
         return;
       }
       tracking = true;

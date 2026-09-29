@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
-import { useAppRouter } from "@/hooks/use-app-router";
 
 /**
  * Crash screen for everything under a locale outside the dashboard (which
@@ -13,26 +12,21 @@ import { useAppRouter } from "@/hooks/use-app-router";
  */
 export default function LocaleError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   const t = useTranslations("error");
   const tNotFound = useTranslations("notFound");
 
-  const router = useAppRouter();
   const [isRetrying, startRetry] = useTransition();
 
-  // `reset()` alone only re-renders the client tree; when the failure came
-  // from server data, that just throws again. Refreshing first refetches
-  // the server components, and the transition keeps the button pending
-  // until the new payload is in.
-  const retry = () =>
-    startRetry(() => {
-      router.refresh();
-      reset();
-    });
+  // `retry()` refetches the server tree before re-rendering (a bare
+  // `reset()` would just throw again when the failure came from server
+  // data); the transition keeps the button pending until the new payload
+  // is in.
+  const tryAgain = () => startRetry(() => retry());
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -58,7 +52,7 @@ export default function LocaleError({
         )}
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button onClick={retry} disabled={isRetrying} aria-busy={isRetrying}>
+        <Button onClick={tryAgain} disabled={isRetrying} aria-busy={isRetrying}>
           {isRetrying && <Loader2 className="animate-spin" aria-hidden />}
           {t("tryAgain")}
         </Button>

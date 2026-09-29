@@ -38,6 +38,15 @@ export function SetlistAdminActions({
   const [description, setDescription] = useState(setlist.description ?? "");
   const [isPending, startTransition] = useTransition();
 
+  // The drafts start over from the setlist every time the dialog opens, so
+  // edits abandoned with Cancel (or Esc) don't reappear on the next open,
+  // and a refreshed `setlist` prop is picked up.
+  const openEditor = () => {
+    setTitle(setlist.title);
+    setDescription(setlist.description ?? "");
+    setEditing(true);
+  };
+
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     startTransition(async () => {
@@ -69,7 +78,7 @@ export function SetlistAdminActions({
 
   return (
     <div className="flex shrink-0 gap-2">
-      <Button variant="outline" onClick={() => setEditing(true)}>
+      <Button variant="outline" onClick={openEditor}>
         <Pencil className="mr-2 h-4 w-4" />
         {tCommon("edit")}
       </Button>

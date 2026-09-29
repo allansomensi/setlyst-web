@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import type { FinanceOverview } from "@/types/finance";
 import { LazyRevenueChart as RevenueChart } from "./_components/lazy-revenue-chart";
 import { SyncButton } from "./_components/sync-button";
+import { monthLabel } from "./_components/month-label";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("finance");
@@ -236,7 +237,9 @@ export default async function FinancePage() {
                 <TableBody>
                   {monthsNewestFirst.map((m) => (
                     <TableRow key={m.month}>
-                      <TableCell className="font-medium">{m.month}</TableCell>
+                      <TableCell className="font-medium">
+                        {monthLabel(m.month, locale, "long")}
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {money(m.gross_cents)}
                       </TableCell>

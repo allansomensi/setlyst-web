@@ -69,7 +69,9 @@ export function InstrumentsInput({
               // Deferred, as the field is disabled while the list is full.
               requestAnimationFrame(() => inputRef.current?.focus());
             }}
-            className="hover:bg-foreground/10 focus-visible:ring-ring/50 rounded-full p-0.5 outline-none focus-visible:ring-2"
+            // 20px (28px on touch) instead of a bare 16px glyph: easy to
+            // miss with a finger, and right next to the chip's text.
+            className="hover:bg-foreground/10 focus-visible:ring-ring/50 inline-flex size-5 items-center justify-center rounded-full outline-none focus-visible:ring-2 pointer-coarse:size-7"
             aria-label={t("remove", { instrument })}
             disabled={disabled}
           >

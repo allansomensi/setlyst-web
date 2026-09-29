@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import {
   AlertTriangle,
   Check,
@@ -66,6 +66,8 @@ interface TwoFactorCardProps {
   recoveryCodesRemaining: number;
   passwordSet: boolean;
   username: string;
+  /** Viewing as another user: every change is refused, so none is offered. */
+  readOnly?: boolean;
 }
 
 /** Few enough recovery codes left to suggest generating new ones. */
@@ -77,9 +79,11 @@ export function TwoFactorCard({
   recoveryCodesRemaining,
   passwordSet,
   username,
+  readOnly = false,
 }: TwoFactorCardProps) {
   const t = useTranslations("twoFactor");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [setupOpen, setSetupOpen] = useState(false);
   const [disableOpen, setDisableOpen] = useState(false);
   const [regenerateOpen, setRegenerateOpen] = useState(false);
@@ -106,7 +110,12 @@ export function TwoFactorCard({
         <CardContent className="space-y-3 text-sm">
           {enabledAt && (
             <p className="text-muted-foreground">
-              {t("enabledSince", { date: formatApiDate(enabledAt, locale) })}
+              {t("enabledSince", {
+                date: formatApiDate(enabledAt, locale, {
+                  dateStyle: "medium",
+                  timeZone,
+                }),
+              })}
             </p>
           )}
           <div
@@ -131,17 +140,25 @@ export function TwoFactorCard({
       <CardFooter className="flex flex-wrap gap-2">
         {enabled ? (
           <>
-            <Button variant="outline" onClick={() => setRegenerateOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setRegenerateOpen(true)}
+              disabled={readOnly}
+            >
               <RefreshCw className="mr-2 size-4" />
               {t("regenerate")}
             </Button>
-            <Button variant="destructive" onClick={() => setDisableOpen(true)}>
+            <Button
+              variant="destructive"
+              onClick={() => setDisableOpen(true)}
+              disabled={readOnly}
+            >
               <ShieldOff className="mr-2 size-4" />
               {t("disable")}
             </Button>
           </>
         ) : (
-          <Button onClick={() => setSetupOpen(true)}>
+          <Button onClick={() => setSetupOpen(true)} disabled={readOnly}>
             <ShieldCheck className="mr-2 size-4" />
             {t("enable")}
           </Button>

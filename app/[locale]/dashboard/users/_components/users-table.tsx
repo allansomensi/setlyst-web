@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -65,6 +65,7 @@ interface UsersTableProps {
 export function UsersTable({ initialUsers, actor }: UsersTableProps) {
   const t = useTranslations("staff.users");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [creating, setCreating] = useState(false);
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [stateFilter, setStateFilter] = useState<StateFilter>("all");
@@ -257,11 +258,17 @@ export function UsersTable({ initialUsers, actor }: UsersTableProps) {
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
                       {user.last_login_at
-                        ? formatApiDate(user.last_login_at, locale)
+                        ? formatApiDate(user.last_login_at, locale, {
+                            dateStyle: "medium",
+                            timeZone,
+                          })
                         : t("neverSignedIn")}
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm xl:table-cell">
-                      {formatApiDate(user.created_at, locale)}
+                      {formatApiDate(user.created_at, locale, {
+                        dateStyle: "medium",
+                        timeZone,
+                      })}
                     </TableCell>
                     <TableCell className="text-right">
                       <UserActionsMenu

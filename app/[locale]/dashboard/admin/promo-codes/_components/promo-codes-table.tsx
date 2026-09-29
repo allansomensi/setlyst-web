@@ -50,6 +50,7 @@ export function PromoCodesTable({
   plans: PlanChoice[];
 }) {
   const t = useTranslations("billingAdmin.promoCodes");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [editing, setEditing] = useState<PromoCode | null>(null);
   const [viewing, setViewing] = useState<PromoCode | null>(null);
@@ -129,6 +130,10 @@ export function PromoCodesTable({
                         onClick={async () => {
                           if (await copyText(promo.code)) {
                             toast.success(t("copied"));
+                          } else {
+                            // Clipboard blocked (permissions, insecure
+                            // context): say so instead of doing nothing.
+                            toast.info(tCommon("copyManually"));
                           }
                         }}
                         aria-label={t("copy", { code: promo.code })}

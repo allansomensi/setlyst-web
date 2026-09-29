@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { CloudOff, LinkIcon, RotateCw } from "lucide-react";
+import { CloudOff, LinkIcon, Loader2, RotateCw } from "lucide-react";
 import NextLink from "next/link";
 import { AppLogo } from "@/components/app-logo";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,10 @@ export function PublicLinkStatus({
 }) {
   const t = useTranslations("publicPage.status");
   const Icon = kind === "gone" ? LinkIcon : CloudOff;
+  // Next's `retry` refetches in a transition and keeps this screen up
+  // until the answer arrives; wrapped in ours, the button can show that
+  // it's working (and not take a second tap) instead of looking dead.
+  const [isRetrying, startRetry] = useTransition();
 
   return (
     <main
@@ -52,8 +56,16 @@ export function PublicLinkStatus({
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {kind === "unavailable" && onRetry && (
-          <Button size="lg" onClick={onRetry}>
-            <RotateCw className="mr-1 size-4" aria-hidden />
+          <Button
+            size="lg"
+            onClick={() => startRetry(onRetry)}
+            disabled={isRetrying}
+          >
+            {isRetrying ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <RotateCw className="size-4" aria-hidden />
+            )}
             {t("retry")}
           </Button>
         )}

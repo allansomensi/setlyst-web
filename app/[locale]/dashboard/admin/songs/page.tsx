@@ -31,6 +31,8 @@ export default async function AdminSongsPage({
 }) {
   await requireStaffPage("content");
   const t = await getTranslations("staff.songs");
+  // The shared "{bpm} BPM" string rather than a hard-coded suffix.
+  const tUnits = await getTranslations("analysis.export");
   const locale = await getLocale();
   const params = await searchParams;
   const { query, page } = adminListQuery(params, ["q", "user_id", "band_id"]);
@@ -120,7 +122,7 @@ export default async function AdminSongsPage({
                   <TableCell className="text-muted-foreground hidden text-xs lg:table-cell">
                     {[
                       song.tonality,
-                      song.tempo ? `${song.tempo} BPM` : null,
+                      song.tempo ? tUnits("bpm", { bpm: song.tempo }) : null,
                       t("inSetlists", { count: song.setlist_count }),
                     ]
                       .filter(Boolean)

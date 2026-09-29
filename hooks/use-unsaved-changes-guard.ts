@@ -28,6 +28,11 @@ interface UnsavedChangesGuard {
   release: () => void;
 }
 
+/** The page's address without the hash: what tells two pages apart. */
+function currentHref(): string {
+  return `${window.location.pathname}${window.location.search}`;
+}
+
 function isPlainLeftClick(event: MouseEvent): boolean {
   return (
     event.button === 0 &&
@@ -51,14 +56,38 @@ function isPlainLeftClick(event: MouseEvent): boolean {
  *
  * Programmatic `router.push` calls are not intercepted: route them
  * through `requestLeave`.
+ *
+ * The extra entry is not taken out when the form turns clean again
+ * (undo, or a save that stays on the page): popping it with
+ * `history.back()` makes Next.js dispatch a "restore" that discards
+ * whatever the router is doing at that moment, and callers pass
+ * `isDirty && !pending`, so that would land right as a save starts (its
+ * server action) or, on the lyrics editor, right after "Save and close"
+ * called `router.push`. Instead, a Back pressed from the extra entry
+ * while nothing is unsaved is carried one entry further, so the person
+ * never has to press it twice to leave.
  */
 export function useUnsavedChangesGuard(isDirty: boolean): UnsavedChangesGuard {
   const router = useRouter();
   const [pending, setPending] = useState<(() => void) | null>(null);
   const releasedRef = useRef(false);
   const activeRef = useRef(false);
+  /**
+   * Whether the current history entry is the extra one pushed below, and
+   * the page address it was pushed on. Kept by hand because `popstate`
+   * only tells which entry was reached, not which one was left.
+   */
+  const onGuardEntryRef = useRef(false);
+  const guardHrefRef = useRef("");
 
   useLayoutEffect(() => {
+    // A new round of edits re-arms the guard after `release()`: a save
+    // that stays on the page (the plan editor's `router.refresh()`)
+    // releases it, and without this every later edit there would go
+    // unguarded. Reset on the way in (clean -> dirty), not on the way
+    // out: callers pass `isDirty && !pending`, so the value is already
+    // false by the time a save calls `release()`.
+    if (isDirty) releasedRef.current = false;
     activeRef.current = isDirty && !releasedRef.current;
   }, [isDirty]);
 
@@ -104,7 +133,7 @@ export function useUnsavedChangesGuard(isDirty: boolean): UnsavedChangesGuard {
     return () => document.removeEventListener("click", onClick, true);
   }, [isDirty, router]);
 
-  // Back button.
+  // Back button: the extra entry, pushed while there are changes.
   useEffect(() => {
     if (!isDirty) return;
     if (!window.history.state?.[GUARD_STATE_KEY]) {
@@ -112,17 +141,55 @@ export function useUnsavedChangesGuard(isDirty: boolean): UnsavedChangesGuard {
       // it as the same page.
       window.history.pushState({ [GUARD_STATE_KEY]: true }, "");
     }
+    onGuardEntryRef.current = true;
+    guardHrefRef.current = currentHref();
+  }, [isDirty]);
 
-    const onPopState = () => {
-      if (!activeRef.current) return;
-      // We just left the guard entry: put it back and ask. Leaving for
-      // real goes two entries back (past the guard entry).
-      window.history.pushState({ [GUARD_STATE_KEY]: true }, "");
-      setPending(() => () => window.history.go(-2));
+  // Back button: what happens when it's pressed. Listens for the page's
+  // whole life (not only while dirty) so a Back from the extra entry
+  // after the form turned clean is still seen.
+  useEffect(() => {
+    // Mounted on the extra entry: coming back to this page from another
+    // one after it had been dirty.
+    if (window.history.state?.[GUARD_STATE_KEY]) {
+      onGuardEntryRef.current = true;
+      guardHrefRef.current = currentHref();
+    }
+
+    const onPopState = (event: PopStateEvent) => {
+      const leftGuardEntry = onGuardEntryRef.current;
+      onGuardEntryRef.current = Boolean(event.state?.[GUARD_STATE_KEY]);
+      if (onGuardEntryRef.current) guardHrefRef.current = currentHref();
+
+      if (activeRef.current) {
+        // We just left the guard entry: put it back and ask. Leaving for
+        // real goes two entries back (past the guard entry).
+        window.history.pushState({ [GUARD_STATE_KEY]: true }, "");
+        onGuardEntryRef.current = true;
+        setPending(() => () => {
+          // Not a Back from the extra entry: don't carry it any further.
+          onGuardEntryRef.current = false;
+          window.history.go(-2);
+        });
+        return;
+      }
+
+      // Nothing unsaved and Back went from the extra entry to the one
+      // under it: the same page, so nothing seemed to happen. Carry on
+      // to where the person meant to go. Only for an entry Next.js made
+      // (a `#hash` link's entry has no state) with the same address.
+      if (
+        leftGuardEntry &&
+        !onGuardEntryRef.current &&
+        event.state?.__NA &&
+        currentHref() === guardHrefRef.current
+      ) {
+        window.history.back();
+      }
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [isDirty]);
+  }, []);
 
   const release = useCallback(() => {
     releasedRef.current = true;

@@ -8,6 +8,8 @@ import type { SetlistSong } from "@/types/api";
 
 /** How long a key has to stay put before it is saved. */
 const SAVE_DELAY_MS = 800;
+/** How long to wait before trying again after a save didn't go through. */
+const RETRY_DELAY_MS = 5000;
 
 export type SetlistKeyStatus =
   /** The key on screen is the one saved in the setlist. */
@@ -54,6 +56,10 @@ export function useSetlistKeys(
   const pending = useRef(new Map<string, number>());
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const timer = useRef<number | null>(null);
+  const mounted = useRef(true);
+  // The retry in `flush` calls the latest `flush` (a later render may have
+  // changed who is allowed to save), without `flush` depending on itself.
+  const flushRef = useRef<() => Promise<void>>(async () => {});
   const [refused, setRefused] = useState(false);
   const saveAllowed = canSave && !refused;
 
@@ -62,7 +68,20 @@ export function useSetlistKeys(
     const batch = [...pending.current];
     pending.current.clear();
     for (const [songId, semitones] of batch) {
-      const result = await setSetlistSongKey(setlistId, songId, semitones);
+      let result: Awaited<ReturnType<typeof setSetlistSongKey>>;
+      try {
+        result = await setSetlistSongKey(setlistId, songId, semitones);
+      } catch {
+        // The request itself failed (the venue's Wi-Fi dropped mid-save, a
+        // deploy restarted the server). The queue was already emptied
+        // above, so without putting the change back it would be lost.
+        // `saving` stays true — it is still on its way — and the retry
+        // armed after the loop tries again.
+        if (!pending.current.has(songId)) {
+          pending.current.set(songId, semitones);
+        }
+        continue;
+      }
       if (result.success) {
         // Changed again while this was saving: still on its way.
         if (!pending.current.has(songId)) {
@@ -71,7 +90,8 @@ export function useSetlistKeys(
         continue;
       }
       if (result.code === "rate_limited" || !navigator.onLine) {
-        // Tried again with the next change or when back online.
+        // Tried again with the next change, when back online, or by the
+        // retry armed below.
         if (!pending.current.has(songId)) {
           pending.current.set(songId, semitones);
         }
@@ -84,7 +104,23 @@ export function useSetlistKeys(
       pending.current.clear();
       return;
     }
+    // Something was put back (rate limited, or the request failed while
+    // still online): nothing else would try again until the next key
+    // change, which may never come, so the change would sit on "saving…"
+    // for the rest of the show. Try again in a moment instead — unless a
+    // newer change already scheduled a save, or Live Mode was left (the
+    // unmount flush below gets one last attempt, not an endless loop).
+    if (pending.current.size > 0 && timer.current === null && mounted.current) {
+      timer.current = window.setTimeout(() => {
+        timer.current = null;
+        void flushRef.current();
+      }, RETRY_DELAY_MS);
+    }
   }, [saveAllowed, setlistId]);
+
+  useEffect(() => {
+    flushRef.current = flush;
+  }, [flush]);
 
   const set = useCallback(
     (songId: string, semitones: number) => {
@@ -108,15 +144,17 @@ export function useSetlistKeys(
   }, [isOnline, flush]);
 
   // Leaving Live Mode right after a change still saves it.
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       if (timer.current !== null) {
         window.clearTimeout(timer.current);
+        timer.current = null;
         void flush();
       }
-    },
-    [flush],
-  );
+    };
+  }, [flush]);
 
   const semitonesFor = useCallback(
     (songId: string) => changed[songId] ?? saved.get(songId) ?? 0,

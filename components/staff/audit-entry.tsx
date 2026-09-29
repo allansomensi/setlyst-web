@@ -216,7 +216,9 @@ export function AuditEntry({
         <time dateTime={entry.created_at}>
           {formatApiDateTime(entry.created_at, locale, timeZone)}
         </time>
-        {entry.ip_address && <span>IP {entry.ip_address}</span>}
+        {entry.ip_address && (
+          <span>{t("ipAddress", { address: entry.ip_address })}</span>
+        )}
         {details.map((line) => (
           <span key={line} className="font-mono break-all">
             {line}

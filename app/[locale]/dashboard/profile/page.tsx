@@ -1,8 +1,8 @@
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
 import {
+  ArrowUpRight,
   CalendarDays,
   ChevronRight,
-  ExternalLink,
   MapPin,
   ShieldCheck,
 } from "lucide-react";
@@ -102,7 +102,9 @@ export default async function ProfilePage() {
                 className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
               >
                 {t("viewPublic")}
-                <ExternalLink className="size-3" />
+                {/* Opens in this tab: an "external" icon would promise a
+                    new one. */}
+                <ArrowUpRight className="size-3" aria-hidden />
               </Link>
             </CardContent>
           </Card>

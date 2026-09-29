@@ -57,6 +57,7 @@ export function EmailChangeDialog({
 }: EmailChangeDialogProps) {
   const t = useTranslations("account.emailChange");
   const tReauth = useTranslations("security.reauth");
+  const tApi = useTranslations("apiErrors");
   const router = useAppRouter();
   const { data: session, update } = useSession();
   // With two-factor on, the change also takes a code from the app.
@@ -94,12 +95,21 @@ export function EmailChangeDialog({
     if (!isResend && !canStart) return;
     setPending(true);
     setError(null);
-    const result = await startEmailChange({
-      newEmail: email,
-      ...reauth.proof,
-      code: needsSecondFactor ? twoFactorCode : undefined,
-    });
-    setPending(false);
+    let result: Awaited<ReturnType<typeof startEmailChange>>;
+    try {
+      result = await startEmailChange({
+        newEmail: email,
+        ...reauth.proof,
+        code: needsSecondFactor ? twoFactorCode : undefined,
+      });
+    } catch {
+      // A rejected action (network drop, server crash) must not leave the
+      // dialog stuck "pending", which also blocks closing it.
+      toast.error(tApi("generic"));
+      return;
+    } finally {
+      setPending(false);
+    }
     if (!result.success) {
       if (result.retryAfterSeconds) startCooldown(result.retryAfterSeconds);
       if (reauth.handleFailure(result)) {
@@ -130,8 +140,15 @@ export function EmailChangeDialog({
     if (value.length !== 6 || pending) return;
     setPending(true);
     setError(null);
-    const result = await confirmEmailChange(value);
-    setPending(false);
+    let result: Awaited<ReturnType<typeof confirmEmailChange>>;
+    try {
+      result = await confirmEmailChange(value);
+    } catch {
+      toast.error(tApi("generic"));
+      return;
+    } finally {
+      setPending(false);
+    }
     if (!result.success) {
       if (result.code) {
         toastActionError(result, result.error);

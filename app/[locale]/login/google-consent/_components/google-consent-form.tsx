@@ -40,7 +40,7 @@ export function GoogleConsentForm({
         <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
           <UserPlus className="size-6" />
         </div>
-        <CardTitle className="text-2xl font-bold">
+        <CardTitle as="h1" className="text-2xl font-bold">
           {t("consentTitle")}
         </CardTitle>
         <CardDescription>{t("consentDescription")}</CardDescription>
@@ -88,7 +88,7 @@ export function GoogleConsentForm({
       <CardFooter className="justify-center border-t py-3">
         <Button asChild variant="ghost" size="sm">
           <Link href="/login">
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            <ArrowLeft />
             {t("consentCancel")}
           </Link>
         </Button>

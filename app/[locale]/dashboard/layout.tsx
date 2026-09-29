@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { SIDEBAR_COLLAPSED_COOKIE } from "@/lib/sidebar-cookie";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Sidebar } from "./_components/sidebar";
 import {
@@ -29,8 +31,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  const locale = await getLocale();
+  const [session, locale, cookieStore] = await Promise.all([
+    getSession(),
+    getLocale(),
+    cookies(),
+  ]);
+  const sidebarCollapsed =
+    cookieStore.get(SIDEBAR_COLLAPSED_COOKIE)?.value === "1";
 
   if (!session) redirect(`/${locale}/login`);
   if (session.error === "TokenExpired") {
@@ -112,7 +119,11 @@ export default async function DashboardLayout({
               >
                 {tCommon("skipToContent")}
               </a>
-              <Sidebar user={user} planStatus={planStatus} />
+              <Sidebar
+                user={user}
+                planStatus={planStatus}
+                initialCollapsed={sidebarCollapsed}
+              />
               <MobileNav user={user} planStatus={planStatus} />
               <main
                 id="main-content"

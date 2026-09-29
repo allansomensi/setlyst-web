@@ -9,6 +9,9 @@ import { ThemeToggle } from "./theme-toggle";
 
 /**
  * Header of the public site (landing, pricing, changelog, legal texts).
+ * The full row (navigation, language, theme, two account buttons) only
+ * fits from `lg` up: in Portuguese and Spanish it is about 920px wide, so
+ * tablets in portrait get the compact menu too.
  * Signed-in visitors see "Ir para o painel" instead of the sign-in and
  * sign-up buttons; nobody is ever redirected away from these pages.
  */
@@ -26,15 +29,15 @@ export async function SiteHeader() {
           href="/"
           className="focus-visible:ring-ring/50 -ml-1 flex items-center gap-2 rounded-lg px-1 py-1 font-semibold tracking-tight outline-none focus-visible:ring-3"
         >
-          <AppLogo size={30} priority className="rounded-lg" />
+          <AppLogo size={30} priority decorative className="rounded-lg" />
           <span className="text-lg">Setlyst</span>
         </Link>
 
-        <nav aria-label={t("mainNav")} className="ml-4 hidden md:block">
+        <nav aria-label={t("mainNav")} className="ml-4 hidden lg:block">
           <SiteNav />
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <div className="ml-auto hidden items-center gap-2 lg:flex">
           <LocaleSwitcher />
           <ThemeToggle />
           <span aria-hidden className="bg-border mx-1 h-6 w-px" />
@@ -54,7 +57,7 @@ export async function SiteHeader() {
           )}
         </div>
 
-        <div className="ml-auto md:hidden">
+        <div className="ml-auto lg:hidden">
           <SiteMobileMenu signedIn={signedIn} />
         </div>
       </div>

@@ -58,7 +58,6 @@ export function CommunicationSection({
     const current = settings.categories[category];
     if (!current || current.locked) return;
     const next: CommunicationChannels = { ...current, [channel]: value };
-    const previous = settings;
     setSettings({
       ...settings,
       categories: { ...settings.categories, [category]: next },
@@ -70,7 +69,20 @@ export function CommunicationSection({
       });
       setSaving(null);
       if (!result.success) {
-        setSettings(previous);
+        // Undo just this switch, on the latest state: restoring the whole
+        // snapshot taken before the request would also undo any other
+        // switch flipped while this one was saving.
+        setSettings((latest) => {
+          const cell = latest?.categories[category];
+          if (!latest || !cell) return latest;
+          return {
+            ...latest,
+            categories: {
+              ...latest.categories,
+              [category]: { ...cell, [channel]: current[channel] },
+            },
+          };
+        });
         toastActionError(result, result.error);
         return;
       }

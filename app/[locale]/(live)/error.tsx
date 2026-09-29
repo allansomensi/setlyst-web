@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
-import { useAppRouter } from "@/hooks/use-app-router";
 
 /**
  * Crash screen for Live Mode. Full screen (there is no dashboard around
@@ -18,26 +17,24 @@ import { useAppRouter } from "@/hooks/use-app-router";
  */
 export default function LiveError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  /**
+   * Next's `retry`: refetches the server components, then re-renders.
+   * `reset` alone re-rendered the same failed server payload, so after a
+   * flaky connection it just threw again. See app/global-error.tsx.
+   */
+  retry: () => void;
 }) {
   const t = useTranslations("error");
   const tNotFound = useTranslations("notFound");
 
-  const router = useAppRouter();
+  // `retry` runs in a transition of its own; wrapping it in this one keeps
+  // the button pending (spinner, disabled) until the new payload is in,
+  // instead of looking like the press did nothing on a slow venue network.
   const [isRetrying, startRetry] = useTransition();
-
-  // `reset()` alone only re-renders the client tree; when the failure came
-  // from server data, that just throws again. Refreshing first refetches
-  // the server components, and the transition keeps the button pending
-  // until the new payload is in.
-  const retry = () =>
-    startRetry(() => {
-      router.refresh();
-      reset();
-    });
+  const onRetry = () => startRetry(() => retry());
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -65,7 +62,7 @@ export default function LiveError({
       <div className="flex flex-wrap justify-center gap-2">
         <Button
           size="lg"
-          onClick={retry}
+          onClick={onRetry}
           disabled={isRetrying}
           aria-busy={isRetrying}
         >

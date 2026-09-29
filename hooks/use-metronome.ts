@@ -184,6 +184,23 @@ export function useMetronome({
     // Started from a button press, so the autoplay policy permits this.
     void context.resume().catch(() => {});
 
+    // The OS can take the audio away while the metronome runs: a phone
+    // call, Siri, another app playing, the screen locking or the tab being
+    // backgrounded. The context is then left "suspended" (or Safari's
+    // "interrupted") and `currentTime` stops — so the click *and* the
+    // visual pulse, both clocked by it, stop with it, while the controls
+    // still say it's running. Ask for it back whenever it drops out and
+    // whenever the page comes back into view; a refused resume just tries
+    // again on the next of those events.
+    const recover = () => {
+      if (document.visibilityState !== "visible") return;
+      if ((context.state as string) !== "running") {
+        void context.resume().catch(() => {});
+      }
+    };
+    context.addEventListener("statechange", recover);
+    document.addEventListener("visibilitychange", recover);
+
     let beatInBar = 0;
     let barLength = Math.max(1, configRef.current.beatsPerBar);
     let nextBeatTime = context.currentTime + START_DELAY_S;
@@ -266,6 +283,10 @@ export function useMetronome({
     });
 
     return () => {
+      // Removed first: suspending the context when stopped (above) fires
+      // "statechange", which must not resume it again.
+      context.removeEventListener("statechange", recover);
+      document.removeEventListener("visibilitychange", recover);
       window.clearInterval(schedulerId);
       cancelAnimationFrame(frameId);
       pending = [];

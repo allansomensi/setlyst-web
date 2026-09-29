@@ -99,15 +99,22 @@ export function LiveActiveControls({
 
       {scrolling && (
         <div className="flex items-center">
+          {/* The action is spoken from visually hidden text rather than an
+              aria-label: an aria-label replaced the visible "Auto-scroll"
+              / "1.25×", so saying what's on the button with voice control
+              didn't match its name. Now the name contains the visible
+              text: "Pause Auto-scroll", "Pause auto-scroll 1.25×". */}
           <Button
             variant="default"
             size="sm"
             className="h-10 gap-1.5 rounded-full px-3"
             onClick={() => controls.setAutoScroll(false)}
-            aria-label={t("active.pauseScroll")}
             title={t("active.pauseScroll")}
           >
-            <Pause className="h-4 w-4" />
+            <Pause className="h-4 w-4" aria-hidden />
+            <span className="sr-only">
+              {collapsed ? t("active.pauseScroll") : t("active.pause")}{" "}
+            </span>
             <span className="font-mono text-xs font-semibold tabular-nums">
               {collapsed
                 ? formatSpeed(controls.scrollSpeed)

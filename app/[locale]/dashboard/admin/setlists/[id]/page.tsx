@@ -62,6 +62,10 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
   const isAdmin = session?.user.role === "admin";
   const t = await getTranslations("staff.setlistDetail");
   const tNav = await getTranslations("nav");
+  // Shared unit strings ("{count} min", "{bpm} BPM") rather than
+  // hard-coded suffixes.
+  const tSongs = await getTranslations("setlists.songs");
+  const tUnits = await getTranslations("analysis.export");
   const locale = await getLocale();
   const timeZone = await getTimeZone();
   const { setlist, items } = detail;
@@ -83,7 +87,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className="truncate text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
             {setlist.title}
           </h1>
           {setlist.description && (
@@ -198,7 +202,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
                       <Coffee className="h-4 w-4" />
                       {item.label || t("break")}
                       {item.duration_minutes
-                        ? ` · ${item.duration_minutes} min`
+                        ? ` · ${tSongs("breakMinutes", { count: item.duration_minutes })}`
                         : ""}
                     </li>
                   );
@@ -226,7 +230,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
                     <span className="text-muted-foreground shrink-0 text-xs">
                       {[
                         song.tonality,
-                        song.tempo ? `${song.tempo} BPM` : null,
+                        song.tempo ? tUnits("bpm", { bpm: song.tempo }) : null,
                         song.duration ? formatDuration(song.duration) : null,
                       ]
                         .filter(Boolean)

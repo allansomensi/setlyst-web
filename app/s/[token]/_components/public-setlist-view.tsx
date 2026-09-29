@@ -39,7 +39,9 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
   const pdfEndpoint = apiPath`/api/export/public/setlists/${token}/pdf`;
 
   return (
-    <main className="bg-background flex min-h-dvh flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
+    // Side padding clears the notch / rounded corners of a phone held
+    // sideways (viewport-fit=cover), like the dashboard.
+    <main className="bg-background flex min-h-dvh flex-col items-center pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-10 pl-[max(1rem,env(safe-area-inset-left))] sm:pt-10">
       <div className="w-full max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-3">
           <Link
@@ -131,7 +133,11 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
                     </TableCell>
                     <TableCell className="w-full max-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-medium">
+                        {/* Full title on hover when it's cut short. */}
+                        <span
+                          className="truncate font-medium"
+                          title={song.title}
+                        >
                           {song.title}
                         </span>
                         {song.tonality && (
@@ -147,8 +153,9 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
                         {song.artist_name}
                         {song.tempo ? (
                           <span className="sm:hidden">
-                            {" · "}
-                            {song.tempo} BPM
+                            {/* Separator only between two things. */}
+                            {song.artist_name ? " · " : null}
+                            {song.tempo} {tTable("bpm")}
                           </span>
                         ) : null}
                       </p>

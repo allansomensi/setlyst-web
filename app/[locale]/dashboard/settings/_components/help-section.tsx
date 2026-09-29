@@ -44,7 +44,7 @@ function RowLink({ row }: { row: Row }) {
     </>
   );
   const className =
-    "hover:bg-muted/50 flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors";
+    "hover:bg-muted/50 flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 
   if (row.external || row.raw) {
     return (

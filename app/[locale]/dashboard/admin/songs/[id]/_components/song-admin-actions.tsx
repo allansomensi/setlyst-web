@@ -51,6 +51,19 @@ export function SongAdminActions({ song }: { song: SetlistSong }) {
   const [tags, setTags] = useState(song.tags);
   const [lyrics, setLyrics] = useState(song.lyrics ?? "");
 
+  // The drafts start over from the song every time the dialog opens, so
+  // edits abandoned with Cancel (or Esc) don't reappear on the next open,
+  // and a refreshed `song` prop is picked up.
+  const openEditor = () => {
+    setTitle(song.title);
+    setTempo(song.tempo ? String(song.tempo) : "");
+    setTonality(song.tonality ?? "");
+    setDuration(song.duration ? formatDuration(song.duration) : "");
+    setTags(song.tags);
+    setLyrics(song.lyrics ?? "");
+    setEditing(true);
+  };
+
   const tempoNumber = tempo ? Number(tempo) : null;
   const tempoValid =
     tempoNumber === null || (tempoNumber >= 1 && tempoNumber <= 500);
@@ -93,7 +106,7 @@ export function SongAdminActions({ song }: { song: SetlistSong }) {
 
   return (
     <div className="flex shrink-0 gap-2">
-      <Button variant="outline" onClick={() => setEditing(true)}>
+      <Button variant="outline" onClick={openEditor}>
         <Pencil className="mr-2 h-4 w-4" />
         {tCommon("edit")}
       </Button>
@@ -127,7 +140,7 @@ export function SongAdminActions({ song }: { song: SetlistSong }) {
                 required
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="admin-song-key">{t("key")}</Label>
                 <NativeSelect

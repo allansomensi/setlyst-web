@@ -310,6 +310,9 @@ export default async function BillingAdminPage() {
           />
         </div>
       )}
+      {/* The settings fetch failed: say so (and retry) instead of the
+          form silently not being there. */}
+      {isAdmin && !settings && <LoadErrorNotice />}
     </>
   );
 }

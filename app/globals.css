@@ -27,6 +27,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -82,8 +83,15 @@
   --accent: oklch(0.925 0.04 280);
   --accent-foreground: oklch(0.32 0.1 280);
   --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.985 0.01 27);
   --border: oklch(0.865 0.02 280);
-  --input: oklch(0.82 0.025 280);
+  /*
+   * Form-control borders (inputs, checkboxes, switches off) are the one
+   * place where the 1px line *is* the control, so they sit a clear step
+   * darker than --border: the previous value all but vanished on a
+   * near-white card, leaving fields that read as bare text.
+   */
+  --input: oklch(0.76 0.03 280);
   --ring: oklch(0.58 0.19 280);
   --chart-1: oklch(0.58 0.19 280);
   --chart-2: oklch(0.72 0.155 60);
@@ -119,6 +127,8 @@
   --accent: oklch(0.28 0.035 280);
   --accent-foreground: oklch(0.96 0.012 280);
   --destructive: oklch(0.704 0.191 22.216);
+  /* Dark on the lighter dark-mode red: white on it is under 3:1. */
+  --destructive-foreground: oklch(0.18 0.05 25);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.73 0.17 280);
@@ -147,6 +157,25 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/*
+ * Reduced motion.
+ *
+ * Every overlay (dialogs, sheets, menus, popovers, tooltips, toasts) uses
+ * tw-animate-css enter/exit animations through its `animate-in`/`animate-out`
+ * utilities. Under a reduced-motion preference they still run, at the
+ * shortest duration that lets the exit animation complete (Radix waits
+ * for `animationend` before unmounting: a duration of zero would never
+ * fire it).
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot][class*="animate-"],
+  [data-slot] [class*="animate-in"],
+  [data-slot] [class*="animate-out"] {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
   }
 }
 

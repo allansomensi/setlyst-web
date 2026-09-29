@@ -51,6 +51,18 @@ export function useLiveControls({
   const [isAutoScroll, setAutoScroll] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(1);
 
+  // Turning fit mode on stops auto-scroll for real, not just in what is
+  // reported below: otherwise the hidden "on" survived, and turning fit
+  // mode off again set the song scrolling by itself, with nobody having
+  // asked. Adjusted while rendering (React's pattern for state derived
+  // from a prop change) rather than in an effect, so no frame ever runs
+  // with the stale value.
+  const [wasFit, setWasFit] = useState(fitToScreen);
+  if (fitToScreen !== wasFit) {
+    setWasFit(fitToScreen);
+    if (fitToScreen) setAutoScroll(false);
+  }
+
   const setZoom = useCallback((next: number) => {
     setZoomLevel(round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next))));
   }, []);

@@ -44,6 +44,8 @@ import {
 
 const LOCALES = ["pt-BR", "en", "es"] as const;
 type PromoLocale = (typeof LOCALES)[number];
+/** The API's limit for a headline, per language. */
+const HEADLINE_MAX = 120;
 
 interface PlanChoice {
   code: string;
@@ -89,7 +91,12 @@ function PromotionDialog({
   const percentValue = Number(percent);
   const startsUtc = localInputToUtcNaive(startsAt);
   const endsUtc = localInputToUtcNaive(endsAt);
-  const headlineTooLong = LOCALES.some((l) => headline[l].trim().length > 120);
+  // Languages whose headline is over the limit (possible for one saved
+  // before the limit, or in a tab other than the one on screen).
+  const headlineTooLongIn = LOCALES.filter(
+    (l) => headline[l].trim().length > HEADLINE_MAX,
+  );
+  const headlineTooLong = headlineTooLongIn.length > 0;
   const errors = {
     name: name.trim().length < 1 || name.trim().length > 80,
     percent:
@@ -173,16 +180,39 @@ function PromotionDialog({
               id="promotion-headline"
               lang={locale}
               value={headline[locale]}
-              maxLength={140}
+              maxLength={HEADLINE_MAX}
               onChange={(e) =>
                 setHeadline((h) => ({ ...h, [locale]: e.target.value }))
               }
               aria-invalid={err(errors.headline)}
+              aria-describedby={
+                err(errors.headline)
+                  ? "promotion-headline-error"
+                  : "promotion-headline-hint"
+              }
               placeholder={t("fields.headlinePlaceholder")}
             />
-            <p className="text-muted-foreground text-xs">
-              {t("fields.headlineHint")}
-            </p>
+            {err(errors.headline) ? (
+              <p
+                id="promotion-headline-error"
+                className="text-destructive text-xs"
+                role="alert"
+              >
+                {t("fields.headlineError", {
+                  max: HEADLINE_MAX,
+                  languages: headlineTooLongIn
+                    .map((l) => LOCALE_NAMES[l])
+                    .join(", "),
+                })}
+              </p>
+            ) : (
+              <p
+                id="promotion-headline-hint"
+                className="text-muted-foreground text-xs"
+              >
+                {t("fields.headlineHint")}
+              </p>
+            )}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">

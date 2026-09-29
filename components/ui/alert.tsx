@@ -24,15 +24,23 @@ const alertVariants = cva(
   },
 );
 
+/**
+ * Only the destructive variant is a live `alert` by default: an info,
+ * success or warning box rendered with the page (a beta note, a "what
+ * this means" panel) is static content, and announcing it assertively on
+ * every render talks over whatever the screen reader was saying. Pass
+ * `role` explicitly for a notice that appears in response to an action.
+ */
 function Alert({
   className,
   variant,
+  role,
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   return (
     <div
       data-slot="alert"
-      role="alert"
+      role={role ?? (variant === "destructive" ? "alert" : undefined)}
       className={cn(alertVariants({ variant }), className)}
       {...props}
     />

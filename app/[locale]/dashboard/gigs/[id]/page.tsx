@@ -39,6 +39,7 @@ import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { notFound } from "next/navigation";
 import { ApiError } from "@/lib/api-server";
 import { fetchServerApiOnce } from "@/lib/server-data";
+import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
 
 const STATUS_VARIANT: Record<
   Gig["status"],
@@ -79,23 +80,35 @@ export default async function GigDetailsPage({
   try {
     gig = await fetchServerApiOnce<Gig>(`/gigs/${id}`);
   } catch (err) {
-    if (err instanceof ApiError && err.status === 404) notFound();
+    // Same as the song and setlist pages: a gig that is gone, not ours
+    // (403) or not addressable (400) is a 404, not the error boundary.
+    if (err instanceof ApiError && [400, 403, 404].includes(err.status)) {
+      notFound();
+    }
     throw err;
   }
 
   // Everything below depends only on the gig, so it loads in one round
   // instead of a chain of waves (bands, then their setlists, then this
   // gig's setlist, then its collaborators).
-  const bandsPromise = fetchServerApi<BandWithMembership[]>("/bands");
+  //
+  // None of it is the gig itself, so none of it may take the page down: a
+  // failed list degrades to empty (the edit dialog offers fewer choices, a
+  // band gig reads as not manageable), and a linked setlist that can't be
+  // loaded (trashed, deleted, share revoked) falls back to the "link a
+  // setlist" prompt below.
+  const bandsPromise = fetchOrFailed(
+    fetchServerApi<BandWithMembership[]>("/bands"),
+  ).then((res) => (res === FETCH_FAILED ? [] : res));
   const [
     personalSetlistsRes,
     bands,
     toursRes,
     entitlements,
     bandSetlistsResults,
-    gigSetlist,
+    gigSetlistRes,
   ] = await Promise.all([
-    fetchAllServerPages<Setlist>("/setlists"),
+    fetchOrFailed(fetchAllServerPages<Setlist>("/setlists")),
     bandsPromise,
     fetchAllServerPages<Tour>(
       gig.band_id
@@ -108,20 +121,27 @@ export default async function GigDetailsPage({
         all
           .filter((band) => canManageBandSetlists(band))
           .map((band) =>
-            fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`).then(
-              (res) => ({ id: band.id, name: band.name, res }),
-            ),
+            fetchOrFailed(
+              fetchAllServerPages<Setlist>(`/bands/${band.id}/setlists`),
+            ).then((res) => ({
+              id: band.id,
+              name: band.name,
+              setlists: res === FETCH_FAILED ? [] : res.data || [],
+            })),
           ),
       ),
     ),
-    gig.setlist_id ? loadGigSetlist(gig.setlist_id) : Promise.resolve(null),
+    gig.setlist_id
+      ? fetchOrFailed(loadGigSetlist(gig.setlist_id))
+      : Promise.resolve(null),
   ]);
   const tours: TourOption[] = toursRes.data.map((tour) => ({
     id: tour.id,
     name: tour.name,
     band_id: tour.band_id,
   }));
-  const personalSetlists = personalSetlistsRes.data || [];
+  const personalSetlists =
+    personalSetlistsRes === FETCH_FAILED ? [] : personalSetlistsRes.data || [];
 
   const bandsById: Record<string, { name: string; canManage: boolean }> = {};
   for (const band of bands) {
@@ -132,12 +152,10 @@ export default async function GigDetailsPage({
   const bandInfo = gig.band_id ? bandsById[gig.band_id] : undefined;
   const canManage = !gig.band_id || bandInfo?.canManage === true;
 
-  const manageableBands: BandOption[] = bandSetlistsResults.map((b) => ({
-    id: b.id,
-    name: b.name,
-    setlists: b.res.data || [],
-  }));
+  const manageableBands: BandOption[] = bandSetlistsResults;
 
+  const gigSetlist =
+    gigSetlistRes === FETCH_FAILED ? null : (gigSetlistRes ?? null);
   const setlist: Setlist | null = gigSetlist?.setlist ?? null;
   const setlistSongs: SetlistSong[] = gigSetlist?.setlistSongs ?? [];
   const setlistItems: SetlistItem[] = gigSetlist?.setlistItems ?? [];
@@ -343,8 +361,12 @@ async function loadGigSetlist(setlistId: string) {
     setlistPromise,
     fetchAllServerPages<SetlistSong>(`/setlists/${setlistId}/songs`),
     fetchServerApi<SetlistItem[]>(`/setlists/${setlistId}/items`),
-    fetchAllServerPages<Song>("/songs"),
-    fetchAllServerPages<Artist>("/artists"),
+    // The library only feeds the "add song" picker: an empty one beats
+    // losing the whole setlist over it.
+    fetchAllServerPages<Song>("/songs").catch(() => ({ data: [] as Song[] })),
+    fetchAllServerPages<Artist>("/artists").catch(() => ({
+      data: [] as Artist[],
+    })),
     // A personal show's setlist can be shared with the other musicians
     // playing it (a guest singer...), right from here. Never fatal.
     setlistPromise.then((loaded) =>

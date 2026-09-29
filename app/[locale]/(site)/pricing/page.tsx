@@ -63,7 +63,7 @@ export default async function PricingPage({ params }: { params: Params }) {
       return (
         <Link
           href={href}
-          className="text-primary font-medium underline-offset-4 hover:underline"
+          className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-3"
         >
           {chunks}
         </Link>

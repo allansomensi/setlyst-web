@@ -37,6 +37,8 @@ export function TagInput({
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const listId = `${inputId}-suggestions`;
+  // The line under the field (count, or what's wrong with the typed tag).
+  const hintId = `${inputId}-hint`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
@@ -107,10 +109,13 @@ export function TagInput({
                 e.stopPropagation();
                 remove(tag);
               }}
-              className="hover:bg-foreground/10 focus-visible:ring-ring -mr-1 ml-0.5 rounded-full p-0.5 focus-visible:ring-2 focus-visible:outline-none"
+              // The visible × stays small, but an invisible ::after widens
+              // what a tap or click hits: 24px at least (WCAG 2.5.8), 32px
+              // on touch screens, as with the app's small buttons.
+              className="hover:bg-foreground/10 focus-visible:ring-ring relative -mr-1 ml-0.5 rounded-full p-0.5 after:absolute after:-inset-1 after:content-[''] focus-visible:ring-2 focus-visible:outline-none pointer-coarse:after:-inset-2"
               aria-label={t("remove", { tag })}
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3" aria-hidden />
             </button>
           </TagChip>
         ))}
@@ -147,6 +152,10 @@ export function TagInput({
               : undefined
           }
           aria-autocomplete="list"
+          // The hint/issue line is announced with the field, and a tag the
+          // app won't accept marks the field invalid, not just red.
+          aria-describedby={hintId}
+          aria-invalid={issue ? true : undefined}
           autoComplete="off"
           autoCapitalize="off"
         />
@@ -183,6 +192,7 @@ export function TagInput({
       )}
 
       <p
+        id={hintId}
         className={cn(
           "text-xs",
           issue ? "text-destructive" : "text-muted-foreground",

@@ -97,8 +97,10 @@ export function LiveHeader({
             className="h-7 gap-1 border-amber-500/40 bg-amber-500/10 px-2 text-xs font-bold text-amber-700 in-data-[live-contrast=high]:text-amber-400 md:h-9 md:px-3 md:text-sm dark:text-amber-400"
             title={t("offline")}
           >
-            <WifiOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            <span className="hidden lg:inline">{t("offline")}</span>
+            <WifiOff className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden />
+            {/* Icon-only below lg, but still read out: `title` alone
+                reaches neither touch screens nor most screen readers. */}
+            <span className="sr-only lg:not-sr-only">{t("offline")}</span>
           </Badge>
         )}
         {tempo ? (
@@ -126,7 +128,16 @@ export function LiveHeader({
             {playedKey}
             {/* Marks the key as moved, so nobody reads the header as the
                 written key and calls it out wrong to the band. */}
-            {semitones !== 0 && <span className="ml-0.5 opacity-70">*</span>}
+            {semitones !== 0 && (
+              <>
+                <span className="ml-0.5 opacity-70" aria-hidden>
+                  *
+                </span>
+                {/* What the asterisk means, for those who can't hover the
+                    badge for its title. */}
+                <span className="sr-only"> ({t("transposed")})</span>
+              </>
+            )}
           </Badge>
         )}
 
@@ -148,15 +159,20 @@ export function LiveHeader({
           </Button>
         )}
 
+        {/* Named by its own visible text ("Settings", read out below lg
+            too) rather than a different aria-label, so what voice-control
+            users say matches what they see. */}
         <Button
           variant="outline"
           onClick={onOpenSettings}
           className="h-10 gap-2 px-2.5 md:px-3"
-          aria-label={t("sheet.title")}
+          aria-haspopup="dialog"
           title={t("sheet.title")}
         >
-          <SlidersHorizontal className="h-5 w-5" />
-          <span className="hidden text-sm lg:inline">{t("sheet.open")}</span>
+          <SlidersHorizontal className="h-5 w-5" aria-hidden />
+          <span className="sr-only text-sm lg:not-sr-only">
+            {t("sheet.open")}
+          </span>
         </Button>
       </div>
     </header>

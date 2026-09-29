@@ -40,7 +40,7 @@ export default async function ChangePasswordPage() {
           <div className="bg-primary/10 text-primary mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full">
             <KeyRound className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle as="h1" className="text-2xl font-bold">
             {t("requiredTitle")}
           </CardTitle>
           <CardDescription>

@@ -182,7 +182,7 @@ export function AnalysisFootnotes({
               <button
                 type="button"
                 onClick={() => onSelect(note.at)}
-                className="hover:bg-muted/60 -mx-1.5 flex w-full items-start gap-2 rounded-md px-1.5 py-1 text-left"
+                className="hover:bg-muted/60 focus-visible:ring-ring/50 -mx-1.5 flex w-full items-start gap-2 rounded-md px-1.5 py-1 text-left outline-none focus-visible:ring-3"
               >
                 {content}
               </button>

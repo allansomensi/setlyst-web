@@ -42,6 +42,8 @@ interface LiveLyricsAreaProps {
   swipe?: SwipeOptions;
   /** Accessible name of the lyrics region (the song title). */
   label?: string;
+  /** Live Mode's high-contrast palette is on (see ChordDiagramHost). */
+  highContrast?: boolean;
 }
 
 /**
@@ -65,6 +67,7 @@ export function LiveLyricsArea({
   direction = null,
   swipe,
   label,
+  highContrast = false,
 }: LiveLyricsAreaProps) {
   const t = useTranslations("liveMode.display");
   const contentRef = useRef<HTMLDivElement>(null);
@@ -74,7 +77,11 @@ export function LiveLyricsArea({
     containerRef,
     contentRef,
     maxFontSize: fontSize,
-    contentKey: `${showChords}|${showSections}|${fontFamily}|${content}`,
+    // `songKey` too: the content element below is keyed by it, so a new
+    // song mounts a fresh, unsized element — and two songs in a row with
+    // the same text (the same chart twice in a set) would otherwise keep
+    // the unfitted one. The capo tag adds a line of its own.
+    contentKey: `${songKey}|${capo}|${showChords}|${showSections}|${fontFamily}|${content}`,
   });
 
   const overflows = fit?.overflows ?? false;
@@ -112,7 +119,11 @@ export function LiveLyricsArea({
       aria-label={label}
       data-live-fit={fitToScreen ? "" : undefined}
       className={cn(
-        "min-h-0 flex-1 outline-none",
+        // A visible ring when reached by keyboard (focus-visible: a tap or
+        // click doesn't draw one), inset so the header and footer don't
+        // clip it. `ring` is a token the high-contrast scope redefines to
+        // stage yellow, so it stays visible on black.
+        "focus-visible:ring-ring/60 min-h-0 flex-1 outline-none focus-visible:ring-2 focus-visible:ring-inset",
         // Landscape phones: keep the lyrics clear of the notch / rounded
         // corners on either side.
         "pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
@@ -154,7 +165,7 @@ export function LiveLyricsArea({
             : "mx-auto max-w-5xl",
         )}
       >
-        <ChordDiagramHost>
+        <ChordDiagramHost highContrast={highContrast}>
           <ChordProRenderer
             content={content}
             showChords={showChords}

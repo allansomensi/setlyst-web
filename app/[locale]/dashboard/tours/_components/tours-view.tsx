@@ -116,8 +116,25 @@ export function ToursView({
         </div>
       )}
 
-      {loadError && tours.length === 0 ? (
-        <LoadErrorNotice />
+      {/* Shown whenever the fetch failed, not only when that left the page
+          empty: a partial list must not pass for the whole one. */}
+      {loadError && <LoadErrorNotice />}
+
+      {loadError && tours.length === 0 ? null : tours.length > 0 &&
+        visible.length === 0 ? (
+        // There are tours, just none for this filter: "No tours yet" and
+        // a create button would be wrong here.
+        <EmptyState
+          icon={Route}
+          title={t("filterEmptyTitle")}
+          description={t("filterEmptyHint")}
+          className="bg-card rounded-xl border border-dashed"
+          actions={
+            <Button variant="outline" onClick={() => setFilter("all")}>
+              {t("showAll")}
+            </Button>
+          }
+        />
       ) : visible.length === 0 ? (
         <EmptyState
           icon={Route}

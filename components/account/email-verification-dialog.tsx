@@ -46,6 +46,7 @@ export function EmailVerificationDialog({
   autoSend = false,
 }: EmailVerificationDialogProps) {
   const t = useTranslations("emailVerification");
+  const tApi = useTranslations("apiErrors");
   const router = useAppRouter();
   const { update } = useSession();
   const [step, setStep] = useState<"intro" | "code">("intro");
@@ -63,8 +64,17 @@ export function EmailVerificationDialog({
   const send = async () => {
     setPending(true);
     setError(null);
-    const result = await sendEmailVerification();
-    setPending(false);
+    let result: Awaited<ReturnType<typeof sendEmailVerification>>;
+    try {
+      result = await sendEmailVerification();
+    } catch {
+      // A rejected action (network drop, server crash) must not leave the
+      // dialog stuck "pending", which also blocks closing it.
+      toast.error(tApi("generic"));
+      return;
+    } finally {
+      setPending(false);
+    }
     if (!result.success) {
       if (result.apiCode === "EMAIL_ALREADY_VERIFIED") {
         await finish();
@@ -92,8 +102,15 @@ export function EmailVerificationDialog({
     if (value.length !== 6 || pending) return;
     setPending(true);
     setError(null);
-    const result = await verifyEmail(value);
-    setPending(false);
+    let result: Awaited<ReturnType<typeof verifyEmail>>;
+    try {
+      result = await verifyEmail(value);
+    } catch {
+      toast.error(tApi("generic"));
+      return;
+    } finally {
+      setPending(false);
+    }
     if (!result.success) {
       if (result.apiCode === "EMAIL_ALREADY_VERIFIED") {
         await finish();

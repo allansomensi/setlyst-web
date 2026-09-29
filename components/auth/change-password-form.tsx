@@ -139,6 +139,7 @@ export function ChangePasswordForm({
           onChange={(e) => setCurrent(e.target.value)}
           disabled={isPending}
           required
+          className="h-10"
         />
       </div>
 
@@ -158,6 +159,7 @@ export function ChangePasswordForm({
               ? "new_password_requirements new_password_same"
               : "new_password_requirements"
           }
+          className="h-10"
         />
         <PasswordRequirements
           id="new_password_requirements"
@@ -183,6 +185,7 @@ export function ChangePasswordForm({
           required
           aria-invalid={mismatch}
           aria-describedby={mismatch ? "confirm_password_error" : undefined}
+          className="h-10"
         />
         {mismatch && (
           <p id="confirm_password_error" className="text-destructive text-xs">
@@ -201,12 +204,12 @@ export function ChangePasswordForm({
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {secondaryAction}
-        <Button type="submit" disabled={isPending || !canSubmit}>
-          {isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
+        <Button
+          type="submit"
+          className="h-10"
+          disabled={isPending || !canSubmit}
+        >
+          {isPending ? <Loader2 className="animate-spin" /> : <Save />}
           {isPending ? t("saving") : t("submit")}
         </Button>
       </div>

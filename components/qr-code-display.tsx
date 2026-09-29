@@ -49,7 +49,7 @@ export function QrCodeDisplay({
         size="sm"
         onClick={handleDownload}
       >
-        <Download className="mr-2 h-4 w-4" />
+        <Download className="h-4 w-4" aria-hidden />
         {t("downloadQrCode")}
       </Button>
     </div>

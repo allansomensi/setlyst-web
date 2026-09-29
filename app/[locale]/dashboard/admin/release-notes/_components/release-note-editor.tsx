@@ -223,6 +223,10 @@ export function ReleaseNoteEditor({
           result,
           result.success ? t("saveFailed") : result.error,
         );
+        // The save above may have just created (or updated) the note even
+        // though publishing failed: record it, or the next Save/Publish
+        // would POST a second copy of a note that already exists.
+        if (current !== saved) applySaved(current, t("saved"));
         return;
       }
       applySaved(result.data, notify ? t("publishedNotified") : t("published"));

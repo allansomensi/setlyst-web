@@ -168,14 +168,18 @@ export function PlanStatusBanner({
   return (
     <div
       role={status.kind === "past_due" ? "alert" : "status"}
+      // The same side padding as the content below it (dashboard layout):
+      // clear of the notch in landscape on a phone. Wraps, so on a narrow
+      // screen the buttons drop under the message instead of squeezing it
+      // into a sliver (the message keeps at least `basis-60`).
       className={cn(
-        "flex shrink-0 items-start gap-3 border-b px-4 py-2.5 text-sm md:items-center md:px-8",
+        "flex shrink-0 flex-wrap items-start gap-x-3 gap-y-2 border-b py-2.5 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] text-sm md:items-center md:px-8 md:pr-[max(2rem,env(safe-area-inset-right))]",
         tone,
       )}
     >
       <Icon className="mt-0.5 size-4 shrink-0 md:mt-0" aria-hidden />
-      <p className="min-w-0 flex-1 leading-snug">{message}</p>
-      <div className="flex shrink-0 items-center gap-1">
+      <p className="min-w-0 flex-1 basis-60 leading-snug">{message}</p>
+      <div className="ml-auto flex shrink-0 items-center gap-1">
         {status.kind === "past_due" ? (
           <Button
             size="sm"

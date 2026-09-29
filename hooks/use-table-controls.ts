@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { usePageSize } from "@/hooks/use-page-size";
 import { useSyncSearchParams } from "@/hooks/use-url-state";
 import { filterBySearch } from "@/lib/search";
+import { DASHBOARD_SCROLL_ATTR } from "@/lib/scroll-into-dashboard";
 
 export type SortDirection = "asc" | "desc" | null;
 
@@ -80,12 +81,21 @@ export function useTableControls<T>(
       result.sort((a, b) => {
         const aVal = a[key as keyof T];
         const bVal = b[key as keyof T];
+        // Blanks last in either direction, and equal to each other: a
+        // comparator that calls two blanks unequal isn't consistent, and
+        // the engine may then order the rest arbitrarily.
+        if (aVal == null && bVal == null) return 0;
         if (aVal == null) return 1;
         if (bVal == null) return -1;
         const cmp =
           typeof aVal === "number" && typeof bVal === "number"
             ? aVal - bVal
-            : String(aVal).localeCompare(String(bVal));
+            : // "Track 2" before "Track 10", and case/accents don't split
+              // "ábc" from "abc".
+              String(aVal).localeCompare(String(bVal), undefined, {
+                numeric: true,
+                sensitivity: "base",
+              });
         return direction === "asc" ? cmp : -cmp;
       });
     }
@@ -99,6 +109,26 @@ export function useTableControls<T>(
   // or a search narrowing the results, would otherwise leave the table on
   // a page that no longer exists — an empty table with no way to tell why.
   const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
+
+  // Going to another page used to leave the view at the bottom, where the
+  // pagination is, instead of at the first row of the new page. The
+  // dashboard scrolls inside its own container (see
+  // dashboard-scroll-area.tsx), not the window, so that's what moves.
+  const changePage = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      if (page === currentPage || typeof document === "undefined") return;
+      const container = document.querySelector(`[${DASHBOARD_SCROLL_ATTR}]`);
+      if (!(container instanceof HTMLElement) || container.scrollTop === 0) {
+        return;
+      }
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      container.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    },
+    [currentPage],
+  );
 
   const setPageSize = useCallback(
     (size: number) => {
@@ -131,7 +161,7 @@ export function useTableControls<T>(
     processedData,
     currentPage,
     totalPages,
-    setCurrentPage,
+    setCurrentPage: changePage,
     totalItems,
     pageSize: itemsPerPage,
     setPageSize,

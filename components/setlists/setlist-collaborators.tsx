@@ -96,9 +96,15 @@ export function SetlistCollaborators({
         type="button"
         onClick={() => setOpen(true)}
         className="focus-visible:ring-ring hover:bg-muted/60 flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        aria-label={t("openList")}
+        // The visible text ("Shared with 3 people") is the name, so speech
+        // input can target what is on screen; an aria-label replaced it.
+        // What the button does goes in the description instead.
+        title={t("openList")}
+        aria-haspopup="dialog"
       >
-        <span className="flex -space-x-2">
+        {/* Decorative here: the names are in the list it opens, and read
+            out one by one they'd bury the count. */}
+        <span className="flex -space-x-2" aria-hidden>
           {people.slice(0, 5).map((person) => (
             <UserAvatar
               key={person.user_id}

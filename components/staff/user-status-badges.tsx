@@ -1,7 +1,7 @@
 "use client";
 
 import { Ban, KeyRound, PowerOff } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { formatApiDate } from "@/lib/dates";
 import type { User } from "@/types/api";
@@ -18,6 +18,9 @@ type StatusFields = Pick<
 export function UserStatusBadges({ user }: { user: StatusFields }) {
   const t = useTranslations("staff.status");
   const locale = useLocale();
+  // The viewer's zone (the `tz` cookie via next-intl), not the runtime's:
+  // server (UTC) and browser would otherwise disagree near midnight.
+  const timeZone = useTimeZone();
 
   const badges = [];
 
@@ -26,7 +29,12 @@ export function UserStatusBadges({ user }: { user: StatusFields }) {
       <Badge key="banned" variant="destructive" title={t("bannedHint")}>
         <Ban />
         {user.banned_until
-          ? t("bannedUntil", { date: formatApiDate(user.banned_until, locale) })
+          ? t("bannedUntil", {
+              date: formatApiDate(user.banned_until, locale, {
+                dateStyle: "medium",
+                timeZone,
+              }),
+            })
           : t("bannedPermanent")}
       </Badge>,
     );

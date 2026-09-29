@@ -18,6 +18,7 @@ import { PlatformRoleBadge } from "@/components/role-badge";
 import { QuotaUsageList } from "@/components/quota-usage-list";
 import { AuditEntry } from "@/components/staff/audit-entry";
 import { UserStatusBadges } from "@/components/staff/user-status-badges";
+import { UserAvatar } from "@/components/user-avatar";
 import { ViewAsButton } from "@/components/impersonation/view-as-button";
 import { redirect } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
@@ -143,14 +144,16 @@ export default async function UserDetailPage({ params }: { params: Params }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <div
-            className="bg-muted text-muted-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-xl font-semibold uppercase"
-            aria-hidden
-          >
-            {user.username.slice(0, 1)}
-          </div>
+          {/* The shared avatar: the photo when there is one, otherwise the
+              same initials-on-a-hue shown for this person everywhere else. */}
+          <UserAvatar
+            userId={user.id}
+            name={fullName || user.username}
+            avatarUrl={user.avatar_url}
+            size="lg"
+          />
           <div className="min-w-0 space-y-1.5">
-            <h1 className="truncate text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
               {fullName || user.username}
             </h1>
             <p className="text-muted-foreground truncate text-sm">

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -149,32 +150,53 @@ export function ListSkeleton({
  * whole viewport exactly like the viewer does (fixed, above the dashboard
  * chrome), so opening Live Mode goes straight from the dashboard to a
  * performance-shaped screen instead of flashing a dashboard table first.
+ *
+ * `footer`: the setlist viewer's prev/next bar. The single-song viewer has
+ * none, so its loader leaves it out.
  */
-export function LiveModeSkeleton() {
+export function LiveModeSkeleton({ footer = true }: { footer?: boolean }) {
+  const t = useTranslations("common");
   // Varying line lengths read as lyrics rather than as a table.
   const lines = [72, 58, 80, 44, 0, 66, 76, 52, 60, 0, 70, 48, 78, 56];
 
+  // Header, lyrics and footer use the viewer's own padding (safe-area
+  // insets included, see live-header.tsx and live-mode-viewer.tsx), so
+  // nothing shifts when the real screen replaces this one — on a phone
+  // with a notch the header used to drop by the status bar's height and
+  // the footer appear from nowhere.
   return (
     <div
+      role="status"
       className="bg-background fixed inset-0 z-50 flex flex-col overflow-hidden"
-      aria-busy="true"
-      aria-live="polite"
     >
-      <div className="bg-card/50 flex shrink-0 items-center justify-between border-b p-2 px-4 md:p-3 md:px-6">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-lg" />
+      <span className="sr-only">{t("loading")}</span>
+
+      <div
+        aria-hidden
+        className={cn(
+          "bg-card/95 flex shrink-0 items-center justify-between gap-2 border-b md:gap-4",
+          "[--px:0.5rem] [--py:0.5rem] md:[--px:1.5rem] md:[--py:0.75rem]",
+          "pt-[max(var(--py),env(safe-area-inset-top))] pb-(--py)",
+          "pr-[max(var(--px),env(safe-area-inset-right))] pl-[max(var(--px),env(safe-area-inset-left))]",
+        )}
+      >
+        <div className="flex items-center gap-1 md:gap-3">
+          <Skeleton className="h-10 w-10 rounded-lg" />
           <div className="space-y-1.5">
-            <Skeleton className="h-6 w-48 md:h-7 md:w-64" />
-            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-5 w-40 md:h-7 md:w-64" />
+            <Skeleton className="h-3 w-28" />
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-7 w-16 rounded-full md:h-9 md:w-20" />
+        <div className="flex items-center gap-1.5 md:gap-2">
           <Skeleton className="h-7 w-12 rounded-full md:h-9 md:w-16" />
+          <Skeleton className="h-10 w-10 rounded-lg lg:w-28" />
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden p-4 md:p-12">
+      <div
+        aria-hidden
+        className="min-h-0 flex-1 overflow-hidden pt-(--pad) pr-[max(var(--pad),env(safe-area-inset-right))] pl-[max(var(--pad),env(safe-area-inset-left))] [--pad:1rem] md:[--pad:3rem]"
+      >
         <div className="mx-auto max-w-5xl space-y-4">
           {lines.map((width, i) =>
             width === 0 ? (
@@ -191,6 +213,24 @@ export function LiveModeSkeleton() {
           )}
         </div>
       </div>
+
+      {/* The footer: progress line, prev / next song / next. */}
+      {footer && (
+        <div
+          aria-hidden
+          className="bg-card/95 shrink-0 border-t pb-[env(safe-area-inset-bottom)]"
+        >
+          <div className="h-1" />
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] md:grid-cols-3 md:gap-4 md:py-4 md:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1rem,env(safe-area-inset-left))] [@media(max-height:500px)]:py-1">
+            <Skeleton className="h-12 w-14 rounded-lg sm:w-24 md:h-14 md:w-32 [@media(max-height:500px)]:h-10" />
+            <div className="flex flex-col items-center gap-1.5">
+              <Skeleton className="h-3 w-20 [@media(max-height:500px)]:hidden" />
+              <Skeleton className="h-4 w-32 md:h-6 md:w-48" />
+            </div>
+            <Skeleton className="h-12 w-14 justify-self-end rounded-lg sm:w-24 md:h-14 md:w-32 [@media(max-height:500px)]:h-10" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

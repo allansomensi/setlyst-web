@@ -154,7 +154,9 @@ export function ForgotPasswordFlow() {
           <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="size-6" />
           </div>
-          <CardTitle className="text-2xl font-bold">{t("doneTitle")}</CardTitle>
+          <CardTitle as="h1" className="text-2xl font-bold">
+            {t("doneTitle")}
+          </CardTitle>
           <CardDescription>{t("doneDescription")}</CardDescription>
         </CardHeader>
         <CardFooter className="justify-center">
@@ -173,7 +175,7 @@ export function ForgotPasswordFlow() {
           <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
             <MailCheck className="size-6" />
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle as="h1" className="text-2xl font-bold">
             {t("resetTitle")}
           </CardTitle>
           <CardDescription className="break-words">
@@ -272,11 +274,7 @@ export function ForgotPasswordFlow() {
             )}
 
             <Button type="submit" className="h-10 w-full" disabled={!canReset}>
-              {pending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <KeyRound className="mr-2 h-4 w-4" />
-              )}
+              {pending ? <Loader2 className="animate-spin" /> : <KeyRound />}
               {pending ? t("saving") : t("submitReset")}
             </Button>
           </form>
@@ -291,9 +289,12 @@ export function ForgotPasswordFlow() {
               setStep("identify");
               setError(null);
               setResent(false);
+              setCode("");
+              setPassword("");
+              setConfirm("");
             }}
           >
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            <ArrowLeft />
             {t("changeIdentifier")}
           </Button>
         </CardFooter>
@@ -307,7 +308,9 @@ export function ForgotPasswordFlow() {
         <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
           <KeyRound className="size-6" />
         </div>
-        <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
+        <CardTitle as="h1" className="text-2xl font-bold">
+          {t("title")}
+        </CardTitle>
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -349,7 +352,7 @@ export function ForgotPasswordFlow() {
             className="h-10 w-full"
             disabled={pending || !identifier.trim() || identifierCooldown > 0}
           >
-            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {pending && <Loader2 className="animate-spin" />}
             {identifierCooldown > 0
               ? t("resendIn", { time: formatCountdown(identifierCooldown) })
               : t("sendCode")}
@@ -361,7 +364,7 @@ export function ForgotPasswordFlow() {
               link: (chunks) => (
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="text-primary font-medium hover:underline"
+                  className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium outline-none hover:underline focus-visible:ring-3"
                 >
                   {chunks}
                 </a>
@@ -373,7 +376,7 @@ export function ForgotPasswordFlow() {
       <CardFooter className="justify-center border-t py-3">
         <Button asChild variant="ghost" size="sm">
           <Link href="/login">
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            <ArrowLeft />
             {t("back")}
           </Link>
         </Button>

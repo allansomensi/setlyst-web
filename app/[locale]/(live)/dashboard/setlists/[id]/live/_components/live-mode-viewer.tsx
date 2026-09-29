@@ -265,8 +265,11 @@ export function LiveModeViewer({
 
   if (!currentSong) {
     return (
-      <div className="bg-background fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 p-4 text-center">
-        <h2 className="text-xl font-semibold md:text-2xl">{t("noSongs")}</h2>
+      // Full screen like the viewer, so the same safe-area insets apply
+      // (a PWA with a translucent status bar, landscape notches). Its
+      // heading is the page's only one, hence h1.
+      <div className="bg-background fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] text-center">
+        <h1 className="text-xl font-semibold md:text-2xl">{t("noSongs")}</h1>
         <Button asChild>
           <Link href={`/dashboard/setlists/${setlist.id}`}>{t("back")}</Link>
         </Button>
@@ -277,6 +280,11 @@ export function LiveModeViewer({
   // Base: 1.5rem (~text-2xl). Scaled by zoomLevel.
   const baseFontSize = 1.5 * controls.zoomLevel;
 
+  const position = t("songPosition", {
+    current: safeIndex + 1,
+    total: songs.length,
+  });
+
   return (
     <div
       data-live-contrast={display.highContrast ? "high" : undefined}
@@ -285,13 +293,7 @@ export function LiveModeViewer({
       <LiveHeader
         closeHref={`/dashboard/setlists/${setlist.id}`}
         title={titleWithVersion(currentSong)}
-        subtitle={`${setlist.is_repertoire ? tRepertoire("name") : setlist.title} · ${t(
-          "songPosition",
-          {
-            current: safeIndex + 1,
-            total: songs.length,
-          },
-        )}`}
+        subtitle={`${setlist.is_repertoire ? tRepertoire("name") : setlist.title} · ${position}`}
         isOnline={isOnline}
         tempo={currentSong.tempo}
         playedKey={transpose.key}
@@ -303,6 +305,15 @@ export function LiveModeViewer({
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
+      {/* Says which song is now on screen when it changes — by swipe, a
+          pedal or the footer buttons, none of which move focus — so a
+          screen-reader user isn't left guessing. One element that stays
+          mounted, with only its text changing: a live region inserted
+          together with its content is often not announced at all. */}
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {`${titleWithVersion(currentSong)}, ${position}`}
+      </p>
+
       <div className="relative flex min-h-0 flex-1 flex-col">
         <LiveLyricsArea
           containerRef={scrollContainerRef}
@@ -310,6 +321,7 @@ export function LiveModeViewer({
           capo={currentSong.capo}
           showChords={display.showChords}
           showSections={display.showSections}
+          highContrast={display.highContrast}
           fontFamily={display.fontFamily}
           fontSize={baseFontSize}
           fitToScreen={fitToScreen}
@@ -354,21 +366,34 @@ export function LiveModeViewer({
       />
 
       {/* Footer — solid rather than blurred, like the header: no per-frame
-          blur of the lyrics scrolling behind it. */}
+          blur of the lyrics scrolling behind it.
+
+          On short screens (a phone in landscape, ~400px tall once the
+          browser bars are counted) the footer gives room back to the
+          lyrics: tighter padding, shorter buttons, and no block bar or
+          "next song" caption — the next title itself stays. The
+          `[@media(max-height:500px)]` variants sort after `md:`, so they
+          also win on landscape phones wide enough for `md`. */}
       <footer className="bg-card/95 shrink-0 border-t pb-[env(safe-area-inset-bottom)]">
         <Progress
           value={progress}
+          aria-label={t("progressLabel")}
+          getValueLabel={() => position}
           className="h-1 rounded-none bg-transparent"
         />
-        {blockPosition && <LiveBlockBar position={blockPosition} />}
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] md:grid-cols-3 md:gap-4 md:py-4 md:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1rem,env(safe-area-inset-left))]">
+        {blockPosition && (
+          <div className="[@media(max-height:500px)]:hidden">
+            <LiveBlockBar position={blockPosition} />
+          </div>
+        )}
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 py-2 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] md:grid-cols-3 md:gap-4 md:py-4 md:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1rem,env(safe-area-inset-left))] [@media(max-height:500px)]:py-1">
           <div>
             <Button
               variant="outline"
               size="lg"
               onClick={handlePrev}
               disabled={!canPrev}
-              className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg"
+              className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg [@media(max-height:500px)]:h-10"
             >
               <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
               <span className="sr-only sm:not-sr-only">{t("prev")}</span>
@@ -376,7 +401,13 @@ export function LiveModeViewer({
           </div>
 
           <div className="overflow-hidden px-1 text-center">
-            <NextLabel transition={transition} />
+            {/* No "Next song" caption over "End of show": there isn't one. */}
+            {nextSong && (
+              <NextLabel
+                transition={transition}
+                className="[@media(max-height:500px)]:hidden"
+              />
+            )}
             <p className="truncate text-sm font-bold md:text-lg">
               {nextSong ? titleWithVersion(nextSong) : t("endOfShow")}
             </p>
@@ -387,7 +418,7 @@ export function LiveModeViewer({
               size="lg"
               onClick={handleNext}
               disabled={!canNext}
-              className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg"
+              className="h-12 gap-1 px-4 text-sm font-bold md:h-14 md:gap-2 md:px-8 md:text-lg [@media(max-height:500px)]:h-10"
             >
               <span className="sr-only sm:not-sr-only">{t("next")}</span>
               <ChevronRight className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
@@ -452,10 +483,18 @@ export function LiveModeViewer({
  * What sits above the next song's title: plain "Next song", or a heads-up
  * that a break comes first and/or that the next song opens a new block.
  */
-function NextLabel({ transition }: { transition: LiveTransition | undefined }) {
+function NextLabel({
+  transition,
+  className,
+}: {
+  transition: LiveTransition | undefined;
+  className?: string;
+}) {
   const t = useTranslations("liveMode");
-  const base =
-    "flex items-center justify-center gap-1 text-[11px] font-bold tracking-[0.2em] uppercase md:text-xs";
+  const base = cn(
+    "flex items-center justify-center gap-1 text-[11px] font-bold tracking-[0.2em] uppercase md:text-xs",
+    className,
+  );
 
   if (!transition) {
     return <p className={cn(base, "text-muted-foreground")}>{t("nextSong")}</p>;

@@ -70,16 +70,32 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      // A Radix Select open inside the panel handles its own Escape (and
+      // marks it as handled): only close the menu when nothing else did.
+      if (event.key === "Escape" && !event.defaultPrevented) setOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // The page behind the panel must not scroll along with it, and the
+    // panel has no reason to exist once the viewport grows into the
+    // desktop header (rotating a tablet).
+    const { overflow } = document.documentElement.style;
+    document.documentElement.style.overflow = "hidden";
+    const desktop = window.matchMedia("(min-width: 64rem)");
+    const onResize = () => {
+      if (desktop.matches) setOpen(false);
+    };
+    desktop.addEventListener("change", onResize);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.documentElement.style.overflow = overflow;
+      desktop.removeEventListener("change", onResize);
+    };
   }, [open]);
 
   const close = () => setOpen(false);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <Button
         variant="ghost"
         size="icon-lg"
@@ -94,10 +110,21 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
         {open ? <X className="size-5" /> : <Menu className="size-5" />}
       </Button>
 
+      {/* Tapping outside the panel closes it, like any other overlay.
+          Positioned from the header rather than `fixed`: the header's
+          backdrop-filter makes it the containing block of fixed
+          descendants anyway, so this is what `fixed` would resolve to. */}
+      {open && (
+        <div
+          aria-hidden
+          onClick={close}
+          className="animate-in fade-in-0 absolute inset-x-0 top-full z-30 h-dvh bg-black/30 duration-150 motion-reduce:animate-none"
+        />
+      )}
       <div
         id={panelId}
         hidden={!open}
-        className="bg-background absolute inset-x-0 top-full max-h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain border-b pb-[env(safe-area-inset-bottom)] shadow-lg"
+        className="bg-background animate-in fade-in-0 slide-in-from-top-2 absolute inset-x-0 top-full z-40 max-h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain border-b pb-[env(safe-area-inset-bottom)] shadow-lg duration-150 motion-reduce:animate-none"
       >
         <nav
           aria-label={t("mainNav")}
@@ -144,7 +171,7 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4">
-            <LocaleSwitcher />
+            <LocaleSwitcher className="min-w-0 flex-1 sm:flex-none" />
             <ThemeToggle />
           </div>
         </nav>

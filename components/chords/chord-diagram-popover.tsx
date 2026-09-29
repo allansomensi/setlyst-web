@@ -113,9 +113,17 @@ function chordTarget(
 export function ChordDiagramHost({
   children,
   className,
+  highContrast = false,
 }: {
   children: React.ReactNode;
   className?: string;
+  /**
+   * Live Mode's high-contrast palette is scoped to its root element, and
+   * the popover renders in a portal outside it: the scope has to be
+   * restated on the popover itself, or the diagram would pop up in the
+   * ordinary theme over a black-and-white chart.
+   */
+  highContrast?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [target, setTarget] = useState<Target | null>(null);
@@ -175,6 +183,7 @@ export function ChordDiagramHost({
             side="bottom"
             align="center"
             collisionPadding={12}
+            data-live-contrast={highContrast ? "high" : undefined}
             className="w-[17.5rem] p-3"
             onOpenAutoFocus={(event) => event.preventDefault()}
           >

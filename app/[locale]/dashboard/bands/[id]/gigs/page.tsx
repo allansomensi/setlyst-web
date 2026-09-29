@@ -92,6 +92,8 @@ export default async function BandGigsPage({
         personalSetlists={[]}
         bands={bandOptions}
         fixedBandId={id}
+        // Members without `manage_setlists` can't create shows here.
+        canCreate={canManage}
       />
     </div>
   );

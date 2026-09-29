@@ -324,6 +324,16 @@ export function GigDialog({
                       {s.is_repertoire ? tRepertoire("name") : s.title}
                     </option>
                   ))}
+                  {/* Linked to a setlist that isn't among the options (one
+                      shared with this account, not owned): without its own
+                      option the select read "No setlist" while the form
+                      still held the link. Same fallback as the tour. */}
+                  {form.setlistId &&
+                    !setlistOptions.some((s) => s.id === form.setlistId) && (
+                      <option value={form.setlistId}>
+                        {t("currentSetlist")}
+                      </option>
+                    )}
                 </NativeSelect>
               </div>
 

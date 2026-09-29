@@ -35,6 +35,7 @@ import { sanitizeFilename, saveBlob } from "@/lib/download";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
+import { useOfflineDisabled } from "@/components/offline-disabled";
 
 interface GigActionsProps {
   gig: Gig;
@@ -57,6 +58,9 @@ export function GigActions({
   const tCommon = useTranslations("common");
   const tTrash = useTranslations("trash");
   const tFiles = useTranslations("sharedFiles");
+  // Sharing, exporting, editing and deleting all need the API; "Add to
+  // calendar" is built on the device and stays available offline.
+  const offlineDisabled = useOfflineDisabled();
   // The gig with its setlist and songs, for someone else to import.
   const { exporting, exportFile } = useSharedFileExport("gig", gig.id);
 
@@ -85,8 +89,8 @@ export function GigActions({
         );
         router.push("/dashboard/gigs");
       } else {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
-        setIsDeleteOpen(false);
       }
     });
   };
@@ -126,6 +130,7 @@ export function GigActions({
           size="lg"
           className="gap-2"
           onClick={() => setIsShareOpen(true)}
+          {...offlineDisabled}
         >
           <Share2 className="h-4 w-4" aria-hidden />
           {t("shareBtn")}
@@ -135,8 +140,8 @@ export function GigActions({
           size="lg"
           className="gap-2"
           onClick={() => void exportFile()}
-          disabled={exporting}
-          title={tFiles("exportHint.gig")}
+          disabled={exporting || offlineDisabled.disabled}
+          title={offlineDisabled.title ?? tFiles("exportHint.gig")}
         >
           {exporting ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -170,7 +175,10 @@ export function GigActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-72">
-          <DropdownMenuItem onClick={() => setIsShareOpen(true)}>
+          <DropdownMenuItem
+            onClick={() => setIsShareOpen(true)}
+            disabled={offlineDisabled.disabled}
+          >
             <Share2 className="mr-2 h-4 w-4" />
             {t("shareBtn")}
           </DropdownMenuItem>
@@ -181,7 +189,7 @@ export function GigActions({
           <DropdownMenuItem
             className="items-start"
             onClick={() => void exportFile()}
-            disabled={exporting}
+            disabled={exporting || offlineDisabled.disabled}
           >
             <FileJson className="mt-0.5 mr-2 h-4 w-4 shrink-0" />
             <span className="min-w-0">
@@ -196,6 +204,7 @@ export function GigActions({
               setEditSession((n) => n + 1);
               setIsEditOpen(true);
             }}
+            disabled={offlineDisabled.disabled}
           >
             <Pencil className="mr-2 h-4 w-4" />
             {tCommon("edit")}
@@ -204,6 +213,7 @@ export function GigActions({
           <DropdownMenuItem
             onClick={() => setIsDeleteOpen(true)}
             variant="destructive"
+            disabled={offlineDisabled.disabled}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {tCommon("delete")}

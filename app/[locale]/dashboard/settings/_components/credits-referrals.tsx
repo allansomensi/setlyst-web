@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Check, Coins, Copy, Gift, Loader2, Share2, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
+import { LoadErrorNotice } from "@/components/load-error-notice";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useMounted } from "@/hooks/use-mounted";
 import {
@@ -80,7 +81,15 @@ function usePagedList<T>(
     }
   };
 
-  return { items, hasMore: page < totalPages, loading, loadMore };
+  return {
+    items,
+    hasMore: page < totalPages,
+    loading,
+    loadMore,
+    // The server-side fetch failed (null, not an empty page): "nothing
+    // here yet" would be wrong, so the list shows a load error instead.
+    failed: initial === null,
+  };
 }
 
 // ---------------------------------------------------------------------
@@ -103,6 +112,7 @@ export function CreditsCard({
   const t = useTranslations("billing.credits");
   const tApi = useTranslations("apiErrors");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const router = useAppRouter();
   const [confirming, setConfirming] = useState<CreditReward | null>(null);
   const [pending, setPending] = useState(false);
@@ -197,7 +207,9 @@ export function CreditsCard({
 
         <div className="space-y-2">
           <p className="text-sm font-medium">{t("historyTitle")}</p>
-          {history.items.length === 0 ? (
+          {history.failed && history.items.length === 0 ? (
+            <LoadErrorNotice />
+          ) : history.items.length === 0 ? (
             <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
               {t("empty")}
             </p>
@@ -215,7 +227,10 @@ export function CreditsCard({
                   {history.items.map((entry) => (
                     <TableRow key={entry.id}>
                       <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {formatApiDate(entry.created_at, locale)}
+                        {formatApiDate(entry.created_at, locale, {
+                          dateStyle: "medium",
+                          timeZone,
+                        })}
                       </TableCell>
                       <TableCell className="whitespace-normal">
                         {CREDIT_REASONS.includes(entry.reason)
@@ -300,6 +315,7 @@ export function ReferralCard({
 }) {
   const t = useTranslations("billing.referral");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [copied, setCopied] = useState(false);
   const list = usePagedList(initialReferrals, loadReferrals);
   const mounted = useMounted();
@@ -417,7 +433,9 @@ export function ReferralCard({
             <Users className="size-4" />
             {t("listTitle")}
           </p>
-          {list.items.length === 0 ? (
+          {list.failed && list.items.length === 0 ? (
+            <LoadErrorNotice />
+          ) : list.items.length === 0 ? (
             <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
               {t("empty")}
             </p>
@@ -448,11 +466,17 @@ export function ReferralCard({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground hidden sm:table-cell">
-                        {formatApiDate(entry.created_at, locale)}
+                        {formatApiDate(entry.created_at, locale, {
+                          dateStyle: "medium",
+                          timeZone,
+                        })}
                       </TableCell>
                       <TableCell className="text-muted-foreground hidden sm:table-cell">
                         {entry.rewarded_at
-                          ? formatApiDate(entry.rewarded_at, locale)
+                          ? formatApiDate(entry.rewarded_at, locale, {
+                              dateStyle: "medium",
+                              timeZone,
+                            })
                           : ""}
                       </TableCell>
                     </TableRow>

@@ -59,6 +59,11 @@ interface TrashViewProps {
   items: TrashItem[];
   meta: PaginationMeta | null;
   loadError: boolean;
+  /**
+   * Items in the whole scope (every type), when a type filter is on and
+   * the page could count them; null when unknown.
+   */
+  scopeTotal?: number | null;
 }
 
 /**
@@ -74,6 +79,7 @@ export function TrashView({
   items,
   meta,
   loadError,
+  scopeTotal = null,
 }: TrashViewProps) {
   const t = useTranslations("trash");
   const tCommon = useTranslations("common");
@@ -86,6 +92,10 @@ export function TrashView({
   const [isPending, startTransition] = useTransition();
 
   const total = meta?.total_items ?? items.length;
+  // "Empty trash" ignores the type filter (its dialog says so), so it is
+  // off only when the whole scope is empty, not when the filtered view is.
+  // Filtered with an unknown scope count: left on, the dialog confirms.
+  const nothingToEmpty = type ? scopeTotal === 0 : total === 0;
 
   const go = (next: {
     band?: string | null;
@@ -99,7 +109,9 @@ export function TrashView({
     if (kind) params.set("type", kind);
     if (next.page && next.page > 1) params.set("page", String(next.page));
     const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
+    // A filter or page change, not a new place: replace, so Back leaves
+    // the trash instead of stepping through every filter tried.
+    router.replace(query ? `${pathname}?${query}` : pathname);
   };
 
   // The last item on a later page is gone: step back a page instead of
@@ -159,7 +171,9 @@ export function TrashView({
     <div className="w-full space-y-6 pb-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t("title")}
+          </h1>
           <p className="text-muted-foreground mt-1 max-w-xl">
             {t("retention")}
           </p>
@@ -168,7 +182,7 @@ export function TrashView({
           variant="outline"
           className="text-destructive hover:text-destructive gap-2"
           onClick={() => setConfirmEmpty(true)}
-          disabled={total === 0 || isPending}
+          disabled={nothingToEmpty || isPending}
         >
           <Trash2 className="h-4 w-4" aria-hidden />
           {t("empty")}
@@ -433,7 +447,8 @@ function ScopeLink({
     <button
       type="button"
       onClick={onClick}
-      aria-current={active ? "page" : undefined}
+      // A toggle among filters of this page, not a link to another page.
+      aria-pressed={active}
       className={cn(
         "focus-visible:ring-ring/50 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:ring-3 focus-visible:outline-none",
         active

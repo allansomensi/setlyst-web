@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import {
+  SIDEBAR_COLLAPSED_COOKIE,
+  SIDEBAR_COOKIE_MAX_AGE,
+} from "@/lib/sidebar-cookie";
 import { Link } from "@/components/nav-link";
 import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/routing";
-import { SidebarLinks } from "./sidebar-links";
+import { SidebarLinks, isActive } from "./sidebar-links";
 import { AppLogo } from "@/components/app-logo";
 import { NotificationBell } from "./notification-bell";
 import { NotificationBellErrorBoundary } from "./notification-bell-error-boundary";
@@ -27,18 +31,47 @@ export interface SidebarUser {
   avatarUrl?: string | null;
 }
 
+/**
+ * Whether the sidebar is folded to icons, remembered per device in a
+ * cookie (`SIDEBAR_COLLAPSED_COOKIE`) rather than localStorage: the
+ * dashboard layout reads it on the server, so the page arrives already
+ * folded, with no expanded frame and no slide on every load, and no
+ * hydration mismatch, since server and client render the same state.
+ */
+function useSidebarCollapsed(initial: boolean) {
+  const [collapsed, setCollapsedState] = useState(initial);
+  const setCollapsed = useCallback((next: boolean) => {
+    setCollapsedState(next);
+    try {
+      const secure = window.location.protocol === "https:" ? "; Secure" : "";
+      document.cookie = `${SIDEBAR_COLLAPSED_COOKIE}=${next ? "1" : "0"}; Path=/; Max-Age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+    } catch {
+      // Cookies blocked: applies to this page only.
+    }
+  }, []);
+  return [collapsed, setCollapsed] as const;
+}
+
+/** The focus ring every control in the sidebar shares (as NotificationBell). */
+const FOCUS_RING =
+  "focus-visible:ring-ring/50 outline-none focus-visible:ring-3";
+
 export function Sidebar({
   user,
   planStatus = null,
+  initialCollapsed = false,
 }: {
   user?: SidebarUser;
   planStatus?: AccountPlanStatus | null;
+  /** The remembered fold state, read from the cookie by the layout. */
+  initialCollapsed?: boolean;
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useSidebarCollapsed(initialCollapsed);
   const t = useTranslations("nav");
   const tRoles = useTranslations("roles");
   const pathname = usePathname();
   const isAbout = pathname.startsWith("/dashboard/about");
+  const isSettings = isActive(pathname, "/dashboard/settings");
   const role = user?.role ?? "user";
 
   return (
@@ -49,15 +82,21 @@ export function Sidebar({
       )}
     >
       <button
+        type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
         aria-label={isCollapsed ? t("expandSidebar") : t("collapseSidebar")}
+        // Says whether the sidebar is open now, not just what a press does.
+        aria-expanded={!isCollapsed}
         title={isCollapsed ? t("expandSidebar") : t("collapseSidebar")}
-        className="bg-card text-muted-foreground hover:bg-muted hover:text-foreground absolute top-6 -right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm transition-colors"
+        className={cn(
+          "bg-card text-muted-foreground hover:bg-muted hover:text-foreground absolute top-6 -right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm transition-colors",
+          FOCUS_RING,
+        )}
       >
         {isCollapsed ? (
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" aria-hidden />
         ) : (
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" aria-hidden />
         )}
       </button>
 
@@ -140,9 +179,17 @@ export function Sidebar({
             href="/dashboard/settings"
             title={t("settings")}
             aria-label={t("settings")}
-            className="text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+            // Marked like the nav links when on any Settings page.
+            aria-current={isSettings ? "page" : undefined}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-md transition-colors",
+              FOCUS_RING,
+              isSettings
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
+            )}
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="h-4 w-4" aria-hidden />
           </Link>
           <NotificationBellErrorBoundary>
             <NotificationBell isCollapsed={isCollapsed} />

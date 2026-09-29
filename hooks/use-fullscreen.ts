@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 /**
  * Tracks and toggles document fullscreen.
@@ -17,24 +23,48 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
  * implement it on non-video elements at all). Left unhandled that surfaces
  * as an unhandled promise rejection; here it just means the screen stays
  * as it is.
+ *
+ * Fullscreen belongs to the document, not to the screen that asked for it:
+ * leaving Live Mode through its close button is a client-side navigation,
+ * so the dashboard used to open still in fullscreen, with no control on it
+ * to leave. Fullscreen this hook entered is left again on unmount; one the
+ * person entered themselves (F11, the browser's menu) is left alone.
  */
 export function useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Whether the fullscreen currently on was requested from here.
+  const enteredHere = useRef(false);
 
   useEffect(() => {
-    const syncState = () =>
-      setIsFullscreen(Boolean(document.fullscreenElement));
+    const syncState = () => {
+      const active = Boolean(document.fullscreenElement);
+      // Left some other way (Escape, the browser's own control): nothing of
+      // ours to undo any more.
+      if (!active) enteredHere.current = false;
+      setIsFullscreen(active);
+    };
 
     syncState();
     document.addEventListener("fullscreenchange", syncState);
-    return () => document.removeEventListener("fullscreenchange", syncState);
+    return () => {
+      document.removeEventListener("fullscreenchange", syncState);
+      if (enteredHere.current && document.fullscreenElement) {
+        enteredHere.current = false;
+        void document.exitFullscreen().catch(() => {});
+      }
+    };
   }, []);
 
   const toggle = useCallback(() => {
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => {});
     } else {
-      void document.documentElement.requestFullscreen().catch(() => {});
+      void document.documentElement
+        .requestFullscreen()
+        .then(() => {
+          enteredHere.current = true;
+        })
+        .catch(() => {});
     }
   }, []);
 

@@ -37,11 +37,11 @@ export async function PlanComparison({
   );
 
   const groupHeader = (label: string) => (
-    <tr className="bg-muted/60">
+    <tr>
       <th
         scope="colgroup"
         colSpan={plans.length + 1}
-        className="bg-muted/60 sticky left-0 px-4 py-2.5 text-left text-xs font-semibold tracking-wider uppercase"
+        className="bg-muted/60 px-4 py-2.5 text-left text-xs font-semibold tracking-wider uppercase"
       >
         {label}
       </th>

@@ -55,12 +55,14 @@ export function SortableBlockRow({
           <Layers className="text-primary h-4 w-4" aria-hidden />
         )}
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2 py-0.5">
+      {/* `w-full max-w-0` as in a song row: without a width cap the cell
+          grows with a long name and `truncate` never kicks in. */}
+      <TableCell className="w-full max-w-0">
+        <div className="flex min-w-0 items-center gap-2 py-0.5">
           <span className="text-primary truncate font-semibold tracking-wide uppercase">
             {row.name}
           </span>
-          <span className="text-muted-foreground text-xs font-normal normal-case">
+          <span className="text-muted-foreground shrink-0 text-xs font-normal normal-case">
             {t("blockLabel")}
           </span>
         </div>
@@ -72,6 +74,7 @@ export function SortableBlockRow({
         {isReordering && move && <MoveButtons label={label} move={move} />}
         {!isReordering && canEdit && (
           <MarkerActions
+            name={label}
             onEdit={onEdit}
             onDelete={onDelete}
             disabled={actionsDisabled}

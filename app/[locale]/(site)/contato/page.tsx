@@ -47,7 +47,7 @@ function mailto(email: string, subject?: string) {
 }
 
 const linkClass =
-  "text-primary font-medium underline-offset-4 hover:underline break-all";
+  "text-primary focus-visible:ring-ring/50 rounded-sm font-medium break-all underline-offset-4 outline-none hover:underline focus-visible:ring-3";
 
 /**
  * Contact page (Decreto 7.962/2013 art. 2º and art. 4º, V; LGPD art. 41;

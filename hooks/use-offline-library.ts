@@ -30,15 +30,33 @@ interface ListOptions<T> {
   loadError?: boolean;
 }
 
+interface FilteredListOptions<T> extends ListOptions<T> {
+  /**
+   * Keeps only the cached rows this screen lists. The mirror holds every
+   * setlist/show the account can see (personal and every band's), while a
+   * band's own page is server-rendered with that band's alone, so offline
+   * it would otherwise list everyone else's too. Applied to the cached
+   * copy only: `fallback` is already what the page asked the server for.
+   *
+   * Read when the cache is (re)queried, so it must describe the same set
+   * for the life of the screen (e.g. "band X"), not change per render.
+   */
+  filter?: (record: T) => boolean;
+}
+
 export function useOfflineSetlists({
   fallback,
   loadError,
-}: ListOptions<Setlist>) {
+  filter,
+}: FilteredListOptions<Setlist>) {
   return useOfflineRecords<Setlist>({
     read: () =>
       offlineDb.setlists
         .toArray()
-        .then((rows) => rows.map((row) => row.setlist))
+        .then((rows) => {
+          const setlists = rows.map((row) => row.setlist);
+          return filter ? setlists.filter(filter) : setlists;
+        })
         .catch(() => undefined),
     write: (setlists) =>
       offlineDb.setlists.bulkUpdate(
@@ -68,12 +86,19 @@ export function useOfflineSongs({ fallback, loadError }: ListOptions<Song>) {
   });
 }
 
-export function useOfflineGigs({ fallback, loadError }: ListOptions<Gig>) {
+export function useOfflineGigs({
+  fallback,
+  loadError,
+  filter,
+}: FilteredListOptions<Gig>) {
   return useOfflineRecords<Gig>({
     read: () =>
       offlineDb.gigs
         .toArray()
-        .then((rows) => rows.map((row) => row.gig))
+        .then((rows) => {
+          const gigs = rows.map((row) => row.gig);
+          return filter ? gigs.filter(filter) : gigs;
+        })
         .catch(() => undefined),
     write: (gigs) =>
       offlineDb.gigs.bulkPut(

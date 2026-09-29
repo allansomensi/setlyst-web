@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useTranslations } from "next-intl";
 import {
@@ -112,6 +112,7 @@ export function LiveSettingsSheet({
 }: LiveSettingsSheetProps) {
   const t = useTranslations("liveMode");
   const tFonts = useTranslations("settings.display.live.fonts");
+  const fitHintId = useId();
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -121,11 +122,18 @@ export function LiveSettingsSheet({
           data-live-contrast={highContrast ? "high" : undefined}
           className={cn(
             "bg-background text-foreground fixed z-50 flex flex-col shadow-2xl outline-none",
-            // Phone: bottom sheet.
+            // Phone: bottom sheet. Held clear of the notch / rounded
+            // corners on either side in landscape (the bottom inset is
+            // padded by the scroll area below).
             "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-2xl border-t",
+            "pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
             "data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom duration-200",
-            // Tablet/desktop: side panel, the song stays in view.
+            // Tablet/desktop: side panel, the song stays in view. Full
+            // height against the right edge, so it keeps clear of the
+            // status bar (installed PWA) and a landscape notch; its left
+            // side is mid-screen and needs no inset.
             "md:inset-y-0 md:right-0 md:left-auto md:max-h-none md:w-[400px] md:rounded-none md:border-t-0 md:border-l",
+            "md:pt-[env(safe-area-inset-top)] md:pr-[env(safe-area-inset-right)] md:pl-0",
             "md:data-open:slide-in-from-right md:data-closed:slide-out-to-right md:data-open:slide-in-from-bottom-0 md:data-closed:slide-out-to-bottom-0",
           )}
         >
@@ -157,33 +165,47 @@ export function LiveSettingsSheet({
 
           <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-5">
             {/* Mid-song controls */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-              <QuickToggle
-                icon={controls.isAutoScroll ? Pause : Play}
-                label={t("sheet.autoScroll")}
-                active={controls.isAutoScroll}
-                disabled={fitToScreen}
-                onClick={controls.toggleAutoScroll}
-                hint={fitToScreen ? t("sheet.autoScrollFitHint") : undefined}
-              />
-              <QuickToggle
-                icon={Metronome}
-                label={t("sheet.metronome")}
-                active={metronomeRunning}
-                onClick={onToggleMetronome}
-              />
-              <QuickToggle
-                icon={Music}
-                label={t("sheet.chords")}
-                active={showChords}
-                onClick={onToggleChords}
-              />
-              <QuickToggle
-                icon={ListTree}
-                label={t("sheet.sections")}
-                active={showSections}
-                onClick={onToggleSections}
-              />
+            <div className="space-y-2">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                <QuickToggle
+                  icon={controls.isAutoScroll ? Pause : Play}
+                  label={t("sheet.autoScroll")}
+                  active={controls.isAutoScroll}
+                  disabled={fitToScreen}
+                  onClick={controls.toggleAutoScroll}
+                  describedBy={fitToScreen ? fitHintId : undefined}
+                />
+                <QuickToggle
+                  icon={Metronome}
+                  label={t("sheet.metronome")}
+                  active={metronomeRunning}
+                  onClick={onToggleMetronome}
+                />
+                <QuickToggle
+                  icon={Music}
+                  label={t("sheet.chords")}
+                  active={showChords}
+                  onClick={onToggleChords}
+                />
+                <QuickToggle
+                  icon={ListTree}
+                  label={t("sheet.sections")}
+                  active={showSections}
+                  onClick={onToggleSections}
+                />
+              </div>
+              {/* Why auto-scroll is greyed out, on screen: it used to be
+                  only the disabled button's `title`, which touch screens
+                  never show and a disabled button can't be focused to
+                  reveal. */}
+              {fitToScreen && (
+                <p
+                  id={fitHintId}
+                  className="text-muted-foreground text-xs leading-snug"
+                >
+                  {t("sheet.autoScrollFitHint")}
+                </p>
+              )}
             </div>
 
             <Section title={t("sheet.text")}>
@@ -211,6 +233,9 @@ export function LiveSettingsSheet({
                       type="button"
                       role="radio"
                       aria-checked={fontFamily === font}
+                      // One Tab stop for the group (the chosen option);
+                      // the arrow keys move within it.
+                      tabIndex={fontFamily === font ? 0 : -1}
                       onClick={() => onFontFamilyChange(font)}
                       className={cn(
                         "h-8 rounded-md px-3 text-xs font-medium transition-colors",
@@ -282,6 +307,7 @@ export function LiveSettingsSheet({
                       type="button"
                       role="radio"
                       aria-checked={pageTurn.mode === mode}
+                      tabIndex={pageTurn.mode === mode ? 0 : -1}
                       onClick={() => pageTurn.onChange(mode)}
                       className="hover:bg-muted/50 focus-visible:ring-ring/50 -mx-2 flex w-[calc(100%+1rem)] items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors outline-none focus-visible:ring-3"
                     >
@@ -316,10 +342,12 @@ export function LiveSettingsSheet({
 
             <Section title={t("sheet.metronome")}>{metronome}</Section>
 
-            {/* Keyboards are a desktop/tablet-with-keyboard thing. */}
+            {/* Keyboards are a desktop/tablet-with-keyboard thing. `any-`
+                rather than the primary pointer: an iPad with a keyboard
+                and trackpad still reports touch as its primary pointer. */}
             <Section
               title={t("sheet.shortcuts")}
-              className="hidden [@media(pointer:fine)]:block"
+              className="hidden any-pointer-fine:block"
             >
               <dl className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-sm">
                 {hasNavigation && (
@@ -436,14 +464,15 @@ function QuickToggle({
   active,
   disabled,
   onClick,
-  hint,
+  describedBy,
 }: {
   icon: LucideIcon;
   label: string;
   active: boolean;
   disabled?: boolean;
   onClick: () => void;
-  hint?: string;
+  /** The id of visible text explaining the toggle (why it's disabled). */
+  describedBy?: string;
 }) {
   return (
     <button
@@ -451,7 +480,7 @@ function QuickToggle({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      title={hint}
+      aria-describedby={describedBy}
       className={cn(
         "flex h-20 flex-col items-center justify-center gap-1.5 rounded-xl border px-1 text-center text-[11px] font-medium transition-colors sm:text-xs",
         "focus-visible:ring-ring/50 outline-none focus-visible:ring-3",

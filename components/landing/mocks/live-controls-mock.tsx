@@ -51,7 +51,7 @@ export async function LiveControlsMock({ className }: { className?: string }) {
             </span>
             <span className="bg-primary text-primary-foreground flex h-8 items-center gap-1 rounded-lg px-3 font-semibold">
               <Hand className="size-3.5" />
-              Tap
+              {t("tap")}
             </span>
           </div>
           <div className="mt-2 flex gap-1">

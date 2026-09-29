@@ -159,7 +159,8 @@ function NewVersionDialog({
   const valid = trimmed.length > 0 && trimmed.length <= MAX_LABEL && !duplicate;
 
   const submit = () => {
-    if (!valid) return;
+    // A double Enter must not create the version twice.
+    if (!valid || isPending) return;
     startTransition(async () => {
       const result = await createSongVersion(songId, trimmed);
       if (!result.success) {
@@ -176,7 +177,12 @@ function NewVersionDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    // Can't be closed while saving (the request is already on its way,
+    // and its success navigates to the new version).
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && !isPending && onClose()}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("dialogTitle")}</DialogTitle>
@@ -198,6 +204,7 @@ function NewVersionDialog({
               maxLength={MAX_LABEL}
               placeholder={t("labelPlaceholder")}
               autoFocus
+              disabled={isPending}
               aria-invalid={duplicate || undefined}
             />
             {duplicate && (
@@ -211,6 +218,7 @@ function NewVersionDialog({
                   key={suggestion}
                   type="button"
                   onClick={() => setLabel(suggestion)}
+                  disabled={isPending}
                   className="bg-muted hover:bg-accent hover:text-accent-foreground rounded-full px-2.5 py-0.5 text-xs transition-colors"
                 >
                   {suggestion}

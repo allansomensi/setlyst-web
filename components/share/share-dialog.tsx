@@ -76,24 +76,56 @@ export function ShareDialog({
 
   const [isPending, startTransition] = useTransition();
   const [shareToken, setShareToken] = useState(initialShareToken);
-  const [isConfirmingDisable, setIsConfirmingDisable] = useState(false);
+  /**
+   * The inline "are you sure?" on screen, if any. Both actions break the
+   * link people already have (turning it off, or swapping it for a new
+   * one), so neither runs on the first click.
+   */
+  const [confirming, setConfirming] = useState<"disable" | "regenerate" | null>(
+    null,
+  );
   const [showQrCode, setShowQrCode] = useState(false);
   const linkInputRef = useRef<HTMLInputElement>(null);
+
+  // The dialog stays mounted between openings, so its state is adjusted
+  // during render (React's "state from the previous render" pattern)
+  // rather than kept from last time:
+  //  - a newer token from the page (the action revalidates it, or a
+  //    bandmate changed the link) replaces the one held here. Only on a
+  //    change: re-copying it on every opening could bring back a stale
+  //    token before the page caught up with a link made in here;
+  //  - each opening starts clean: no QR code from last time and no
+  //    half-done "are you sure?".
+  const [syncedToken, setSyncedToken] = useState(initialShareToken);
+  if (initialShareToken !== syncedToken) {
+    setSyncedToken(initialShareToken);
+    setShareToken(initialShareToken);
+  }
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      setShowQrCode(false);
+      setConfirming(null);
+    }
+  }
 
   const publicUrl =
     shareToken && typeof window !== "undefined"
       ? `${window.location.origin}${publicPathPrefix}/${shareToken}`
       : "";
 
-  const handleEnable = () => {
+  /** Creates the link, or replaces the current one (`regenerate`). */
+  const handleEnable = (regenerate = false) => {
     startTransition(async () => {
       const result = await onEnable();
       if (result.success && result.data?.share_token) {
         setShareToken(result.data.share_token);
-        toast.success(t("enabled"));
+        toast.success(regenerate ? t("regenerated") : t("enabled"));
       } else if (!result.success) {
         toastActionError(result, result.error);
       }
+      setConfirming(null);
     });
   };
 
@@ -106,7 +138,7 @@ export function ShareDialog({
       } else {
         toastActionError(result, result.error);
       }
-      setIsConfirmingDisable(false);
+      setConfirming(null);
     });
   };
 
@@ -125,10 +157,7 @@ export function ShareDialog({
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (open) return;
-        // A half-done "turn off?" must not greet the next opening.
-        setIsConfirmingDisable(false);
-        onClose();
+        if (!open) onClose();
       }}
     >
       <DialogContent>
@@ -156,7 +185,9 @@ export function ShareDialog({
                     readOnly
                     value={publicUrl}
                     onFocus={(e) => e.target.select()}
-                    className="font-mono text-sm"
+                    // `md:` like the Input's own size: 16px on phones, or
+                    // iOS zooms the page in when the field gets focus.
+                    className="font-mono md:text-sm"
                   />
                   <Button
                     type="button"
@@ -186,33 +217,42 @@ export function ShareDialog({
                 <QrCodeDisplay value={publicUrl} filename={qrFilename} />
               )}
 
-              {isConfirmingDisable ? (
+              {confirming ? (
                 <div className="border-destructive/30 bg-destructive/5 space-y-3 rounded-lg border p-3">
-                  <p className="text-sm">{t("disableConfirm")}</p>
+                  <p className="text-sm">
+                    {confirming === "disable"
+                      ? t("disableConfirm")
+                      : t("regenerateConfirm")}
+                  </p>
                   <div className="flex justify-end gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsConfirmingDisable(false)}
+                      onClick={() => setConfirming(null)}
                       disabled={isPending}
                     >
                       {tCommon("cancel")}
                     </Button>
                     <Button
                       type="button"
-                      variant="destructive"
+                      variant={
+                        confirming === "disable" ? "destructive" : "default"
+                      }
                       size="sm"
-                      onClick={handleDisable}
+                      onClick={
+                        confirming === "disable"
+                          ? handleDisable
+                          : () => handleEnable(true)
+                      }
                       disabled={isPending}
                     >
                       {isPending && (
-                        <Loader2
-                          className="mr-2 h-4 w-4 animate-spin"
-                          aria-hidden
-                        />
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                       )}
-                      {t("disableAction")}
+                      {confirming === "disable"
+                        ? t("disableAction")
+                        : t("regenerateAction")}
                     </Button>
                   </div>
                 </div>
@@ -222,17 +262,10 @@ export function ShareDialog({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleEnable}
+                    onClick={() => setConfirming("regenerate")}
                     disabled={isPending}
                   >
-                    {isPending ? (
-                      <Loader2
-                        className="mr-2 h-4 w-4 animate-spin"
-                        aria-hidden
-                      />
-                    ) : (
-                      <RefreshCw className="mr-2 h-4 w-4" aria-hidden />
-                    )}
+                    <RefreshCw className="h-4 w-4" aria-hidden />
                     {t("regenerateAction")}
                   </Button>
                   <Button
@@ -240,10 +273,10 @@ export function ShareDialog({
                     variant="outline"
                     size="sm"
                     className="text-destructive hover:text-destructive"
-                    onClick={() => setIsConfirmingDisable(true)}
+                    onClick={() => setConfirming("disable")}
                     disabled={isPending}
                   >
-                    <Link2Off className="mr-2 h-4 w-4" aria-hidden />
+                    <Link2Off className="h-4 w-4" aria-hidden />
                     {t("disableAction")}
                   </Button>
                 </div>
@@ -259,20 +292,17 @@ export function ShareDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              setIsConfirmingDisable(false);
-              onClose();
-            }}
-          >
+          <Button type="button" variant="secondary" onClick={onClose}>
             {tCommon("close")}
           </Button>
           {!shareToken && !shareLock && (
-            <Button type="button" onClick={handleEnable} disabled={isPending}>
+            <Button
+              type="button"
+              onClick={() => handleEnable()}
+              disabled={isPending}
+            >
               {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
               )}
               {t("enableAction")}
             </Button>

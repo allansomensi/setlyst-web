@@ -82,6 +82,8 @@ export default async function BandSetlistsPage({
         initialSetlists={setlists}
         bandId={id}
         bandsById={{ [id]: { name: band.name, canManage } }}
+        // Members without `manage_setlists` can't create setlists here.
+        canCreate={canManage}
       />
     </div>
   );

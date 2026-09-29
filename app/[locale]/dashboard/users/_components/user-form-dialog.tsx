@@ -46,17 +46,37 @@ interface UserFormDialogProps {
   onSaved?: (user: User) => void;
 }
 
+interface UserFormProps extends UserFormDialogProps {
+  /** Tells the dialog a save is running, so it can't be dismissed. */
+  onSavingChange: (saving: boolean) => void;
+}
+
 /**
  * Create or edit an account. Editing covers profile fields and status
  * only — role changes, suspensions and password resets each have their
  * own, explicit action.
  */
 export function UserFormDialog(props: UserFormDialogProps) {
+  // Esc / outside click are ignored mid-save: closing then would hide the
+  // outcome (and unmount the form) while the request still lands.
+  const [saving, setSaving] = useState(false);
   // Remount the form for each target so state never leaks between users.
   return (
-    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+    <Dialog
+      open={props.open}
+      onOpenChange={(next) => {
+        if (!next && saving) return;
+        props.onOpenChange(next);
+      }}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        {props.open && <UserForm key={props.user?.id ?? "new"} {...props} />}
+        {props.open && (
+          <UserForm
+            key={props.user?.id ?? "new"}
+            {...props}
+            onSavingChange={setSaving}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -67,7 +87,8 @@ function UserForm({
   user,
   actorRole,
   onSaved,
-}: UserFormDialogProps) {
+  onSavingChange,
+}: UserFormProps) {
   const t = useTranslations("staff.userForm");
   const tRoles = useTranslations("roles");
   const tCommon = useTranslations("common");
@@ -101,32 +122,47 @@ function UserForm({
     event.preventDefault();
     if (!canSubmit) return;
 
+    // Sent trimmed: a stray space pasted around an address or a name
+    // would otherwise be stored (or fail validation) as typed.
+    const trimmedEmail = email.trim();
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+
+    onSavingChange(true);
     startTransition(async () => {
-      const result = isEditing
-        ? await updateUser(user!.id, {
-            username:
-              username.trim() !== user!.username ? username.trim() : undefined,
-            email: email.trim() !== (user!.email ?? "") ? email : undefined,
-            first_name:
-              firstName.trim() !== (user!.first_name ?? "")
-                ? firstName
-                : undefined,
-            last_name:
-              lastName.trim() !== (user!.last_name ?? "")
-                ? lastName
-                : undefined,
-            status: status !== user!.status ? status : undefined,
-          })
-        : await createUser({
-            username: username.trim(),
-            password,
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            role,
-            status,
-            require_password_change: requireChange,
-          });
+      let result: Awaited<ReturnType<typeof createUser | typeof updateUser>>;
+      try {
+        result = isEditing
+          ? await updateUser(user!.id, {
+              username:
+                username.trim() !== user!.username
+                  ? username.trim()
+                  : undefined,
+              email:
+                trimmedEmail !== (user!.email ?? "") ? trimmedEmail : undefined,
+              first_name:
+                trimmedFirst !== (user!.first_name ?? "")
+                  ? trimmedFirst
+                  : undefined,
+              last_name:
+                trimmedLast !== (user!.last_name ?? "")
+                  ? trimmedLast
+                  : undefined,
+              status: status !== user!.status ? status : undefined,
+            })
+          : await createUser({
+              username: username.trim(),
+              password,
+              email: trimmedEmail,
+              first_name: trimmedFirst,
+              last_name: trimmedLast,
+              role,
+              status,
+              require_password_change: requireChange,
+            });
+      } finally {
+        onSavingChange(false);
+      }
 
       if (!result.success) {
         toastActionError(result, result.error);

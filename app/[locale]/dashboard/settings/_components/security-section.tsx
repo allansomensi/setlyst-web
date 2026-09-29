@@ -117,10 +117,13 @@ export function SecuritySection({
           <AlertDescription>{t("readOnly")}</AlertDescription>
         </Alert>
       )}
+      {/* While viewing as someone else every change is refused by the
+          API (read-only), so the controls are off rather than failing. */}
       <PasswordCard
         username={username}
         passwordSet={passwordSet}
         passwordChangedAt={passwordChangedAt}
+        readOnly={readOnly}
       />
       <TwoFactorCard
         enabled={security.two_factor_enabled}
@@ -128,6 +131,7 @@ export function SecuritySection({
         recoveryCodesRemaining={security.recovery_codes_remaining}
         passwordSet={passwordSet}
         username={username}
+        readOnly={readOnly}
       />
       {(googleEnabled || security.has_google) && (
         <GoogleCard
@@ -137,6 +141,7 @@ export function SecuritySection({
           username={username}
           googleEnabled={googleEnabled && !readOnly}
           status={googleStatus}
+          readOnly={readOnly}
         />
       )}
       <Card>
@@ -167,7 +172,10 @@ export function SecuritySection({
                 {!passwordSet
                   ? t("activity.noPassword")
                   : passwordChangedAt
-                    ? formatApiDate(passwordChangedAt, locale)
+                    ? formatApiDate(passwordChangedAt, locale, {
+                        dateStyle: "medium",
+                        timeZone,
+                      })
                     : t("activity.never")}
               </dd>
             </div>
@@ -318,14 +326,17 @@ function PasswordCard({
   username,
   passwordSet,
   passwordChangedAt,
+  readOnly,
 }: {
   username: string;
   passwordSet: boolean;
   passwordChangedAt: string | null;
+  readOnly: boolean;
 }) {
   const t = useTranslations("security.password");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [open, setOpen] = useState(false);
 
   return (
@@ -344,7 +355,10 @@ function PasswordCard({
           <p className="text-muted-foreground text-sm">
             {passwordChangedAt
               ? t("changedOn", {
-                  date: formatApiDate(passwordChangedAt, locale),
+                  date: formatApiDate(passwordChangedAt, locale, {
+                    dateStyle: "medium",
+                    timeZone,
+                  }),
                 })
               : t("neverChanged")}
           </p>
@@ -354,7 +368,11 @@ function PasswordCard({
       </CardContent>
       {passwordSet && (
         <CardFooter>
-          <Button variant="outline" onClick={() => setOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => setOpen(true)}
+            disabled={readOnly}
+          >
             <KeyRound className="mr-2 size-4" />
             {t("change")}
           </Button>
@@ -397,6 +415,7 @@ function GoogleCard({
   username,
   googleEnabled,
   status,
+  readOnly,
 }: {
   linked: boolean;
   identity: LinkedIdentity | null;
@@ -404,10 +423,12 @@ function GoogleCard({
   username: string;
   googleEnabled: boolean;
   status: GoogleLinkStatus | null;
+  readOnly: boolean;
 }) {
   const t = useTranslations("security.google");
   const tApi = useTranslations("apiErrors");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const router = useAppRouter();
   const tCommon = useTranslations("common");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -565,14 +586,20 @@ function GoogleCard({
             <div>
               <dt className="text-muted-foreground">{t("since")}</dt>
               <dd className="font-medium">
-                {formatApiDate(identity.created_at, locale)}
+                {formatApiDate(identity.created_at, locale, {
+                  dateStyle: "medium",
+                  timeZone,
+                })}
               </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">{t("lastUsed")}</dt>
               <dd className="font-medium">
                 {identity.last_used_at
-                  ? formatApiDate(identity.last_used_at, locale)
+                  ? formatApiDate(identity.last_used_at, locale, {
+                      dateStyle: "medium",
+                      timeZone,
+                    })
                   : t("never")}
               </dd>
             </div>
@@ -587,7 +614,7 @@ function GoogleCard({
           <Button
             variant="outline"
             onClick={() => setConfirmOpen(true)}
-            disabled={!passwordSet || pending}
+            disabled={readOnly || !passwordSet || pending}
           >
             {pending ? (
               <Loader2 className="mr-2 size-4 animate-spin" />

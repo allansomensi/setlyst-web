@@ -252,7 +252,7 @@ function Segmented<T extends string>({
             aria-checked={value === option.value}
             onClick={() => onChange(option.value)}
             className={cn(
-              "rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
+              "focus-visible:ring-ring/50 rounded-md px-2 py-1.5 text-xs font-medium transition-colors outline-none focus-visible:ring-3",
               value === option.value
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -349,22 +349,27 @@ export function AnalysisExportDialog({
   const run = async (kind: "download" | "copy" | "share") => {
     setBusy(kind);
     try {
+      if (kind === "copy") {
+        // Safari only lets the clipboard be written during the click
+        // itself; by the time the image is rendered that's over. Handing
+        // ClipboardItem the pending blob starts the write right away,
+        // still inside the gesture, and it completes when the PNG does.
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": render() }),
+        ]);
+        toast.success(t("copied"));
+        return;
+      }
       const blob = await render();
       if (kind === "download") {
         saveBlob(blob, filename);
         toast.success(t("downloaded"));
-      } else if (kind === "copy") {
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob }),
-        ]);
-        toast.success(t("copied"));
       } else {
         const file = new File([blob], filename, { type: "image/png" });
         await navigator.share({ files: [file], title: song.title });
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      console.error(error);
       toast.error(t("failed"));
     } finally {
       setBusy(null);
@@ -384,7 +389,7 @@ export function AnalysisExportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl lg:max-w-6xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-5xl lg:max-w-6xl">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>

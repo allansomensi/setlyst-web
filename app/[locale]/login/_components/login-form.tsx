@@ -13,7 +13,8 @@ import {
   Loader2,
   ShieldCheck,
 } from "lucide-react";
-import { useRouter } from "@/i18n/routing";
+import { routing, useRouter } from "@/i18n/routing";
+import { stripLocale } from "@/lib/route-access";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,10 +78,6 @@ const OAUTH_ERRORS = [
   "AccessDenied",
   "Configuration",
 ];
-
-function stripLocale(path: string, locale: string): string {
-  return path.startsWith(`/${locale}/`) ? path.slice(locale.length + 1) : path;
-}
 
 type Step = "credentials" | "twoFactor" | "loadingChallenge";
 
@@ -189,6 +186,10 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   };
 
   // Arriving from Google: its outcome is shown once...
+  // Whether the current error is about what was typed (wrong or missing
+  // credentials): only then are the fields marked invalid. A rate limit,
+  // a lockout or a connection problem is not the fields' fault.
+  const [fieldsInvalid, setFieldsInvalid] = useState(false);
   const [error, setError] = useState<string | null>(() =>
     initial.googleError
       ? describe(initial.googleError)
@@ -301,7 +302,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
       ? session.user.language
       : locale;
     router.replace(
-      callbackPath ? stripLocale(callbackPath, locale) : "/dashboard",
+      callbackPath ? stripLocale(callbackPath, routing.locales) : "/dashboard",
       { locale: accountLocale },
     );
     router.refresh();
@@ -317,18 +318,31 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     setError(message);
   };
 
-  const submitCredentials = async (event: React.FormEvent) => {
+  const submitCredentials = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (inFlight.current || pending || !identifier.trim() || !password) {
+    if (inFlight.current || pending) return;
+    // A password manager can fill both fields without React ever seeing
+    // an input event (Chrome keeps autofilled values away from scripts
+    // until the person interacts with the page), so the DOM is the source
+    // of truth here, not the state.
+    const data = new FormData(event.currentTarget);
+    const username = (
+      identifier.trim() || String(data.get("identifier") ?? "")
+    ).trim();
+    const secret = password || String(data.get("password") ?? "");
+    if (!username || !secret) {
+      setError(t("missingFields"));
+      setFieldsInvalid(true);
       return;
     }
     inFlight.current = true;
     setPending(true);
     setError(null);
+    setFieldsInvalid(false);
     try {
       const result = await credentialsSignIn({
-        username: identifier.trim(),
-        password,
+        username,
+        password: secret,
         locale,
       });
       if (result?.error) {
@@ -341,6 +355,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
           return;
         }
         setError(describe(failure));
+        setFieldsInvalid(failure.code === "INVALID_CREDENTIALS");
         setPending(false);
         return;
       }
@@ -435,7 +450,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               <ShieldCheck className="size-6" />
             )}
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle as="h1" className="text-2xl font-bold">
             {tTwo("loginTitle")}
           </CardTitle>
           <CardDescription>
@@ -512,7 +527,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
             >
               {pending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="animate-spin" />
                   {tTwo("verifying")}
                 </>
               ) : (
@@ -544,7 +559,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
             disabled={pending}
             onClick={() => backToCredentials(null)}
           >
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            <ArrowLeft />
             {tTwo("back")}
           </Button>
         </CardFooter>
@@ -556,7 +571,9 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     <Card className="w-full max-w-sm">
       <CardHeader className="items-center text-center">
         <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
-        <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
+        <CardTitle as="h1" className="text-2xl font-bold">
+          {t("title")}
+        </CardTitle>
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -585,7 +602,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               disabled={pending}
-              aria-invalid={Boolean(error) || undefined}
+              aria-invalid={(fieldsInvalid && Boolean(error)) || undefined}
               aria-describedby={error ? "login-error" : undefined}
               className="h-10"
             />
@@ -595,8 +612,15 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="password">{t("password")}</Label>
               <Link
-                href="/forgot-password"
-                className="text-muted-foreground hover:text-foreground text-sm hover:underline"
+                href={
+                  identifier.trim()
+                    ? {
+                        pathname: "/forgot-password",
+                        query: { identifier: identifier.trim() },
+                      }
+                    : "/forgot-password"
+                }
+                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 rounded-sm text-sm outline-none hover:underline focus-visible:ring-3"
               >
                 {t("forgotPassword")}
               </Link>
@@ -611,7 +635,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={pending}
-              aria-invalid={Boolean(error) || undefined}
+              aria-invalid={(fieldsInvalid && Boolean(error)) || undefined}
               aria-describedby={error ? "login-error" : undefined}
               className="h-10"
             />
@@ -627,14 +651,10 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
             </p>
           )}
 
-          <Button
-            type="submit"
-            className="h-10 w-full"
-            disabled={pending || !identifier.trim() || !password}
-          >
+          <Button type="submit" className="h-10 w-full" disabled={pending}>
             {pending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="animate-spin" />
                 {t("submitting")}
               </>
             ) : (
@@ -662,7 +682,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
                   }
                 : "/register"
             }
-            className="text-primary font-medium hover:underline"
+            className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium outline-none hover:underline focus-visible:ring-3"
           >
             {t("signUp")}
           </Link>

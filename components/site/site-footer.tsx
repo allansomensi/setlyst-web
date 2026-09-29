@@ -20,13 +20,13 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-muted/30 border-t print:hidden">
-      <div className="mx-auto grid max-w-6xl gap-10 py-12 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))] md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div className="space-y-3">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 py-12 pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))] md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-10">
+        <div className="col-span-2 space-y-3 md:col-span-1">
           <Link
             href="/"
             className="focus-visible:ring-ring/50 flex w-fit items-center gap-2 rounded-lg font-semibold outline-none focus-visible:ring-3"
           >
-            <AppLogo size={28} className="rounded-lg" />
+            <AppLogo size={28} decorative className="rounded-lg" />
             Setlyst
           </Link>
           <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
@@ -129,7 +129,7 @@ export async function SiteFooter() {
               mail: (chunks) => (
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="hover:text-foreground underline-offset-4 hover:underline"
+                  className="hover:text-foreground focus-visible:ring-ring/50 rounded-sm break-all underline-offset-4 outline-none hover:underline focus-visible:ring-3"
                 >
                   {chunks}
                 </a>

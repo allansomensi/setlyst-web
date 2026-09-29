@@ -122,7 +122,9 @@ export function DisplayDefaultsSection() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>{t("live.fontFamily")}</Label>
+            <Label htmlFor="display-live-font-family">
+              {t("live.fontFamily")}
+            </Label>
             <Select
               value={settings.live.fontFamily}
               onValueChange={(value) =>
@@ -130,7 +132,7 @@ export function DisplayDefaultsSection() {
               }
               disabled={isPending}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="display-live-font-family" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +145,10 @@ export function DisplayDefaultsSection() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5">
+            <Label
+              htmlFor="display-page-size"
+              className="flex items-center gap-1.5"
+            >
               <Rows3 className="h-3.5 w-3.5" />
               {t("pageSize")}
             </Label>
@@ -152,7 +157,7 @@ export function DisplayDefaultsSection() {
               onValueChange={(value) => savePageSize(Number(value))}
               disabled={isPending}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="display-page-size" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

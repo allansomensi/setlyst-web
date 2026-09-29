@@ -87,6 +87,14 @@ export function AnnouncementModalHost() {
   }, []);
 
   const current = modals[0] ?? null;
+  // The last announcement on screen, kept while the dialog fades out:
+  // when the queue empties `current` turns null at once, and unmounting
+  // the content with it would cut the close animation. Updated during
+  // render (React's "state from the previous render" pattern) so the
+  // dialog never shows a stale announcement for a frame.
+  const [lastShown, setLastShown] = useState<UserAnnouncement | null>(null);
+  if (current !== null && current !== lastShown) setLastShown(current);
+  const shown = current ?? lastShown;
 
   const markSeen = useCallback((id: string) => {
     if (seenRef.current.has(id)) return;
@@ -152,7 +160,24 @@ export function AnnouncementModalHost() {
     current !== null &&
     current.dismissible &&
     !current.requires_acknowledgement;
-  const index = shownCount - modals.length + 1;
+  // For the look only: keeps the × in place while the last one fades out.
+  const shownClosable =
+    shown !== null && shown.dismissible && !shown.requires_acknowledgement;
+  // Capped so the fading last modal doesn't read "4 of 3".
+  const index = Math.min(shownCount - modals.length + 1, shownCount);
+
+  /**
+   * Following the call to action counts as having seen the announcement:
+   * the host lives in the dashboard layout, so after an in-app link the
+   * modal would otherwise stay open on top of the destination page. A
+   * dismissible one is dismissed and a "Continuar" one is let through
+   * for this visit, the same as their own button. One that needs an
+   * explicit "Li e concordo" stays: following a link is not agreeing.
+   */
+  const followCta = (announcement: UserAnnouncement) => {
+    if (announcement.requires_acknowledgement || pendingId !== null) return;
+    void confirm(announcement);
+  };
 
   return (
     <>
@@ -177,9 +202,9 @@ export function AnnouncementModalHost() {
           }
         }}
       >
-        {current && (
+        {shown && (
           <DialogContent
-            showCloseButton={closable}
+            showCloseButton={shownClosable}
             className="sm:max-w-lg"
             onEscapeKeyDown={(event) => {
               if (!closable) event.preventDefault();
@@ -195,11 +220,18 @@ export function AnnouncementModalHost() {
               {t("modalDescription")}
             </DialogDescription>
             <AnnouncementModalContent
-              key={current.id}
-              announcement={current}
-              pending={pendingId === current.id}
+              key={shown.id}
+              announcement={shown}
+              pending={pendingId === shown.id}
               position={{ index, total: shownCount }}
-              onConfirm={() => void confirm(current)}
+              // `current` is null while the last one fades out: a click
+              // then must not confirm it a second time.
+              onConfirm={() => {
+                if (current) void confirm(current);
+              }}
+              onNavigate={() => {
+                if (current) followCta(current);
+              }}
               renderTitle={(title, className) => (
                 <DialogTitle className={className}>{title}</DialogTitle>
               )}

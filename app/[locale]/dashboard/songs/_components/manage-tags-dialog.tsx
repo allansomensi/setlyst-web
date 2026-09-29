@@ -26,9 +26,16 @@ import { deleteSongTag, listSongTags, renameSongTag } from "../actions";
 export function ManageTagsDialog({
   open,
   onOpenChange,
+  onTagChanged,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * A tag was renamed (`to` = its new name) or removed (`to` = null), so
+   * the page can follow an active filter on it instead of dropping every
+   * filter whenever this dialog closes.
+   */
+  onTagChanged?: (from: string, to: string | null) => void;
 }) {
   const t = useTranslations("tags.manage");
   const [tags, setTags] = useState<TagCount[] | null>(null);
@@ -100,6 +107,7 @@ export function ManageTagsDialog({
         return merged.sort((a, b) => b.song_count - a.song_count);
       });
       toast.success(t("renamed", { from: tag, to: normalizedDraft }));
+      onTagChanged?.(tag, normalizedDraft);
       setEditing(null);
     });
   };
@@ -113,6 +121,7 @@ export function ManageTagsDialog({
       }
       setTags((current) => current?.filter((c) => c.tag !== tag) ?? null);
       toast.success(t("deleted", { tag }));
+      onTagChanged?.(tag, null);
       setConfirmDelete(null);
     });
   };

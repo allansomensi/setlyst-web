@@ -49,9 +49,28 @@ export default async function TrashPage({
   if (bandId) query.set("band_id", bandId);
   if (type) query.set("type", type);
 
-  const result = await fetchOrFailed(
-    fetchServerApi<PaginatedResponse<TrashItem>>(`/trash?${query}`),
-  );
+  // "Empty trash" empties the whole scope whatever the type filter, so
+  // whether there is anything to empty can't come from the filtered list:
+  // with a filter on, one more (one-row) request counts the whole scope.
+  const scopeQuery = new URLSearchParams(query);
+  scopeQuery.delete("type");
+  scopeQuery.set("page", "1");
+  scopeQuery.set("per_page", "1");
+  const [result, scopeRes] = await Promise.all([
+    fetchOrFailed(
+      fetchServerApi<PaginatedResponse<TrashItem>>(`/trash?${query}`),
+    ),
+    type
+      ? fetchOrFailed(
+          fetchServerApi<PaginatedResponse<TrashItem>>(`/trash?${scopeQuery}`),
+        )
+      : null,
+  ]);
+  // null = unknown (no filter, or the count failed): the view falls back.
+  const scopeTotal =
+    scopeRes && scopeRes !== FETCH_FAILED
+      ? (scopeRes.meta?.total_items ?? null)
+      : null;
 
   return (
     <TrashView
@@ -62,6 +81,7 @@ export default async function TrashPage({
       items={result === FETCH_FAILED ? [] : result.data}
       meta={result === FETCH_FAILED ? null : result.meta}
       loadError={result === FETCH_FAILED}
+      scopeTotal={scopeTotal}
     />
   );
 }

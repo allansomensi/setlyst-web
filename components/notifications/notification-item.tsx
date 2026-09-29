@@ -122,6 +122,7 @@ export function NotificationItem({
   className,
 }: NotificationItemProps) {
   const format = useFormatter();
+  const t = useTranslations("notifications");
   const describe = useNotificationMessage();
   const view = describe(notification);
   const Icon = ICONS[view.icon] ?? BellRing;
@@ -151,6 +152,8 @@ export function NotificationItem({
             isUnread && "font-medium",
           )}
         >
+          {/* The tint, weight and dot are visual only: say it too. */}
+          {isUnread && <span className="sr-only">{t("unread")}: </span>}
           {view.text}
         </p>
         {view.detail && (

@@ -73,7 +73,13 @@ export function GrantTrialsCard({
             min={1}
             max={365}
             value={Number.isNaN(days) ? "" : days}
-            onChange={(e) => setDays(Number(e.target.value))}
+            // Empty is NaN, not 0 (`Number("")`), so the field can be
+            // cleared while typing a new value.
+            onChange={(e) =>
+              setDays(
+                e.target.value === "" ? Number.NaN : Number(e.target.value),
+              )
+            }
             aria-invalid={!valid}
           />
         </div>

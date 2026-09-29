@@ -31,8 +31,18 @@ import type { BandWithMembership, Gig, Setlist } from "@/types/api";
 import type { PinnedItem } from "@/types/content";
 import { getSession } from "@/lib/server/session";
 
-/** How many upcoming shows the server hands the "next show" card. */
-const NEXT_GIG_CANDIDATES = 3;
+/**
+ * At most this many shows go to the "next show" card (each costs a setlist
+ * fetch). Only a safety cap: see `upcomingGigs` for how many it needs.
+ */
+const MAX_NEXT_GIG_CANDIDATES = 10;
+
+/**
+ * A show this far past the server's clock is still ahead for every viewer:
+ * wall-clock "now" is at most UTC+14h, and the card still counts a show
+ * that started up to 6h ago (see next-gig-card.tsx).
+ */
+const SURELY_UPCOMING_MS = 14 * 60 * 60 * 1000;
 
 /**
  * The next few shows (personal and every band's), soonest first, for the
@@ -56,13 +66,26 @@ async function upcomingGigs(
     const bandNames = new Map(bands.map((band) => [band.id, band.name]));
     const cutoff = Date.now() - 36 * 60 * 60 * 1000;
     const at = (gig: Gig) => parseWallClock(gig.scheduled_at).getTime();
-    const gigs = [
+    const sorted = [
       ...(personal?.data ?? []),
       ...bandGigs.flatMap((res) => res?.data ?? []),
     ]
       .filter((gig) => gig.status !== "cancelled" && at(gig) >= cutoff)
-      .sort((a, b) => at(a) - at(b))
-      .slice(0, NEXT_GIG_CANDIDATES);
+      .sort((a, b) => at(a) - at(b));
+    // Everything up to and including the first show that is upcoming
+    // whatever the viewer's clock: the card drops the ones already over,
+    // and a fixed "first 3" used to be all recent shows after a busy
+    // weekend, hiding the real next one.
+    const firstSurelyUpcoming = sorted.findIndex(
+      (gig) => at(gig) >= Date.now() + SURELY_UPCOMING_MS,
+    );
+    const gigs = sorted.slice(
+      0,
+      Math.min(
+        firstSurelyUpcoming === -1 ? sorted.length : firstSurelyUpcoming + 1,
+        MAX_NEXT_GIG_CANDIDATES,
+      ),
+    );
 
     return await Promise.all(
       gigs.map(async (gig) => {

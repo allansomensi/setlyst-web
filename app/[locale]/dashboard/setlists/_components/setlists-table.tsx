@@ -99,6 +99,12 @@ interface SetlistsTableProps {
   quotas?: QuotaReport | null;
   /** Shown under the page header (pending invitations), above the search. */
   notice?: ReactNode;
+  /**
+   * Whether "New setlist" is offered. A band member without the right to
+   * manage its setlists (`manage_setlists`) would only get a refusal from
+   * the API, so the buttons are hidden rather than left to fail.
+   */
+  canCreate?: boolean;
 }
 
 export function SetlistsTable({
@@ -108,6 +114,7 @@ export function SetlistsTable({
   loadError,
   quotas = null,
   notice,
+  canCreate = true,
 }: SetlistsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -136,6 +143,9 @@ export function SetlistsTable({
   const { records: cachedSetlists, isFromCache } = useOfflineSetlists({
     fallback: initialSetlists,
     loadError,
+    // A band's page lists that band's setlists only; the mirror has them
+    // all (personal ones and every other band's).
+    filter: bandId ? (setlist) => setlist.band_id === bandId : undefined,
   });
   // The repertoire is stored as "Repertoire": search and sort by the
   // translated name people actually see.
@@ -179,17 +189,18 @@ export function SetlistsTable({
         setlistToDelete.id,
         setlistToDelete.band_id ?? undefined,
       );
-      if (result.success) {
-        toastMovedToTrash("setlist", setlistToDelete.id, {
-          message: t("dialog.deleted"),
-          undoLabel: tTrash("undo"),
-          restoring: tTrash("restoring"),
-          restored: t("dialog.restored"),
-          restoreFailed: tTrash("restoreFailed"),
-        });
-      } else {
+      if (!result.success) {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
+        return;
       }
+      toastMovedToTrash("setlist", setlistToDelete.id, {
+        message: t("dialog.deleted"),
+        undoLabel: tTrash("undo"),
+        restoring: tTrash("restoring"),
+        restored: t("dialog.restored"),
+        restoreFailed: tTrash("restoreFailed"),
+      });
       setSetlistToDelete(null);
     });
   };
@@ -240,7 +251,9 @@ export function SetlistsTable({
         {/* A band's page has its own title above this table. */}
         {!bandId && (
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("title")}
+            </h1>
             <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
         )}
@@ -249,14 +262,16 @@ export function SetlistsTable({
           {!bandId && (
             <ImportSharedButton kind="setlist" disabled={quotaFull} />
           )}
-          <Button
-            onClick={() => handleOpenDialog()}
-            {...offlineDisabled}
-            disabled={offlineDisabled.disabled || quotaFull}
-          >
-            <Plus className="mr-2 h-4 w-4" aria-hidden />
-            {t("addSetlist")}
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={() => handleOpenDialog()}
+              {...offlineDisabled}
+              disabled={offlineDisabled.disabled || quotaFull}
+            >
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              {t("addSetlist")}
+            </Button>
+          )}
         </div>
       </div>
       <QuotaLimitNotice usage={quota} resource="setlists" className="-mt-3" />
@@ -330,14 +345,16 @@ export function SetlistsTable({
                       title={t("emptyState.title")}
                       description={t("emptyState.description")}
                       actions={
-                        <Button
-                          onClick={() => handleOpenDialog()}
-                          {...offlineDisabled}
-                          disabled={offlineDisabled.disabled || quotaFull}
-                        >
-                          <Plus className="mr-2 h-4 w-4" aria-hidden />
-                          {t("addSetlist")}
-                        </Button>
+                        canCreate ? (
+                          <Button
+                            onClick={() => handleOpenDialog()}
+                            {...offlineDisabled}
+                            disabled={offlineDisabled.disabled || quotaFull}
+                          >
+                            <Plus className="mr-2 h-4 w-4" aria-hidden />
+                            {t("addSetlist")}
+                          </Button>
+                        ) : undefined
                       }
                     />
                   )}
@@ -375,12 +392,20 @@ export function SetlistsTable({
                           type="button"
                           data-no-row-click
                           onClick={() => handleToggleFavorite(setlist)}
-                          disabled={favoritePendingId === setlist.id}
-                          className="text-muted-foreground focus-visible:ring-ring shrink-0 rounded-sm hover:text-yellow-500 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+                          disabled={
+                            offlineDisabled.disabled ||
+                            favoritePendingId === setlist.id
+                          }
+                          // A real tap target (it was the 16px star alone),
+                          // the same as the band cards' star; -mx-2 keeps the
+                          // row's layout as it was.
+                          className="text-muted-foreground focus-visible:ring-ring/50 -mx-2 flex size-8 shrink-0 items-center justify-center rounded-md outline-none hover:text-yellow-500 focus-visible:ring-3 disabled:opacity-50 pointer-coarse:size-10"
+                          // Offline, the tooltip says why it's off instead.
                           title={
-                            setlist.is_favorite
+                            offlineDisabled.title ??
+                            (setlist.is_favorite
                               ? t("unfavorite")
-                              : t("favorite")
+                              : t("favorite"))
                           }
                           aria-label={
                             setlist.is_favorite
@@ -390,6 +415,7 @@ export function SetlistsTable({
                           aria-pressed={setlist.is_favorite}
                         >
                           <Star
+                            aria-hidden
                             className={cn(
                               "h-4 w-4",
                               setlist.is_favorite &&
@@ -505,7 +531,9 @@ export function SetlistsTable({
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              disabled={isDuplicating}
+                              disabled={
+                                isDuplicating || offlineDisabled.disabled
+                              }
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDuplicate(setlist);
@@ -521,6 +549,7 @@ export function SetlistsTable({
                                     e.stopPropagation();
                                     handleOpenDialog(setlist);
                                   }}
+                                  disabled={offlineDisabled.disabled}
                                 >
                                   <Pencil className="mr-2 h-4 w-4" />
                                   {t("menu.edit")}
@@ -534,6 +563,7 @@ export function SetlistsTable({
                                         handleDeleteClick(setlist);
                                       }}
                                       variant="destructive"
+                                      disabled={offlineDisabled.disabled}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
                                       {t("menu.delete")}

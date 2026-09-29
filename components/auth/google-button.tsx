@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
@@ -11,6 +11,8 @@ import {
 } from "@/lib/actions/google-auth";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { routing } from "@/i18n/routing";
+import { stripLocale } from "@/lib/route-access";
 
 /** Google's four-color "G" (brand guidelines: never recolored). */
 export function GoogleLogo({ className }: { className?: string }) {
@@ -66,6 +68,17 @@ export function GoogleButton({
   const locale = useLocale();
   const [pending, setPending] = useState(false);
 
+  // Coming back from Google's consent screen with the browser's Back
+  // button restores this page from the bfcache exactly as it was left:
+  // with the button disabled and spinning. Reset it so it can be retried.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setPending(false);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
   const start = async () => {
     if (onBeforeStart && !onBeforeStart()) return;
     setPending(true);
@@ -81,7 +94,11 @@ export function GoogleButton({
           ? // Not used in practice: linking always comes back through the
             // settings' confirmation step (`?google=confirm`, lib/auth.ts).
             `/${locale}/dashboard/settings/security`
-          : `/${locale}${stripLocale(intent.callbackPath, locale) ?? "/dashboard"}`;
+          : `/${locale}${
+              intent.callbackPath
+                ? stripLocale(intent.callbackPath, routing.locales)
+                : "/dashboard"
+            }`;
       await signIn("google", { callbackUrl });
     } catch {
       toast.error(t("failed"));
@@ -108,14 +125,6 @@ export function GoogleButton({
       {label ?? t("continue")}
     </Button>
   );
-}
-
-function stripLocale(
-  path: string | null | undefined,
-  locale: string,
-): string | null {
-  if (!path) return null;
-  return path.startsWith(`/${locale}/`) ? path.slice(locale.length + 1) : path;
 }
 
 /** "ou" between the form and the Google button. */

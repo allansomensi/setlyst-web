@@ -55,7 +55,10 @@ export function PasswordRequirements({
   }
 
   return (
-    <div id={id} className={cn("space-y-2", className)} aria-live="polite">
+    // Not a live region as a whole: re-announcing five rules on every
+    // keystroke drowns the typing. The strength label alone is announced
+    // (below); the rules are read on demand through aria-describedby.
+    <div id={id} className={cn("space-y-2", className)}>
       <div className="flex items-center gap-2">
         <div className="flex flex-1 gap-1" aria-hidden>
           {[1, 2, 3, 4].map((level) => (
@@ -68,7 +71,10 @@ export function PasswordRequirements({
             />
           ))}
         </div>
-        <span className="text-muted-foreground w-20 text-right text-xs">
+        <span
+          className="text-muted-foreground w-20 text-right text-xs"
+          aria-live="polite"
+        >
           {touched ? t(`strength.${strength}`) : ""}
         </span>
       </div>

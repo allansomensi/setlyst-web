@@ -75,7 +75,7 @@ export default async function AdminSongPage({ params }: { params: Params }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className="truncate text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
             {song.title}
           </h1>
           <p className="text-muted-foreground">{song.artist_name}</p>

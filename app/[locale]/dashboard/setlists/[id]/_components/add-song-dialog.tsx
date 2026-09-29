@@ -688,9 +688,13 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
 
   useEffect(() => {
     if (!band) return;
+    // Set when the query changes again (or the picker closes): a slower,
+    // older search that answers late must not overwrite the newer results.
+    let stale = false;
     const handle = window.setTimeout(() => {
       startLoading(async () => {
         const result = await searchBandRepertoire(band.id, query);
+        if (stale) return;
         if (result.success && result.data) {
           setSongs(result.data.data);
           setTotal(result.data.meta.total_items);
@@ -700,7 +704,10 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
         }
       });
     }, 250);
-    return () => window.clearTimeout(handle);
+    return () => {
+      stale = true;
+      window.clearTimeout(handle);
+    };
   }, [band, query]);
 
   const excluded = new Set([...excludedSongIds, ...addedIds]);

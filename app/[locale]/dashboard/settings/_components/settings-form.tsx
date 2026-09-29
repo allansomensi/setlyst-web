@@ -215,10 +215,12 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
                 type="button"
                 role="radio"
                 aria-checked={fontSize === preset}
-                disabled={isSavingLanguage}
+                // Off while any save runs, this one's included: a second
+                // click would race the first request.
+                disabled={isSavingLanguage || isSavingFontSize}
                 onClick={() => changeFontSize(preset)}
                 className={cn(
-                  "focus-visible:ring-ring rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                  "focus-visible:ring-ring h-9 rounded-full border px-3.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:min-h-10",
                   fontSize === preset
                     ? "border-primary bg-primary text-primary-foreground"
                     : "bg-background hover:bg-accent/50 border-input",

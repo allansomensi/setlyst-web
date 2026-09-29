@@ -12,7 +12,8 @@ import {
   MailCheck,
   Sparkles,
 } from "lucide-react";
-import { useRouter } from "@/i18n/routing";
+import { routing, useRouter } from "@/i18n/routing";
+import { stripLocale } from "@/lib/route-access";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { AppLogo } from "@/components/app-logo";
@@ -57,10 +58,6 @@ interface RegisterFormProps {
    * through sign-up and back to the login page, so it isn't lost.
    */
   callbackPath: string | null;
-}
-
-function stripLocale(path: string, locale: string): string {
-  return path.startsWith(`/${locale}/`) ? path.slice(locale.length + 1) : path;
 }
 
 export function RegisterForm({
@@ -123,7 +120,10 @@ export function RegisterForm({
   const confirmMismatch =
     form.confirm.length > 0 && form.confirm !== form.password;
   const emailValid = EMAIL_PATTERN.test(email);
-  const showEmailError = (attempted || email.length > 0) && !emailValid;
+  // Validation appears once a field was left (or a submit was tried), not
+  // while the address is still being typed.
+  const [emailTouched, setEmailTouched] = useState(false);
+  const showEmailError = (attempted || emailTouched) && !emailValid;
 
   const canSubmit =
     usernameValid &&
@@ -131,14 +131,30 @@ export function RegisterForm({
     passwordValid &&
     form.confirm === form.password &&
     accepted;
+  // Derived rather than stored: the "fill in the rest" message goes away
+  // by itself as soon as the form is complete.
+  const incomplete = attempted && !canSubmit && !pending;
+
+  /**
+   * Google sign-up needs the same consent as the form; asking here saves
+   * the round trip to the consent page after coming back from Google.
+   */
+  const termsRef = useRef<HTMLDivElement>(null);
+  const guardGoogle = () => {
+    if (accepted) return true;
+    setAttempted(true);
+    const box = termsRef.current?.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    box?.focus({ preventScroll: true });
+    box?.scrollIntoView({ block: "center" });
+    return false;
+  };
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setAttempted(true);
-    if (!canSubmit || pending || inFlight.current) {
-      if (!canSubmit) setError(t("errors.incomplete"));
-      return;
-    }
+    if (!canSubmit || pending || inFlight.current) return;
     inFlight.current = true;
     setPending(true);
     setError(null);
@@ -169,6 +185,7 @@ export function RegisterForm({
     const login = await credentialsSignIn({
       username,
       password: form.password,
+      locale,
     }).catch(() => null);
     const session =
       login && !login.error ? await getSession().catch(() => null) : null;
@@ -187,7 +204,8 @@ export function RegisterForm({
     }
     toast.success(t("success", { email }));
     router.replace(
-      callbackPath ? stripLocale(callbackPath, locale) : "/dashboard",
+      callbackPath ? stripLocale(callbackPath, routing.locales) : "/dashboard",
+      { locale },
     );
     router.refresh();
   };
@@ -196,7 +214,9 @@ export function RegisterForm({
     <Card className="w-full max-w-md">
       <CardHeader className="items-center text-center">
         <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
-        <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
+        <CardTitle as="h1" className="text-2xl font-bold">
+          {t("title")}
+        </CardTitle>
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -249,6 +269,7 @@ export function RegisterForm({
               marketingOptIn={marketing}
               callbackPath={callbackPath}
               disabled={pending}
+              onBeforeStart={guardGoogle}
             />
             <AuthDivider label={t("divider")} />
           </>
@@ -273,6 +294,7 @@ export function RegisterForm({
               autoComplete="email"
               value={form.email}
               onChange={set("email")}
+              onBlur={() => setEmailTouched(true)}
               aria-invalid={showEmailError || undefined}
               aria-describedby="email-hint"
               className="h-10"
@@ -438,55 +460,59 @@ export function RegisterForm({
                 )}
               />
             </button>
-            {showReferral && (
-              <div id="referral-field" className="space-y-2 px-3 pb-3">
-                <Label htmlFor="referral" className="sr-only">
-                  {t("referral")}
-                </Label>
-                <Input
-                  id="referral"
-                  name="referral_code"
-                  placeholder={t("referralPlaceholder")}
-                  maxLength={32}
-                  autoCapitalize="characters"
-                  autoComplete="off"
-                  spellCheck={false}
-                  disabled={pending}
-                  value={referral}
-                  onChange={(e) =>
-                    setReferral(e.target.value.toUpperCase().slice(0, 32))
-                  }
-                  className="h-10 font-mono tracking-wider uppercase"
-                />
-                <p className="text-muted-foreground text-xs">
-                  {t("referralHint")}
-                </p>
-              </div>
-            )}
+            <div
+              id="referral-field"
+              hidden={!showReferral}
+              className="space-y-2 px-3 pb-3"
+            >
+              <Label htmlFor="referral" className="sr-only">
+                {t("referral")}
+              </Label>
+              <Input
+                id="referral"
+                name="referral_code"
+                placeholder={t("referralPlaceholder")}
+                maxLength={32}
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck={false}
+                disabled={pending}
+                value={referral}
+                onChange={(e) =>
+                  setReferral(e.target.value.toUpperCase().slice(0, 32))
+                }
+                className="h-10 font-mono tracking-wider uppercase"
+              />
+              <p className="text-muted-foreground text-xs">
+                {t("referralHint")}
+              </p>
+            </div>
           </div>
 
-          <TermsConsent
-            accepted={accepted}
-            onAcceptedChange={setAccepted}
-            marketing={marketing}
-            onMarketingChange={setMarketing}
-            invalid={attempted && !accepted}
-            disabled={pending}
-          />
+          <div ref={termsRef}>
+            <TermsConsent
+              accepted={accepted}
+              onAcceptedChange={setAccepted}
+              marketing={marketing}
+              onMarketingChange={setMarketing}
+              invalid={attempted && !accepted}
+              disabled={pending}
+            />
+          </div>
 
-          {error && (
+          {(error || incomplete) && (
             <p
               role="alert"
               className="text-destructive text-center text-sm font-medium"
             >
-              {error}
+              {error ?? t("errors.incomplete")}
             </p>
           )}
 
           <Button type="submit" className="h-10 w-full" disabled={pending}>
             {pending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="animate-spin" />
                 {t("submitting")}
               </>
             ) : (
@@ -504,7 +530,7 @@ export function RegisterForm({
                 ? { pathname: "/login", query: { callbackUrl: callbackPath } }
                 : "/login"
             }
-            className="text-primary font-medium hover:underline"
+            className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium outline-none hover:underline focus-visible:ring-3"
           >
             {t("signIn")}
           </Link>

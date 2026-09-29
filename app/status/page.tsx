@@ -216,8 +216,11 @@ export default async function StatusPage({
       <AutoRefresh seconds={REFRESH_SECONDS} />
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <header className="flex items-center justify-between gap-4">
-          <NextLink href="/" className="flex items-center gap-2 font-semibold">
-            <AppLogo size={32} className="rounded-lg" />
+          <NextLink
+            href="/"
+            className="focus-visible:ring-ring/50 flex items-center gap-2 rounded-lg font-semibold outline-none focus-visible:ring-3"
+          >
+            <AppLogo size={32} decorative className="rounded-lg" />
             Setlyst
           </NextLink>
           <RefreshStatusButton
@@ -312,8 +315,8 @@ export default async function StatusPage({
         <footer className="text-muted-foreground flex flex-col items-center gap-2 text-center text-xs">
           <p>{t("checkedAt", { date: checkedAt, seconds: REFRESH_SECONDS })}</p>
           <NextLink
-            href={`/${locale}/dashboard`}
-            className="hover:text-foreground flex items-center gap-1"
+            href={`/${locale}`}
+            className="hover:text-foreground focus-visible:ring-ring/50 flex items-center gap-1 rounded-sm outline-none focus-visible:ring-3"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("backToApp")}

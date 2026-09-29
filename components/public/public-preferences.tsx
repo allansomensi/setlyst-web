@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import { LOCALE_NAMES, isAppLocale, type AppLocale } from "@/i18n/locales";
 
 const THEMES = [
@@ -64,6 +65,8 @@ export function PublicPreferences({ className }: { className?: string }) {
     system: tSettings("themeSystem"),
   };
 
+  const themeKnown = mounted && THEMES.some((option) => option.value === theme);
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Select
@@ -92,12 +95,17 @@ export function PublicPreferences({ className }: { className?: string }) {
         </SelectContent>
       </Select>
 
+      {/* A radio group as assistive tech expects one: arrow keys move
+          between the options (and pick them), and Tab stops only once, on
+          the chosen option (roving tabindex), or on the first one while
+          the stored theme is still unknown (before mount). */}
       <div
         role="radiogroup"
         aria-label={t("theme")}
-        className="bg-muted flex h-9 items-center rounded-lg p-0.5"
+        onKeyDown={onRadioGroupKeyDown}
+        className="bg-muted flex h-9 items-center rounded-lg p-0.5 pointer-coarse:h-auto"
       >
-        {THEMES.map(({ value, icon: Icon }) => {
+        {THEMES.map(({ value, icon: Icon }, index) => {
           const active = mounted && theme === value;
           return (
             <button
@@ -105,17 +113,19 @@ export function PublicPreferences({ className }: { className?: string }) {
               type="button"
               role="radio"
               aria-checked={active}
+              tabIndex={active || (!themeKnown && index === 0) ? 0 : -1}
               aria-label={themeLabels[value]}
               title={themeLabels[value]}
               onClick={() => setTheme(value)}
               className={cn(
-                "focus-visible:ring-ring/50 flex h-8 w-8 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3",
+                // 40px on touch screens: 32px is too small to hit reliably.
+                "focus-visible:ring-ring/50 flex size-8 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3 pointer-coarse:size-10",
                 active
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4" aria-hidden />
             </button>
           );
         })}

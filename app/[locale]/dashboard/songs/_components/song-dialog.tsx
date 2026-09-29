@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useState, useTransition, type FormEvent } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
 import { useTranslations } from "next-intl";
 import { FileEdit, Loader2, Plus } from "lucide-react";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -80,7 +86,13 @@ interface SongDialogProps {
 
 type SongTab = "basic" | "music" | "links" | "tags";
 
-type SongField = "title" | "artist" | "duration" | "links";
+type SongField = "title" | "artist" | "duration" | "tempo" | "links";
+
+// The BPM range the API accepts. The form is `noValidate` (so the errors
+// read in the app's own words), which also switches off the input's
+// min/max, so the range is checked by hand on submit.
+const MIN_TEMPO = 1;
+const MAX_TEMPO = 500;
 
 /** Validation order = focus order; each field with the tab it lives on. */
 const FIELD_ORDER: readonly {
@@ -91,6 +103,7 @@ const FIELD_ORDER: readonly {
   { key: "title", id: "song-title", tab: "basic" },
   { key: "artist", id: ["song-artist", "song-new-artist"], tab: "basic" },
   { key: "duration", id: "song-duration", tab: "basic" },
+  { key: "tempo", id: "song-tempo", tab: "music" },
   { key: "links", id: "song-links-error-anchor", tab: "links" },
 ];
 
@@ -179,6 +192,7 @@ export function SongDialog({
     title: "title",
     artistId: "artist",
     duration: "duration",
+    tempo: "tempo",
     links: "links",
   };
 
@@ -197,11 +211,28 @@ export function SongDialog({
   const durationValid = isValidDurationInput(form.duration);
 
   const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
+  // Where to go once the dialog has actually closed ("Edit lyrics"). Set
+  // before asking to close, so the navigation happens only when the close
+  // goes through: straight away when clean, after "Discard" when dirty,
+  // and never when the user picks "Keep editing".
+  const navigateAfterCloseRef = useRef<string | null>(null);
   const closeGuard = useDialogCloseGuard({
     isDirty,
     isPending,
-    onClose: useCallback(() => onClose(), [onClose]),
+    onClose: useCallback(() => {
+      onClose();
+      const href = navigateAfterCloseRef.current;
+      navigateAfterCloseRef.current = null;
+      if (href) router.push(href);
+    }, [onClose, router]),
   });
+  const discardDialog = {
+    ...closeGuard.discard,
+    onKeepEditing: () => {
+      navigateAfterCloseRef.current = null;
+      closeGuard.discard.onKeepEditing();
+    },
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -212,6 +243,16 @@ export function SongDialog({
     if (!form.title.trim()) nextErrors.title = t("titleRequired");
     if (!form.artistId) nextErrors.artist = t("artistRequired");
     if (!durationValid) nextErrors.duration = t("durationInvalid");
+    if (form.tempo.trim()) {
+      // Number() rather than parseInt: "120abc" or "1e3" must not pass.
+      const tempo = Number(form.tempo);
+      if (!Number.isInteger(tempo) || tempo < MIN_TEMPO || tempo > MAX_TEMPO) {
+        nextErrors.tempo = t("tempoInvalid", {
+          min: MIN_TEMPO,
+          max: MAX_TEMPO,
+        });
+      }
+    }
     const links = draftsToLinks(form.links);
     if (!links.ok) {
       setLinkIssues(links.issues);
@@ -232,7 +273,7 @@ export function SongDialog({
     const data = {
       title: form.title,
       artist_id: form.artistId,
-      tempo: form.tempo ? parseInt(form.tempo, 10) : null,
+      tempo: form.tempo.trim() ? Number(form.tempo) : null,
       tonality: form.tonality || null,
       genre: form.genre || null,
       duration: form.duration ? parseDurationToSeconds(form.duration) : null,
@@ -438,9 +479,12 @@ export function SongDialog({
                       variant="outline"
                       size="sm"
                       className="gap-1.5"
+                      disabled={isPending}
                       onClick={() => {
-                        onClose();
-                        router.push(`/dashboard/songs/${song.id}/lyrics`);
+                        // Through the close guard: leaving for the lyrics
+                        // editor used to drop unsaved edits silently.
+                        navigateAfterCloseRef.current = `/dashboard/songs/${song.id}/lyrics`;
+                        closeGuard.requestClose();
                       }}
                     >
                       <FileEdit className="h-3.5 w-3.5" aria-hidden />
@@ -481,9 +525,11 @@ export function SongDialog({
                       onChange={(e) => set("tempo", e.target.value)}
                       disabled={isPending}
                       placeholder={t("bpmPlaceholder")}
-                      min={1}
-                      max={500}
+                      min={MIN_TEMPO}
+                      max={MAX_TEMPO}
+                      {...fieldA11y("song-tempo", errors.tempo)}
                     />
+                    <FieldError fieldId="song-tempo" message={errors.tempo} />
                   </div>
 
                   <div className="space-y-2">
@@ -653,7 +699,7 @@ export function SongDialog({
           </form>
         </DialogContent>
       </Dialog>
-      <DiscardChangesDialog {...closeGuard.discard} />
+      <DiscardChangesDialog {...discardDialog} />
     </>
   );
 }

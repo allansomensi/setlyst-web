@@ -7,8 +7,6 @@ import { getLegalText } from "@/lib/legal-content";
 import { LEGAL_HREFS, type LegalDocument } from "@/lib/legal";
 import { STATUS_PATH, WIKI_URL } from "@/lib/links";
 
-export { AuthLogo } from "./auth-logo";
-
 /** Documents linked from every sign-in / sign-up screen. */
 const AUTH_LEGAL_DOCS: LegalDocument[] = [
   "terms",
@@ -41,13 +39,13 @@ export async function AuthShell({ children }: { children: React.ReactNode }) {
           href="/"
           className="focus-visible:ring-ring/50 flex items-center gap-2 rounded-lg font-semibold outline-none focus-visible:ring-3"
         >
-          <AppLogo size={28} className="rounded-lg" />
-          <span>Setlyst</span>
-          <span className="sr-only">: {t("backToSite")}</span>
+          <AppLogo size={28} decorative className="rounded-lg" />
+          <span aria-hidden>Setlyst</span>
+          <span className="sr-only">Setlyst: {t("backToSite")}</span>
         </Link>
-        <div className="flex items-center gap-2">
-          <LocaleSwitcher />
-          <ThemeToggle className="hidden sm:flex" />
+        <div className="flex shrink-0 items-center gap-2">
+          <LocaleSwitcher compact />
+          <ThemeToggle />
         </div>
       </header>
 

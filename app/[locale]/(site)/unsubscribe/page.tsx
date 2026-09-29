@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { inspectUnsubscribeToken } from "@/lib/public-api";
 import { isPlausibleUnsubscribeToken } from "@/lib/unsubscribe";
+import { Button } from "@/components/ui/button";
 import {
   InvalidState,
   StateIcon,
@@ -36,7 +37,10 @@ export default async function UnsubscribePage({
 }: {
   searchParams: SearchParams;
 }) {
-  const t = await getTranslations("unsubscribe");
+  const [t, tCommon] = await Promise.all([
+    getTranslations("unsubscribe"),
+    getTranslations("common"),
+  ]);
   const raw = (await searchParams).token;
   const token = Array.isArray(raw) ? raw[0] : raw;
 
@@ -56,6 +60,12 @@ export default async function UnsubscribePage({
             <p className="text-muted-foreground leading-relaxed">
               {t("unavailableDescription")}
             </p>
+            {/* A full reload on purpose: the check runs on the server. */}
+            <Button variant="outline" asChild>
+              <a href={`?token=${encodeURIComponent(token ?? "")}`}>
+                {tCommon("tryAgain")}
+              </a>
+            </Button>
           </div>
         ) : info.valid && token ? (
           <UnsubscribeForm token={token} category={info.category} />

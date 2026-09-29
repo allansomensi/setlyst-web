@@ -22,9 +22,16 @@ import { cn } from "@/lib/utils";
 export function LocaleSwitcher({
   className,
   fullWidth = false,
+  compact = false,
 }: {
   className?: string;
   fullWidth?: boolean;
+  /**
+   * Icon only below `sm`: "Português (Brasil)" alone is wider than a
+   * third of a phone screen, which is more than a slim header can give
+   * it next to the theme picker. The name stays in the accessible label.
+   */
+  compact?: boolean;
 }) {
   const t = useTranslations("site");
   const locale = useLocale();
@@ -67,7 +74,9 @@ export function LocaleSwitcher({
         ) : (
           <Languages className="text-muted-foreground size-4" />
         )}
-        <SelectValue />
+        <span className={cn(compact && "hidden sm:inline")}>
+          <SelectValue />
+        </span>
       </SelectTrigger>
       <SelectContent align="end">
         {(Object.keys(LOCALE_NAMES) as AppLocale[]).map((code) => (

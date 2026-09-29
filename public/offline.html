@@ -3,10 +3,50 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#f1f2fa"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#0a0a11"
+    />
     <title>Setlyst · Offline</title>
     <style>
+      /*
+       * Mirrors the app's own palette (app/globals.css) in both schemes,
+       * so this fallback reads as a Setlyst screen rather than a browser
+       * error. It must work with zero network access, so everything is
+       * inline: system fonts, an inline SVG icon, no external assets.
+       */
       :root {
-        color-scheme: dark;
+        color-scheme: light dark;
+        --background: #f1f2fa;
+        --foreground: #24243a;
+        --card: #fdfdfe;
+        --border: #d3d4e3;
+        --muted-foreground: #62637a;
+        --primary: #5b3fd6;
+        --primary-foreground: #f8f7ff;
+        --primary-soft: rgba(91, 63, 214, 0.12);
+        --shadow:
+          0 1px 2px rgba(36, 36, 58, 0.06), 0 1px 3px rgba(36, 36, 58, 0.04);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #0a0a11;
+          --foreground: #f4f4fa;
+          --card: #17171f;
+          --border: rgba(255, 255, 255, 0.1);
+          --muted-foreground: #a4a5b5;
+          --primary: #a99bf0;
+          --primary-foreground: #14122a;
+          --primary-soft: rgba(169, 155, 240, 0.14);
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
       }
       * {
         box-sizing: border-box;
@@ -20,50 +60,107 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 24px;
-        background: #09090b;
-        color: #fafafa;
+        padding: max(24px, env(safe-area-inset-top))
+          max(24px, env(safe-area-inset-right))
+          max(24px, env(safe-area-inset-bottom))
+          max(24px, env(safe-area-inset-left));
+        background: var(--background);
+        color: var(--foreground);
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
           Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
         text-align: center;
       }
       main {
+        width: 100%;
         max-width: 26rem;
+        padding: 2rem 1.5rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
       }
       .icon {
-        font-size: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
         margin-bottom: 1rem;
+        border-radius: 9999px;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+      .icon svg {
+        width: 1.5rem;
+        height: 1.5rem;
       }
       h1 {
         font-size: 1.25rem;
-        font-weight: 600;
+        font-weight: 700;
+        letter-spacing: -0.01em;
         margin: 0 0 0.5rem;
       }
       p {
-        color: #a1a1aa;
+        color: var(--muted-foreground);
         font-size: 0.9rem;
-        line-height: 1.5;
+        line-height: 1.55;
         margin: 0 0 1.5rem;
       }
       button {
-        background: #fafafa;
-        color: #09090b;
+        min-height: 2.5rem;
+        background: var(--primary);
+        color: var(--primary-foreground);
         border: none;
-        border-radius: 0.5rem;
+        border-radius: 0.6rem;
         padding: 0.6rem 1.25rem;
+        font: inherit;
         font-size: 0.9rem;
-        font-weight: 500;
+        font-weight: 600;
         cursor: pointer;
+        transition: opacity 120ms ease;
+      }
+      button:hover {
+        opacity: 0.9;
       }
       button:active {
-        opacity: 0.85;
+        opacity: 0.8;
+      }
+      button:focus-visible {
+        outline: 3px solid var(--primary-soft);
+        outline-offset: 0;
+        box-shadow: 0 0 0 1px var(--primary);
+      }
+      .brand {
+        margin-top: 1.5rem;
+        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
       }
     </style>
   </head>
   <body>
     <main>
-      <div class="icon">📡</div>
+      <div class="icon" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 20h.01" />
+          <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+          <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+          <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+          <path d="M2 8.82a15 15 0 0 1 4.177-2.643" />
+          <path d="M22 8.82a15 15 0 0 0-11.288-3.764" />
+          <path d="m2 2 20 20" />
+        </svg>
+      </div>
       <h1 data-i18n="heading">You're offline</h1>
       <p data-i18n="body">
         This page hasn't been saved for offline use yet. Open it once with a
@@ -71,6 +168,7 @@
         offline afterwards.
       </p>
       <button id="retry" type="button" data-i18n="button">Try again</button>
+      <div class="brand">Setlyst</div>
     </main>
     <script src="/offline.js"></script>
   </body>

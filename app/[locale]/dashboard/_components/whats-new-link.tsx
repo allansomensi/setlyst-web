@@ -48,11 +48,13 @@ export function WhatsNewLink({ onNavigate }: { onNavigate?: () => void }) {
       title={label}
       aria-label={label}
       className={cn(
-        "hover:bg-muted relative flex h-9 w-9 items-center justify-center rounded-md transition-colors",
+        // size-10 on touch screens, like the Settings link next to it in
+        // the mobile header; the focus ring the other header controls have.
+        "hover:bg-muted focus-visible:ring-ring/50 relative flex size-9 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3 pointer-coarse:size-10",
         unseen ? "text-primary" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <Sparkles className="h-4 w-4" />
+      <Sparkles className="h-4 w-4" aria-hidden />
       {unseen && (
         <span className="bg-primary ring-background absolute top-1.5 right-1.5 h-2 w-2 rounded-full ring-2" />
       )}

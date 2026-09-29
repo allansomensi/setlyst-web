@@ -12,15 +12,22 @@ export function AppLogo({
   size = 32,
   className,
   priority = false,
+  decorative = false,
 }: {
   size?: number;
   className?: string;
   priority?: boolean;
+  /**
+   * When the wordmark "Setlyst" is written right next to the icon, the
+   * icon adds nothing for a screen reader (it would announce "Setlyst
+   * Setlyst"), so it is left out of the accessibility tree.
+   */
+  decorative?: boolean;
 }) {
   return (
     <Image
       src="/web-app-manifest-512x512.png"
-      alt="Setlyst"
+      alt={decorative ? "" : "Setlyst"}
       width={size}
       height={size}
       priority={priority}

@@ -230,11 +230,7 @@ export function ReauthProofField({
           disabled={disabled || sending || cooldown > 0}
           onClick={() => void send()}
         >
-          {sending ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          ) : (
-            <Mail className="mr-2 size-4" />
-          )}
+          {sending ? <Loader2 className="animate-spin" /> : <Mail />}
           {cooldown > 0
             ? t("resendIn", { time: formatCountdown(cooldown) })
             : t("send")}

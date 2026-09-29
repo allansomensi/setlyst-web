@@ -125,6 +125,7 @@ export function SongLiveModeViewer({
           capo={song.capo}
           showChords={display.showChords}
           showSections={display.showSections}
+          highContrast={display.highContrast}
           fontFamily={display.fontFamily}
           fontSize={baseFontSize}
           fitToScreen={fitToScreen}

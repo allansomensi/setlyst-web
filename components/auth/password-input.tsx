@@ -22,7 +22,7 @@ export function PasswordInput({
     <div className="relative">
       <Input
         type={visible ? "text" : "password"}
-        className={cn("pr-10", className)}
+        className={cn("pr-10 pointer-coarse:pr-12", className)}
         spellCheck={false}
         autoCapitalize="off"
         {...props}
@@ -31,10 +31,10 @@ export function PasswordInput({
         type="button"
         onClick={() => setVisible((v) => !v)}
         disabled={props.disabled}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-1/2 right-1.5 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 pointer-coarse:size-9"
         aria-label={visible ? t("hide") : t("show")}
+        aria-pressed={visible}
         title={visible ? t("hide") : t("show")}
-        tabIndex={-1}
       >
         {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>

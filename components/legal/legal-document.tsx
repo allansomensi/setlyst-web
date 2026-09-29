@@ -70,13 +70,16 @@ export async function LegalDocumentView({
       <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
         {/* Document switcher */}
         <aside className="print:hidden">
-          <nav aria-labelledby="legal-docs" className="lg:sticky lg:top-24">
-            <h2
-              id="legal-docs"
+          <nav
+            aria-label={t("documentsHeading")}
+            className="lg:sticky lg:top-24"
+          >
+            <p
+              aria-hidden
               className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase"
             >
               {t("documentsHeading")}
-            </h2>
+            </p>
             <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:gap-0.5 lg:overflow-visible lg:px-0 lg:pb-0">
               {LEGAL_DOCUMENTS.map((item) => {
                 const current = item === doc;

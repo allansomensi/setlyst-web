@@ -33,6 +33,7 @@ import {
   quotaUsageOf,
 } from "@/components/quota-usage-list";
 import { useOfflineDisabled } from "@/components/offline-disabled";
+import { useOfflineArtists } from "@/hooks/use-offline-library";
 import {
   Disc3,
   MoreHorizontal,
@@ -77,6 +78,15 @@ export function ArtistsTable({
 
   const [artistToDelete, setArtistToDelete] = useState<string | null>(null);
 
+  // As on the songs and setlists pages: with no connection, or when the
+  // page's own fetch failed, the list comes from the on-device mirror
+  // instead of the (empty or stale) server-rendered props. See
+  // hooks/use-offline-records.ts.
+  const { records: availableArtists, isFromCache } = useOfflineArtists({
+    fallback: initialArtists,
+    loadError,
+  });
+
   const {
     search,
     setSearch,
@@ -89,7 +99,7 @@ export function ArtistsTable({
     pageSize,
     setPageSize,
     totalItems,
-  } = useTableControls(initialArtists, SEARCHABLE_KEYS);
+  } = useTableControls(availableArtists, SEARCHABLE_KEYS);
 
   const artists = processedData;
 
@@ -107,16 +117,17 @@ export function ArtistsTable({
     startTransition(async () => {
       const result = await deleteArtist(artistToDelete);
       if (!result.success) {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error ?? t("dialog.deleteFailed"));
-      } else {
-        toastMovedToTrash("artist", artistToDelete, {
-          message: t("dialog.deleted"),
-          undoLabel: tTrash("undo"),
-          restoring: tTrash("restoring"),
-          restored: t("dialog.restored"),
-          restoreFailed: tTrash("restoreFailed"),
-        });
+        return;
       }
+      toastMovedToTrash("artist", artistToDelete, {
+        message: t("dialog.deleted"),
+        undoLabel: tTrash("undo"),
+        restoring: tTrash("restoring"),
+        restored: t("dialog.restored"),
+        restoreFailed: tTrash("restoreFailed"),
+      });
       setArtistToDelete(null);
     });
   };
@@ -126,7 +137,9 @@ export function ArtistsTable({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t("title")}
+          </h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -177,7 +190,8 @@ export function ArtistsTable({
             {artists.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
-                  {loadError ? (
+                  {/* Only a failure the local copy couldn't cover. */}
+                  {loadError && !isFromCache ? (
                     <LoadErrorNotice />
                   ) : search ? (
                     <EmptyState
@@ -234,6 +248,7 @@ export function ArtistsTable({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleOpenDialog(artist)}
+                          disabled={offlineDisabled.disabled}
                         >
                           <Pencil className="mr-2 h-4 w-4" />
                           {tCommon("edit")}
@@ -241,6 +256,7 @@ export function ArtistsTable({
                         <DropdownMenuItem
                           onClick={() => handleDeleteClick(artist.id)}
                           variant="destructive"
+                          disabled={offlineDisabled.disabled}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {tCommon("delete")}

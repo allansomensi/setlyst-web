@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { Crown, MoreHorizontal, Plus, UserMinus } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +60,7 @@ export function BandAdminMembers({
   const tRoles = useTranslations("bands.roles");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [isPending, startTransition] = useTransition();
   const [pending, setPending] = useState<Pending | null>(null);
   const [adding, setAdding] = useState(false);
@@ -199,7 +200,10 @@ export function BandAdminMembers({
                     fullName,
                     member.title,
                     t("joined", {
-                      date: formatApiDate(member.joined_at, locale),
+                      date: formatApiDate(member.joined_at, locale, {
+                        dateStyle: "medium",
+                        timeZone,
+                      }),
                     }),
                   ]
                     .filter(Boolean)

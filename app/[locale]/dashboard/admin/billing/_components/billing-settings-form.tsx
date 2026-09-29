@@ -367,8 +367,15 @@ export function BillingSettingsForm({
                       min={1}
                       max={3650}
                       value={Number.isNaN(reward.days) ? "" : reward.days}
+                      // Empty is NaN, not 0 (`Number("")`), so the field
+                      // can be cleared while typing, as in NumberField.
                       onChange={(e) =>
-                        setReward(index, { days: Number(e.target.value) })
+                        setReward(index, {
+                          days:
+                            e.target.value === ""
+                              ? Number.NaN
+                              : Number(e.target.value),
+                        })
                       }
                       aria-invalid={issue === "days"}
                     />
@@ -384,7 +391,12 @@ export function BillingSettingsForm({
                       max={100_000}
                       value={Number.isNaN(reward.cost) ? "" : reward.cost}
                       onChange={(e) =>
-                        setReward(index, { cost: Number(e.target.value) })
+                        setReward(index, {
+                          cost:
+                            e.target.value === ""
+                              ? Number.NaN
+                              : Number(e.target.value),
+                        })
                       }
                       aria-invalid={issue === "cost"}
                     />

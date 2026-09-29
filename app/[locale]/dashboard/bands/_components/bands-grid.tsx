@@ -116,11 +116,12 @@ export function BandsGrid({
     if (!bandToDelete) return;
     startTransition(async () => {
       const result = await deleteBand(bandToDelete.id);
-      if (result.success) {
-        toast.success(t("dialog.deleted"));
-      } else {
+      if (!result.success) {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
+        return;
       }
+      toast.success(t("dialog.deleted"));
       setBandToDelete(null);
     });
   };
@@ -129,11 +130,12 @@ export function BandsGrid({
     if (!bandToLeave || !session?.user?.id) return;
     startTransition(async () => {
       const result = await leaveBand(bandToLeave.id, session.user.id);
-      if (result.success) {
-        toast.success(t("dialog.left"));
-      } else {
+      if (!result.success) {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
+        return;
       }
+      toast.success(t("dialog.left"));
       setBandToLeave(null);
     });
   };
@@ -158,7 +160,9 @@ export function BandsGrid({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t("title")}
+          </h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -234,9 +238,15 @@ export function BandsGrid({
                   type="button"
                   data-no-row-click
                   onClick={() => handleToggleFavorite(band)}
-                  disabled={favoritePendingId === band.id}
+                  disabled={
+                    offlineDisabled.disabled || favoritePendingId === band.id
+                  }
                   className="text-muted-foreground focus-visible:ring-ring/50 absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-md outline-none hover:text-yellow-500 focus-visible:ring-3 disabled:opacity-50 pointer-coarse:size-10"
-                  title={band.is_favorite ? t("unfavorite") : t("favorite")}
+                  // Offline, the tooltip says why it's off instead.
+                  title={
+                    offlineDisabled.title ??
+                    (band.is_favorite ? t("unfavorite") : t("favorite"))
+                  }
                   aria-label={t("favoriteNamed", { name: band.name })}
                   aria-pressed={!!band.is_favorite}
                 >
@@ -307,6 +317,7 @@ export function BandsGrid({
                       {canManage && (
                         <DropdownMenuItem
                           onClick={() => handleOpenDialog(band)}
+                          disabled={offlineDisabled.disabled}
                         >
                           <Pencil className="mr-2 h-4 w-4" />
                           {t("menu.edit")}
@@ -317,6 +328,7 @@ export function BandsGrid({
                         <DropdownMenuItem
                           onClick={() => setBandToDelete(band)}
                           variant="destructive"
+                          disabled={offlineDisabled.disabled}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {t("menu.delete")}
@@ -325,6 +337,7 @@ export function BandsGrid({
                         <DropdownMenuItem
                           onClick={() => setBandToLeave(band)}
                           variant="destructive"
+                          disabled={offlineDisabled.disabled}
                         >
                           <LogOut className="mr-2 h-4 w-4" />
                           {t("menu.leave")}

@@ -228,16 +228,17 @@ export function SongsTable({
     startTransition(async () => {
       const result = await deleteSong(target.id);
       if (!result.success) {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error ?? t("dialog.deleteFailed"));
-      } else {
-        toastMovedToTrash("song", target.id, {
-          message: t("dialog.deleted"),
-          undoLabel: tTrash("undo"),
-          restoring: tTrash("restoring"),
-          restored: t("dialog.restored"),
-          restoreFailed: tTrash("restoreFailed"),
-        });
+        return;
       }
+      toastMovedToTrash("song", target.id, {
+        message: t("dialog.deleted"),
+        undoLabel: tTrash("undo"),
+        restoring: tTrash("restoring"),
+        restored: t("dialog.restored"),
+        restoreFailed: tTrash("restoreFailed"),
+      });
       setSongToDelete(null);
     });
   };
@@ -247,7 +248,9 @@ export function SongsTable({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t("title")}
+          </h1>
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
 
@@ -622,9 +625,13 @@ export function SongsTable({
 
       <ManageTagsDialog
         open={managingTags}
-        onOpenChange={(open) => {
-          setManagingTags(open);
-          if (!open) setTagFilter(null);
+        onOpenChange={setManagingTags}
+        // Follow the active filter through a rename, drop it only when its
+        // tag is gone; any other change leaves the current view alone.
+        onTagChanged={(from, to) => {
+          if (tagFilter !== from) return;
+          setTagFilter(to);
+          setCurrentPage(1);
         }}
       />
 
@@ -633,7 +640,9 @@ export function SongsTable({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         song={editingSong}
-        artists={artists}
+        // The same list the import dialog gets: offline, the page's props
+        // are empty and only the on-device mirror has the artists.
+        artists={availableArtists}
         tagSuggestions={tagsByUse}
       />
 

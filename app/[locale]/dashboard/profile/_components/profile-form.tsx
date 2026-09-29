@@ -114,6 +114,17 @@ export function ProfileForm({
     }, 400);
   };
 
+  // Drops any debounced or in-flight availability check. Discard and a
+  // successful save put the username back to the saved one; a check still
+  // pending for the edited spelling would otherwise land afterwards and
+  // mark it "taken", leaving Save disabled for no visible reason.
+  const cancelUsernameCheck = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = null;
+    checkRef.current++;
+    setAvailability("idle");
+  };
+
   const blocked =
     availability === "unavailable" ||
     availability === "invalid" ||
@@ -131,7 +142,7 @@ export function ProfileForm({
       const next = result.data ? initialValues(result.data) : values;
       setSaved(next);
       setValues(next);
-      setAvailability("idle");
+      cancelUsernameCheck();
       toast.success(t("success"));
       router.refresh();
     });
@@ -300,7 +311,7 @@ export function ProfileForm({
               disabled={isPending}
               onClick={() => {
                 setValues(saved);
-                setAvailability("idle");
+                cancelUsernameCheck();
               }}
             >
               <RotateCcw className="mr-2 size-4" />

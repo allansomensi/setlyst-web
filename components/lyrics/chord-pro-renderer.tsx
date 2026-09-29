@@ -471,6 +471,9 @@ export const ChordProRenderer = React.memo(function ChordProRenderer({
                 key={i}
                 data-line=""
                 data-tab=""
+                // Scrolls sideways on narrow screens: Live Mode's swipe
+                // navigation leaves touches here alone (use-swipe-navigation).
+                data-no-swipe=""
                 className="bg-muted/40 text-foreground my-[0.4em] overflow-x-auto rounded-[0.5em] px-[0.8em] py-[0.5em] font-mono text-[0.68em] leading-[1.35]"
               >
                 {block.lines.join("\n")}

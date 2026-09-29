@@ -62,13 +62,27 @@ export function ListToolbar({
   const { searchParams, set, isPending } = useQueryParams();
   const initial = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(initial);
+  // The `?q=` last reflected in the box, and the one this box itself last
+  // wrote. When the URL changes to anything else (Back/Forward, a link)
+  // the box follows it; when it's just our own debounced write landing,
+  // the box is left alone, so whatever was typed since isn't clobbered.
+  // Adjusted during render rather than in an effect (React's "storing
+  // information from previous renders" pattern).
+  const [syncedQuery, setSyncedQuery] = useState(initial);
+  const [pushedQuery, setPushedQuery] = useState<string | null>(null);
+  if (initial !== syncedQuery) {
+    setSyncedQuery(initial);
+    setPushedQuery(null);
+    if (initial !== pushedQuery) setQuery(initial);
+  }
 
   useEffect(() => {
     if (query === initial) return;
-    const timer = setTimeout(
-      () => set({ q: query.trim() || null }),
-      DEBOUNCE_MS,
-    );
+    const timer = setTimeout(() => {
+      const next = query.trim();
+      setPushedQuery(next);
+      set({ q: next || null });
+    }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);

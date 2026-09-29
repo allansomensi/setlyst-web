@@ -208,7 +208,7 @@ export function DegreeBuilder({
                 onChange(null);
               }}
               aria-label={t("clear")}
-              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 outline-none focus-visible:ring-3"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>

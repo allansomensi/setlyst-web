@@ -56,13 +56,14 @@ export function SortableBreakRow({
           <Coffee className="text-muted-foreground h-4 w-4" aria-hidden />
         )}
       </TableCell>
-      <TableCell>
-        <div className="text-muted-foreground flex items-center gap-2 py-0.5 italic">
+      {/* `w-full max-w-0` as in a song row, so a long label truncates. */}
+      <TableCell className="w-full max-w-0">
+        <div className="text-muted-foreground flex min-w-0 items-center gap-2 py-0.5 italic">
           <span className="truncate">
             {row.label || t("breakDefaultLabel")}
           </span>
           {hasDuration && (
-            <span className="text-xs not-italic sm:hidden">
+            <span className="shrink-0 text-xs not-italic sm:hidden">
               ({t("breakMinutes", { count: minutes })})
             </span>
           )}
@@ -81,6 +82,7 @@ export function SortableBreakRow({
         {isReordering && move && <MoveButtons label={label} move={move} />}
         {!isReordering && canEdit && (
           <MarkerActions
+            name={label}
             onEdit={onEdit}
             onDelete={onDelete}
             disabled={actionsDisabled}

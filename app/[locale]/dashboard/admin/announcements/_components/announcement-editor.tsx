@@ -192,7 +192,11 @@ function useAudienceCount(form: AnnouncementForm) {
             });
           }
         })
-        .catch(() => undefined);
+        .catch(() => {
+          // A rejected preview still settles this key (count unknown),
+          // or "Counting…" would spin forever.
+          if (!cancelled) setState({ key, count: null });
+        });
     }, AUDIENCE_DEBOUNCE_MS);
     return () => {
       cancelled = true;

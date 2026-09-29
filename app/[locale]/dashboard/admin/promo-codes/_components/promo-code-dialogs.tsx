@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -30,7 +31,12 @@ import {
   localInputToUtcNaive,
   utcNaiveToLocalInput,
 } from "@/lib/datetime-local";
-import { onFormSubmit } from "@/lib/forms";
+import {
+  fieldA11y,
+  focusFirstError,
+  onFormSubmit,
+  type FieldErrors,
+} from "@/lib/forms";
 import { toast } from "@/lib/toast";
 import {
   PROMO_KINDS,
@@ -48,6 +54,17 @@ export interface PlanChoice {
   code: string;
   name: string;
 }
+
+/** Where focus goes on a failed submit: the first invalid field. */
+const FIELD_ORDER = [
+  { key: "code", id: "promo-code" },
+  { key: "plan", id: "promo-plan" },
+  { key: "days", id: "promo-days" },
+  { key: "credits", id: "promo-credits" },
+  { key: "discount", id: "promo-discount" },
+  { key: "max", id: "promo-max" },
+  { key: "window", id: "promo-expires" },
+] as const;
 
 function intOrNull(value: string): number | null {
   if (value.trim() === "") return null;
@@ -122,10 +139,28 @@ function CreatePromoCodeDialog({
   const valid =
     !Object.values(errors).some(Boolean) && description.length <= 255;
   const err = (flag: boolean) => showErrors && flag;
+  // Inline messages for the numeric fields: a red outline alone doesn't
+  // say what's wrong (or, to a screen reader, anything at all).
+  const range = (flag: boolean, min: number, max: number) =>
+    flag ? t("fields.rangeError", { min, max }) : undefined;
+  const fieldErrors: FieldErrors<keyof typeof errors> = {
+    code: errors.code ? t("fields.codeHint") : undefined,
+    plan: errors.plan ? t("fields.plan") : undefined,
+    days: range(errors.days, 1, 3650),
+    credits: range(errors.credits, 1, 100_000),
+    discount: range(errors.discount, 1, 100),
+    max: range(errors.max, 1, 1_000_000),
+    window: errors.window ? t("fields.windowError") : undefined,
+  };
+  const shown = (key: keyof typeof errors) =>
+    showErrors ? fieldErrors[key] : undefined;
 
   const submit = () => {
     setShowErrors(true);
-    if (!valid) return;
+    if (!valid) {
+      focusFirstError(fieldErrors, FIELD_ORDER);
+      return;
+    }
     startTransition(async () => {
       const result = await createPromoCode({
         code: code.trim() ? code.trim().toUpperCase() : null,
@@ -249,8 +284,9 @@ function CreatePromoCodeDialog({
                   max={3650}
                   value={days}
                   onChange={(e) => setDays(e.target.value)}
-                  aria-invalid={err(errors.days)}
+                  {...fieldA11y("promo-days", shown("days"))}
                 />
+                <FieldError fieldId="promo-days" message={shown("days")} />
               </div>
             )}
             {fields.credits && (
@@ -263,7 +299,11 @@ function CreatePromoCodeDialog({
                   max={100000}
                   value={credits}
                   onChange={(e) => setCredits(e.target.value)}
-                  aria-invalid={err(errors.credits)}
+                  {...fieldA11y("promo-credits", shown("credits"))}
+                />
+                <FieldError
+                  fieldId="promo-credits"
+                  message={shown("credits")}
                 />
               </div>
             )}
@@ -277,7 +317,11 @@ function CreatePromoCodeDialog({
                   max={100}
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
-                  aria-invalid={err(errors.discount)}
+                  {...fieldA11y("promo-discount", shown("discount"))}
+                />
+                <FieldError
+                  fieldId="promo-discount"
+                  message={shown("discount")}
                 />
               </div>
             )}
@@ -290,8 +334,9 @@ function CreatePromoCodeDialog({
                 value={maxRedemptions}
                 onChange={(e) => setMaxRedemptions(e.target.value)}
                 placeholder={t("fields.unlimited")}
-                aria-invalid={err(errors.max)}
+                {...fieldA11y("promo-max", shown("max"))}
               />
+              <FieldError fieldId="promo-max" message={shown("max")} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

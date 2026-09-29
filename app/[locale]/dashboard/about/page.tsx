@@ -210,7 +210,7 @@ export default async function AboutPage() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:border-primary/40 hover:bg-accent/40 inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm transition-colors"
+                    className="hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-ring/50 inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm transition-colors outline-none focus-visible:ring-3"
                   >
                     <Icon className="text-primary h-4 w-4" />
                     {link.label}
@@ -237,7 +237,7 @@ export default async function AboutPage() {
           href={`${repoUrl("setlyst-web")}/issues/new`}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-background hover:bg-muted inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors"
+          className="bg-background hover:bg-muted focus-visible:ring-ring/50 inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors outline-none focus-visible:ring-3"
         >
           <Bug className="h-4 w-4" />
           {t("reportIssue")}
@@ -302,7 +302,7 @@ async function RepositoryCard({
             rel="noopener noreferrer"
             aria-label={t("openRepository", { name })}
             title={t("openRepository", { name })}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3"
           >
             <ExternalLink className="h-4 w-4" />
           </a>
