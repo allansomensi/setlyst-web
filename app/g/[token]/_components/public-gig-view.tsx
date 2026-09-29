@@ -58,7 +58,7 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
   const setlist = gig.setlist;
 
   return (
-    <div className="bg-background flex min-h-screen flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
+    <main className="bg-background flex min-h-dvh flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
       <div className="w-full max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-3">
           <Link
@@ -74,7 +74,7 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
 
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight break-words">
+            <h1 className="min-w-0 text-3xl font-bold tracking-tight break-words">
               {gig.venue}
             </h1>
             <Badge variant={STATUS_VARIANT[gig.status] ?? "secondary"}>
@@ -101,12 +101,12 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
         {setlist ? (
           <div className="space-y-4">
             <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-              <div className="min-w-0">
+              <div className="max-w-full min-w-0">
                 <h2 className="text-xl font-semibold break-words">
                   {setlist.title}
                 </h2>
                 {setlist.description && (
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <p className="text-muted-foreground mt-1 text-sm break-words">
                     {setlist.description}
                   </p>
                 )}
@@ -215,6 +215,6 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
           </span>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

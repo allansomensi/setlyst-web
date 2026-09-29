@@ -12,16 +12,16 @@ export default function SetlistsLoading() {
   return (
     <div className="w-full space-y-6">
       {/* Header Skeleton */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-9 w-32" /> {/* Title */}
           <Skeleton className="h-4 w-64" /> {/* Subtitle */}
         </div>
-        <Skeleton className="h-10 w-32" /> {/* Add Button */}
+        <Skeleton className="h-8 w-32" /> {/* Add Button */}
       </div>
 
       {/* Search Input Skeleton */}
-      <Skeleton className="h-10 w-full max-w-sm" />
+      <Skeleton className="h-9 w-full max-w-sm" />
 
       {/* Table Skeleton */}
       <div className="bg-card rounded-md border">

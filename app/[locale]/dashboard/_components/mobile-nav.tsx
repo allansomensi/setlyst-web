@@ -189,8 +189,8 @@ function MobileDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <nav
-            aria-label={t("menu")}
+          {/* SidebarLinks renders the <nav> landmark itself. */}
+          <div
             className="flex-1 overflow-y-auto overscroll-contain py-2"
             onClick={(event) => {
               // Any link followed from the list closes the drawer.
@@ -198,7 +198,7 @@ function MobileDrawer({
             }}
           >
             <SidebarLinks isCollapsed={false} userRole={role} />
-          </nav>
+          </div>
 
           {planStatus && (
             <div className="border-t px-4 pt-3">

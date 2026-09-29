@@ -52,7 +52,7 @@ export function DangerSection({
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left"
+        className="focus-visible:ring-ring/50 flex w-full items-center justify-between gap-2 rounded-lg px-4 py-3 text-left outline-none focus-visible:ring-3"
         aria-expanded={expanded}
       >
         <span>

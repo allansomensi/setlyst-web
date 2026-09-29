@@ -226,84 +226,88 @@ export default async function StatusPage({
           />
         </header>
 
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </div>
-
-        <div
-          className={cn(
-            "flex items-center gap-3 rounded-xl border px-5 py-4",
-            HEALTH_STYLES[overall].banner,
-          )}
-          role="status"
-        >
-          <OverallIcon className="h-6 w-6 shrink-0" />
-          <div>
-            <p className="font-semibold">{t(`overall.${overall}`)}</p>
-            <p className="text-sm opacity-80">{t(`overallHint.${overall}`)}</p>
+        <main className="space-y-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("description")}</p>
           </div>
-        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("servicesTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y p-0">
-            {services.map((service) => (
-              <div
-                key={service.key}
-                className="flex items-center justify-between gap-4 px-6 py-4"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="bg-muted rounded-lg p-2">
-                    <service.icon className="text-muted-foreground h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-medium">{service.name}</p>
-                    {service.details.length > 0 && (
-                      <p className="text-muted-foreground truncate text-sm">
-                        {service.details.join(" · ")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={HEALTH_STYLES[service.health].badge}
-                >
-                  {t(`health.${service.health}`)}
-                </Badge>
-              </div>
-            ))}
-            {database && poolUsage !== null && (
-              <div className="space-y-1.5 px-6 py-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {t("connections")}
-                  </span>
-                  <span className="font-mono tabular-nums">
-                    {database.opened_connections ?? 0} /{" "}
-                    {database.max_connections}
-                  </span>
-                </div>
-                <div className="bg-muted h-1.5 overflow-hidden rounded-full">
-                  <div
-                    className={cn(
-                      "h-full rounded-full",
-                      poolUsage > 85
-                        ? "bg-red-500"
-                        : poolUsage > 60
-                          ? "bg-amber-500"
-                          : "bg-emerald-500",
-                    )}
-                    style={{ width: `${Math.max(poolUsage, 2)}%` }}
-                  />
-                </div>
-              </div>
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-xl border px-5 py-4",
+              HEALTH_STYLES[overall].banner,
             )}
-          </CardContent>
-        </Card>
+            role="status"
+          >
+            <OverallIcon className="h-6 w-6 shrink-0" />
+            <div>
+              <p className="font-semibold">{t(`overall.${overall}`)}</p>
+              <p className="text-sm opacity-80">
+                {t(`overallHint.${overall}`)}
+              </p>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("servicesTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent className="divide-y p-0">
+              {services.map((service) => (
+                <div
+                  key={service.key}
+                  className="flex items-center justify-between gap-4 px-6 py-4"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="bg-muted rounded-lg p-2">
+                      <service.icon className="text-muted-foreground h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium">{service.name}</p>
+                      {service.details.length > 0 && (
+                        <p className="text-muted-foreground truncate text-sm">
+                          {service.details.join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={HEALTH_STYLES[service.health].badge}
+                  >
+                    {t(`health.${service.health}`)}
+                  </Badge>
+                </div>
+              ))}
+              {database && poolUsage !== null && (
+                <div className="space-y-1.5 px-6 py-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t("connections")}
+                    </span>
+                    <span className="font-mono tabular-nums">
+                      {database.opened_connections ?? 0} /{" "}
+                      {database.max_connections}
+                    </span>
+                  </div>
+                  <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+                    <div
+                      className={cn(
+                        "h-full rounded-full",
+                        poolUsage > 85
+                          ? "bg-red-500"
+                          : poolUsage > 60
+                            ? "bg-amber-500"
+                            : "bg-emerald-500",
+                      )}
+                      style={{ width: `${Math.max(poolUsage, 2)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </main>
 
         <footer className="text-muted-foreground flex flex-col items-center gap-2 text-center text-xs">
           <p>{t("checkedAt", { date: checkedAt, seconds: REFRESH_SECONDS })}</p>

@@ -49,14 +49,20 @@ export async function PlanComparison({
   );
 
   return (
-    <div className="bg-card relative overflow-x-auto rounded-2xl border">
+    // Focusable so the table can be scrolled sideways from the keyboard.
+    <div
+      role="region"
+      aria-label={t("compareTitle")}
+      tabIndex={0}
+      className="bg-card focus-visible:ring-ring/50 relative overflow-x-auto rounded-2xl border outline-none focus-visible:ring-3"
+    >
       <table className="w-full min-w-[40rem] border-collapse text-sm">
         <caption className="sr-only">{t("compareTitle")}</caption>
         <thead>
           <tr>
             <th
               scope="col"
-              className="bg-card sticky left-0 w-[40%] px-4 py-4 text-left font-medium"
+              className="bg-card sticky left-0 w-36 px-4 py-4 text-left font-medium sm:w-[40%]"
             >
               <span className="sr-only">{t("resource")}</span>
             </th>

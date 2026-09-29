@@ -39,6 +39,8 @@ export function QrCodeDisplay({
           size={size}
           marginSize={2}
           level="M"
+          role="img"
+          aria-label={t("qrCodeLabel")}
         />
       </div>
       <Button

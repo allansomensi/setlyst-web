@@ -74,11 +74,16 @@ export function PublicLinkStatus({
 /** error.tsx body for the share routes. */
 export function PublicLinkError({
   error,
-  reset,
+  retry,
   resource,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  /**
+   * Next's `retry` (refetch the server tree, then re-render): `reset`
+   * alone re-rendered the same failed server payload, so the button did
+   * nothing after an outage.
+   */
+  retry: () => void;
   resource: "setlist" | "gig";
 }) {
   useEffect(() => {
@@ -90,7 +95,7 @@ export function PublicLinkError({
     <PublicLinkStatus
       kind="unavailable"
       resource={resource}
-      onRetry={reset}
+      onRetry={retry}
       digest={process.env.NODE_ENV === "production" ? error.digest : undefined}
     />
   );

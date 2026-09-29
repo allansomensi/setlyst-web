@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { ChordDiagram } from "@/components/chords/chord-diagram";
 import { useChordDiagramPrefs } from "@/hooks/use-chord-diagram-prefs";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import { CHORD_INSTRUMENTS, type ChordInstrument } from "@/lib/ui-settings";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +27,12 @@ export function InstrumentPicker({
   className?: string;
 }) {
   const t = useTranslations("chordDiagram.instruments");
+
   return (
     <div
       role="radiogroup"
       aria-label={t("label")}
+      onKeyDown={onRadioGroupKeyDown}
       className={cn(
         "bg-muted grid grid-cols-4 gap-0.5 rounded-lg p-0.5",
         className,
@@ -41,6 +44,7 @@ export function InstrumentPicker({
           type="button"
           role="radio"
           aria-checked={value === instrument}
+          tabIndex={value === instrument ? 0 : -1}
           onClick={() => onChange(instrument)}
           className={cn(
             "focus-visible:ring-ring rounded-md px-1.5 py-1 text-[0.7rem] font-medium transition-colors outline-none focus-visible:ring-2",

@@ -64,7 +64,7 @@ export default async function ProfilePage() {
               </div>
               <PlatformRoleBadge role={user.role} />
               {user.bio && (
-                <p className="text-muted-foreground text-sm whitespace-pre-line">
+                <p className="text-muted-foreground text-sm break-words whitespace-pre-line">
                   {user.bio}
                 </p>
               )}

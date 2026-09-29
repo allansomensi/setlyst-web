@@ -153,9 +153,22 @@ export function ChangePasswordForm({
           maxLength={128}
           required
           aria-invalid={next.length > 0 && (!compliant || same)}
+          aria-describedby={
+            same
+              ? "new_password_requirements new_password_same"
+              : "new_password_requirements"
+          }
         />
-        <PasswordRequirements password={next} username={username} />
-        {same && <p className="text-destructive text-xs">{t("same")}</p>}
+        <PasswordRequirements
+          id="new_password_requirements"
+          password={next}
+          username={username}
+        />
+        {same && (
+          <p id="new_password_same" className="text-destructive text-xs">
+            {t("same")}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -169,9 +182,12 @@ export function ChangePasswordForm({
           maxLength={128}
           required
           aria-invalid={mismatch}
+          aria-describedby={mismatch ? "confirm_password_error" : undefined}
         />
         {mismatch && (
-          <p className="text-destructive text-xs">{tPassword("mismatch")}</p>
+          <p id="confirm_password_error" className="text-destructive text-xs">
+            {tPassword("mismatch")}
+          </p>
         )}
       </div>
 

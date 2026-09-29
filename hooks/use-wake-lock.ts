@@ -26,6 +26,7 @@ export function useWakeLock(enabled: boolean = true) {
     if (!enabled || !("wakeLock" in navigator)) return;
 
     let sentinel: WakeLockSentinel | null = null;
+    let requesting = false;
     let cancelled = false;
 
     const acquire = async () => {
@@ -33,7 +34,11 @@ export function useWakeLock(enabled: boolean = true) {
       // visibility change instead of burning a rejected promise.
       if (cancelled || document.visibilityState !== "visible") return;
       if (sentinel && !sentinel.released) return;
+      // A visibility change during the first request would otherwise start
+      // a second one, and the lock it overwrites could never be released.
+      if (requesting) return;
 
+      requesting = true;
       try {
         sentinel = await navigator.wakeLock.request("screen");
         if (cancelled) {
@@ -42,6 +47,8 @@ export function useWakeLock(enabled: boolean = true) {
         }
       } catch {
         // Unsupported, denied, or the document lost visibility mid-request.
+      } finally {
+        requesting = false;
       }
     };
 

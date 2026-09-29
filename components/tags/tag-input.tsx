@@ -107,7 +107,7 @@ export function TagInput({
                 e.stopPropagation();
                 remove(tag);
               }}
-              className="hover:bg-foreground/10 -mr-1 ml-0.5 rounded-full p-0.5"
+              className="hover:bg-foreground/10 focus-visible:ring-ring -mr-1 ml-0.5 rounded-full p-0.5 focus-visible:ring-2 focus-visible:outline-none"
               aria-label={t("remove", { tag })}
             >
               <X className="h-3 w-3" />
@@ -141,6 +141,11 @@ export function TagInput({
           role="combobox"
           aria-expanded={focused && matches.length > 0}
           aria-controls={listId}
+          aria-activedescendant={
+            focused && highlight >= 0 && highlight < matches.length
+              ? `${listId}-${highlight}`
+              : undefined
+          }
           aria-autocomplete="list"
           autoComplete="off"
           autoCapitalize="off"
@@ -155,7 +160,12 @@ export function TagInput({
           aria-label={t("suggestions")}
         >
           {matches.map((tag, index) => (
-            <li key={tag} role="option" aria-selected={index === highlight}>
+            <li
+              key={tag}
+              id={`${listId}-${index}`}
+              role="option"
+              aria-selected={index === highlight}
+            >
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}

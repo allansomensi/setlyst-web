@@ -112,7 +112,7 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
                   aria-current={
                     isCurrent(pathname, item.href) ? "page" : undefined
                   }
-                  className="hover:bg-muted focus-visible:ring-ring/50 block rounded-lg px-3 py-2.5 text-base font-medium outline-none focus-visible:ring-3"
+                  className="hover:bg-muted focus-visible:ring-ring/50 aria-[current=page]:bg-muted block rounded-lg px-3 py-2.5 text-base font-medium outline-none focus-visible:ring-3"
                 >
                   {t(`nav.${item.key}`)}
                 </Link>

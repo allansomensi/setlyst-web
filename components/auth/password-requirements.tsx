@@ -19,6 +19,7 @@ const STRENGTH_STYLES = [
 ] as const;
 
 interface PasswordRequirementsProps {
+  id?: string;
   password: string;
   /** Enables the "doesn't contain your username" rule. */
   username?: string | null;
@@ -31,6 +32,7 @@ interface PasswordRequirementsProps {
  * every box here is accepted there.
  */
 export function PasswordRequirements({
+  id,
   password,
   username,
   className,
@@ -53,7 +55,7 @@ export function PasswordRequirements({
   }
 
   return (
-    <div className={cn("space-y-2", className)} aria-live="polite">
+    <div id={id} className={cn("space-y-2", className)} aria-live="polite">
       <div className="flex items-center gap-2">
         <div className="flex flex-1 gap-1" aria-hidden>
           {[1, 2, 3, 4].map((level) => (

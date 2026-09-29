@@ -29,6 +29,7 @@ import {
 import { Loader2, Globe, Palette, Type, SlidersHorizontal } from "lucide-react";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 
 interface SettingsFormProps {
   initialPreferences: UserPreferences;
@@ -204,6 +205,7 @@ export function SettingsForm({ initialPreferences }: SettingsFormProps) {
               <button>s doesn't do on its own. */}
           <div
             role="radiogroup"
+            onKeyDown={onRadioGroupKeyDown}
             aria-label={t("liveModeFontSize")}
             className="flex flex-wrap items-center gap-2"
           >

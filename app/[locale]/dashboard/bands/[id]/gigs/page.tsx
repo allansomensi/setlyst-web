@@ -75,8 +75,8 @@ export default async function BandGigsPage({
           asChild
           className="hidden shrink-0 sm:inline-flex"
         >
-          <Link href={`/dashboard/bands/${id}`}>
-            <ChevronLeft className="h-4 w-4" />
+          <Link href={`/dashboard/bands/${id}`} aria-label={band.name}>
+            <ChevronLeft className="h-4 w-4" aria-hidden />
           </Link>
         </Button>
         <div>

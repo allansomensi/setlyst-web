@@ -135,7 +135,10 @@ export function UsersTable({ initialUsers, actor }: UsersTableProps) {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-40" aria-label={t("filterRole")}>
+            <SelectTrigger
+              className="min-w-0 flex-1 sm:w-40 sm:flex-none"
+              aria-label={t("filterRole")}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -153,7 +156,10 @@ export function UsersTable({ initialUsers, actor }: UsersTableProps) {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-44" aria-label={t("filterState")}>
+            <SelectTrigger
+              className="min-w-0 flex-1 sm:w-44 sm:flex-none"
+              aria-label={t("filterState")}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -235,7 +241,9 @@ export function UsersTable({ initialUsers, actor }: UsersTableProps) {
                             </span>
                           )}
                         </span>
-                        <span className="text-muted-foreground truncate text-xs">
+                        {/* Capped so a long email truncates instead of
+                            stretching the whole table sideways. */}
+                        <span className="text-muted-foreground max-w-56 truncate text-xs sm:max-w-xs">
                           {[fullName, user.email].filter(Boolean).join(" · ") ||
                             "—"}
                         </span>

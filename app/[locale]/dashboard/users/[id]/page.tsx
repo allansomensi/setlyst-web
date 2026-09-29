@@ -78,7 +78,9 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="space-y-0.5">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className="text-sm break-words">{value || "—"}</dd>
+      {/* `anywhere`, not `break-words`: a long email must be able to
+          wrap even inside the grid, whose column sizes to its content. */}
+      <dd className="text-sm wrap-anywhere">{value || "—"}</dd>
     </div>
   );
 }
@@ -140,7 +142,7 @@ export default async function UserDetailPage({ params }: { params: Params }) {
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <div
             className="bg-muted text-muted-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-xl font-semibold uppercase"
             aria-hidden
@@ -151,7 +153,9 @@ export default async function UserDetailPage({ params }: { params: Params }) {
             <h1 className="truncate text-2xl font-bold tracking-tight">
               {fullName || user.username}
             </h1>
-            <p className="text-muted-foreground text-sm">@{user.username}</p>
+            <p className="text-muted-foreground truncate text-sm">
+              @{user.username}
+            </p>
             <div className="flex flex-wrap items-center gap-1.5">
               <PlatformRoleBadge role={user.role} />
               <UserStatusBadges user={user} />

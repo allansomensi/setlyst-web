@@ -131,7 +131,7 @@ export default async function UserProfilePage({
           )}
 
           {profile.bio && (
-            <p className="text-sm leading-relaxed whitespace-pre-line">
+            <p className="text-sm leading-relaxed break-words whitespace-pre-line">
               {profile.bio}
             </p>
           )}

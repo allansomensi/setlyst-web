@@ -305,12 +305,12 @@ export function BandAdminMembers({
             />
           )}
           <div className="space-y-1.5">
-            <Label>{t("role")}</Label>
+            <Label htmlFor="band-member-role">{t("role")}</Label>
             <Select
               value={newRole}
               onValueChange={(v) => setNewRole(v as AssignableRole)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="band-member-role" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

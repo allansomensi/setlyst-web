@@ -145,12 +145,12 @@ export function UserBandsSection({
             />
           )}
           <div className="space-y-1.5">
-            <Label>{t("role")}</Label>
+            <Label htmlFor="user-band-role">{t("role")}</Label>
             <Select
               value={role}
               onValueChange={(v) => setRole(v as AddableRole)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="user-band-role" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

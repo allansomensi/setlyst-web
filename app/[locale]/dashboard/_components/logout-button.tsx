@@ -13,7 +13,7 @@ export function LogoutButton() {
     <Button
       variant="ghost"
       size="icon"
-      className="text-muted-foreground hover:bg-muted/50 hover:text-foreground h-8 w-8"
+      className="text-muted-foreground hover:bg-muted/50 hover:text-foreground h-9 w-9"
       onClick={() => secureSignOut({ callbackUrl: `/${locale}/login` })}
       title={t("logout")}
     >

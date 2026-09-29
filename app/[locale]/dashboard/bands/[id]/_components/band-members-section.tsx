@@ -181,10 +181,11 @@ export function BandMembersSection({
                           <button
                             type="button"
                             onClick={() => openTitleEditor(member)}
-                            className="text-muted-foreground hover:text-foreground"
+                            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:outline-none"
                             title={t("editTitle")}
+                            aria-label={t("editTitle")}
                           >
-                            <Pencil className="h-3 w-3" />
+                            <Pencil className="h-3 w-3" aria-hidden />
                           </button>
                         )}
                       </span>

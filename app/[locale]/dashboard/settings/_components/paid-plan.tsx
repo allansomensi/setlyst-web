@@ -48,6 +48,7 @@ import {
 } from "@/lib/pricing";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import type { BillingMe, Subscription } from "@/types/billing";
 import type { PublicPlan } from "@/types/public";
 
@@ -459,7 +460,12 @@ function PlanPickerBody({
         />
       </div>
 
-      <div role="radiogroup" aria-label={t("planLabel")} className="grid gap-2">
+      <div
+        role="radiogroup"
+        onKeyDown={onRadioGroupKeyDown}
+        aria-label={t("planLabel")}
+        className="grid gap-2"
+      >
         {plans.map((plan) => {
           const name = pickLocalized(plan.name, locale) || plan.code;
           const promotion = promotionOf(plan);

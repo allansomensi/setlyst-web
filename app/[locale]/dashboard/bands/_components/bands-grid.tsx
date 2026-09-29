@@ -250,9 +250,11 @@ export function BandsGrid({
                   className="absolute top-1.5 right-10 pointer-coarse:right-12"
                 />
 
+                {/* Right padding keeps the name clear of the star and pin
+                    buttons pinned to the card's corner. */}
                 <Link
                   href={`/dashboard/bands/${band.id}`}
-                  className="flex items-start gap-3"
+                  className="focus-visible:ring-ring/50 flex items-start gap-3 rounded-md pr-14 outline-none focus-visible:ring-3 pointer-coarse:pr-18"
                 >
                   <BandAvatar
                     bandId={band.id}
@@ -340,7 +342,7 @@ export function BandsGrid({
       <ConfirmActionDialog
         open={!!bandToDelete}
         onOpenChange={(open) => !open && setBandToDelete(null)}
-        title={tCommon("delete")}
+        title={t("dialog.deleteTitle")}
         description={t("dialog.deleteConfirm", {
           name: bandToDelete?.name ?? "",
         })}

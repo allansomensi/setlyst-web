@@ -90,7 +90,7 @@ export default async function AdminSongsPage({
                   <TableCell>
                     <Link
                       href={`/dashboard/admin/songs/${song.id}`}
-                      className="group block min-w-0"
+                      className="group block max-w-56 min-w-0 sm:max-w-72"
                     >
                       <span className="block truncate font-medium group-hover:underline">
                         {song.title}

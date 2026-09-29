@@ -13,6 +13,11 @@ interface SortableColumnHeaderProps {
   className?: string;
 }
 
+/**
+ * A column header that sorts the table. The click target is a real button
+ * inside the cell (a clickable `<th>` can't be reached or activated from
+ * the keyboard); it fills the cell so the whole header stays clickable.
+ */
 export function SortableColumnHeader({
   label,
   sortKey,
@@ -30,11 +35,7 @@ export function SortableColumnHeader({
 
   return (
     <TableHead
-      className={cn(
-        "hover:bg-muted/50 cursor-pointer transition-colors select-none",
-        className,
-      )}
-      onClick={() => onSort(sortKey)}
+      className={cn("hover:bg-muted/50 p-0 transition-colors", className)}
       aria-sort={
         isActive
           ? sortConfig.direction === "asc"
@@ -43,15 +44,20 @@ export function SortableColumnHeader({
           : "none"
       }
     >
-      <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="focus-visible:ring-ring/50 flex h-10 w-full cursor-pointer items-center gap-1.5 rounded-sm px-2 text-left font-medium outline-none select-none focus-visible:ring-3 focus-visible:ring-inset"
+      >
         {label}
         <Icon
+          aria-hidden
           className={cn(
             "h-3.5 w-3.5 shrink-0 transition-colors",
             isActive ? "text-foreground" : "text-muted-foreground/50",
           )}
         />
-      </div>
+      </button>
     </TableHead>
   );
 }

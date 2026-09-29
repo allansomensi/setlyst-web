@@ -88,18 +88,18 @@ export function NextGigCard({
               <span className="first-letter:uppercase">{when}</span>
             </li>
             {gig.location && (
-              <li className="flex min-w-0 items-center gap-1.5">
+              <li className="flex max-w-full min-w-0 items-center gap-1.5">
                 <MapPin className="size-4 shrink-0" aria-hidden />
                 <span className="truncate">{gig.location}</span>
               </li>
             )}
             {bandName && (
-              <li className="flex items-center gap-1.5">
+              <li className="flex max-w-full min-w-0 items-center gap-1.5">
                 <Guitar className="size-4 shrink-0" aria-hidden />
-                {bandName}
+                <span className="truncate">{bandName}</span>
               </li>
             )}
-            <li className="flex min-w-0 items-center gap-1.5">
+            <li className="flex max-w-full min-w-0 items-center gap-1.5">
               <ListMusic className="size-4 shrink-0" aria-hidden />
               <span className="truncate">
                 {gig.setlist_id

@@ -579,7 +579,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <Label htmlFor="password">{t("password")}</Label>
               <Link
                 href="/forgot-password"

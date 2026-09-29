@@ -9,7 +9,7 @@ import { PublicLinkError } from "@/components/share/public-link-status";
  */
 export default function PublicLinkRouteError(props: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   return <PublicLinkError {...props} resource="setlist" />;
 }

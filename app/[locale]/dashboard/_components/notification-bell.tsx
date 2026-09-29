@@ -187,7 +187,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
               : t("title")
           }
           className={cn(
-            "text-muted-foreground hover:bg-muted hover:text-foreground relative flex h-9 w-9 items-center justify-center rounded-md transition-colors",
+            "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 relative flex h-9 w-9 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3",
           )}
         >
           <Bell className="h-4 w-4" />
@@ -241,14 +241,38 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
             const isUnread = !notification.read_at;
             const content = <NotificationItem notification={notification} />;
 
+            // An unread one with nowhere to go is marked read by clicking
+            // it: reachable from the keyboard too, not only by mouse.
+            const markable = !href && isUnread;
+
             return (
               <div
                 key={notification.id}
                 onClick={() => isUnread && markAsRead(notification.id)}
-                className="cursor-pointer"
+                role={markable ? "button" : undefined}
+                tabIndex={markable ? 0 : undefined}
+                onKeyDown={
+                  markable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          markAsRead(notification.id);
+                        }
+                      }
+                    : undefined
+                }
+                className={cn(
+                  (href || isUnread) && "cursor-pointer",
+                  markable &&
+                    "focus-visible:ring-ring/50 outline-none focus-visible:ring-3 focus-visible:ring-inset",
+                )}
               >
                 {href ? (
-                  <Link href={href} onClick={() => setOpen(false)}>
+                  <Link
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className="focus-visible:ring-ring/50 block outline-none focus-visible:ring-3 focus-visible:ring-inset"
+                  >
                     {content}
                   </Link>
                 ) : (
@@ -264,7 +288,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
           <Link
             href={ANNOUNCEMENTS_HREF}
             onClick={() => setOpen(false)}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors outline-none focus-visible:ring-3"
           >
             <Megaphone className="h-3.5 w-3.5" aria-hidden />
             {t("footer.announcements")}
@@ -272,7 +296,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
           <Link
             href={SETTINGS_COMMUNICATIONS_HREF}
             onClick={() => setOpen(false)}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors outline-none focus-visible:ring-3"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
             {t("footer.preferences")}

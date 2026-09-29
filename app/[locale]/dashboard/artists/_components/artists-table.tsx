@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LoadErrorNotice } from "@/components/load-error-notice";
 import {
   QuotaChip,
   QuotaLimitNotice,
@@ -49,12 +50,18 @@ const SEARCHABLE_KEYS = ["name"] as const;
 
 interface ArtistsTableProps {
   initialArtists: Artist[];
+  /**
+   * True when the page's server-side fetch failed rather than genuinely
+   * returning zero artists — see components/load-error-notice.tsx.
+   */
+  loadError?: boolean;
   /** `GET /users/me/quotas`, for the usage chip next to "New artist". */
   quotas?: QuotaReport | null;
 }
 
 export function ArtistsTable({
   initialArtists,
+  loadError,
   quotas = null,
 }: ArtistsTableProps) {
   const t = useTranslations("artists");
@@ -170,7 +177,9 @@ export function ArtistsTable({
             {artists.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
-                  {search ? (
+                  {loadError ? (
+                    <LoadErrorNotice />
+                  ) : search ? (
                     <EmptyState
                       compact
                       icon={SearchX}
@@ -203,7 +212,9 @@ export function ArtistsTable({
             ) : (
               artists.map((artist) => (
                 <TableRow key={artist.id}>
-                  <TableCell className="font-medium">{artist.name}</TableCell>
+                  <TableCell className="w-full max-w-0 truncate font-medium">
+                    {artist.name}
+                  </TableCell>
                   <TableCell>
                     <ClientDate value={artist.created_at} />
                   </TableCell>

@@ -128,12 +128,12 @@ export function ListPagination({
   if (totalItems === 0) return null;
 
   return (
-    <div className="flex items-center justify-between gap-2 text-sm">
+    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
       <span className="text-muted-foreground">
         {tStaff("total", { count: totalItems })}
       </span>
       {totalPages > 1 && (
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"

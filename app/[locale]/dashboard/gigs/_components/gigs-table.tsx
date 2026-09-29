@@ -217,13 +217,13 @@ export function GigsTable({
           router.push(`/dashboard/gigs/${gig.id}`);
         }}
       >
-        <TableCell>
-          <div className="flex items-center gap-2">
+        <TableCell className="w-full max-w-0">
+          <div className="flex min-w-0 items-center gap-2">
             <MapPin className="text-muted-foreground h-4 w-4 shrink-0" />
             <Link
               href={`/dashboard/gigs/${gig.id}`}
               data-no-row-click
-              className="focus-visible:ring-ring rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
+              className="focus-visible:ring-ring min-w-0 truncate rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
             >
               {gig.venue}
             </Link>
@@ -234,7 +234,9 @@ export function GigsTable({
                 title={t("bandGigTooltip", { name: bandInfo?.name ?? "" })}
               >
                 <Guitar className="h-3 w-3" />
-                {bandInfo?.name ?? t("bandGig")}
+                <span className="max-w-32 truncate">
+                  {bandInfo?.name ?? t("bandGig")}
+                </span>
               </Badge>
             )}
             {gig.tour_id && gig.tour_name && (
@@ -248,14 +250,18 @@ export function GigsTable({
                   data-no-row-click
                 >
                   <Route className="h-3 w-3" aria-hidden />
-                  {gig.tour_name}
+                  <span className="max-w-32 truncate">{gig.tour_name}</span>
                 </Link>
               </Badge>
             )}
-            <ChevronRight className="text-muted-foreground h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+            <ChevronRight className="text-muted-foreground h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
+          {/* The date column is dropped on phones. */}
+          <p className="text-muted-foreground truncate pl-6 text-xs sm:hidden">
+            {formatDateTime(gig.scheduled_at)}
+          </p>
         </TableCell>
-        <TableCell className="text-muted-foreground text-sm">
+        <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
           {formatDateTime(gig.scheduled_at)}
         </TableCell>
         <TableCell>
@@ -326,11 +332,14 @@ export function GigsTable({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+        {/* A band's page has its own title above this table. */}
+        {!fixedBandId && (
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <QuotaChip usage={quota} resource="gigs" />
           {!fixedBandId && (
             <ImportSharedButton kind="gig" disabled={quotaFull} />
@@ -382,7 +391,9 @@ export function GigsTable({
           <TableHeader>
             <TableRow>
               <TableHead>{t("table.venue")}</TableHead>
-              <TableHead>{t("table.when")}</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("table.when")}
+              </TableHead>
               <TableHead>{t("table.status")}</TableHead>
               <TableHead className="w-12 text-right">
                 {t("table.actions")}

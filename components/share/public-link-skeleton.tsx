@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function PublicLinkSkeleton() {
   return (
     <div
-      className="bg-background flex min-h-screen flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10"
+      className="bg-background flex min-h-dvh flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10"
       aria-busy="true"
     >
       <div className="w-full max-w-3xl space-y-6">

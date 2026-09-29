@@ -57,7 +57,9 @@ export function LiveBlockBar({ position }: { position: LiveBlockPosition }) {
       <span
         className={cn(
           "shrink-0 text-xs font-bold tabular-nums",
-          isLast ? "text-amber-500" : "text-muted-foreground",
+          isLast
+            ? "text-amber-700 in-data-[live-contrast=high]:text-amber-400 dark:text-amber-400"
+            : "text-muted-foreground",
         )}
         aria-hidden
       >

@@ -134,7 +134,9 @@ export default async function AdminAnnouncementsPage({
                         />
                         <div className="min-w-0 space-y-1.5">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate font-medium">{a.title}</p>
+                            <p className="max-w-full min-w-0 truncate font-medium">
+                              {a.title}
+                            </p>
                             <Badge
                               variant="outline"
                               className={cn(STATUS_BADGE_STYLES[itemStatus])}

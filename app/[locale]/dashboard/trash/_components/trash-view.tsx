@@ -102,6 +102,12 @@ export function TrashView({
     router.push(query ? `${pathname}?${query}` : pathname);
   };
 
+  // The last item on a later page is gone: step back a page instead of
+  // leaving an empty one that reads as "the trash is empty".
+  const afterRemoval = () => {
+    if (items.length === 1 && page > 1) go({ page: page - 1 });
+  };
+
   const restore = (item: TrashItem) => {
     setPendingKey(`${item.type}:${item.id}`);
     startTransition(async () => {
@@ -109,6 +115,7 @@ export function TrashView({
       setPendingKey(null);
       if (result.success) {
         toast.success(t("restored", { title: item.title }));
+        afterRemoval();
       } else {
         toastActionError(result, result.error || t("restoreFailed"));
       }
@@ -123,6 +130,7 @@ export function TrashView({
       if (result.success) {
         toast.success(t("deletedForever", { title: item.title }));
         setToDelete(null);
+        afterRemoval();
       } else {
         toastActionError(result, result.error || t("deleteFailed"));
       }
@@ -246,7 +254,9 @@ export function TrashView({
                 </span>
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="truncate font-medium">{item.title}</p>
+                    <p className="max-w-full min-w-0 truncate font-medium">
+                      {item.title}
+                    </p>
                     <Badge variant="outline" className="font-normal">
                       {t(`types.${item.type}`)}
                     </Badge>
@@ -340,7 +350,7 @@ export function TrashView({
 
       <Dialog
         open={!!toDelete}
-        onOpenChange={(open) => !open && setToDelete(null)}
+        onOpenChange={(open) => !open && !isPending && setToDelete(null)}
       >
         <DialogContent>
           <DialogHeader>
@@ -374,7 +384,10 @@ export function TrashView({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={confirmEmpty} onOpenChange={setConfirmEmpty}>
+      <Dialog
+        open={confirmEmpty}
+        onOpenChange={(open) => !isPending && setConfirmEmpty(open)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("emptyConfirmTitle")}</DialogTitle>

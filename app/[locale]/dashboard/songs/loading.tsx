@@ -12,16 +12,16 @@ export default function SongsLoading() {
   return (
     <div className="w-full space-y-6">
       {/* Header Skeleton */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-9 w-32" /> {/* Title */}
           <Skeleton className="h-4 w-64" /> {/* Subtitle */}
         </div>
-        <Skeleton className="h-10 w-32" /> {/* Add Song Button */}
+        <Skeleton className="h-8 w-32" /> {/* Add Song Button */}
       </div>
 
       {/* Search Input Skeleton */}
-      <Skeleton className="h-10 w-full max-w-sm" />
+      <Skeleton className="h-9 w-full max-w-sm" />
 
       {/* Table Skeleton */}
       <div className="bg-card rounded-md border">
@@ -31,7 +31,7 @@ export default function SongsLoading() {
               <TableHead>
                 <Skeleton className="h-4 w-32" />
               </TableHead>
-              <TableHead>
+              <TableHead className="hidden sm:table-cell">
                 <Skeleton className="h-4 w-28" />
               </TableHead>
               <TableHead className="hidden md:table-cell">
@@ -54,7 +54,7 @@ export default function SongsLoading() {
                 <TableCell>
                   <Skeleton className="h-5 w-48 max-w-full" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Skeleton className="h-5 w-36 max-w-full" />
                 </TableCell>
                 <TableCell className="hidden md:table-cell">

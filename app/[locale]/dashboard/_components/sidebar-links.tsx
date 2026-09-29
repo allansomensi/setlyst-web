@@ -285,6 +285,14 @@ export function SidebarLinks({ isCollapsed, userRole }: SidebarLinksProps) {
               : label
             : undefined
         }
+        // Collapsed, the label isn't rendered: name the icon-only link.
+        aria-label={
+          isCollapsed
+            ? badgeLabel
+              ? `${label} · ${badgeLabel}`
+              : label
+            : undefined
+        }
         aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex items-center rounded-md px-3 py-2 text-sm transition-colors",

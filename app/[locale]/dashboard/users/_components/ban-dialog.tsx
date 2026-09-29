@@ -74,9 +74,9 @@ export function BanDialog({ user, onOpenChange, onDone }: BanDialogProps) {
     >
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label>{t("duration")}</Label>
+          <Label htmlFor="ban-duration">{t("duration")}</Label>
           <Select value={duration} onValueChange={setDuration}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="ban-duration" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

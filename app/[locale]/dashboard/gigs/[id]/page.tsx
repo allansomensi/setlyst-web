@@ -170,15 +170,15 @@ export default async function GigDetailsPage({
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
           <Button
             variant="outline"
             size="icon"
             asChild
             className="hidden shrink-0 sm:inline-flex"
           >
-            <Link href="/dashboard/gigs">
-              <ChevronLeft className="h-4 w-4" />
+            <Link href="/dashboard/gigs" aria-label={tNav("gigs")}>
+              <ChevronLeft className="h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <div className="min-w-0">
@@ -221,14 +221,17 @@ export default async function GigDetailsPage({
               {gig.location && (
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 shrink-0" />
-                  <span>{gig.location}</span>
+                  <span className="min-w-0 break-words">{gig.location}</span>
                 </div>
               )}
             </div>
             {gig.notes && (
               <div className="text-muted-foreground mt-2 flex items-start gap-1.5 text-sm">
                 <StickyNote className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>{gig.notes}</p>
+                {/* Typed in a textarea: keep its line breaks. */}
+                <p className="min-w-0 break-words whitespace-pre-line">
+                  {gig.notes}
+                </p>
               </div>
             )}
             <AuditStamp

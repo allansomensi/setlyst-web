@@ -11,15 +11,15 @@ import {
 export default function GigsLoading() {
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-9 w-32" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-8 w-32" />
       </div>
 
-      <Skeleton className="h-10 w-full max-w-sm" />
+      <Skeleton className="h-9 w-full max-w-sm" />
 
       <div className="bg-card rounded-md border">
         <Table>
@@ -28,7 +28,7 @@ export default function GigsLoading() {
               <TableHead>
                 <Skeleton className="h-4 w-32" />
               </TableHead>
-              <TableHead>
+              <TableHead className="hidden sm:table-cell">
                 <Skeleton className="h-4 w-32" />
               </TableHead>
               <TableHead>
@@ -45,7 +45,7 @@ export default function GigsLoading() {
                 <TableCell>
                   <Skeleton className="h-5 w-48 max-w-full" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Skeleton className="h-5 w-40 max-w-full" />
                 </TableCell>
                 <TableCell>

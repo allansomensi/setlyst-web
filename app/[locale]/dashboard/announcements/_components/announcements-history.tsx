@@ -231,7 +231,7 @@ export function AnnouncementsHistory({
                       {a.receipt.acknowledged_at ? (
                         <>
                           <CheckCheck
-                            className="size-3.5 text-emerald-600"
+                            className="size-3.5 text-emerald-600 dark:text-emerald-400"
                             aria-hidden
                           />
                           {t("acknowledgedOn")}{" "}

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Copy, Download, Loader2, Share2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import { dataUrlToBlob, saveBlob } from "@/lib/download";
 import { Button } from "@/components/ui/button";
 import {
@@ -239,6 +240,7 @@ function Segmented<T extends string>({
       <p className="text-muted-foreground text-xs font-medium">{label}</p>
       <div
         role="radiogroup"
+        onKeyDown={onRadioGroupKeyDown}
         aria-label={label}
         className="bg-muted grid grid-cols-2 gap-0.5 rounded-lg p-0.5"
       >
@@ -439,7 +441,11 @@ export function AnalysisExportDialog({
 
           <div
             ref={setFrame}
-            className="bg-muted/40 max-h-[55vh] min-h-48 overflow-auto rounded-lg border p-0 md:max-h-[62vh]"
+            className="bg-muted/40 focus-visible:ring-ring max-h-[55vh] min-h-48 overflow-auto rounded-lg border p-0 focus-visible:ring-2 focus-visible:outline-none md:max-h-[62vh]"
+            // A named, focusable region: the preview scrolls, and keyboard
+            // users need to be able to scroll it too.
+            role="region"
+            tabIndex={0}
             aria-label={t("preview")}
           >
             <div

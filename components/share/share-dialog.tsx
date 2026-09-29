@@ -122,7 +122,15 @@ export function ShareDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (open) return;
+        // A half-done "turn off?" must not greet the next opening.
+        setIsConfirmingDisable(false);
+        onClose();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -251,7 +259,14 @@ export function ShareDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setIsConfirmingDisable(false);
+              onClose();
+            }}
+          >
             {tCommon("close")}
           </Button>
           {!shareToken && !shareLock && (

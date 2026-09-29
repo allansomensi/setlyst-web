@@ -127,8 +127,9 @@ export function PromoCodesTable({
                         variant="ghost"
                         size="icon-xs"
                         onClick={async () => {
-                          await copyText(promo.code);
-                          toast.success(t("copied"));
+                          if (await copyText(promo.code)) {
+                            toast.success(t("copied"));
+                          }
                         }}
                         aria-label={t("copy", { code: promo.code })}
                         title={t("copy", { code: promo.code })}

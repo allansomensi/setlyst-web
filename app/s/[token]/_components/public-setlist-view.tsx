@@ -39,7 +39,7 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
   const pdfEndpoint = apiPath`/api/export/public/setlists/${token}/pdf`;
 
   return (
-    <div className="bg-background flex min-h-screen flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
+    <main className="bg-background flex min-h-dvh flex-col items-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-10 sm:pt-10">
       <div className="w-full max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-3">
           <Link
@@ -54,12 +54,12 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
         </div>
 
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div className="min-w-0">
+          <div className="max-w-full min-w-0">
             <h1 className="text-3xl font-bold tracking-tight break-words">
               {setlist.title}
             </h1>
             {setlist.description && (
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 break-words">
                 {setlist.description}
               </p>
             )}
@@ -205,6 +205,6 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
         isOpen={isPdfDialogOpen}
         onClose={() => setIsPdfDialogOpen(false)}
       />
-    </div>
+    </main>
   );
 }

@@ -78,10 +78,12 @@ export function EntityPicker({
           <Loader2 className="text-muted-foreground absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 animate-spin" />
         )}
       </div>
+      {/* A plain list of toggle buttons: a `listbox` may not contain
+          buttons, and these need to be reachable with Tab. */}
       <ul
         className="max-h-56 overflow-y-auto rounded-md border"
-        role="listbox"
         aria-label={placeholder}
+        aria-busy={loading || undefined}
       >
         {!loading && options.length === 0 && (
           <li className="text-muted-foreground p-3 text-center text-sm">
@@ -90,14 +92,18 @@ export function EntityPicker({
         )}
         {options.map((option) => {
           const selected = option.id === value;
+          const subtitle = option.disabled
+            ? (option.disabledReason ?? option.hint)
+            : option.hint;
           return (
-            <li key={option.id} role="option" aria-selected={selected}>
+            <li key={option.id}>
               <button
                 type="button"
+                aria-pressed={selected}
                 disabled={option.disabled}
                 onClick={() => onChange(selected ? null : option)}
                 className={cn(
-                  "hover:bg-accent flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                  "hover:bg-accent focus-visible:bg-accent focus-visible:ring-ring/50 flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
                   selected && "bg-accent",
                 )}
               >
@@ -105,9 +111,9 @@ export function EntityPicker({
                   <span className="block truncate font-medium">
                     {option.label}
                   </span>
-                  {(option.disabledReason ?? option.hint) && (
+                  {subtitle && (
                     <span className="text-muted-foreground block truncate text-xs">
-                      {option.disabled ? option.disabledReason : option.hint}
+                      {subtitle}
                     </span>
                   )}
                 </span>

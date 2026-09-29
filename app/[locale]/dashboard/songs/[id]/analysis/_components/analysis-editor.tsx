@@ -65,6 +65,7 @@ import { AnalysisExportDialog } from "@/components/analysis/analysis-export-dial
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import { parseChordPro } from "@/lib/music/chordpro";
 import {
   LIMITS,
@@ -502,6 +503,9 @@ export function AnalysisEditor({
         return;
       }
       if (isTyping(event.target) || mod || event.altKey) return;
+      // Already handled by a focused control (a radio group's or menu's
+      // arrows, a popover's Escape): don't also move or drop the chord.
+      if (event.defaultPrevented) return;
       if (event.key === "Escape") {
         if (pending) setPending(null);
         else select(null);
@@ -630,6 +634,7 @@ export function AnalysisEditor({
               <div
                 className="bg-muted inline-flex rounded-lg p-0.5"
                 role="radiogroup"
+                onKeyDown={onRadioGroupKeyDown}
                 aria-label={t("mode.label")}
               >
                 {([true, false] as const).map((value) => (
@@ -935,7 +940,7 @@ export function AnalysisEditor({
                   <h2 className="mb-2 text-sm font-semibold">
                     {t("overview.summary")}
                   </h2>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
                     {analysis.summary}
                   </p>
                 </div>

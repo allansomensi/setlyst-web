@@ -7,10 +7,10 @@
  */
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   return (
     <html lang="pt-BR">
@@ -42,14 +42,17 @@ export default function GlobalError({
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
               gap: 8,
               justifyContent: "center",
               marginTop: 20,
             }}
           >
+            {/* `retry()` refetches the server tree first: a bare `reset()`
+                would just re-render the layout that failed. */}
             <button
               type="button"
-              onClick={() => reset()}
+              onClick={() => retry()}
               style={{
                 padding: "8px 16px",
                 borderRadius: 8,

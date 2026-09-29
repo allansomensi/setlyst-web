@@ -167,6 +167,9 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
   );
 }
 
+/** Shortcuts that switch something on/off, ignored on key auto-repeat. */
+const TOGGLE_KEYS = new Set([" ", "m", "M", "c", "C", "s", "S"]);
+
 /** Scrolls the pane by a page; returns false when already at that edge. */
 export function turnPage(
   el: HTMLElement | null | undefined,
@@ -221,6 +224,8 @@ export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
         event.target instanceof HTMLSelectElement ||
+        (event.target instanceof HTMLElement &&
+          event.target.isContentEditable) ||
         event.metaKey ||
         event.ctrlKey ||
         event.altKey
@@ -229,6 +234,14 @@ export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
       }
 
       const onControl = isInteractiveTarget(event.target);
+      // A held key auto-repeats: fine for turning pages or nudging the
+      // speed, but it would flicker a toggle on and off.
+      if (event.repeat && TOGGLE_KEYS.has(event.key)) {
+        // Still keep a held Space from page-scrolling the lyrics.
+        if (event.key === " " && !onControl) event.preventDefault();
+        return;
+      }
+
       const pane = h.scrollContainerRef?.current;
 
       switch (event.key) {

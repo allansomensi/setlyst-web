@@ -154,15 +154,20 @@ export default async function SetlistDetailsPage({
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
           <Button
             variant="outline"
             size="icon"
             asChild
             className="hidden shrink-0 sm:inline-flex"
           >
-            <Link href="/dashboard/setlists">
-              <ChevronLeft className="h-4 w-4" />
+            <Link
+              href={
+                band ? `/dashboard/bands/${band.id}` : "/dashboard/setlists"
+              }
+              aria-label={band ? band.name : tNav("setlists")}
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <div className="min-w-0">
@@ -200,7 +205,7 @@ export default async function SetlistDetailsPage({
               </p>
             )}
             {setlist.description && (
-              <p className="text-muted-foreground mt-0.5">
+              <p className="text-muted-foreground mt-0.5 break-words">
                 {setlist.description}
               </p>
             )}

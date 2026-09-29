@@ -450,7 +450,7 @@ export default async function LandingPage({ params }: { params: Params }) {
               asChild
               size="lg"
               variant="secondary"
-              className="h-11 px-5 text-base"
+              className="focus-visible:ring-primary-foreground/60 h-11 px-5 text-base"
             >
               <Link href={signedIn ? "/dashboard" : "/register"}>
                 {signedIn ? t("hero.ctaDashboard") : t("hero.ctaPrimary")}
@@ -460,7 +460,7 @@ export default async function LandingPage({ params }: { params: Params }) {
               asChild
               size="lg"
               variant="ghost"
-              className="hover:bg-primary-foreground/10 hover:text-primary-foreground h-11 px-5 text-base"
+              className="hover:bg-primary-foreground/10 hover:text-primary-foreground dark:hover:bg-primary-foreground/10 focus-visible:ring-primary-foreground/60 h-11 px-5 text-base"
             >
               <Link href="/pricing">{t("hero.ctaSecondary")}</Link>
             </Button>

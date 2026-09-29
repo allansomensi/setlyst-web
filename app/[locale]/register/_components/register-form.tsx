@@ -247,7 +247,10 @@ export function RegisterForm({
         <form onSubmit={submit} className="space-y-4" noValidate>
           <div className="space-y-2">
             <Label htmlFor="email">
-              {t("email")} <span className="text-destructive">*</span>
+              {t("email")}{" "}
+              <span aria-hidden className="text-destructive">
+                *
+              </span>
             </Label>
             <Input
               id="email"
@@ -277,7 +280,10 @@ export function RegisterForm({
 
           <div className="space-y-2">
             <Label htmlFor="username">
-              {t("username")} <span className="text-destructive">*</span>
+              {t("username")}{" "}
+              <span aria-hidden className="text-destructive">
+                *
+              </span>
             </Label>
             <Input
               id="username"
@@ -348,7 +354,10 @@ export function RegisterForm({
 
           <div className="space-y-2">
             <Label htmlFor="password">
-              {t("password")} <span className="text-destructive">*</span>
+              {t("password")}{" "}
+              <span aria-hidden className="text-destructive">
+                *
+              </span>
             </Label>
             <PasswordInput
               id="password"
@@ -365,9 +374,11 @@ export function RegisterForm({
                   ? true
                   : undefined
               }
+              aria-describedby="password-requirements"
               className="h-10"
             />
             <PasswordRequirements
+              id="password-requirements"
               password={form.password}
               username={username}
             />
@@ -375,7 +386,10 @@ export function RegisterForm({
 
           <div className="space-y-2">
             <Label htmlFor="confirm">
-              {t("confirmPassword")} <span className="text-destructive">*</span>
+              {t("confirmPassword")}{" "}
+              <span aria-hidden className="text-destructive">
+                *
+              </span>
             </Label>
             <PasswordInput
               id="confirm"
@@ -387,10 +401,11 @@ export function RegisterForm({
               value={form.confirm}
               onChange={set("confirm")}
               aria-invalid={confirmMismatch || undefined}
+              aria-describedby={confirmMismatch ? "confirm-error" : undefined}
               className="h-10"
             />
             {confirmMismatch && (
-              <p className="text-destructive text-xs">
+              <p id="confirm-error" className="text-destructive text-xs">
                 {tPassword("mismatch")}
               </p>
             )}

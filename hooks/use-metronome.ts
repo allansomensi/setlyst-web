@@ -89,7 +89,7 @@ function scheduleClick(
   context: AudioContext,
   time: number,
   isDownbeat: boolean,
-): void {
+): OscillatorNode {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
 
@@ -109,6 +109,7 @@ function scheduleClick(
   // Stopping releases the node for collection; without it every beat of a
   // three-hour show would stay alive in the graph.
   oscillator.stop(time + CLICK_DECAY_S + 0.02);
+  return oscillator;
 }
 
 function createAudioContext(): AudioContext | null {
@@ -188,6 +189,10 @@ export function useMetronome({
     let nextBeatTime = context.currentTime + START_DELAY_S;
     let pending: MetronomeBeat[] = [];
     let pendingTimes: number[] = [];
+    // Clicks handed to the audio thread but not yet played. Stopping only
+    // suspends the context, so without cancelling these they'd sound as
+    // stray, off-beat clicks the moment it's resumed.
+    const scheduled = new Set<OscillatorNode>();
 
     const schedulerId = window.setInterval(() => {
       const config = configRef.current;
@@ -220,7 +225,9 @@ export function useMetronome({
 
       while (nextBeatTime < context.currentTime + SCHEDULE_AHEAD_S) {
         if (config.audioEnabled) {
-          scheduleClick(context, nextBeatTime, beatInBar === 0);
+          const click = scheduleClick(context, nextBeatTime, beatInBar === 0);
+          scheduled.add(click);
+          click.onended = () => scheduled.delete(click);
         }
 
         pending.push({
@@ -263,6 +270,14 @@ export function useMetronome({
       cancelAnimationFrame(frameId);
       pending = [];
       pendingTimes = [];
+      for (const click of scheduled) {
+        try {
+          click.stop();
+        } catch {
+          // Already stopped.
+        }
+      }
+      scheduled.clear();
     };
   }, [isRunning]);
 

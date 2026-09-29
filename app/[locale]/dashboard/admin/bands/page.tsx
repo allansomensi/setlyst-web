@@ -85,7 +85,7 @@ export default async function AdminBandsPage({
                         logoUrl={band.logo_url}
                         className="h-8 w-8"
                       />
-                      <span className="min-w-0">
+                      <span className="max-w-48 min-w-0 sm:max-w-xs">
                         <span className="block truncate font-medium group-hover:underline">
                           {band.name}
                         </span>

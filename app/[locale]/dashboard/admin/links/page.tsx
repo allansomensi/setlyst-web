@@ -101,7 +101,7 @@ export default async function AdminLinksPage({
                           className="text-muted-foreground h-4 w-4 shrink-0"
                           aria-hidden
                         />
-                        <div className="min-w-0">
+                        <div className="max-w-56 min-w-0 sm:max-w-sm">
                           {link.kind === "setlist" ? (
                             <Link
                               href={`/dashboard/admin/setlists/${link.id}`}

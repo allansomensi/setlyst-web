@@ -5,12 +5,17 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AuthShell } from "@/components/auth/auth-shell";
 
+// Inside the same frame as the page (header, footer, card width), so
+// nothing jumps when the form arrives.
 export default function Loading() {
   return (
-    <div className="bg-muted/40 flex min-h-dvh items-center justify-center p-4">
+    <AuthShell>
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-2 text-center">
+          {/* Logo */}
+          <Skeleton className="mx-auto mb-2 size-14 rounded-xl" />
           {/* Title */}
           <Skeleton className="mx-auto h-8 w-1/2" />
           {/* Subtitle */}
@@ -42,6 +47,6 @@ export default function Loading() {
           <Skeleton className="h-4 w-4/5" />
         </CardFooter>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

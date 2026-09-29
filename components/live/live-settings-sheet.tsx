@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import {
   LIVE_FONT_FAMILIES,
   type LiveFontFamily,
@@ -200,6 +201,7 @@ export function LiveSettingsSheet({
               <Row label={t("settings.fontLabel")}>
                 <div
                   role="radiogroup"
+                  onKeyDown={onRadioGroupKeyDown}
                   aria-label={t("settings.fontLabel")}
                   className="bg-muted flex rounded-lg p-1"
                 >
@@ -270,6 +272,7 @@ export function LiveSettingsSheet({
               <Section title={t("pageTurn.title")}>
                 <div
                   role="radiogroup"
+                  onKeyDown={onRadioGroupKeyDown}
                   aria-label={t("pageTurn.title")}
                   className="space-y-1"
                 >

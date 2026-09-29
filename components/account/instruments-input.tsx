@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ export function InstrumentsInput({
 }: InstrumentsInputProps) {
   const t = useTranslations("profile.instruments");
   const [draft, setDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const full = value.length >= INSTRUMENTS_MAX;
 
   const add = (raw: string) => {
@@ -61,9 +62,13 @@ export function InstrumentsInput({
           {instrument}
           <button
             type="button"
-            onClick={() =>
-              onChange(value.filter((item) => item !== instrument))
-            }
+            onClick={() => {
+              onChange(value.filter((item) => item !== instrument));
+              // The chip (and this button with it) is gone: keep keyboard
+              // focus in the field instead of dropping it on the page.
+              // Deferred, as the field is disabled while the list is full.
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
             className="hover:bg-foreground/10 focus-visible:ring-ring/50 rounded-full p-0.5 outline-none focus-visible:ring-2"
             aria-label={t("remove", { instrument })}
             disabled={disabled}
@@ -73,6 +78,7 @@ export function InstrumentsInput({
         </span>
       ))}
       <input
+        ref={inputRef}
         id={id}
         value={draft}
         disabled={disabled || full}
@@ -86,6 +92,8 @@ export function InstrumentsInput({
           else setDraft(next);
         }}
         onKeyDown={(event) => {
+          // Enter also confirms an IME composition; don't add half a word.
+          if (event.nativeEvent.isComposing) return;
           if (event.key === "Enter") {
             event.preventDefault();
             add(draft);

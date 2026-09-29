@@ -191,11 +191,16 @@ export function AuditEntry({
         {showTarget &&
           entry.target_label &&
           (href ? (
-            <Link href={href} className="font-medium hover:underline">
+            <Link
+              href={href}
+              className="min-w-0 font-medium break-words hover:underline"
+            >
               {entry.target_label}
             </Link>
           ) : (
-            <span className="font-medium">{entry.target_label}</span>
+            <span className="min-w-0 font-medium break-words">
+              {entry.target_label}
+            </span>
           ))}
         <span className="text-muted-foreground">
           {t("by", { actor: entry.actor_username ?? t("system") })}
@@ -213,7 +218,7 @@ export function AuditEntry({
         </time>
         {entry.ip_address && <span>IP {entry.ip_address}</span>}
         {details.map((line) => (
-          <span key={line} className="font-mono">
+          <span key={line} className="font-mono break-all">
             {line}
           </span>
         ))}

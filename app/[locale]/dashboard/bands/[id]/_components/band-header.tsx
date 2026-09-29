@@ -14,6 +14,7 @@ import { PinButton } from "@/components/content/pin-button";
 
 export function BandHeader({ band }: { band: BandWithMembership }) {
   const t = useTranslations("bands");
+  const tNav = useTranslations("nav");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const canManage = band.my_role === "owner" || band.my_role === "admin";
@@ -27,8 +28,8 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
           asChild
           className="hidden shrink-0 sm:inline-flex"
         >
-          <Link href="/dashboard/bands">
-            <ChevronLeft className="h-4 w-4" />
+          <Link href="/dashboard/bands" aria-label={tNav("bands")}>
+            <ChevronLeft className="h-4 w-4" aria-hidden />
           </Link>
         </Button>
 
@@ -47,7 +48,9 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
             <BandRoleBadge role={band.my_role} />
           </div>
           {band.description && (
-            <p className="text-muted-foreground">{band.description}</p>
+            <p className="text-muted-foreground wrap-break-word">
+              {band.description}
+            </p>
           )}
           <p className="text-muted-foreground mt-1 text-sm">
             {t("memberCount", { count: band.member_count })}

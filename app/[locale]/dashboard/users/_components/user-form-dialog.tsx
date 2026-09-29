@@ -265,9 +265,9 @@ function UserForm({
       <div className="grid gap-3 sm:grid-cols-2">
         {!isEditing && (
           <div className="space-y-1.5">
-            <Label>{t("role")}</Label>
+            <Label htmlFor="user-form-role">{t("role")}</Label>
             <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="user-form-role" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -281,12 +281,12 @@ function UserForm({
           </div>
         )}
         <div className="space-y-1.5">
-          <Label>{t("status")}</Label>
+          <Label htmlFor="user-form-status">{t("status")}</Label>
           <Select
             value={status}
             onValueChange={(v) => setStatus(v as UserStatus)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="user-form-status" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

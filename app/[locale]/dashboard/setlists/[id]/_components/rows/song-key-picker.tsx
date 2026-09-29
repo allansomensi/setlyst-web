@@ -57,19 +57,30 @@ export function SongKeyPicker({
     setValue(transpose);
   }
 
+  // The key waiting for the debounce, so leaving the page (or the row
+  // re-rendering away) right after a tap still saves it.
+  const unsaved = useRef<number | null>(null);
+
   useEffect(
     () => () => {
-      if (timer.current !== null) window.clearTimeout(timer.current);
+      if (timer.current !== null) {
+        window.clearTimeout(timer.current);
+        if (unsaved.current !== null) {
+          void setSetlistSongKey(setlistId, songId, unsaved.current);
+        }
+      }
     },
-    [],
+    [setlistId, songId],
   );
 
   const change = (next: number) => {
     const semitones = clampTranspose(next);
     setValue(semitones);
     setSaving(true);
+    unsaved.current = semitones;
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(async () => {
+      unsaved.current = null;
       timer.current = null;
       const result = await setSetlistSongKey(setlistId, songId, semitones);
       if (!result.success) {

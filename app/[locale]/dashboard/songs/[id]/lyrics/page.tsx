@@ -304,20 +304,22 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        if (e.key === "b") {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+        // Lower-cased so the shortcuts still work with Caps Lock on.
+        const key = e.key.toLowerCase();
+        if (key === "b") {
           e.preventDefault();
           applyBold();
         }
-        if (e.key === "i") {
+        if (key === "i") {
           e.preventDefault();
           applyItalic();
         }
-        if (e.key === "u") {
+        if (key === "u") {
           e.preventDefault();
           applyUnderline();
         }
-        if (e.key === "s") {
+        if (key === "s") {
           e.preventDefault();
           handleSave();
         }
@@ -478,12 +480,13 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
           size="sm"
           className="h-8 gap-1.5 text-xs"
           onClick={() => setShowPreview((v) => !v)}
+          aria-pressed={showPreview}
           title={t("toolbar.preview")}
         >
           {showPreview ? (
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="h-3.5 w-3.5" aria-hidden />
           ) : (
-            <EyeOff className="h-3.5 w-3.5" />
+            <EyeOff className="h-3.5 w-3.5" aria-hidden />
           )}
           {t("preview")}
         </Button>

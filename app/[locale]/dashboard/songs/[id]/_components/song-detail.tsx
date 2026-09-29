@@ -480,7 +480,7 @@ export function SongDetail({
             </CardHeader>
             <CardContent>
               {song.performance_notes?.trim() ? (
-                <p className="text-sm whitespace-pre-wrap">
+                <p className="text-sm break-words whitespace-pre-wrap">
                   {song.performance_notes}
                 </p>
               ) : (

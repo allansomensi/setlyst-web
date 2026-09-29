@@ -56,6 +56,9 @@ export function ForgotPasswordFlow() {
   const [error, setError] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
   const [cooldown, startCooldown] = useCountdown();
+  // The API's one-code-per-minute limit is per account: the countdown only
+  // holds back the identifier it was started for, not a corrected one.
+  const [cooldownFor, setCooldownFor] = useState<string | null>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
   // The password rules forbid the username: only known when that's what
@@ -63,6 +66,7 @@ export function ForgotPasswordFlow() {
   const username = identifier.includes("@") ? null : identifier.trim();
   const compliant = isPasswordCompliant(password, username);
   const mismatch = confirm.length > 0 && confirm !== password;
+  const identifierCooldown = cooldownFor === identifier.trim() ? cooldown : 0;
   const canReset =
     code.length === 6 && compliant && confirm === password && !pending;
 
@@ -75,9 +79,13 @@ export function ForgotPasswordFlow() {
     setPending(false);
     if (!result.success) {
       setError(result.error);
-      if (result.retryAfterSeconds) startCooldown(result.retryAfterSeconds);
+      if (result.retryAfterSeconds) {
+        setCooldownFor(value);
+        startCooldown(result.retryAfterSeconds);
+      }
       return;
     }
+    setCooldownFor(value);
     startCooldown(RESEND_SECONDS);
     setResent(isResend);
     if (!isResend) {
@@ -148,7 +156,7 @@ export function ForgotPasswordFlow() {
           <CardTitle className="text-2xl font-bold">
             {t("resetTitle")}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="break-words">
             {t("resetDescription", { identifier: identifier.trim() })}
           </CardDescription>
         </CardHeader>
@@ -198,9 +206,14 @@ export function ForgotPasswordFlow() {
                 aria-invalid={
                   password.length > 0 && !compliant ? true : undefined
                 }
+                aria-describedby="new-password-requirements"
                 className="h-10"
               />
-              <PasswordRequirements password={password} username={username} />
+              <PasswordRequirements
+                id="new-password-requirements"
+                password={password}
+                username={username}
+              />
             </div>
 
             <div className="space-y-2">
@@ -213,10 +226,16 @@ export function ForgotPasswordFlow() {
                 onChange={(e) => setConfirm(e.target.value)}
                 disabled={pending}
                 aria-invalid={mismatch || undefined}
+                aria-describedby={
+                  mismatch ? "confirm-password-error" : undefined
+                }
                 className="h-10"
               />
               {mismatch && (
-                <p className="text-destructive text-xs">
+                <p
+                  id="confirm-password-error"
+                  className="text-destructive text-xs"
+                >
                   {tPassword("mismatch")}
                 </p>
               )}
@@ -308,11 +327,11 @@ export function ForgotPasswordFlow() {
           <Button
             type="submit"
             className="h-10 w-full"
-            disabled={pending || !identifier.trim() || cooldown > 0}
+            disabled={pending || !identifier.trim() || identifierCooldown > 0}
           >
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {cooldown > 0
-              ? t("resendIn", { time: formatCountdown(cooldown) })
+            {identifierCooldown > 0
+              ? t("resendIn", { time: formatCountdown(identifierCooldown) })
               : t("sendCode")}
           </Button>
 

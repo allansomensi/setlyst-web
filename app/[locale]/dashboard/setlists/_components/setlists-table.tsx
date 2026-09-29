@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, type ReactNode } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { QuotaReport, Setlist } from "@/types/api";
 import {
@@ -97,6 +97,8 @@ interface SetlistsTableProps {
    * (personal setlists only; a band's limit is per band).
    */
   quotas?: QuotaReport | null;
+  /** Shown under the page header (pending invitations), above the search. */
+  notice?: ReactNode;
 }
 
 export function SetlistsTable({
@@ -105,6 +107,7 @@ export function SetlistsTable({
   bandsById,
   loadError,
   quotas = null,
+  notice,
 }: SetlistsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -228,11 +231,14 @@ export function SetlistsTable({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+        {/* A band's page has its own title above this table. */}
+        {!bandId && (
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <QuotaChip usage={quota} resource="setlists" />
           {!bandId && (
             <ImportSharedButton kind="setlist" disabled={quotaFull} />
@@ -248,6 +254,7 @@ export function SetlistsTable({
         </div>
       </div>
       <QuotaLimitNotice usage={quota} resource="setlists" className="-mt-3" />
+      {notice}
 
       {/* Search */}
       <SearchInput
@@ -356,14 +363,14 @@ export function SetlistsTable({
                       router.push(`/dashboard/setlists/${setlist.id}`);
                     }}
                   >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
+                    <TableCell className="w-full max-w-0">
+                      <div className="flex min-w-0 items-center gap-2">
                         <button
                           type="button"
                           data-no-row-click
                           onClick={() => handleToggleFavorite(setlist)}
                           disabled={favoritePendingId === setlist.id}
-                          className="text-muted-foreground shrink-0 hover:text-yellow-500 disabled:opacity-50"
+                          className="text-muted-foreground focus-visible:ring-ring shrink-0 rounded-sm hover:text-yellow-500 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
                           title={
                             setlist.is_favorite
                               ? t("unfavorite")
@@ -392,7 +399,7 @@ export function SetlistsTable({
                         <Link
                           href={`/dashboard/setlists/${setlist.id}`}
                           data-no-row-click
-                          className="focus-visible:ring-ring rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                          className="focus-visible:ring-ring min-w-0 truncate rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
                         >
                           {setlist.title}
                         </Link>
@@ -415,7 +422,9 @@ export function SetlistsTable({
                             })}
                           >
                             <Guitar className="h-3 w-3" />
-                            {bandInfo?.name ?? t("bandSetlist")}
+                            <span className="max-w-32 truncate">
+                              {bandInfo?.name ?? t("bandSetlist")}
+                            </span>
                           </Badge>
                         )}
                         {sharedRole ? (
@@ -428,9 +437,11 @@ export function SetlistsTable({
                             })}
                           >
                             <UsersRound className="h-3 w-3" aria-hidden />
-                            {t("collaborators.sharedBy", {
-                              username: setlist.owner_username ?? "",
-                            })}
+                            <span className="max-w-40 truncate">
+                              {t("collaborators.sharedBy", {
+                                username: setlist.owner_username ?? "",
+                              })}
+                            </span>
                           </Badge>
                         ) : (
                           !!setlist.collaborator_count && (
@@ -446,7 +457,7 @@ export function SetlistsTable({
                             </Badge>
                           )
                         )}
-                        <ChevronRight className="text-muted-foreground h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+                        <ChevronRight className="text-muted-foreground h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                       </div>
                     </TableCell>
                     <TableCell

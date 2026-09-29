@@ -22,7 +22,11 @@ function UsageRow({ item }: { item: QuotaUsageItem }) {
         <span className="text-muted-foreground flex items-center gap-2">
           {item.overridden && <Badge variant="outline">{t("custom")}</Badge>}
           {item.limit === null ? (
-            <InfinityIcon className="h-4 w-4" aria-label={t("unlimited")} />
+            <InfinityIcon
+              className="h-4 w-4"
+              role="img"
+              aria-label={t("unlimited")}
+            />
           ) : (
             t("perContainer", { limit: item.limit })
           )}

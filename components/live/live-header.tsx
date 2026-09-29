@@ -94,7 +94,7 @@ export function LiveHeader({
         {!isOnline && (
           <Badge
             variant="outline"
-            className="h-7 gap-1 border-amber-500/40 bg-amber-500/10 px-2 text-xs font-bold text-amber-500 md:h-9 md:px-3 md:text-sm"
+            className="h-7 gap-1 border-amber-500/40 bg-amber-500/10 px-2 text-xs font-bold text-amber-700 in-data-[live-contrast=high]:text-amber-400 md:h-9 md:px-3 md:text-sm dark:text-amber-400"
             title={t("offline")}
           >
             <WifiOff className="h-3.5 w-3.5 md:h-4 md:w-4" />

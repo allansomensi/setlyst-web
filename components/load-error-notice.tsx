@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { cn } from "@/lib/utils";
 
 // A handful of automatic retries with backoff before leaving it to the
 // person — a genuinely dead backend shouldn't refresh forever in the
@@ -77,13 +78,22 @@ export function LoadErrorNotice() {
   return (
     <div
       data-load-error-notice="true"
+      role="status"
       className="flex flex-col items-center justify-center gap-2 py-4 text-center"
     >
       {isOnline ? (
         <>
-          <RefreshCw className="text-muted-foreground h-5 w-5 animate-spin" />
+          {/* Spins only while an automatic retry is still to come; once
+              they've run out it would promise progress that isn't
+              happening. */}
+          <RefreshCw
+            className={cn(
+              "text-muted-foreground h-5 w-5",
+              retriesLeft > 0 && "animate-spin",
+            )}
+          />
           <p className="text-muted-foreground text-sm">
-            {t("loadErrorRetrying")}
+            {retriesLeft > 0 ? t("loadErrorRetrying") : t("loadErrorGaveUp")}
           </p>
           <Button
             type="button"

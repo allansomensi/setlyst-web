@@ -71,12 +71,12 @@ export default async function SetlistsPage() {
 
   return (
     <div className="w-full space-y-4">
-      <SetlistInvitations invitations={invitations} />
       <SetlistsTable
         initialSetlists={setlists}
         bandsById={bandsById}
         loadError={hadError}
         quotas={quotas}
+        notice={<SetlistInvitations invitations={invitations} />}
       />
     </div>
   );

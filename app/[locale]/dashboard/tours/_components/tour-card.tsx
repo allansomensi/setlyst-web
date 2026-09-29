@@ -68,9 +68,9 @@ export function TourCard({ tour, today }: { tour: Tour; today: string }) {
           {t(`phase.${phase}`)}
         </Badge>
         {tour.band_name && (
-          <Badge variant="outline" className="gap-1 font-normal">
+          <Badge variant="outline" className="max-w-full gap-1 font-normal">
             <Guitar aria-hidden />
-            {tour.band_name}
+            <span className="truncate">{tour.band_name}</span>
           </Badge>
         )}
         <span className="text-muted-foreground inline-flex items-center gap-1">

@@ -57,8 +57,10 @@ export default function DashboardError({
       <div className="bg-destructive/10 flex h-12 w-12 items-center justify-center rounded-full">
         <AlertTriangle className="text-destructive h-6 w-6" />
       </div>
-      <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
-      <p className="text-muted-foreground max-w-sm">{userMessage}</p>
+      <h1 className="text-xl font-semibold tracking-tight">{t("title")}</h1>
+      <p className="text-muted-foreground max-w-sm wrap-break-word">
+        {userMessage}
+      </p>
       {digest && (
         <p className="text-muted-foreground text-xs">
           {t("reference")} <code className="font-mono">{digest}</code>

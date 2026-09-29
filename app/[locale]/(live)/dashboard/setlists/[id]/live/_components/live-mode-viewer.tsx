@@ -469,7 +469,12 @@ function NextLabel({ transition }: { transition: LiveTransition | undefined }) {
     : t("block.afterBreak");
 
   return (
-    <p className={cn(base, "text-amber-500")}>
+    <p
+      className={cn(
+        base,
+        "text-amber-700 in-data-[live-contrast=high]:text-amber-400 dark:text-amber-400",
+      )}
+    >
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
       <span className="truncate">{text}</span>
     </p>

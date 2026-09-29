@@ -24,10 +24,13 @@ export function OfflineStatusBanner() {
   const totalCached = cachedSetlistCount + cachedSongCount;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-600 md:px-8 dark:text-amber-400">
+    <div
+      role="status"
+      className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-800 md:px-8 dark:text-amber-300"
+    >
       <WifiOff className="h-4 w-4 shrink-0" />
       <span className="font-medium">{t("offlineBannerTitle")}</span>
-      <span className="text-amber-600/80 dark:text-amber-400/80">
+      <span className="text-amber-800/90 dark:text-amber-300/85">
         {totalCached > 0
           ? // Sets the expectation for the whole session up front: this is
             // a readable app right now, not a broken one — and the reason
