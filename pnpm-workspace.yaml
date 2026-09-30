@@ -5,20 +5,20 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@next/env@16.3.6 || 16.3.8'
-  - '@next/eslint-plugin-next@16.3.6 || 16.3.8'
-  - '@next/swc-darwin-arm64@16.3.6 || 16.3.8'
-  - '@next/swc-darwin-x64@16.3.6 || 16.3.8'
-  - '@next/swc-linux-arm64-gnu@16.3.6 || 16.3.8'
-  - '@next/swc-linux-arm64-musl@16.3.6 || 16.3.8'
-  - '@next/swc-linux-x64-gnu@16.3.6 || 16.3.8'
-  - '@next/swc-linux-x64-musl@16.3.6 || 16.3.8'
-  - '@next/swc-win32-arm64-msvc@16.3.6 || 16.3.8'
-  - '@next/swc-win32-x64-msvc@16.3.6 || 16.3.8'
+  - "@next/env@16.3.6 || 16.3.8"
+  - "@next/eslint-plugin-next@16.3.6 || 16.3.8"
+  - "@next/swc-darwin-arm64@16.3.6 || 16.3.8"
+  - "@next/swc-darwin-x64@16.3.6 || 16.3.8"
+  - "@next/swc-linux-arm64-gnu@16.3.6 || 16.3.8"
+  - "@next/swc-linux-arm64-musl@16.3.6 || 16.3.8"
+  - "@next/swc-linux-x64-gnu@16.3.6 || 16.3.8"
+  - "@next/swc-linux-x64-musl@16.3.6 || 16.3.8"
+  - "@next/swc-win32-arm64-msvc@16.3.6 || 16.3.8"
+  - "@next/swc-win32-x64-msvc@16.3.6 || 16.3.8"
   - eslint-config-next@16.3.6 || 16.3.8
   - next@16.3.6 || 16.3.8
-  - '@vitest/mocker@5.0.3'
-  - '@vitest/spy@5.0.3'
+  - "@vitest/mocker@5.0.3"
+  - "@vitest/spy@5.0.3"
   - lucide-react@1.49.0
   - react-day-picker@10.0.2
   - vitest@5.0.3
