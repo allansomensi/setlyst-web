@@ -31,6 +31,7 @@ import {
 } from "@/lib/auth-flow";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { safeAuthRedirect } from "@/lib/links";
+import { isApiTokenRenewalDue } from "@/lib/session-api-token";
 import { isUuid } from "@/lib/uuid";
 
 if (!process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET.length < 32) {
@@ -384,6 +385,7 @@ async function startImpersonation(
       role: token.role,
       apiToken: token.apiToken,
       apiTokenExpires: token.apiTokenExpires,
+      apiTokenIssued: token.apiTokenIssued,
       emailVerified: token.emailVerified,
       termsAccepted: token.termsAccepted,
       twoFactorEnabled: token.twoFactorEnabled,
@@ -401,6 +403,46 @@ async function startImpersonation(
     twoFactorEnabled: undefined,
     impersonationError: undefined,
   };
+}
+
+/**
+ * Swaps the session's API token for a fresh one (`POST /auth/refresh`),
+ * so a session in use never runs out. A token the API refuses (revoked,
+ * expired) ends the session; a network failure keeps the current token
+ * and the next visit tries again.
+ */
+async function renewSession(token: SessionToken): Promise<SessionToken> {
+  const apiUrl = getApiBaseUrl();
+  if (!apiUrl || !token.apiToken) return token;
+  try {
+    const res = await fetch(`${apiUrl}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        ...(await getInternalApiHeaders()),
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ token: token.apiToken }),
+      redirect: "error",
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (res.status === 401) return { ...token, error: "TokenExpired" };
+    if (!res.ok) return token;
+    const body = (await res.json()) as { token?: unknown };
+    if (typeof body.token !== "string") return token;
+    const decoded = jwtDecode<SetlystJwtPayload>(body.token);
+    if (decoded.sub !== token.id || decoded.imp || !decoded.exp) return token;
+    return {
+      ...token,
+      apiToken: body.token,
+      apiTokenExpires: decoded.exp * 1000,
+      apiTokenIssued: decoded.iat * 1000,
+      role: isValidRole(decoded.role) ? decoded.role : token.role,
+      name: decoded.username || token.name,
+    };
+  } catch {
+    return token;
+  }
 }
 
 /** Starts impersonating `userId`, or records why it was refused. */
@@ -426,6 +468,7 @@ function restoreImpersonator(token: SessionToken): SessionToken {
     role: original.role,
     apiToken: original.apiToken,
     apiTokenExpires: original.apiTokenExpires,
+    apiTokenIssued: original.apiTokenIssued,
     emailVerified: original.emailVerified,
     termsAccepted: original.termsAccepted,
     twoFactorEnabled: original.twoFactorEnabled,
@@ -839,6 +882,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const decoded = jwtDecode<SetlystJwtPayload>(user.apiToken as string);
           token.apiTokenExpires = decoded.exp * 1000;
+          token.apiTokenIssued = decoded.iat * 1000;
         } catch {
           return { ...token, error: "TokenExpired" };
         }
@@ -850,7 +894,15 @@ export const authOptions: NextAuthOptions = {
           impersonateUserId?: unknown;
           stopImpersonation?: unknown;
           refreshAccount?: unknown;
+          renewSession?: unknown;
         };
+
+        // Sent by the client while the app is in use (SessionKeepAlive):
+        // the API token is renewed when it is old enough, so a session
+        // only ends after a long stretch without any use.
+        if (update.renewSession === true && isApiTokenRenewalDue(token)) {
+          return renewSession(token);
+        }
 
         // Keeps the token's copy of the language in step when it's changed
         // from the settings page in this same session, so a later launch
@@ -919,6 +971,7 @@ export const authOptions: NextAuthOptions = {
       if (token.error === "TokenExpired") {
         session.error = "TokenExpired";
       }
+      if (isApiTokenRenewalDue(token)) session.renewDue = true;
       if (token.impersonationError) {
         session.impersonationError = token.impersonationError;
       }
@@ -949,7 +1002,9 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24h
+    // As long as the API token (30 days), which an active session renews
+    // (see renewSession): only a month without use signs a person out.
+    maxAge: 30 * 24 * 60 * 60,
     updateAge: 60 * 60, // refresh session cookie every 1h
   },
   pages: {

@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { adminListQuery } from "@/lib/admin-list";
 import { formatApiDate, formatApiDay, parseApiTimestamp } from "@/lib/dates";
 import { safeCallbackPath } from "@/lib/links";
-import { apiTokenOf } from "@/lib/session-api-token";
+import {
+  apiTokenOf,
+  isApiTokenRenewalDue,
+  SESSION_RENEW_AFTER_MS,
+} from "@/lib/session-api-token";
 import { isServiceWorkerEnabled } from "@/lib/offline/sw-enabled";
 import { parseSignInError } from "@/lib/sign-in-errors";
 import {
@@ -241,6 +245,49 @@ describe("isServiceWorkerEnabled", () => {
     ).toBe(true);
     expect(
       isServiceWorkerEnabled({ nodeEnv: "development", enableInDev: "1" }),
+    ).toBe(false);
+  });
+});
+
+describe("isApiTokenRenewalDue", () => {
+  const now = 1_000_000_000_000;
+  const fresh = {
+    apiToken: "a",
+    apiTokenExpires: now + 29 * 24 * 3600_000,
+    apiTokenIssued: now - 3600_000,
+  };
+
+  it("renews an active session's token once it is old enough", () => {
+    expect(isApiTokenRenewalDue(fresh, now)).toBe(false);
+    expect(
+      isApiTokenRenewalDue(
+        { ...fresh, apiTokenIssued: now - SESSION_RENEW_AFTER_MS },
+        now,
+      ),
+    ).toBe(true);
+    // Sessions from before issue times were recorded.
+    expect(
+      isApiTokenRenewalDue({ ...fresh, apiTokenIssued: undefined }, now),
+    ).toBe(true);
+  });
+
+  it("never renews an ended session or an impersonation", () => {
+    const old = { ...fresh, apiTokenIssued: now - SESSION_RENEW_AFTER_MS };
+    expect(isApiTokenRenewalDue(null, now)).toBe(false);
+    expect(isApiTokenRenewalDue({ ...old, error: "TokenExpired" }, now)).toBe(
+      false,
+    );
+    expect(isApiTokenRenewalDue({ ...old, apiTokenExpires: now }, now)).toBe(
+      false,
+    );
+    expect(
+      isApiTokenRenewalDue(
+        {
+          ...old,
+          impersonator: { id: "s", name: "s", role: "admin", apiToken: "b" },
+        },
+        now,
+      ),
     ).toBe(false);
   });
 });

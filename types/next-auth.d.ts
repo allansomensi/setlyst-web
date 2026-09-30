@@ -6,6 +6,11 @@ declare module "next-auth" {
   interface Session {
     error?: "TokenExpired";
     /**
+     * The API token is due for renewal: the client asks for it with
+     * `update({ renewSession: true })` (components/providers).
+     */
+    renewDue?: boolean;
+    /**
      * Why the last "view as" request was refused (an API error code such
      * as `INSUFFICIENT_ROLE`), reported once by the update that tried it.
      */
@@ -66,6 +71,8 @@ declare module "next-auth/jwt" {
     role: PlatformRole;
     apiToken: string;
     apiTokenExpires?: number;
+    /** When the API token was issued (ms), to know when to renew it. */
+    apiTokenIssued?: number;
     error?: "TokenExpired";
     /** See `Session.impersonationError`; cleared on the next read. */
     impersonationError?: string;
@@ -82,6 +89,7 @@ declare module "next-auth/jwt" {
       role: PlatformRole;
       apiToken: string;
       apiTokenExpires?: number;
+      apiTokenIssued?: number;
       emailVerified?: boolean;
       termsAccepted?: boolean;
       twoFactorEnabled?: boolean;

@@ -54,3 +54,31 @@ export function isSessionExpired(
   const originalExpires = original.apiTokenExpires;
   return typeof originalExpires === "number" && now >= originalExpires;
 }
+
+/**
+ * How old the API token may get before an active session swaps it for a
+ * fresh one (`POST /auth/refresh`). The API token lives 30 days; renewing
+ * it at most twice a day while the app is in use means a session only
+ * ends after 30 days without opening Setlyst (or when it is revoked:
+ * password change, "sign out everywhere", suspension).
+ */
+export const SESSION_RENEW_AFTER_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * Whether the session's own API token is due for renewal. Never for an
+ * impersonation ("view as" tokens are short-lived on purpose) nor for a
+ * session that has already ended. A token from before issue times were
+ * recorded counts as due.
+ */
+export function isApiTokenRenewalDue(
+  token: Pick<
+    JWT,
+    "apiToken" | "apiTokenExpires" | "apiTokenIssued" | "error" | "impersonator"
+  > | null,
+  now: number = Date.now(),
+): boolean {
+  if (!token || token.impersonator) return false;
+  if (!apiTokenOf(token, now)) return false;
+  const issued = token.apiTokenIssued;
+  return typeof issued !== "number" || now - issued >= SESSION_RENEW_AFTER_MS;
+}
