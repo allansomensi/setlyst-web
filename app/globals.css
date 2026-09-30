@@ -408,3 +408,55 @@
   --muted-foreground: oklch(0.7 0.018 278);
   --border: oklch(1 0 0 / 12%);
 }
+
+/*
+ * Toasts: sonner draws every type in the same neutral colours (see
+ * components/ui/toaster.tsx); the icon carries the type, so a success and
+ * an error tell apart at a glance without a loud coloured card. Outside
+ * any @layer and more specific than sonner's own rules, so these win.
+ */
+[data-sonner-toaster] [data-sonner-toast] {
+  box-shadow:
+    0 8px 24px oklch(0.15 0.03 280 / 14%),
+    0 2px 6px oklch(0.15 0.03 280 / 8%);
+}
+
+.dark [data-sonner-toaster] [data-sonner-toast] {
+  box-shadow:
+    0 8px 28px oklch(0 0 0 / 45%),
+    0 0 0 1px oklch(1 0 0 / 4%) inset;
+}
+
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+  color: var(--muted-foreground);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-icon] {
+  color: oklch(0.58 0.15 155);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] [data-icon] {
+  color: var(--destructive);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="warning"] [data-icon] {
+  color: oklch(0.7 0.15 70);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="info"] [data-icon] {
+  color: var(--primary);
+}
+
+.dark
+  [data-sonner-toaster]
+  [data-sonner-toast][data-type="success"]
+  [data-icon] {
+  color: oklch(0.76 0.14 155);
+}
+
+.dark
+  [data-sonner-toaster]
+  [data-sonner-toast][data-type="warning"]
+  [data-icon] {
+  color: oklch(0.82 0.14 80);
+}

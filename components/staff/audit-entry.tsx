@@ -203,7 +203,9 @@ export function AuditEntry({
             </span>
           ))}
         <span className="text-muted-foreground">
-          {t("by", { actor: entry.actor_username ?? t("system") })}
+          {entry.actor_username
+            ? t("by", { actor: entry.actor_username })
+            : t("bySystem")}
         </span>
         {entry.impersonator_id && (
           <Badge variant="outline" title={t("impersonatedHint")}>

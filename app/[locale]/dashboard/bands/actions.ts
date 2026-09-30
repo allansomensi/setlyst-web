@@ -51,7 +51,11 @@ export async function updateBand(
   if (!isUuid(id)) return invalidRequest();
   const t = await getTranslations("bands.errors");
 
-  const payload: typeof data = {};
+  const payload: {
+    name?: string;
+    description?: string | null;
+    logo_url?: string | null;
+  } = {};
 
   if (data.name !== undefined) {
     const name = data.name.trim();
@@ -62,7 +66,8 @@ export async function updateBand(
   }
 
   if (data.description !== undefined) {
-    payload.description = data.description.trim() || undefined;
+    // Emptied: cleared (`null`), not left as it was.
+    payload.description = data.description.trim() || null;
   }
 
   if (data.logo_url !== undefined) {

@@ -226,7 +226,7 @@ export const TERMS: LegalTexts = {
         heading: "Lei aplicável e foro",
         blocks: [
           "Estes Termos são regidos pelas leis da República Federativa do Brasil, em especial o Código de Defesa do Consumidor, o Marco Civil da Internet (Lei 12.965/2014), a Lei Geral de Proteção de Dados (Lei 13.709/2018), o Decreto 7.962/2013 e a Lei 9.610/1998.",
-          "Fica eleito o foro da Comarca de Caxias do Sul/RS para resolver questões relativas a estes Termos, sem prejuízo do direito do consumidor de propor ação no foro do seu domicílio.",
+          "Fica eleito o foro da Comarca de Bento Gonçalves/RS para resolver questões relativas a estes Termos, sem prejuízo do direito do consumidor de propor ação no foro do seu domicílio.",
         ],
       },
       {
@@ -448,7 +448,7 @@ export const TERMS: LegalTexts = {
         heading: "Governing law and jurisdiction",
         blocks: [
           "These Terms are governed by the laws of the Federative Republic of Brazil, in particular the Consumer Protection Code, the Brazilian Civil Rights Framework for the Internet (Law 12,965/2014), the General Data Protection Law (Law 13,709/2018), Decree 7,962/2013 and Law 9,610/1998.",
-          "The courts of the District of Caxias do Sul, State of Rio Grande do Sul, Brazil, are chosen to settle matters relating to these Terms, without prejudice to the consumer's right to bring proceedings in the courts of their own domicile.",
+          "The courts of the District of Bento Gonçalves, State of Rio Grande do Sul, Brazil, are chosen to settle matters relating to these Terms, without prejudice to the consumer's right to bring proceedings in the courts of their own domicile.",
         ],
       },
       {
@@ -670,7 +670,7 @@ export const TERMS: LegalTexts = {
         heading: "Ley aplicable y jurisdicción",
         blocks: [
           "Estos Términos se rigen por las leyes de la República Federativa de Brasil, en especial el Código de Defensa del Consumidor, el Marco Civil de Internet (Ley 12.965/2014), la Ley General de Protección de Datos (Ley 13.709/2018), el Decreto 7.962/2013 y la Ley 9.610/1998.",
-          "Se elige el fuero de la Comarca de Caxias do Sul, Rio Grande do Sul, Brasil, para resolver las cuestiones relativas a estos Términos, sin perjuicio del derecho del consumidor a demandar en el fuero de su domicilio.",
+          "Se elige el fuero de la Comarca de Bento Gonçalves, Rio Grande do Sul, Brasil, para resolver las cuestiones relativas a estos Términos, sin perjuicio del derecho del consumidor a demandar en el fuero de su domicilio.",
         ],
       },
       {

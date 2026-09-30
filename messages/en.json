@@ -1340,7 +1340,7 @@
       "preview": "Preview",
       "label": "Image link",
       "invalid": "Use an https link to a PNG, JPEG, WebP, GIF or AVIF image.",
-      "help": "https links to PNG, JPEG, WebP, GIF or AVIF images, up to 3 MB. SVG isn't accepted. The image is checked automatically and must follow the <guidelines>Community Guidelines</guidelines>.",
+      "help": "https links to PNG, JPEG, WebP, GIF or AVIF images, up to 1 MB. SVG isn't accepted. The image is checked automatically and must follow the <guidelines>Community Guidelines</guidelines>.",
       "save": "Save picture",
       "remove": "Remove picture",
       "saved": "Profile picture updated.",
@@ -1650,6 +1650,9 @@
       "namePlaceholder": "e.g. The Weekend Band",
       "descriptionLabel": "Description (optional)",
       "descriptionPlaceholder": "e.g. Classic rock covers",
+      "logoLabel": "Band logo (image link, optional)",
+      "logoInvalid": "Use an https link to a PNG, JPEG, WebP, GIF or AVIF image.",
+      "logoHelp": "An https link to an image published online. SVG isn't accepted; the image is checked automatically. Leave it empty to show the band's initials.",
       "created": "Band created.",
       "updated": "Band updated.",
       "saveFailed": "Couldn't save the band.",
@@ -1940,7 +1943,7 @@
     "deployedBuild": "Running build:",
     "author": "Author",
     "authorRole": "Guitarist, guitar teacher and software developer",
-    "authorBio": "Setlyst is built by a working guitarist who is also a software developer. Its features come from real needs on stage and in rehearsal.",
+    "authorBio": "Setlyst is a project created by a guitarist and programming enthusiast. It was born from real needs on stage and in rehearsal. From musician to musician.",
     "contributeTitle": "Found a bug or have an idea?",
     "contributeDescription": "Issues and pull requests are welcome.",
     "reportIssue": "Open an issue",
@@ -2541,7 +2544,7 @@
     },
     "audit": {
       "by": "by @{actor}",
-      "system": "system",
+      "bySystem": "automatic (system)",
       "impersonated": "view as",
       "impersonatedHint": "Recorded during a \"view as\" session.",
       "ipAddress": "IP {address}",
@@ -2829,7 +2832,9 @@
         "release_note": "What's new",
         "billing": "Billing",
         "promo": "Promo codes",
-        "promotion": "Promotions"
+        "promotion": "Promotions",
+        "finance": "Finance",
+        "staff": "Staff access"
       },
       "empty": "Nothing recorded for these filters."
     },
@@ -3053,8 +3058,7 @@
       "uptime": "up {uptime}",
       "unreachable": "Not responding",
       "latency": "{ms} ms response",
-      "noLatency": "No response",
-      "unknown": "Unknown"
+      "noLatency": "No response"
     },
     "connections": "Database connections",
     "checkedAt": "Checked {date} · refreshes every {seconds}s",
@@ -3147,7 +3151,7 @@
       "docs": "Documentation",
       "status": "System status",
       "copyright": "© {year} Setlyst",
-      "madeIn": "Made in Caxias do Sul, Brazil",
+      "madeIn": "Made in Bento Gonçalves, Brazil",
       "contact": "Contact",
       "identity": "Setlyst is provided by {name}, {kind, select, company {a company} other {an individual}}, {taxIdLabel} {taxId}, {address}. Support: <mail>{email}</mail>."
     }

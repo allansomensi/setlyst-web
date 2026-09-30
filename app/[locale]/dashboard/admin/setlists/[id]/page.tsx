@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -26,21 +27,25 @@ import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ id: string }>;
 
-async function loadSetlist(id: string): Promise<AdminSetlistDetail | null> {
-  try {
-    return await fetchServerApi<AdminSetlistDetail>(
-      `/admin/setlists/${encodeURIComponent(id)}`,
-    );
-  } catch (error) {
-    if (
-      error instanceof ApiError &&
-      (error.status === 404 || error.status === 400)
-    ) {
-      return null;
+// Request-scoped: generateMetadata and the page both need it, and every
+// call is recorded in the audit log as a staff access.
+const loadSetlist = cache(
+  async (id: string): Promise<AdminSetlistDetail | null> => {
+    try {
+      return await fetchServerApi<AdminSetlistDetail>(
+        `/admin/setlists/${encodeURIComponent(id)}`,
+      );
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        (error.status === 404 || error.status === 400)
+      ) {
+        return null;
+      }
+      throw error;
     }
-    throw error;
-  }
-}
+  },
+);
 
 export async function generateMetadata({
   params,

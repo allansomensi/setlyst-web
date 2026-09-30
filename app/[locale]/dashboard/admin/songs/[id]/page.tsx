@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -16,7 +17,9 @@ import { getSession } from "@/lib/server/session";
 
 type Params = Promise<{ id: string }>;
 
-async function loadSong(id: string): Promise<AdminSongDetail | null> {
+// Request-scoped: generateMetadata and the page both need it, and every
+// call is recorded in the audit log as a staff access.
+const loadSong = cache(async (id: string): Promise<AdminSongDetail | null> => {
   try {
     return await fetchServerApi<AdminSongDetail>(
       `/admin/songs/${encodeURIComponent(id)}`,
@@ -30,7 +33,7 @@ async function loadSong(id: string): Promise<AdminSongDetail | null> {
     }
     throw error;
   }
-}
+});
 
 export async function generateMetadata({
   params,

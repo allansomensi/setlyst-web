@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { Toaster as SonnerToaster, type ToasterProps } from "sonner";
@@ -32,6 +32,11 @@ function isSelectingTextIn(element: Element): boolean {
  * dismiss them, and stay up longer. The theme follows next-themes unless
  * one is passed; the labels are localized; the stack clears the notch /
  * status bar of the installed app.
+ *
+ * Sonner's own palette is pure white / pure black, which read as a hole
+ * punched through the violet-tinted dark theme. The stack is re-pointed at
+ * the popover tokens instead (inline, so it beats sonner's injected CSS),
+ * and globals.css tints each type's icon.
  *
  * Sonner portals its toasts outside this subtree, hence the document-level
  * listener. Toasts are matched to their id through the tag added by
@@ -70,6 +75,16 @@ export function Toaster({ theme, ...props }: ToasterProps) {
       }
       duration={6000}
       containerAriaLabel={t("notifications")}
+      style={
+        {
+          "--normal-bg": "var(--popover)",
+          "--normal-bg-hover": "var(--accent)",
+          "--normal-border": "var(--border)",
+          "--normal-border-hover": "var(--border)",
+          "--normal-text": "var(--popover-foreground)",
+          "--border-radius": "var(--radius)",
+        } as CSSProperties
+      }
       offset={{ top: "max(24px, env(safe-area-inset-top))" }}
       mobileOffset={{
         top: "max(16px, env(safe-area-inset-top))",

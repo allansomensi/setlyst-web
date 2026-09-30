@@ -1340,7 +1340,7 @@
       "preview": "Vista previa",
       "label": "Enlace de la imagen",
       "invalid": "Usa un enlace https a una imagen PNG, JPEG, WebP, GIF o AVIF.",
-      "help": "Enlaces https a imágenes PNG, JPEG, WebP, GIF o AVIF, de hasta 3 MB. No se acepta SVG. La imagen se revisa automáticamente y debe seguir las <guidelines>Normas de la Comunidad</guidelines>.",
+      "help": "Enlaces https a imágenes PNG, JPEG, WebP, GIF o AVIF, de hasta 1 MB. No se acepta SVG. La imagen se revisa automáticamente y debe seguir las <guidelines>Normas de la Comunidad</guidelines>.",
       "save": "Guardar foto",
       "remove": "Quitar foto",
       "saved": "Foto de perfil actualizada.",
@@ -1650,6 +1650,9 @@
       "namePlaceholder": "ej.: La Banda del Barrio",
       "descriptionLabel": "Descripción (opcional)",
       "descriptionPlaceholder": "ej.: Covers de rock clásico",
+      "logoLabel": "Logo de la banda (enlace de la imagen, opcional)",
+      "logoInvalid": "Usa un enlace https a una imagen PNG, JPEG, WebP, GIF o AVIF.",
+      "logoHelp": "Enlace https a una imagen publicada en internet. No se acepta SVG; la imagen se verifica automáticamente. Déjalo vacío para mostrar las iniciales de la banda.",
       "created": "Banda creada.",
       "updated": "Banda actualizada.",
       "saveFailed": "No se pudo guardar la banda.",
@@ -1940,7 +1943,7 @@
     "deployedBuild": "Versión en ejecución:",
     "author": "Autor",
     "authorRole": "Guitarrista, profesor de guitarra y desarrollador de software",
-    "authorBio": "Setlyst lo crea un guitarrista en activo que también es desarrollador. Sus funciones parten de necesidades reales del escenario y del ensayo.",
+    "authorBio": "Setlyst es un proyecto creado por un guitarrista y entusiasta de la programación. Nació de necesidades reales del escenario y del ensayo. De músico a músico.",
     "contributeTitle": "¿Encontraste un error o tienes una idea?",
     "contributeDescription": "Issues y pull requests son bienvenidos.",
     "reportIssue": "Abrir una issue",
@@ -2541,7 +2544,7 @@
     },
     "audit": {
       "by": "por @{actor}",
-      "system": "sistema",
+      "bySystem": "automático (sistema)",
       "impersonated": "ver como",
       "impersonatedHint": "Registrado durante una sesión «ver como».",
       "ipAddress": "IP {address}",
@@ -2829,7 +2832,9 @@
         "release_note": "Novedades",
         "billing": "Cobro",
         "promo": "Códigos promocionales",
-        "promotion": "Promociones"
+        "promotion": "Promociones",
+        "finance": "Finanzas",
+        "staff": "Accesos del equipo"
       },
       "empty": "Nada registrado para estos filtros."
     },
@@ -3053,8 +3058,7 @@
       "uptime": "activo hace {uptime}",
       "unreachable": "Sin respuesta",
       "latency": "respuesta en {ms} ms",
-      "noLatency": "Sin respuesta",
-      "unknown": "Desconocido"
+      "noLatency": "Sin respuesta"
     },
     "connections": "Conexiones a la base de datos",
     "checkedAt": "Comprobado el {date} · se actualiza cada {seconds}s",
@@ -3147,7 +3151,7 @@
       "docs": "Documentación",
       "status": "Estado del sistema",
       "copyright": "© {year} Setlyst",
-      "madeIn": "Hecho en Caxias do Sul, Brasil",
+      "madeIn": "Hecho en Bento Gonçalves, Brasil",
       "contact": "Contacto",
       "identity": "Setlyst es un servicio ofrecido por {name}, {kind, select, company {persona jurídica} other {persona física}}, {taxIdLabel} {taxId}, {address}. Atención: <mail>{email}</mail>."
     }

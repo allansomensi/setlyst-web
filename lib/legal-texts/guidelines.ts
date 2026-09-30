@@ -53,7 +53,7 @@ export const GUIDELINES: LegalTexts = {
         id: "images",
         heading: "Requisitos técnicos das imagens",
         blocks: [
-          "A imagem de perfil e o logotipo de banda são informados por endereço (URL) e precisam usar HTTPS. São aceitos os formatos PNG, JPEG, WebP, GIF e AVIF, com até 3 MB. Imagens SVG não são aceitas. As imagens são carregadas por meio do servidor do Setlyst, que verifica o formato e o tamanho antes de exibi-las.",
+          "A imagem de perfil e o logotipo de banda são informados por endereço (URL) e precisam usar HTTPS. São aceitos os formatos PNG, JPEG, WebP, GIF e AVIF, com até 1 MB. Imagens SVG não são aceitas. As imagens são carregadas por meio do servidor do Setlyst, que verifica o formato e o tamanho antes de exibi-las.",
         ],
       },
       {
@@ -149,7 +149,7 @@ export const GUIDELINES: LegalTexts = {
         id: "images",
         heading: "Technical requirements for images",
         blocks: [
-          "Profile pictures and band logos are provided as an address (URL) and must use HTTPS. PNG, JPEG, WebP, GIF and AVIF are accepted, up to 3 MB. SVG images are not accepted. Images are loaded through Setlyst's server, which checks the format and size before showing them.",
+          "Profile pictures and band logos are provided as an address (URL) and must use HTTPS. PNG, JPEG, WebP, GIF and AVIF are accepted, up to 1 MB. SVG images are not accepted. Images are loaded through Setlyst's server, which checks the format and size before showing them.",
         ],
       },
       {
@@ -245,7 +245,7 @@ export const GUIDELINES: LegalTexts = {
         id: "images",
         heading: "Requisitos técnicos de las imágenes",
         blocks: [
-          "La imagen de perfil y el logotipo de la banda se indican mediante una dirección (URL) y deben usar HTTPS. Se aceptan PNG, JPEG, WebP, GIF y AVIF, de hasta 3 MB. No se aceptan imágenes SVG. Las imágenes se cargan a través del servidor de Setlyst, que comprueba el formato y el tamaño antes de mostrarlas.",
+          "La imagen de perfil y el logotipo de la banda se indican mediante una dirección (URL) y deben usar HTTPS. Se aceptan PNG, JPEG, WebP, GIF y AVIF, de hasta 1 MB. No se aceptan imágenes SVG. Las imágenes se cargan a través del servidor de Setlyst, que comprueba el formato y el tamaño antes de mostrarlas.",
         ],
       },
       {

@@ -22,6 +22,8 @@ const CATEGORIES = [
   "billing.",
   "promo.",
   "promotion.",
+  "finance.",
+  "staff.",
 ] as const;
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -14,9 +14,10 @@ import { AppLogo } from "@/components/app-logo";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
-import { getApiBaseUrl } from "@/lib/api-server";
+import { fetchServerApi, getApiBaseUrl } from "@/lib/api-server";
 import { parseApiTimestamp } from "@/lib/dates";
 import { buildInternalHeaders } from "@/lib/server/client-ip";
+import { getSession } from "@/lib/server/session";
 import { getRequestTimeZone } from "@/lib/server/time-zone";
 import { cn } from "@/lib/utils";
 import type { ApiStatus, ServiceHealth } from "@/types/api";
@@ -83,6 +84,27 @@ async function fetchSystemStatusUncached(): Promise<ApiStatus | null> {
     return (await res.json()) as ApiStatus;
   } catch (error) {
     console.error("Failed to fetch API status:", error);
+    return null;
+  }
+}
+
+/**
+ * The full report (version, uptime, database latency and connections)
+ * for a signed-in staff member, read with their own token: the public
+ * `/status` answers only `{ status }`. Per visitor, so never put in the
+ * shared cache above. Null for everyone else, or when it can't be read.
+ */
+async function fetchStaffStatusDetails(): Promise<ApiStatus | null> {
+  const session = await getSession().catch(() => null);
+  const role = session?.user?.role;
+  if (session?.error || session?.user?.impersonator) return null;
+  if (role !== "admin" && role !== "moderator") return null;
+  try {
+    return await fetchServerApi<ApiStatus>("/status/details", {
+      cache: "no-store",
+      timeoutMs: 5000,
+    });
+  } catch {
     return null;
   }
 }
@@ -155,10 +177,12 @@ export default async function StatusPage({
     values?: Record<string, string | number>,
   ) => string;
 
-  const [status, timeZone] = await Promise.all([
+  const [publicStatus, staffDetails, timeZone] = await Promise.all([
     fetchSystemStatus(),
+    fetchStaffStatusDetails(),
     getRequestTimeZone(),
   ]);
+  const status = staffDetails ?? publicStatus;
   const overall: ServiceHealth = status?.status ?? "down";
   const apiHealth: ServiceHealth = status ? "operational" : "down";
   const database = status?.dependencies?.database;
@@ -223,7 +247,9 @@ export default async function StatusPage({
               ? database.version.split(" ").slice(0, 2).join(" ")
               : null,
           ].filter((line): line is string => Boolean(line))
-        : [t("details.unknown")],
+        : // The public report has no database details (they are
+          // staff-only): nothing to say beyond the health badge.
+          [],
     },
   ];
 
