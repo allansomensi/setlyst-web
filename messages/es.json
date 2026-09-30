@@ -1086,6 +1086,7 @@
       "transpose": "Tonalidad",
       "shortcuts": "Atajos de teclado",
       "keyNav": "Canción anterior / siguiente",
+      "keySongList": "Lista de canciones",
       "keyScroll": "Iniciar / detener desplazamiento",
       "keySpeed": "Desplazamiento más rápido / lento",
       "keyMetronome": "Iniciar / detener metrónomo",
@@ -1117,6 +1118,15 @@
       "nextBlock": "Próximo bloque: {name}",
       "breakThenBlock": "Pausa, luego {name}",
       "afterBreak": "Después de la pausa"
+    },
+    "songList": {
+      "open": "Elegir canción",
+      "label": "Canciones del setlist",
+      "count": "{count, plural, one {# canción} other {# canciones}}",
+      "nowPlaying": "Sonando",
+      "break": "Pausa",
+      "minutes": "{minutes} min",
+      "key": "Tono: {key}"
     }
   },
   "offlineSync": {

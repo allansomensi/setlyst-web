@@ -351,7 +351,10 @@ export function LiveSettingsSheet({
             >
               <dl className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-sm">
                 {hasNavigation && (
-                  <Shortcut keys={["←", "→"]} label={t("sheet.keyNav")} />
+                  <>
+                    <Shortcut keys={["←", "→"]} label={t("sheet.keyNav")} />
+                    <Shortcut keys={["L"]} label={t("sheet.keySongList")} />
+                  </>
                 )}
                 <Shortcut keys={["↑", "↓"]} label={t("sheet.keyPage")} />
                 <Shortcut

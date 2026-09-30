@@ -30,7 +30,12 @@ import { useTranspose } from "@/hooks/use-transpose";
 import { useSetlistKeys } from "@/hooks/use-setlist-keys";
 import { TransposeControls } from "@/components/live/transpose-controls";
 import { LiveBlockBar } from "@/components/live/live-block-bar";
-import { liveBlocksFrom, type LiveTransition } from "@/lib/live-blocks";
+import {
+  liveBlocksFrom,
+  liveRunningOrder,
+  type LiveTransition,
+} from "@/lib/live-blocks";
+import { playedKey } from "@/lib/music/chords";
 import { cn } from "@/lib/utils";
 
 interface LiveModeViewerProps {
@@ -72,6 +77,11 @@ export function LiveModeViewer({
   });
   // Which block each song is in, and what comes between it and the next.
   const blocks = useMemo(() => liveBlocksFrom(items), [items]);
+  // The same, as the header's drop-down list of songs shows it.
+  const runningOrder = useMemo(
+    () => liveRunningOrder(items, songs),
+    [items, songs],
+  );
 
   const startIndex = initialSongId
     ? Math.max(
@@ -83,6 +93,7 @@ export function LiveModeViewer({
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [direction, setDirection] = useState<"next" | "prev" | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [songListOpen, setSongListOpen] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
 
   const fullscreen = useFullscreen();
@@ -189,6 +200,19 @@ export function LiveModeViewer({
     }
   }, [safeIndex, setAutoScroll]);
 
+  // Jumping straight to a song from the header's list. The slide comes
+  // from the side the song is on, like Previous/Next.
+  const handleJump = useCallback(
+    (index: number) => {
+      setSongListOpen(false);
+      if (index === safeIndex || index < 0 || index >= songs.length) return;
+      setDirection(index > safeIndex ? "next" : "prev");
+      setCurrentIndex(index);
+      setAutoScroll(false);
+    },
+    [safeIndex, songs.length, setAutoScroll],
+  );
+
   // Scroll to top on song change
 
   useEffect(() => {
@@ -257,8 +281,9 @@ export function LiveModeViewer({
     toggleSections: () => toggleDisplay("showSections"),
     shiftTranspose,
     fitToScreen,
-    // The settings sheet owns the keyboard while it's open.
-    disabled: settingsOpen,
+    openSongList: songs.length > 1 ? () => setSongListOpen(true) : undefined,
+    // The settings sheet and the song list own the keyboard while open.
+    disabled: settingsOpen || songListOpen,
   });
 
   // Empty state
@@ -303,6 +328,23 @@ export function LiveModeViewer({
         canFullscreen={fullscreen.isSupported}
         onToggleFullscreen={fullscreen.toggle}
         onOpenSettings={() => setSettingsOpen(true)}
+        songList={
+          songs.length > 1
+            ? {
+                open: songListOpen,
+                onOpenChange: setSongListOpen,
+                rows: runningOrder,
+                currentIndex: safeIndex,
+                onSelect: handleJump,
+                keyFor: (song) =>
+                  playedKey(song.tonality, semitonesFor(song.id)),
+                heading: setlist.is_repertoire
+                  ? tRepertoire("name")
+                  : setlist.title,
+                highContrast: display.highContrast,
+              }
+            : undefined
+        }
       />
 
       {/* Says which song is now on screen when it changes — by swipe, a

@@ -1086,6 +1086,7 @@
       "transpose": "Key",
       "shortcuts": "Keyboard shortcuts",
       "keyNav": "Previous / next song",
+      "keySongList": "Song list",
       "keyScroll": "Start / stop auto-scroll",
       "keySpeed": "Scroll faster / slower",
       "keyMetronome": "Start / stop metronome",
@@ -1117,6 +1118,15 @@
       "nextBlock": "Next block: {name}",
       "breakThenBlock": "Break, then {name}",
       "afterBreak": "After the break"
+    },
+    "songList": {
+      "open": "Choose a song",
+      "label": "Setlist songs",
+      "count": "{count, plural, one {# song} other {# songs}}",
+      "nowPlaying": "Now playing",
+      "break": "Break",
+      "minutes": "{minutes} min",
+      "key": "Key: {key}"
     }
   },
   "offlineSync": {

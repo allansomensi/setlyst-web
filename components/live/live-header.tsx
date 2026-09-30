@@ -12,6 +12,10 @@ import { Link } from "@/components/nav-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  LiveSongList,
+  type LiveSongListProps,
+} from "@/components/live/live-song-list";
 
 interface LiveHeaderProps {
   closeHref: string;
@@ -28,7 +32,14 @@ interface LiveHeaderProps {
   canFullscreen?: boolean;
   onToggleFullscreen: () => void;
   onOpenSettings: () => void;
+  /** Turns the title into a drop-down of the setlist's songs to jump to. */
+  songList?: Omit<LiveSongListProps, "children">;
 }
+
+const titleClass =
+  "truncate text-base leading-tight font-bold sm:text-lg md:text-2xl";
+const subtitleClass =
+  "text-muted-foreground truncate text-[11px] font-normal tracking-wider uppercase md:text-xs";
 
 /**
  * Top bar shared by both Live Mode viewers: leave, what's playing, the
@@ -51,6 +62,7 @@ export function LiveHeader({
   canFullscreen = true,
   onToggleFullscreen,
   onOpenSettings,
+  songList,
 }: LiveHeaderProps) {
   const t = useTranslations("liveMode");
 
@@ -80,14 +92,19 @@ export function LiveHeader({
             <X className="h-5 w-5 md:h-6 md:w-6" />
           </Link>
         </Button>
-        <div className="min-w-0">
-          <h1 className="truncate text-base leading-tight font-bold sm:text-lg md:text-2xl">
-            {title}
+        {songList ? (
+          <h1 className="min-w-0">
+            <LiveSongList {...songList}>
+              <span className={cn("block", titleClass)}>{title}</span>
+              <span className={cn("block", subtitleClass)}>{subtitle}</span>
+            </LiveSongList>
           </h1>
-          <p className="text-muted-foreground truncate text-[11px] tracking-wider uppercase md:text-xs">
-            {subtitle}
-          </p>
-        </div>
+        ) : (
+          <div className="min-w-0">
+            <h1 className={titleClass}>{title}</h1>
+            <p className={subtitleClass}>{subtitle}</p>
+          </div>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 md:gap-2">

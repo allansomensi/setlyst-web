@@ -146,6 +146,8 @@ export interface LiveShortcutHandlers {
   /** Next / previous song (setlist Live Mode only). */
   onNext?: () => void;
   onPrev?: () => void;
+  /** Opens the list of the setlist's songs (setlist Live Mode only). */
+  openSongList?: () => void;
   toggleAutoScroll: () => void;
   stepScrollSpeed: (direction: 1 | -1) => void;
   toggleMetronome: () => void;
@@ -163,7 +165,7 @@ export interface LiveShortcutHandlers {
    * - `song`: always change song.
    */
   pageTurn?: LivePageTurnMode;
-  /** True while something else owns the keyboard (the settings sheet). */
+  /** True while something else owns the keyboard (settings, song list). */
   disabled?: boolean;
 }
 
@@ -194,7 +196,7 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 }
 
 /** Shortcuts that switch something on/off, ignored on key auto-repeat. */
-const TOGGLE_KEYS = new Set([" ", "m", "M", "c", "C", "s", "S"]);
+const TOGGLE_KEYS = new Set([" ", "m", "M", "c", "C", "s", "S", "l", "L"]);
 
 /** Scrolls the pane by a page; returns false when already at that edge. */
 export function turnPage(
@@ -228,6 +230,7 @@ export function turnPage(
  *  - Space: start or stop auto-scroll; + / -: its speed
  *  - M: metronome; C: chords; S: section labels
  *  - , / .: transpose down / up a semitone
+ *  - L: the list of the setlist's songs, to jump to one (when given)
  *
  * Ignored while typing in a field or with a modifier held (so browser
  * shortcuts keep working), and Space/arrows are left alone on a focused
@@ -326,6 +329,13 @@ export function useLiveKeyboardShortcuts(handlers: LiveShortcutHandlers) {
         case "s":
         case "S":
           h.toggleSections();
+          break;
+        case "l":
+        case "L":
+          if (h.openSongList) {
+            event.preventDefault();
+            h.openSongList();
+          }
           break;
         case ",":
         case "<":

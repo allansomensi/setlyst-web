@@ -1,4 +1,4 @@
-import type { SetlistItem } from "@/types/api";
+import type { SetlistItem, SetlistSong } from "@/types/api";
 
 /** Where a song sits inside its block, for Live Mode's block bar. */
 export interface LiveBlockPosition {
@@ -82,4 +82,72 @@ export function liveBlocksFrom(
   });
 
   return { positions, transitions };
+}
+
+/** One row of Live Mode's song list: a song, or a marker between songs. */
+export type LiveRunningOrderRow =
+  | { kind: "song"; key: string; song: SetlistSong; index: number }
+  | { kind: "block"; key: string; name: string }
+  | {
+      kind: "break";
+      key: string;
+      label: string | null;
+      minutes: number | null;
+    };
+
+/**
+ * The running order as Live Mode's song list shows it: every song on
+ * screen, in order, with the blocks and breaks between them.
+ *
+ * `songs` is what Live Mode navigates, so it stays the source of truth:
+ * each song row carries its index there, and the list always reads in the
+ * same order as Previous/Next move. The two can be briefly out of step
+ * while a fresh copy syncs; when the running order doesn't match `songs`
+ * exactly, the songs are listed on their own, without markers, rather
+ * than in an order the buttons wouldn't follow. Markers with no song
+ * after them lead nowhere and are dropped, like the footer's transitions.
+ */
+export function liveRunningOrder(
+  items: SetlistItem[] | null | undefined,
+  songs: SetlistSong[],
+): LiveRunningOrderRow[] {
+  const plain = (): LiveRunningOrderRow[] =>
+    songs.map((song, index) => ({
+      kind: "song",
+      key: `song-${song.id}`,
+      song,
+      index,
+    }));
+
+  if (!items) return plain();
+
+  const rows: LiveRunningOrderRow[] = [];
+  let markers: LiveRunningOrderRow[] = [];
+  let next = 0;
+
+  for (const item of items) {
+    if (item.item_type === "block") {
+      markers.push({ kind: "block", key: `block-${item.id}`, name: item.name });
+    } else if (item.item_type === "break") {
+      markers.push({
+        kind: "break",
+        key: `break-${item.id}`,
+        label: item.label,
+        minutes: item.duration_minutes,
+      });
+    } else {
+      const song = songs[next];
+      if (song?.id !== item.song.id) return plain();
+      rows.push(...markers, {
+        kind: "song",
+        key: `song-${song.id}`,
+        song,
+        index: next,
+      });
+      markers = [];
+      next += 1;
+    }
+  }
+
+  return next === songs.length ? rows : plain();
 }
