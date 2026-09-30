@@ -2878,6 +2878,22 @@
         "finance": "Financeiro"
       },
       "openFlags": "{count, plural, =0 {Nenhum ponto aberto} =1 {# ponto aberto} other {# pontos abertos}}"
+    },
+    "dateRange": {
+      "label": "Filtrar por período",
+      "labelWith": "Período: {range}",
+      "any": "Qualquer data",
+      "range": "{from} – {to}",
+      "hint": "Escolha o primeiro e o último dia.",
+      "apply": "Aplicar",
+      "clear": "Limpar período",
+      "presets": {
+        "today": "Hoje",
+        "last7": "Últimos 7 dias",
+        "last30": "Últimos 30 dias",
+        "thisMonth": "Este mês",
+        "lastMonth": "Mês passado"
+      }
     }
   },
   "quotas": {
@@ -3497,7 +3513,13 @@
       "security": "Segurança"
     },
     "empty": "Nenhuma novidade publicada até agora.",
-    "unavailable": "Não foi possível carregar as novidades agora. Tente novamente em alguns minutos."
+    "unavailable": "Não foi possível carregar as novidades agora. Tente novamente em alguns minutos.",
+    "groups": {
+      "new": "Novidades",
+      "improved": "Melhorias",
+      "fixed": "Correções",
+      "security": "Segurança"
+    }
   },
   "unsubscribe": {
     "title": "Cancelar inscrição",
@@ -5617,6 +5639,11 @@
         "flat": "Bemol",
         "natural": "Natural",
         "sharp": "Sustenido"
+      },
+      "set": {
+        "label": "Conjunto de graus",
+        "tetrads": "Tétrades",
+        "triads": "Tríades"
       }
     },
     "inspector": {
@@ -5766,6 +5793,155 @@
       "summary": "Comentários",
       "byline": "Análise de {author}",
       "bylineAnonymous": "Análise harmônica"
+    },
+    "concepts": {
+      "tonic": {
+        "name": "Tônica",
+        "hint": "Repouso: o centro do tom."
+      },
+      "tonicRelative": {
+        "name": "Relativa da tônica",
+        "hint": "O VIm divide duas notas com o I e pode substituí-lo, com função de tônica."
+      },
+      "tonicAntiRelative": {
+        "name": "Anti-relativa da tônica",
+        "hint": "O IIIm tem função de tônica, mais instável que o VIm; costuma seguir para o VI."
+      },
+      "relativeMajor": {
+        "name": "Relativa maior",
+        "hint": "O bIII é a tônica relativa do tom menor."
+      },
+      "subdominant": {
+        "name": "Subdominante",
+        "hint": "Afasta-se da tônica e prepara a dominante."
+      },
+      "subdominantRelative": {
+        "name": "Relativa da subdominante (II cadencial)",
+        "hint": "Função de subdominante; seguido do V forma a cadência II–V."
+      },
+      "subdominantMinor": {
+        "name": "Subdominante menor",
+        "hint": "O IVm vem do tom homônimo menor: um empréstimo modal (AEM) clássico."
+      },
+      "dominant": {
+        "name": "Dominante primária",
+        "hint": "Tensão que resolve na tônica, uma quinta abaixo."
+      },
+      "dominantMinorKey": {
+        "name": "Dominante (menor harmônica)",
+        "hint": "O V7 do tom menor, com a sensível da escala menor harmônica."
+      },
+      "dominantNoRoot": {
+        "name": "Dominante sem fundamental",
+        "hint": "Soa como um V7(9) (V7(b9) no menor) sem a fundamental: função de dominante."
+      },
+      "minorFive": {
+        "name": "V menor (eólio)",
+        "hint": "Dominante sem sensível: resolve de forma mais suave."
+      },
+      "subtonic": {
+        "name": "Subtônica (bVII)",
+        "hint": "Grau natural do tom menor; soa como a dominante do {target}."
+      },
+      "secondaryDominant": {
+        "name": "Dominante secundária do {target}",
+        "hint": "Um V7 emprestado do {target}: faz dele uma tônica por um instante e resolve nele, uma quinta abaixo."
+      },
+      "substituteDominant": {
+        "name": "Dominante substituta (SubV7)",
+        "hint": "Tem o mesmo trítono do V7 e resolve meio tom abaixo, na tônica."
+      },
+      "secondarySubstitute": {
+        "name": "Dominante substituta do {target}",
+        "hint": "O SubV7 do {target}: mesmo trítono do V7/{target}, resolve meio tom abaixo, nele."
+      },
+      "relatedTwo": {
+        "name": "II relativo do V7/{target}",
+        "hint": "É o II cadencial do {target}: com o V7/{target} forma um II–V secundário que leva ao {target}."
+      },
+      "secondaryLeadingTone": {
+        "name": "Diminuto com função dominante do {target}",
+        "hint": "O VII° do {target}: sua fundamental é a sensível que sobe meio tom até ele (um V7(b9)/{target} sem fundamental)."
+      },
+      "diminishedAscending": {
+        "name": "Diminuto ascendente",
+        "hint": "Passagem cromática que sobe meio tom até o {target}; função de dominante."
+      },
+      "diminishedDescending": {
+        "name": "Diminuto descendente",
+        "hint": "Passagem cromática que desce meio tom até o {target}."
+      },
+      "diminishedAuxiliary": {
+        "name": "Diminuto auxiliar",
+        "hint": "Ornamenta o acorde de mesma fundamental: sai dele e volta a ele."
+      },
+      "diminished": {
+        "name": "Acorde diminuto",
+        "hint": "Veja como ele se move: de passagem (ascendente ou descendente) ou auxiliar."
+      },
+      "neapolitan": {
+        "name": "Acorde napolitano (bII)",
+        "hint": "Acorde maior no bII, com função de subdominante; costuma ir ao V."
+      },
+      "modalBorrowing": {
+        "name": "Empréstimo modal (AEM)",
+        "hint": "Vem do tom homônimo menor (ou de outro modo) e colore a harmonia sem mudar o tom."
+      },
+      "augmented": {
+        "name": "Acorde aumentado",
+        "hint": "Quinta aumentada: em geral é passagem ou dominante alterada."
+      },
+      "chromatic": {
+        "name": "Acorde fora do campo harmônico",
+        "hint": "Não pertence ao tom: vale uma nota explicando o que ele faz aqui."
+      }
+    },
+    "patterns": {
+      "twoFive": {
+        "name": "Cadência II–V",
+        "nameResolved": "Cadência II–V–I",
+        "hint": "O II prepara a dominante, que resolve na tônica."
+      },
+      "twoFiveSecondary": {
+        "name": "II–V secundário para o {target}",
+        "nameResolved": "II–V secundário para o {target}",
+        "hint": "Uma cadência II–V emprestada do {target}: o II é o II relativo do V7/{target}."
+      },
+      "twoSubV": {
+        "name": "II–SubV7 para o {target}",
+        "nameResolved": "II–SubV7 para o {target}",
+        "hint": "A cadência II–V com a dominante substituta: o baixo desce por semitons."
+      },
+      "extendedDominants": {
+        "name": "Dominantes estendidos",
+        "hint": "Dominantes em cadeia, cada um resolvendo no seguinte."
+      },
+      "perfectCadence": {
+        "name": "Cadência perfeita (V → I)",
+        "hint": "A dominante resolve na tônica."
+      },
+      "deceptiveCadence": {
+        "name": "Cadência de engano",
+        "hint": "A dominante evita a tônica e vai para o VI (ou o bVI)."
+      },
+      "plagalCadence": {
+        "name": "Cadência plagal (IV → I)",
+        "hint": "A subdominante vai direto à tônica, sem passar pela dominante."
+      },
+      "backdoorCadence": {
+        "name": "Cadência backdoor (bVII7 → I)",
+        "hint": "Dominante \"pela porta dos fundos\": o bVII7 resolve na tônica, um tom acima."
+      }
+    },
+    "reading": {
+      "title": "Leitura",
+      "partOf": "Faz parte de",
+      "useFunction": "Usar função {fn}",
+      "empty": "Escreva o grau para ver o nome e o papel deste acorde.",
+      "patternsTitle": "Leitura harmônica",
+      "patternsHint": "Cadências e progressões reconhecidas nos graus escritos.",
+      "noPatterns": "Nenhuma cadência reconhecida ainda. Elas aparecem aqui conforme os graus são escritos.",
+      "resolvesTo": "resolve em"
     }
   }
 }

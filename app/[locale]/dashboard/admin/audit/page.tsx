@@ -4,8 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
 import { AuditEntry } from "@/components/staff/audit-entry";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
+import { DateRangeFilter } from "@/components/staff/date-range-filter";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
 import { fetchServerApi } from "@/lib/api-server";
+import { dayRangeToUtc } from "@/lib/date-range";
+import { getRequestTimeZone } from "@/lib/server/time-zone";
 import type { AuditLogEntry, PaginatedResponse } from "@/types/api";
 import { requireStaffPage } from "@/lib/staff-guard";
 
@@ -38,14 +41,27 @@ export default async function AdminAuditPage({
 }) {
   await requireStaffPage("audit");
   const t = await getTranslations("staff.auditPage");
-  const { query, page } = adminListQuery(await searchParams, [
+  const params = await searchParams;
+  const { query, page } = adminListQuery(params, [
     "q",
     "action",
     "actor_id",
     "target_id",
   ]);
+  // `?from=`/`?to=` are whole days in the viewer's calendar; the API takes
+  // UTC instants (`to` exclusive), placed at the viewer's time zone.
+  const first = (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value;
+  const range = dayRangeToUtc(
+    first(params.from),
+    first(params.to),
+    await getRequestTimeZone(),
+  );
+  const apiQuery = new URLSearchParams(query);
+  if (range.from) apiQuery.set("from", range.from);
+  if (range.to) apiQuery.set("to", range.to);
   const result = await fetchServerApi<PaginatedResponse<AuditLogEntry>>(
-    `/admin/audit-logs?${query}`,
+    `/admin/audit-logs?${apiQuery}`,
   );
   const entries = result.data ?? [];
 
@@ -67,7 +83,9 @@ export default async function AdminAuditPage({
             ],
           },
         ]}
-      />
+      >
+        <DateRangeFilter />
+      </ListToolbar>
 
       <Card>
         <CardContent className="divide-y py-2">

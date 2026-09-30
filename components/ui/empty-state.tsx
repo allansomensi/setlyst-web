@@ -27,7 +27,9 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center",
+        // `whitespace-normal`: inside a table cell (which keeps its text on
+        // one line) the description still wraps to the screen's width.
+        "flex flex-col items-center justify-center text-center whitespace-normal",
         compact ? "gap-3 px-4 py-8" : "gap-4 px-6 py-14",
         className,
       )}

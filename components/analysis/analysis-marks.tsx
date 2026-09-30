@@ -45,6 +45,40 @@ export const NOTE_COLOR: Record<NoteColor, string> = {
   emerald: "var(--an-note-emerald)",
 };
 
+/**
+ * A notched arrowhead with its tip at (`x`, `y`), pointing along the line
+ * arriving from (`fromX`, `fromY`) — for a curve, its last control point,
+ * so the head follows the curve's own direction. `end` is where the line
+ * should stop: inside the head, so neither a round cap nor a dash pokes
+ * past the tip.
+ */
+export function arrowHead(
+  x: number,
+  y: number,
+  fromX: number,
+  fromY: number,
+  size: number,
+): { d: string; end: { x: number; y: number } } {
+  const length = Math.hypot(x - fromX, y - fromY) || 1;
+  const ux = (x - fromX) / length;
+  const uy = (y - fromY) / length;
+  // The normal, for the wings.
+  const nx = -uy;
+  const ny = ux;
+  const wing = size * 0.48;
+  const backX = x - ux * size;
+  const backY = y - uy * size;
+  const notchX = x - ux * size * 0.66;
+  const notchY = y - uy * size * 0.66;
+  const r = (n: number) => Math.round(n * 100) / 100;
+  return {
+    d:
+      `M${r(x)},${r(y)} L${r(backX + nx * wing)},${r(backY + ny * wing)} ` +
+      `L${r(notchX)},${r(notchY)} L${r(backX - nx * wing)},${r(backY - ny * wing)} Z`,
+    end: { x: r(x - ux * size * 0.55), y: r(y - uy * size * 0.55) },
+  };
+}
+
 /** "b" and "#" as ♭ and ♯ inside degree text ("7(b9)", "bVI"). */
 function accidentals(value: string): string {
   return value.replace(/b(?=[IV\d])/g, "♭").replace(/#/g, "♯");
@@ -204,6 +238,7 @@ export function ConnectionSample({
       </svg>
     );
   }
+  const arrow = arrowHead(31, 11.5, 27, 2.5, 5.6);
   return (
     <svg
       viewBox="0 0 36 14"
@@ -211,14 +246,20 @@ export function ConnectionSample({
       aria-hidden
     >
       <path
-        d="M3 11 C 8 1, 26 1, 31 10"
+        d={`M4 11.5 C 7 2.5, 27 2.5, ${arrow.end.x} ${arrow.end.y}`}
         fill="none"
         stroke={color}
         strokeWidth={width}
         strokeLinecap="round"
         strokeDasharray={dash?.map((d) => d * width).join(" ")}
       />
-      <path d="M27.4 8.2 L31.6 11.6 L32.6 6.4 Z" fill={color} />
+      <path
+        d={arrow.d}
+        fill={color}
+        stroke={color}
+        strokeWidth={width * 0.6}
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

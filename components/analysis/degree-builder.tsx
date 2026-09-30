@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
 import { Input } from "@/components/ui/input";
 import {
   NUMERALS,
@@ -13,6 +14,7 @@ import {
   type Accidental,
   type Degree,
 } from "@/lib/music/analysis";
+import { isTetrad } from "@/lib/music/analysis-concepts";
 import { DegreeText } from "./analysis-marks";
 
 /** One-tap degrees of a major key: the diatonic chords and the usual secondary dominants. */
@@ -29,6 +31,7 @@ const MAJOR_PRESETS = [
   "V7/IV",
   "V7/V",
   "V7/VI",
+  "IIm7/IV",
   "SubV7",
   "IVm6",
   "bVII7",
@@ -51,27 +54,103 @@ const MINOR_PRESETS = [
   "SubV7",
 ] as const;
 
-const QUALITIES = [
-  "",
+/**
+ * The same degrees as triads, the way songs in the popular repertoire
+ * are often analysed (and charted): three-note chords, no sevenths.
+ */
+const MAJOR_TRIAD_PRESETS = [
+  "I",
+  "IIm",
+  "IIIm",
+  "IV",
+  "V",
+  "VIm",
+  "VIIm(b5)",
+  "V/II",
+  "V/III",
+  "V/IV",
+  "V/V",
+  "V/VI",
+  "SubV",
+  "IVm",
+  "bVII",
+  "bVI",
+  "bIII",
+] as const;
+
+const MINOR_TRIAD_PRESETS = [
+  "Im",
+  "IIm(b5)",
+  "bIII",
+  "IVm",
+  "V",
+  "Vm",
+  "bVI",
+  "bVII",
+  "VIIm(b5)",
+  "V/IV",
+  "V/bVI",
+  "SubV",
+] as const;
+
+const TETRAD_QUALITIES = [
   "7M",
   "6",
   "7",
-  "m",
   "m7",
   "m6",
   "m7(b5)",
   "°",
+  "m7M",
   "7(9)",
   "7(b9)",
   "7(#11)",
   "7(13)",
   "7(b13)",
   "7sus4",
-  "m7M",
   "7M(9)",
   "m7(9)",
-  "+",
 ] as const;
+
+const TRIAD_QUALITIES = [
+  "",
+  "m",
+  "m(b5)",
+  "+",
+  "sus4",
+  "sus2",
+  "(9)",
+  "m(9)",
+] as const;
+
+type DegreeSet = "tetrads" | "triads";
+const DEGREE_SET_KEY = "setlyst:analysis-degree-set";
+
+/**
+ * Triads or tetrads (four-note chords) in the presets and qualities: the
+ * last one chosen on this device, or the kind of the degree being edited.
+ */
+function useDegreeSet(value: Degree | null) {
+  const [set, setSet] = useState<DegreeSet>(() => {
+    if (value?.numeral) return isTetrad(value.quality) ? "tetrads" : "triads";
+    try {
+      return window.localStorage.getItem(DEGREE_SET_KEY) === "triads"
+        ? "triads"
+        : "tetrads";
+    } catch {
+      return "tetrads";
+    }
+  });
+  const choose = (next: DegreeSet) => {
+    setSet(next);
+    try {
+      window.localStorage.setItem(DEGREE_SET_KEY, next);
+    } catch {
+      // Private mode: the choice just isn't remembered.
+    }
+  };
+  return [set, choose] as const;
+}
 
 const TARGETS = [
   "",
@@ -169,7 +248,18 @@ export function DegreeBuilder({
     onChange(degree.numeral ? degree : null);
   };
 
-  const presets = minor ? MINOR_PRESETS : MAJOR_PRESETS;
+  const [set, setSet] = useDegreeSet(value);
+  const triads = set === "triads";
+  const presets: readonly string[] = triads
+    ? minor
+      ? MINOR_TRIAD_PRESETS
+      : MAJOR_TRIAD_PRESETS
+    : minor
+      ? MINOR_PRESETS
+      : MAJOR_PRESETS;
+  const qualities: readonly string[] = triads
+    ? TRIAD_QUALITIES
+    : TETRAD_QUALITIES;
 
   return (
     <div className="space-y-3">
@@ -227,25 +317,57 @@ export function DegreeBuilder({
       </div>
       {invalid && <p className="text-destructive text-xs">{t("invalid")}</p>}
 
-      <Row label={minor ? t("presetsMinor") : t("presetsMajor")}>
-        {presets.map((preset) => {
-          const degree = parseDegree(preset);
-          const active = formatted === preset;
-          return (
-            <Chip
-              key={preset}
-              active={active}
-              onClick={() => {
-                setDraft(null);
-                onChange(active ? null : degree);
-              }}
-              className="font-serif font-semibold"
-            >
-              {pretty(preset)}
-            </Chip>
-          );
-        })}
-      </Row>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-muted-foreground text-[0.7rem] font-semibold tracking-wide uppercase">
+            {minor ? t("presetsMinor") : t("presetsMajor")}
+          </p>
+          <div
+            role="radiogroup"
+            aria-label={t("set.label")}
+            onKeyDown={onRadioGroupKeyDown}
+            className="bg-muted inline-flex shrink-0 rounded-md p-0.5"
+          >
+            {(["tetrads", "triads"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={set === option}
+                tabIndex={set === option ? 0 : -1}
+                onClick={() => setSet(option)}
+                className={cn(
+                  "focus-visible:ring-ring/50 h-6 rounded-[5px] px-2 text-[0.7rem] font-semibold outline-none focus-visible:ring-3 pointer-coarse:h-8",
+                  set === option
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t(`set.${option}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {presets.map((preset) => {
+            const degree = parseDegree(preset);
+            const active = formatted === preset;
+            return (
+              <Chip
+                key={preset}
+                active={active}
+                onClick={() => {
+                  setDraft(null);
+                  onChange(active ? null : degree);
+                }}
+                className="font-serif font-semibold"
+              >
+                {pretty(preset)}
+              </Chip>
+            );
+          })}
+        </div>
+      </div>
 
       <details className="group rounded-lg border">
         <summary className="hover:bg-muted/50 cursor-pointer list-none rounded-lg px-3 py-2 text-sm font-medium select-none">
@@ -281,7 +403,7 @@ export function DegreeBuilder({
           </Row>
 
           <Row label={t("quality")}>
-            {QUALITIES.map((quality) => (
+            {qualities.map((quality) => (
               <Chip
                 key={quality || "triad"}
                 active={!!current.numeral && current.quality === quality}

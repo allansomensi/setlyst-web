@@ -48,7 +48,9 @@ import {
   type NoteColor,
   type RangeNote,
 } from "@/lib/music/analysis";
+import type { Pattern } from "@/lib/music/analysis-concepts";
 import { DegreeBuilder } from "./degree-builder";
+import { ChordReading } from "./analysis-reading";
 import { ConnectionSample, FUNCTION_COLOR, NOTE_COLOR } from "./analysis-marks";
 
 export interface InspectorActions {
@@ -139,6 +141,7 @@ export function AnalysisInspector({
   index,
   songKey,
   sameCount,
+  patterns,
   actions,
   focusNote = null,
   className,
@@ -150,6 +153,8 @@ export function AnalysisInspector({
   songKey: string | null;
   /** How many identical chords "copy degree" would fill. */
   sameCount: number;
+  /** The cadences the analysis forms (see `findPatterns`). */
+  patterns: readonly Pattern[];
   actions: InspectorActions;
   /** A passage just created: its text field takes the focus. */
   focusNote?: string | null;
@@ -255,6 +260,16 @@ export function AnalysisInspector({
           minor={isMinorKey(keyHere)}
           onChange={(degree) => actions.setEntry({ degree })}
         />
+        {entry.degree && (
+          <ChordReading
+            analysis={analysis}
+            index={index}
+            songKey={songKey}
+            patterns={patterns}
+            onUseFunction={(fn) => actions.setEntry({ fn })}
+            onSelect={actions.select}
+          />
+        )}
         {sameCount > 0 && entry.degree && (
           <Button
             variant="outline"
@@ -410,13 +425,14 @@ export function AnalysisInspector({
             })}
           </ul>
         )}
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1">
+        <div className="grid grid-cols-2 gap-1.5">
           {CONNECTION_KINDS.map((kind) => (
             <button
               key={kind}
               type="button"
               onClick={() => actions.startConnection(kind)}
-              className="hover:bg-muted focus-visible:ring-ring flex items-center gap-2.5 rounded-md border px-2.5 py-1.5 text-left text-xs outline-none focus-visible:ring-2"
+              title={tKind(`${kind}.hint`)}
+              className="hover:bg-muted focus-visible:ring-ring flex min-w-0 items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs outline-none last:odd:col-span-2 focus-visible:ring-2"
             >
               <ConnectionSample
                 kind={kind}
@@ -424,14 +440,10 @@ export function AnalysisInspector({
                   kind === "twoFive" &&
                   analysis.display.twoFiveStyle === "bracket"
                 }
+                className="w-7"
               />
-              <span className="min-w-0">
-                <span className="block font-semibold">
-                  {tKind(`${kind}.name`)}
-                </span>
-                <span className="text-muted-foreground block truncate">
-                  {tKind(`${kind}.hint`)}
-                </span>
+              <span className="min-w-0 leading-tight font-semibold">
+                {tKind(`${kind}.name`)}
               </span>
               <Plus
                 className="text-muted-foreground ml-auto h-3.5 w-3.5 shrink-0"

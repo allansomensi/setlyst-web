@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -18,7 +18,7 @@ import { usePathname, useRouter } from "@/i18n/routing";
 const DEBOUNCE_MS = 300;
 
 /** Updates query-string params (resetting `page`) without a full reload. */
-function useQueryParams() {
+export function useQueryParams() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -55,9 +55,12 @@ export interface ListFilter {
 export function ListToolbar({
   placeholder,
   filters = [],
+  children,
 }: {
   placeholder: string;
   filters?: ListFilter[];
+  /** More controls after the filters (e.g. a `DateRangeFilter`). */
+  children?: ReactNode;
 }) {
   const { searchParams, set, isPending } = useQueryParams();
   const initial = searchParams.get("q") ?? "";
@@ -115,6 +118,7 @@ export function ListToolbar({
           </SelectContent>
         </Select>
       ))}
+      {children}
       {isPending && (
         <Loader2
           className="text-muted-foreground h-4 w-4 animate-spin"

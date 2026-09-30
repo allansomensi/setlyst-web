@@ -62,6 +62,8 @@ import {
   AnalysisLegend,
 } from "@/components/analysis/analysis-legend";
 import { AnalysisExportDialog } from "@/components/analysis/analysis-export-dialog";
+import { AnalysisPatterns } from "@/components/analysis/analysis-reading";
+import { findPatterns, type Pattern } from "@/lib/music/analysis-concepts";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
@@ -451,6 +453,13 @@ export function AnalysisEditor({
       ? pick.from
       : Math.min(chords.length - 1, pick.from + 1);
 
+  // The cadences the written degrees form (II–V secundário, dominantes
+  // estendidos...): named in the inspector and listed in the overview.
+  const patterns = useMemo(
+    () => findPatterns(analysis, chords.length),
+    [analysis, chords.length],
+  );
+
   const sameTargets = useMemo(
     () =>
       selected === null
@@ -613,6 +622,7 @@ export function AnalysisEditor({
         index={selected}
         songKey={songKey}
         sameCount={sameTargets.length}
+        patterns={patterns}
         actions={actions}
         focusNote={focusNote}
       />
@@ -856,7 +866,7 @@ export function AnalysisEditor({
           editing && "lg:grid-cols-[minmax(0,1fr)_22rem]",
         )}
       >
-        <Card className="min-w-0 overflow-hidden">
+        <Card className="min-w-0 overflow-hidden [--an-halo:var(--card)]">
           <CardContent className="px-4 pt-2 pb-8 sm:px-8">
             {editing && empty && selected === null && (
               <div className="bg-primary/5 border-primary/20 mt-4 mb-2 rounded-lg border px-4 py-3 text-sm">
@@ -890,6 +900,7 @@ export function AnalysisEditor({
                 <Overview
                   analysis={analysis}
                   chords={chords}
+                  patterns={patterns}
                   analysed={analysed}
                   canEdit={canEdit}
                   onSummary={(summary) =>
@@ -905,7 +916,16 @@ export function AnalysisEditor({
 
       {!editing && (
         <Card>
-          <CardContent className="grid gap-8 py-6 md:grid-cols-2">
+          <CardContent className="grid gap-8 py-6 md:grid-cols-2 xl:grid-cols-3">
+            <section>
+              <h2 className="text-sm font-semibold">
+                {t("reading.patternsTitle")}
+              </h2>
+              <p className="text-muted-foreground mb-3 text-xs">
+                {t("reading.patternsHint")}
+              </p>
+              <AnalysisPatterns chords={chords} patterns={patterns} />
+            </section>
             <section>
               <h2 className="mb-3 text-sm font-semibold">
                 {t("overview.legend")}
@@ -1105,6 +1125,7 @@ function PendingBar({
 function Overview({
   analysis,
   chords,
+  patterns,
   analysed,
   canEdit,
   onSummary,
@@ -1112,12 +1133,14 @@ function Overview({
 }: {
   analysis: HarmonicAnalysis;
   chords: readonly string[];
+  patterns: readonly Pattern[];
   analysed: number;
   canEdit: boolean;
   onSummary: (summary: string) => void;
   onSelect: (index: number) => void;
 }) {
   const t = useTranslations("analysis.overview");
+  const tReading = useTranslations("analysis.reading");
   const percent = chords.length
     ? Math.round((analysed / chords.length) * 100)
     : 0;
@@ -1132,6 +1155,21 @@ function Overview({
         </div>
         <Progress value={percent} className="h-1.5" />
         <p className="text-muted-foreground text-xs">{t("hint")}</p>
+      </section>
+
+      <section className="space-y-2 px-4 py-4">
+        <div>
+          <h2 className="text-sm font-semibold">{tReading("patternsTitle")}</h2>
+          <p className="text-muted-foreground text-xs">
+            {tReading("patternsHint")}
+          </p>
+        </div>
+        <AnalysisPatterns
+          chords={chords}
+          patterns={patterns}
+          onSelect={onSelect}
+          className="text-xs"
+        />
       </section>
 
       <section className="space-y-2 px-4 py-4">

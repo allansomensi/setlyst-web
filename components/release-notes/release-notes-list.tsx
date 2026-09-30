@@ -21,18 +21,52 @@ const KIND_ICONS: Record<ReleaseItemKind, LucideIcon> = {
   security: ShieldCheck,
 };
 
-const KIND_STYLES: Record<ReleaseItemKind, string> = {
-  new: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  improved:
-    "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  fixed:
-    "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
-  security:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+/** The order the groups of a release are listed in. */
+const KIND_ORDER: ReleaseItemKind[] = ["new", "improved", "fixed", "security"];
+
+/** Each kind's tint: the icon tile heading its group, and its bullets. */
+const KIND_TONES: Record<ReleaseItemKind, { tile: string; dot: string }> = {
+  new: {
+    tile: "bg-sky-500/12 text-sky-700 ring-sky-500/25 dark:text-sky-300",
+    dot: "bg-sky-500",
+  },
+  improved: {
+    tile: "bg-violet-500/12 text-violet-700 ring-violet-500/25 dark:text-violet-300",
+    dot: "bg-violet-500",
+  },
+  fixed: {
+    tile: "bg-amber-500/12 text-amber-800 ring-amber-500/25 dark:text-amber-300",
+    dot: "bg-amber-500",
+  },
+  security: {
+    tile: "bg-emerald-500/12 text-emerald-700 ring-emerald-500/25 dark:text-emerald-300",
+    dot: "bg-emerald-500",
+  },
+};
+
+const OTHER_TONE = {
+  tile: "bg-muted text-muted-foreground ring-border",
+  dot: "bg-muted-foreground/60",
 };
 
 function isKnownKind(kind: string): kind is ReleaseItemKind {
   return kind in KIND_ICONS;
+}
+
+/**
+ * A release's items gathered by kind, in the usual changelog order (new,
+ * improved, fixed, security; any other kind after them, as written), each
+ * keeping the order it was written in.
+ */
+function groupItems(items: ReleaseNote["items"]) {
+  const groups = new Map<string, ReleaseNote["items"]>();
+  for (const kind of KIND_ORDER) groups.set(kind, []);
+  for (const item of items) {
+    const list = groups.get(item.kind);
+    if (list) list.push(item);
+    else groups.set(item.kind, [item]);
+  }
+  return [...groups.entries()].filter(([, list]) => list.length > 0);
 }
 
 export interface ReleaseNotesListProps {
@@ -64,6 +98,7 @@ export function ReleaseNotesList({
 }: ReleaseNotesListProps) {
   const t = useTranslations("releaseNotes");
   const Heading = headingLevel;
+  const GroupHeading = headingLevel === "h2" ? "h3" : "h4";
 
   if (notes.length === 0) {
     return (
@@ -80,9 +115,10 @@ export function ReleaseNotesList({
   }
 
   return (
-    <ol className={cn("relative space-y-8", className)}>
+    <ol className={cn("relative", className)}>
       {notes.map((note, index) => {
         const latest = highlightLatest && index === 0;
+        const last = index === notes.length - 1;
         const released = formatApiDay(note.released_on, locale) || null;
         const edited = note.is_edited
           ? formatApiDay(note.updated_at, locale) || null
@@ -92,79 +128,122 @@ export function ReleaseNotesList({
         return (
           <li
             key={note.id}
-            className="grid gap-4 md:grid-cols-[9rem_minmax(0,1fr)] md:gap-8"
+            className="relative grid gap-3 pb-10 last:pb-0 md:grid-cols-[8.5rem_minmax(0,1fr)] md:gap-8"
           >
-            <div className="flex flex-wrap items-center gap-2 md:flex-col md:items-start md:pt-6">
-              <Badge
-                variant={latest ? "default" : "secondary"}
-                className="h-6 px-2.5 font-mono text-xs"
+            {/* The timeline: a rail down the left column, a dot per
+                release (from `md` up, where the columns sit side by side). */}
+            {!last && (
+              <span
+                aria-hidden
+                className="bg-border absolute top-3 bottom-0 left-[8.5rem] hidden w-px translate-x-4 md:block"
+              />
+            )}
+            <span
+              aria-hidden
+              className={cn(
+                "absolute top-2 left-[8.5rem] hidden size-2.5 translate-x-[calc(1rem-50%+0.5px)] rounded-full ring-4 md:block",
+                latest
+                  ? "bg-primary ring-primary/20"
+                  : "bg-muted-foreground/40 ring-background",
+              )}
+            />
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 md:sticky md:top-4 md:flex-col md:items-start md:self-start md:pr-4">
+              <span
+                className={cn(
+                  "font-mono text-lg font-semibold tracking-tight tabular-nums",
+                  latest ? "text-primary" : "text-foreground",
+                )}
               >
                 v{note.version}
-              </Badge>
+              </span>
+              {released && (
+                <time
+                  dateTime={note.released_on}
+                  className="text-muted-foreground text-sm"
+                  title={t("released", { date: released })}
+                >
+                  {released}
+                </time>
+              )}
               {latest && (
-                <Badge variant="outline" className="h-6 px-2.5">
-                  {t("latest")}
-                </Badge>
+                <Badge className="h-5 px-2 text-[0.7rem]">{t("latest")}</Badge>
               )}
             </div>
 
             <article
               aria-labelledby={`release-${note.id}`}
               className={cn(
-                "bg-card rounded-2xl border p-6 shadow-xs sm:p-7",
-                latest && "ring-primary/20 ring-4",
+                "bg-card rounded-2xl border p-5 shadow-xs sm:p-7",
+                latest && "border-primary/30",
               )}
             >
-              <header className="space-y-2">
+              <header className="space-y-1">
                 <Heading
                   id={`release-${note.id}`}
                   className="text-xl font-semibold tracking-tight text-balance"
                 >
                   {title || t("version", { version: note.version })}
                 </Heading>
-                <p className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 text-sm">
-                  {released && (
-                    <time dateTime={note.released_on}>
-                      {t("released", { date: released })}
-                    </time>
-                  )}
-                  {edited && (
+                {edited && (
+                  <p className="text-muted-foreground text-sm">
                     <time dateTime={note.updated_at}>
                       {t("edited", { date: edited })}
                     </time>
-                  )}
-                </p>
+                  </p>
+                )}
               </header>
 
-              {/* From `sm` up, one grid shared by every item (subgrid):
-                  each badge is only as wide as its label, and the texts
-                  still start on the same line, after the widest badge. */}
-              <ul className="mt-5 grid gap-y-3.5 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-x-3">
-                {note.items.map((item, itemIndex) => {
-                  const kind = isKnownKind(item.kind) ? item.kind : null;
+              {/* Grouped by kind, a heading per group instead of a badge
+                  on every line: the texts start at the same place and read
+                  as a list, and the colour still tells the kinds apart. */}
+              <div className="mt-6 space-y-6">
+                {groupItems(note.items).map(([rawKind, items]) => {
+                  const kind = isKnownKind(rawKind) ? rawKind : null;
                   const Icon = kind ? KIND_ICONS[kind] : CircleDot;
+                  const tone = kind ? KIND_TONES[kind] : OTHER_TONE;
+                  const headingId = `release-${note.id}-${rawKind}`;
                   return (
-                    <li
-                      key={itemIndex}
-                      className="flex flex-col items-start gap-1.5 sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:gap-3"
-                    >
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "mt-0.5 h-6 px-2.5 sm:justify-self-start",
-                          kind && KIND_STYLES[kind],
-                        )}
+                    <section key={rawKind} aria-labelledby={headingId}>
+                      <GroupHeading
+                        id={headingId}
+                        className="flex items-center gap-2.5 text-sm font-semibold"
                       >
-                        <Icon />
-                        {kind ? t(`kinds.${kind}`) : item.kind}
-                      </Badge>
-                      <p className="text-sm leading-relaxed">
-                        {pickLocalized(item.text, locale)}
-                      </p>
-                    </li>
+                        <span
+                          className={cn(
+                            "inline-flex size-7 items-center justify-center rounded-lg ring-1 ring-inset",
+                            tone.tile,
+                          )}
+                          aria-hidden
+                        >
+                          <Icon className="size-3.5" />
+                        </span>
+                        {kind ? t(`groups.${kind}`) : rawKind}
+                        <span className="text-muted-foreground text-xs font-normal tabular-nums">
+                          {items.length}
+                        </span>
+                      </GroupHeading>
+                      <ul className="mt-2.5 space-y-2 pl-[2.375rem]">
+                        {items.map((item, itemIndex) => (
+                          <li
+                            key={itemIndex}
+                            className="relative text-sm leading-relaxed"
+                          >
+                            <span
+                              aria-hidden
+                              className={cn(
+                                "absolute top-[0.6rem] -left-[1.2rem] size-1.5 rounded-full",
+                                tone.dot,
+                              )}
+                            />
+                            {pickLocalized(item.text, locale)}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
                   );
                 })}
-              </ul>
+              </div>
             </article>
           </li>
         );

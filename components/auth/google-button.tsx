@@ -53,9 +53,13 @@ interface GoogleButtonProps extends PrepareGoogleInput {
 }
 
 /**
- * "Continuar com Google", following Google's branding guidelines: white
- * surface, neutral border, the official "G" and dark text (in both
- * themes). Saves the sign-in intent server-side, then leaves for Google.
+ * "Continuar com Google", following Google's branding guidelines: the
+ * official "G", never recolored, on Google's light button (white surface,
+ * neutral border, dark text) in the light theme; in the dark theme, on
+ * the same surface as the form's fields (a dark button, as Google's
+ * dark variant is), so it sits with the rest of the form instead of
+ * glaring out of it as a white slab. Saves the sign-in
+ * intent server-side, then leaves for Google.
  */
 export function GoogleButton({
   label,
@@ -113,7 +117,7 @@ export function GoogleButton({
       onClick={start}
       disabled={disabled || pending}
       className={cn(
-        "h-10 w-full gap-3 border-[#747775] bg-white font-medium text-[#1f1f1f] hover:bg-[#f2f2f2] hover:text-[#1f1f1f] dark:border-[#8e918f] dark:bg-white dark:text-[#1f1f1f] dark:hover:bg-[#ececec]",
+        "dark:border-input dark:bg-input/30 dark:text-foreground dark:hover:bg-input/50 dark:hover:text-foreground h-10 w-full gap-3 border-[#747775] bg-white font-medium text-[#1f1f1f] shadow-xs hover:bg-[#f7f7f7] hover:text-[#1f1f1f]",
         className,
       )}
     >

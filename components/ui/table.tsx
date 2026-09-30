@@ -86,7 +86,10 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        // A cell spanning the whole row (an empty state, a group title)
+        // wraps its text: kept on one line it would widen the table past
+        // a phone's screen, scrolling sideways into nothing.
+        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&[colspan]]:whitespace-normal",
         className,
       )}
       {...props}

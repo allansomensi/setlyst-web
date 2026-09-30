@@ -227,9 +227,13 @@ export function GigsTable({
           router.push(`/dashboard/gigs/${gig.id}`);
         }}
       >
+        {/* On a phone only the venue and the actions share the row: the
+            venue gets the whole width, and the date, band, tour and status
+            go on a second line under it (on larger screens they're
+            badges beside it and columns of their own). */}
         <TableCell className="w-full max-w-0">
           <div className="flex min-w-0 items-center gap-2">
-            <MapPin className="text-muted-foreground h-4 w-4 shrink-0" />
+            <MapPin className="text-muted-foreground hidden h-4 w-4 shrink-0 sm:block" />
             <Link
               href={`/dashboard/gigs/${gig.id}`}
               data-no-row-click
@@ -240,7 +244,7 @@ export function GigsTable({
             {isBandGig && (
               <Badge
                 variant="outline"
-                className="gap-1 text-xs font-normal"
+                className="hidden shrink-0 gap-1 text-xs font-normal sm:inline-flex"
                 title={t("bandGigTooltip", { name: bandInfo?.name ?? "" })}
               >
                 <Guitar className="h-3 w-3" />
@@ -252,7 +256,7 @@ export function GigsTable({
             {gig.tour_id && gig.tour_name && (
               <Badge
                 variant="secondary"
-                className="gap-1 text-xs font-normal"
+                className="hidden shrink-0 gap-1 text-xs font-normal sm:inline-flex"
                 asChild
               >
                 <Link
@@ -264,17 +268,46 @@ export function GigsTable({
                 </Link>
               </Badge>
             )}
-            <ChevronRight className="text-muted-foreground h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+            <ChevronRight className="text-muted-foreground hidden h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 sm:block" />
           </div>
-          {/* The date column is dropped on phones. */}
-          <p className="text-muted-foreground truncate pl-6 text-xs sm:hidden">
-            {formatDateTime(gig.scheduled_at)}
-          </p>
+          <div className="text-muted-foreground mt-0.5 flex min-w-0 items-center gap-1.5 text-xs sm:hidden">
+            {gig.status !== "confirmed" && (
+              <span
+                className={cn(
+                  "shrink-0 font-medium",
+                  gig.status === "cancelled" && "text-destructive",
+                )}
+              >
+                {t(`dialog.status.${gig.status}`)}
+                <span aria-hidden> ·</span>
+              </span>
+            )}
+            <span className="shrink-0">{formatDateTime(gig.scheduled_at)}</span>
+            {isBandGig && (
+              <span
+                className="flex min-w-0 items-center gap-1"
+                title={t("bandGigTooltip", { name: bandInfo?.name ?? "" })}
+              >
+                <span aria-hidden>·</span>
+                <Guitar className="h-3 w-3 shrink-0" aria-hidden />
+                <span className="truncate">
+                  {bandInfo?.name ?? t("bandGig")}
+                </span>
+              </span>
+            )}
+            {gig.tour_id && gig.tour_name && (
+              <span className="flex min-w-0 items-center gap-1">
+                <span aria-hidden>·</span>
+                <Route className="h-3 w-3 shrink-0" aria-hidden />
+                <span className="truncate">{gig.tour_name}</span>
+              </span>
+            )}
+          </div>
         </TableCell>
         <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
           {formatDateTime(gig.scheduled_at)}
         </TableCell>
-        <TableCell>
+        <TableCell className="hidden sm:table-cell">
           <Badge variant={STATUS_VARIANT[gig.status]}>
             {t(`dialog.status.${gig.status}`)}
           </Badge>
@@ -410,7 +443,9 @@ export function GigsTable({
               <TableHead className="hidden sm:table-cell">
                 {t("table.when")}
               </TableHead>
-              <TableHead>{t("table.status")}</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("table.status")}
+              </TableHead>
               <TableHead className="w-12 text-right">
                 {t("table.actions")}
               </TableHead>

@@ -2878,6 +2878,22 @@
         "finance": "Finance"
       },
       "openFlags": "{count, plural, =0 {No open points} one {# open point} other {# open points}}"
+    },
+    "dateRange": {
+      "label": "Filter by date",
+      "labelWith": "Dates: {range}",
+      "any": "Any date",
+      "range": "{from} – {to}",
+      "hint": "Pick the first and the last day.",
+      "apply": "Apply",
+      "clear": "Clear dates",
+      "presets": {
+        "today": "Today",
+        "last7": "Last 7 days",
+        "last30": "Last 30 days",
+        "thisMonth": "This month",
+        "lastMonth": "Last month"
+      }
     }
   },
   "quotas": {
@@ -3497,7 +3513,13 @@
       "security": "Security"
     },
     "empty": "No release notes published yet.",
-    "unavailable": "The release notes could not be loaded right now. Please try again in a few minutes."
+    "unavailable": "The release notes could not be loaded right now. Please try again in a few minutes.",
+    "groups": {
+      "new": "New",
+      "improved": "Improvements",
+      "fixed": "Fixes",
+      "security": "Security"
+    }
   },
   "unsubscribe": {
     "title": "Unsubscribe",
@@ -5617,6 +5639,11 @@
         "flat": "Flat",
         "natural": "Natural",
         "sharp": "Sharp"
+      },
+      "set": {
+        "label": "Degree set",
+        "tetrads": "Sevenths",
+        "triads": "Triads"
       }
     },
     "inspector": {
@@ -5766,6 +5793,155 @@
       "summary": "Remarks",
       "byline": "Analysis by {author}",
       "bylineAnonymous": "Harmonic analysis"
+    },
+    "concepts": {
+      "tonic": {
+        "name": "Tonic",
+        "hint": "Rest: the center of the key."
+      },
+      "tonicRelative": {
+        "name": "Tonic relative",
+        "hint": "The VIm shares two notes with the I and can stand in for it, as a tonic."
+      },
+      "tonicAntiRelative": {
+        "name": "Tonic counter-relative",
+        "hint": "The IIIm works as a tonic, less stable than the VIm; it often moves on to the VI."
+      },
+      "relativeMajor": {
+        "name": "Relative major",
+        "hint": "The bIII is the relative tonic of the minor key."
+      },
+      "subdominant": {
+        "name": "Subdominant",
+        "hint": "Moves away from the tonic and prepares the dominant."
+      },
+      "subdominantRelative": {
+        "name": "Subdominant relative (cadential II)",
+        "hint": "A subdominant; followed by the V it makes the II–V cadence."
+      },
+      "subdominantMinor": {
+        "name": "Minor subdominant",
+        "hint": "The IVm comes from the parallel minor key: a classic modal borrowing."
+      },
+      "dominant": {
+        "name": "Primary dominant",
+        "hint": "Tension that resolves on the tonic, a fifth below."
+      },
+      "dominantMinorKey": {
+        "name": "Dominant (harmonic minor)",
+        "hint": "The V7 of the minor key, with the leading tone of the harmonic minor scale."
+      },
+      "dominantNoRoot": {
+        "name": "Rootless dominant",
+        "hint": "Sounds like a V7(9) (V7(b9) in minor) without its root: a dominant."
+      },
+      "minorFive": {
+        "name": "Minor V (Aeolian)",
+        "hint": "A dominant without a leading tone: a softer resolution."
+      },
+      "subtonic": {
+        "name": "Subtonic (bVII)",
+        "hint": "A natural degree of the minor key; it sounds like the dominant of the {target}."
+      },
+      "secondaryDominant": {
+        "name": "Secondary dominant of {target}",
+        "hint": "A V7 borrowed from the {target}: it makes it a tonic for a moment and resolves on it, a fifth below."
+      },
+      "substituteDominant": {
+        "name": "Substitute dominant (SubV7)",
+        "hint": "Shares the V7's tritone and resolves a half step down, on the tonic."
+      },
+      "secondarySubstitute": {
+        "name": "Substitute dominant of {target}",
+        "hint": "The SubV7 of the {target}: the V7/{target}'s tritone, resolving a half step down onto it."
+      },
+      "relatedTwo": {
+        "name": "Related II of V7/{target}",
+        "hint": "The cadential II of the {target}: with the V7/{target} it makes a secondary II–V leading to the {target}."
+      },
+      "secondaryLeadingTone": {
+        "name": "Leading-tone diminished of {target}",
+        "hint": "The VII° of the {target}: its root is the leading tone rising a half step to it (a rootless V7(b9)/{target})."
+      },
+      "diminishedAscending": {
+        "name": "Ascending diminished",
+        "hint": "A chromatic passing chord rising a half step to the {target}; a dominant."
+      },
+      "diminishedDescending": {
+        "name": "Descending diminished",
+        "hint": "A chromatic passing chord falling a half step to the {target}."
+      },
+      "diminishedAuxiliary": {
+        "name": "Auxiliary diminished",
+        "hint": "Ornaments the chord on the same root: leaves it and comes back to it."
+      },
+      "diminished": {
+        "name": "Diminished chord",
+        "hint": "See how it moves: passing (ascending or descending) or auxiliary."
+      },
+      "neapolitan": {
+        "name": "Neapolitan chord (bII)",
+        "hint": "A major chord on the bII, a subdominant; it usually moves to the V."
+      },
+      "modalBorrowing": {
+        "name": "Modal borrowing",
+        "hint": "Comes from the parallel minor key (or another mode) and colors the harmony without changing key."
+      },
+      "augmented": {
+        "name": "Augmented chord",
+        "hint": "A raised fifth: usually a passing chord or an altered dominant."
+      },
+      "chromatic": {
+        "name": "Non-diatonic chord",
+        "hint": "Not in the key: worth a note on what it does here."
+      }
+    },
+    "patterns": {
+      "twoFive": {
+        "name": "II–V cadence",
+        "nameResolved": "II–V–I cadence",
+        "hint": "The II prepares the dominant, which resolves on the tonic."
+      },
+      "twoFiveSecondary": {
+        "name": "Secondary II–V to {target}",
+        "nameResolved": "Secondary II–V to {target}",
+        "hint": "A II–V borrowed from the {target}: the II is the related II of the V7/{target}."
+      },
+      "twoSubV": {
+        "name": "II–SubV7 to {target}",
+        "nameResolved": "II–SubV7 to {target}",
+        "hint": "The II–V cadence with the substitute dominant: the bass moves down by half steps."
+      },
+      "extendedDominants": {
+        "name": "Extended dominants",
+        "hint": "A chain of dominants, each resolving on the next."
+      },
+      "perfectCadence": {
+        "name": "Perfect cadence (V → I)",
+        "hint": "The dominant resolves on the tonic."
+      },
+      "deceptiveCadence": {
+        "name": "Deceptive cadence",
+        "hint": "The dominant avoids the tonic and moves to the VI (or the bVI)."
+      },
+      "plagalCadence": {
+        "name": "Plagal cadence (IV → I)",
+        "hint": "The subdominant goes straight to the tonic, skipping the dominant."
+      },
+      "backdoorCadence": {
+        "name": "Backdoor cadence (bVII7 → I)",
+        "hint": "The dominant \"through the back door\": the bVII7 resolves on the tonic, a whole step up."
+      }
+    },
+    "reading": {
+      "title": "Reading",
+      "partOf": "Part of",
+      "useFunction": "Use function {fn}",
+      "empty": "Write the degree to see this chord's name and role.",
+      "patternsTitle": "Harmonic reading",
+      "patternsHint": "Cadences and progressions recognized in the degrees written.",
+      "noPatterns": "No cadences recognized yet. They show up here as degrees are written.",
+      "resolvesTo": "resolves to"
     }
   }
 }

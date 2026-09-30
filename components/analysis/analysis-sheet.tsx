@@ -23,6 +23,7 @@ import { ANNOTATION_MARK } from "@/lib/music/chordpro";
 import {
   CONNECTION_COLOR,
   CONNECTION_DASH,
+  arrowHead,
   DegreeText,
   FunctionBadge,
   KeyFlag,
@@ -172,22 +173,6 @@ function useGeometry(
 const sameRow = (a: Box, b: Box) => Math.abs(a.top - b.top) < 4;
 const centerX = (b: Box) => (b.left + b.right) / 2;
 
-function arrowHead(
-  x: number,
-  y: number,
-  fromX: number,
-  fromY: number,
-  size: number,
-): string {
-  const angle = Math.atan2(y - fromY, x - fromX);
-  const spread = 0.45;
-  const ax = x - size * Math.cos(angle - spread);
-  const ay = y - size * Math.sin(angle - spread);
-  const bx = x - size * Math.cos(angle + spread);
-  const by = y - size * Math.sin(angle + spread);
-  return `M${x},${y} L${ax},${ay} L${bx},${by} Z`;
-}
-
 interface Stroke {
   key: string;
   d: string;
@@ -239,25 +224,36 @@ function connectionStrokes(
     return strokes;
   }
 
-  const head = em * 0.42;
-  const lane = em * 1.15;
+  // Arrows: a slur over the chords, leaving the first from the top of its
+  // symbol and landing on the second at an angle, where a notched head
+  // (drawn along the curve's own direction there) points into the chord.
+  const head = em * 0.5;
+  const gap = em * 0.1;
   const ax = centerX(a.chord);
   const bx = centerX(b.chord);
-  const ay = a.chord.top - em * 0.08;
-  const by = b.chord.top - em * 0.08;
+  const ay = a.chord.top - gap;
+  const by = b.chord.top - gap;
 
   if (sameRow(a.chord, b.chord)) {
+    const dir = Math.sign(bx - ax) || 1;
     const distance = Math.abs(bx - ax);
-    const lift = Math.min(lane, em * 0.45 + distance * 0.16);
-    const sx = ax + Math.sign(bx - ax) * em * 0.15;
-    const ex = bx - Math.sign(bx - ax) * em * 0.1;
+    const lift = Math.min(em * 1.2, em * 0.55 + distance * 0.14);
+    // Leaving right of the symbol's middle and landing left of it, so a
+    // chord that is both reached and left (A7 in E7 → A7 → D7) keeps the
+    // two apart.
+    const halfA = (a.chord.right - a.chord.left) / 2;
+    const halfB = (b.chord.right - b.chord.left) / 2;
+    const sx = ax + dir * Math.min(em * 0.35, halfA * 0.5);
+    const tx = bx - dir * Math.min(em * 0.3, halfB * 0.45);
+    const c1x = sx + dir * distance * 0.1;
     const c1y = ay - lift;
-    const c2x = ex;
+    const c2x = tx - dir * Math.max(em * 0.35, distance * 0.24);
     const c2y = by - lift;
+    const arrow = arrowHead(tx, by, c2x, c2y, head);
     strokes.push({
       key: connection.id,
-      d: `M${sx},${ay} C${sx},${c1y} ${c2x},${c2y} ${ex},${by - 0.5}`,
-      head: arrowHead(ex, by, c2x, c2y + lift * 0.35, head),
+      d: `M${sx},${ay} C${c1x},${c1y} ${c2x},${c2y} ${arrow.end.x},${arrow.end.y}`,
+      head: arrow.d,
       kind,
     });
     return strokes;
@@ -268,8 +264,8 @@ function connectionStrokes(
   // system. (Run all the way to the page's edges they crossed every chord
   // and arc in between.)
   const forward = b.chord.top > a.chord.top;
-  const stub = em * 2.2;
-  const lift = lane * 0.7;
+  const stub = em * 2.4;
+  const lift = em * 0.85;
   const outX = forward
     ? Math.min(geometry.right, ax + stub)
     : Math.max(geometry.left, ax - stub);
@@ -278,13 +274,16 @@ function connectionStrokes(
     : Math.min(geometry.right, bx + stub);
   strokes.push({
     key: `${connection.id}-out`,
-    d: `M${ax},${ay} C${ax},${ay - lift} ${outX - (outX - ax) * 0.35},${ay - lift} ${outX},${ay - lift}`,
+    d: `M${ax},${ay} C${ax + (outX - ax) * 0.15},${ay - lift} ${outX - (outX - ax) * 0.35},${ay - lift} ${outX},${ay - lift}`,
     kind,
   });
+  const c2x = bx - (bx - inX) * 0.28;
+  const c2y = by - lift * 0.95;
+  const arrow = arrowHead(bx, by, c2x, c2y, head);
   strokes.push({
     key: `${connection.id}-in`,
-    d: `M${inX},${by - lift} C${inX + (bx - inX) * 0.65},${by - lift} ${bx},${by - lift * 0.9} ${bx},${by - 0.5}`,
-    head: arrowHead(bx, by, bx, by - lift, head),
+    d: `M${inX},${by - lift} C${inX + (bx - inX) * 0.5},${by - lift} ${c2x},${c2y} ${arrow.end.x},${arrow.end.y}`,
+    head: arrow.d,
     kind,
   });
   return strokes;
@@ -325,6 +324,17 @@ function Overlay({
           const w = strong ? width * 1.9 : width;
           return (
             <g key={stroke.key} data-connection={connection.id}>
+              {/* A halo in the page's colour, so a line crossing a chord
+                  symbol or another line stays legible. */}
+              <path
+                d={stroke.d}
+                fill="none"
+                stroke="var(--an-halo, var(--background))"
+                strokeOpacity={0.9}
+                strokeWidth={w + geometry.em * 0.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
               <path
                 d={stroke.d}
                 fill="none"
@@ -334,7 +344,15 @@ function Overlay({
                 strokeLinejoin="round"
                 strokeDasharray={dash?.map((d) => d * w).join(" ")}
               />
-              {stroke.head && <path d={stroke.head} fill={color} />}
+              {stroke.head && (
+                <path
+                  d={stroke.head}
+                  fill={color}
+                  stroke={color}
+                  strokeWidth={w * 0.6}
+                  strokeLinejoin="round"
+                />
+              )}
             </g>
           );
         }),
