@@ -239,8 +239,11 @@ export function UsersTable({
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
+                      {/* Not prefetched: opening an account records a staff view in
+                          the audit log, so prefetching would log every listed user. */}
                       <Link
                         href={`/dashboard/users/${user.id}`}
+                        prefetch={false}
                         className="group flex flex-col"
                       >
                         <span className="font-medium group-hover:underline">

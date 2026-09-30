@@ -368,6 +368,7 @@ export default async function FinancePage() {
                           {p.user_id && p.username ? (
                             <Link
                               href={`/dashboard/users/${p.user_id}`}
+                              prefetch={false}
                               className="hover:underline"
                             >
                               @{p.username}

@@ -108,6 +108,7 @@ export default async function AdminSetlistsPage({
                   <TableCell>
                     <Link
                       href={`/dashboard/admin/setlists/${setlist.id}`}
+                      prefetch={false}
                       className="group block max-w-56 min-w-0 sm:max-w-72"
                     >
                       <span className="block truncate font-medium group-hover:underline">
@@ -123,6 +124,7 @@ export default async function AdminSetlistsPage({
                   <TableCell className="hidden md:table-cell">
                     <Link
                       href={`/dashboard/users/${setlist.user_id}`}
+                      prefetch={false}
                       className="hover:underline"
                     >
                       @{setlist.owner_username ?? "—"}

@@ -92,6 +92,7 @@ export default async function AdminSongsPage({
                   <TableCell>
                     <Link
                       href={`/dashboard/admin/songs/${song.id}`}
+                      prefetch={false}
                       className="group block max-w-56 min-w-0 sm:max-w-72"
                     >
                       <span className="block truncate font-medium group-hover:underline">
@@ -106,6 +107,7 @@ export default async function AdminSongsPage({
                   <TableCell className="hidden md:table-cell">
                     <Link
                       href={`/dashboard/users/${song.user_id}`}
+                      prefetch={false}
                       className="hover:underline"
                     >
                       @{song.owner_username ?? "—"}

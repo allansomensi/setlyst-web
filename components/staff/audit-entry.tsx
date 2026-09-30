@@ -191,8 +191,11 @@ export function AuditEntry({
         {showTarget &&
           entry.target_label &&
           (href ? (
+            // Never prefetched: opening a user, song or setlist records a
+            // staff view, so prefetching would log one per row listed.
             <Link
               href={href}
+              prefetch={false}
               className="min-w-0 font-medium break-words hover:underline"
             >
               {entry.target_label}

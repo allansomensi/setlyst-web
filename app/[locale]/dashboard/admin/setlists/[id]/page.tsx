@@ -103,6 +103,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
           <p className="text-muted-foreground text-sm">
             <Link
               href={`/dashboard/users/${setlist.user_id}`}
+              prefetch={false}
               className="text-foreground hover:underline"
             >
               @{setlist.owner_username ?? "—"}
@@ -223,6 +224,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
                     </span>
                     <Link
                       href={`/dashboard/admin/songs/${song.id}`}
+                      prefetch={false}
                       className="min-w-0 flex-1 hover:underline"
                     >
                       <span className="block truncate font-medium">

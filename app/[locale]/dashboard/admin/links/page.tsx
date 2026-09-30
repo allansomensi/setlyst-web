@@ -105,6 +105,7 @@ export default async function AdminLinksPage({
                           {link.kind === "setlist" ? (
                             <Link
                               href={`/dashboard/admin/setlists/${link.id}`}
+                              prefetch={false}
                               className="block truncate font-medium hover:underline"
                             >
                               {link.title}
@@ -136,6 +137,7 @@ export default async function AdminLinksPage({
                     <TableCell className="hidden md:table-cell">
                       <Link
                         href={`/dashboard/users/${link.owner_id}`}
+                        prefetch={false}
                         className="hover:underline"
                       >
                         @{link.owner_username ?? "—"}

@@ -584,6 +584,7 @@ export function RedemptionsDialog({
                 >
                   <Link
                     href={`/dashboard/users/${r.user_id}`}
+                    prefetch={false}
                     className="font-medium hover:underline"
                   >
                     @{r.username}

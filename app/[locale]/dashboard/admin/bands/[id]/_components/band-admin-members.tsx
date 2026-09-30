@@ -191,6 +191,7 @@ export function BandAdminMembers({
               <div className="min-w-0">
                 <Link
                   href={`/dashboard/users/${member.user_id}`}
+                  prefetch={false}
                   className="block truncate font-medium hover:underline"
                 >
                   @{member.username}

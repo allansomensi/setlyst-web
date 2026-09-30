@@ -261,6 +261,7 @@ export function FlagCard({
               <p className="flex flex-wrap items-center gap-2 text-sm">
                 <Link
                   href={`/dashboard/users/${flag.user.id}`}
+                  prefetch={false}
                   className="font-medium hover:underline"
                 >
                   @{flag.user.username}
@@ -419,7 +420,7 @@ export function FlagCard({
               </>
             )}
             <Button variant="ghost" size="sm" asChild className="ml-auto">
-              <Link href={`/dashboard/users/${flag.user.id}`}>
+              <Link href={`/dashboard/users/${flag.user.id}`} prefetch={false}>
                 <UserRound aria-hidden />
                 {t("actions.openUser")}
                 <ExternalLink className="size-3" aria-hidden />

@@ -99,6 +99,7 @@ export default async function AdminBandsPage({
                     {band.owner_id ? (
                       <Link
                         href={`/dashboard/users/${band.owner_id}`}
+                        prefetch={false}
                         className="hover:underline"
                       >
                         @{band.owner_username}

@@ -234,7 +234,7 @@ export function UserActionsMenu({
           </DropdownMenuLabel>
           {showDetailsLink && (
             <DropdownMenuItem asChild>
-              <Link href={`/dashboard/users/${user.id}`}>
+              <Link href={`/dashboard/users/${user.id}`} prefetch={false}>
                 <UserRound className="mr-2 h-4 w-4" />
                 {t("openDetails")}
               </Link>

@@ -275,7 +275,7 @@ export default async function UserProfilePage({
               </div>
             )}
             <Button variant="outline" size="sm" asChild className="w-full">
-              <Link href={`/dashboard/users/${profile.id}`}>
+              <Link href={`/dashboard/users/${profile.id}`} prefetch={false}>
                 {t("manageInUsers")}
               </Link>
             </Button>

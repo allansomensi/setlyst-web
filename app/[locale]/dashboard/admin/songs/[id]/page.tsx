@@ -87,6 +87,7 @@ export default async function AdminSongPage({ params }: { params: Params }) {
               owner: () => (
                 <Link
                   href={`/dashboard/users/${song.user_id}`}
+                  prefetch={false}
                   className="text-foreground hover:underline"
                 >
                   @{summary.owner_username ?? "—"}
