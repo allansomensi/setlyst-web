@@ -36,7 +36,10 @@ export function SetlistInvitations({
       const result = accept
         ? await acceptSetlistInvitation(invitation.setlist_id)
         : await declineSetlistInvitation(invitation.setlist_id);
-      setPendingId(null);
+      // `pendingId` is left set: `isPending` alone ends the busy state,
+      // once the revalidated list is in. Clearing it here re-enabled the
+      // buttons while the answered invitation was still on screen, open
+      // to a second tap.
       if (!result.success) {
         toastActionError(result, result.error);
         return;
@@ -78,7 +81,10 @@ export function SetlistInvitations({
                   size="sm"
                 />
                 <div className="min-w-0">
-                  <p className="truncate font-medium">
+                  <p
+                    className="truncate font-medium"
+                    title={invitation.setlist_title}
+                  >
                     {invitation.setlist_title}
                   </p>
                   <p className="text-muted-foreground text-xs">

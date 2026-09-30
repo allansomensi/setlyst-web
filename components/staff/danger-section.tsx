@@ -48,14 +48,16 @@ export function DangerSection({
   const [typed, setTyped] = useState("");
 
   return (
-    <section className="border-destructive/30 rounded-lg border">
+    // A surface like the app's own danger zones (band, account): card
+    // background and radius, with only the border tinted.
+    <section className="bg-card border-destructive/30 overflow-hidden rounded-xl border shadow-(--shadow-surface)">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="focus-visible:ring-ring/50 flex w-full items-center justify-between gap-2 rounded-lg px-4 py-3 text-left outline-none focus-visible:ring-3"
+        className="focus-visible:ring-ring/50 hover:bg-muted/40 flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-inset"
         aria-expanded={expanded}
       >
-        <span>
+        <span className="min-w-0">
           <span className="text-destructive block text-sm font-semibold">
             {title}
           </span>
@@ -64,7 +66,8 @@ export function DangerSection({
           </span>
         </span>
         <ChevronDown
-          className={`text-muted-foreground h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+          className={`text-muted-foreground h-4 w-4 shrink-0 motion-safe:transition-transform ${expanded ? "rotate-180" : ""}`}
+          aria-hidden
         />
       </button>
       {expanded && (
@@ -81,7 +84,7 @@ export function DangerSection({
             className="text-destructive hover:text-destructive"
             onClick={() => setConfirming(true)}
           >
-            <Trash2 className="mr-1.5 h-4 w-4" />
+            <Trash2 className="mr-1.5 h-4 w-4" aria-hidden />
             {buttonLabel}
           </Button>
         </div>
@@ -107,6 +110,7 @@ export function DangerSection({
           </Label>
           <Input
             id="danger-confirm-text"
+            autoFocus
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             autoComplete="off"

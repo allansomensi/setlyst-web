@@ -22,12 +22,12 @@ import { ClientDate } from "@/components/client-date";
 import { Link } from "@/components/nav-link";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
+import { Kpi, KpiGrid } from "@/components/staff/kpi-grid";
 import { fetchServerApi } from "@/lib/api-server";
 import { pickLocalized } from "@/lib/localized";
 import { formatMoney } from "@/lib/money";
 import { requireStaffPage } from "@/lib/staff-guard";
 import { getPlanOptions } from "@/lib/staff-data";
-import { cn } from "@/lib/utils";
 import type { FinanceOverview } from "@/types/finance";
 import { LazyRevenueChart as RevenueChart } from "./_components/lazy-revenue-chart";
 import { SyncButton } from "./_components/sync-button";
@@ -36,30 +36,6 @@ import { monthLabel } from "./_components/month-label";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("finance");
   return { title: t("title") };
-}
-
-function Kpi({
-  label,
-  value,
-  hint,
-  tone,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  tone?: string;
-}) {
-  return (
-    <Card className="gap-1 py-4">
-      <CardContent className="space-y-1 px-4">
-        <p className="text-muted-foreground text-xs font-medium">{label}</p>
-        <p className={cn("text-2xl font-semibold tabular-nums", tone)}>
-          {value}
-        </p>
-        {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
-      </CardContent>
-    </Card>
-  );
 }
 
 export default async function FinancePage() {
@@ -130,7 +106,7 @@ export default async function FinancePage() {
         <h2 id="finance-recurring" className="sr-only">
           {t("kpi.sectionRecurring")}
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiGrid>
           <Kpi
             label={t("kpi.mrr")}
             value={money(data.mrr_cents)}
@@ -190,7 +166,7 @@ export default async function FinancePage() {
             }
             hint={t("kpi.attentionHint", { count: data.cancel_scheduled })}
           />
-        </div>
+        </KpiGrid>
       </section>
 
       <Card>

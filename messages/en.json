@@ -178,15 +178,6 @@
     "artists": {
       "description": "The artists in your library"
     },
-    "songs": {
-      "description": "Add and organize your repertoire"
-    },
-    "setlists": {
-      "description": "Build and manage your setlists"
-    },
-    "gigs": {
-      "description": "Schedule gigs and link a setlist"
-    },
     "users": {
       "description": "Manage users and permissions"
     },
@@ -243,6 +234,8 @@
     "table": {
       "name": "Name",
       "registeredOn": "Registered on",
+      "songs": "Songs",
+      "songsOf": "See the songs by {name}",
       "actions": "Actions"
     },
     "empty": "No artists registered. Start by adding one.",
@@ -283,6 +276,7 @@
     "lyricsTag": "lyrics",
     "chordsTag": "chords",
     "chordsTagTitle": "Has chords: chords found in the lyrics",
+    "lyricsTagTitle": "Lyrics only: no chords written yet",
     "table": {
       "title": "Title",
       "artist": "Artist",
@@ -342,6 +336,7 @@
       "tabs": {
         "basic": "Basics",
         "music": "Musical details",
+        "musicShort": "Details",
         "links": "Links",
         "tags": "Tags"
       },
@@ -477,7 +472,7 @@
       "intro": "Setlyst reads ChordPro and the common \"chords over lyrics\" layout, so you can paste what you have already written or typed yourself.",
       "inlineChords": "Chords in brackets, right before the syllable they fall on.",
       "sections": "A section on its own line, in English, Portuguese or Spanish, with or without brackets, numbers and repeats (\"Verse 2\", \"Chorus x2\").",
-      "environments": "ChordPro sections: chorus, verse, bridge, and {sot}…{eot} for tabs.",
+      "environments": "ChordPro sections: chorus, verse, bridge, and '{sot}…{eot}' for tabs.",
       "comment": "A note for the band, shown in the lyrics.",
       "formatting": "Bold, italic and underline.",
       "pasteTip": "Tip: when you paste a song with the chords on the line above the lyrics, they are placed over the right syllables automatically."
@@ -496,6 +491,7 @@
       "repeatChorus": "Repeat chorus"
     },
     "savedInPlace": "Saved",
+    "unsaved": "Unsaved changes",
     "saveAndClose": "Save and close",
     "saveAndCloseShort": "Done",
     "saveShortcut": "Save (Ctrl+S)",
@@ -517,6 +513,8 @@
     "analyticsBtn": "Statistics",
     "favorite": "Favorite",
     "unfavorite": "Remove from favorites",
+    "favoriteHint": "Favorite: keeps this setlist at the top of the list",
+    "bandSubtitle": "{name}'s setlists. The Repertoire holds every song the band plays.",
     "searchPlaceholder": "Search setlist…",
     "totalDuration": "Total Duration",
     "analytics": {
@@ -543,6 +541,7 @@
         "breakLine": "Break"
       },
       "emptyReport": "Add songs to the setlist to see the flow analysis.",
+      "emptyTitle": "Nothing to analyze yet",
       "addSongs": "Open setlist",
       "energyAxisLabel": "Energy",
       "noBpm": "No BPM",
@@ -598,6 +597,8 @@
     "table": {
       "title": "Title",
       "description": "Description",
+      "songs": "Songs",
+      "duration": "Duration",
       "createdAt": "Created at",
       "actions": "Actions"
     },
@@ -641,6 +642,7 @@
       "addTitle": "New setlist",
       "editTitle": "Edit Setlist",
       "description": "Enter the setlist details below.",
+      "addDescription": "Give the setlist a name. Next you'll add the songs and arrange the running order.",
       "titleLabel": "Title",
       "titlePlaceholder": "e.g. Summer tour 2026",
       "descriptionLabel": "Description (optional)",
@@ -667,6 +669,11 @@
       "saveOrder": "Save Order",
       "cancelReorder": "Cancel",
       "empty": "No songs added yet.",
+      "emptyTitle": "No songs in this setlist",
+      "emptyDescription": "Add the songs for the show. Then group them into blocks and breaks and set the order: the total time keeps itself up to date.",
+      "emptyReadOnly": "Once someone adds songs, the running order shows up here.",
+      "reorderHint": "Drag rows by their handle or use the arrows to change the order. Nothing is saved until you press “Save Order”.",
+      "openSong": "Open song",
       "table": {
         "pos": "Pos",
         "title": "Title",
@@ -680,7 +687,7 @@
       "orderSaved": "Order saved.",
       "addDialog": {
         "title": "Add Song to Setlist",
-        "description": "Select a song from your repertoire to add to this setlist.",
+        "description": "Pick one or more songs. They go to the end of the setlist, in the order you pick them.",
         "songLabel": "Song",
         "selectSong": "Select a song",
         "noMoreSongs": "No more songs available",
@@ -735,6 +742,8 @@
       "addBlock": "Add block",
       "addBreak": "Add break",
       "blockLabel": "Block",
+      "blockSummary": "Block · {count, plural, =0 {no songs} =1 {# song} other {# songs}}",
+      "blockDuration": "Running time of the songs in this block",
       "editMarker": "Edit “{name}”",
       "deleteMarker": "Remove “{name}”",
       "breakDefaultLabel": "Break",
@@ -756,6 +765,7 @@
       "breakLabelLabel": "Label (optional)",
       "breakDurationLabel": "Duration (minutes, optional)",
       "playFromHere": "Open Live Mode from this song",
+      "liveFromHere": "Live Mode from here",
       "removeSong": "Remove from setlist",
       "addBlockHint": "A named header that groups songs",
       "addBreakHint": "A pause between songs, with optional duration",
@@ -825,6 +835,7 @@
       "linkLabel": "Public link",
       "copyLink": "Copy link",
       "qrCode": "Generate QR Code",
+      "openLink": "Open public page",
       "linkCopied": "Link copied.",
       "enableAction": "Generate public link",
       "enableHint": "The link can be disabled at any time.",
@@ -944,7 +955,6 @@
       "venuePlaceholder": "e.g., The Blue Note",
       "locationLabel": "Location",
       "locationPlaceholder": "Address or map link (optional)",
-      "scheduledAtLabel": "Date & time",
       "statusLabel": "Status",
       "status": {
         "confirmed": "Confirmed",
@@ -968,7 +978,11 @@
       "noTourOption": "No tour",
       "currentTour": "Current tour",
       "currentSetlist": "Current setlist",
-      "venueRequired": "Enter where the gig is."
+      "venueRequired": "Enter where the gig is.",
+      "dateLabel": "Date",
+      "timeLabel": "Time",
+      "dateRequired": "Pick the date of the gig.",
+      "timeRequired": "Enter the start time."
     },
     "errors": {
       "venueLength": "Venue must be between 1 and 255 characters.",
@@ -986,6 +1000,7 @@
       "linkLabel": "Public link",
       "copyLink": "Copy link",
       "qrCode": "Generate QR Code",
+      "openLink": "Open public page",
       "linkCopied": "Link copied.",
       "enableAction": "Generate public link",
       "enableHint": "The link can be disabled at any time.",
@@ -1009,7 +1024,13 @@
       "description": "Add a gig with its date and venue and link the setlist you'll play."
     },
     "addToCalendar": "Add to calendar",
-    "calendarFailed": "Couldn't create the calendar file for this gig."
+    "calendarFailed": "Couldn't create the calendar file for this gig.",
+    "noSetlistBadge": "No setlist",
+    "openInMaps": "Open in Maps",
+    "notesTitle": "Notes",
+    "setlistSectionTitle": "Setlist for this show",
+    "openSetlist": "Open setlist",
+    "createSetlistAction": "Create a setlist"
   },
   "liveMode": {
     "noSongs": "No songs in this setlist",
@@ -1065,7 +1086,9 @@
       "highContrastHelp": "Black background, white lyrics and bright chords. Easier to read under stage lights.",
       "fitToScreen": "Compact mode",
       "fitToScreenHelp": "Fits the whole song on one screen, in columns when there's room, with no scrolling.",
-      "fitOverflow": "Too long to fit on one screen at a readable size. Scroll for the rest."
+      "fitOverflow": "Too long to fit on one screen at a readable size. Scroll for the rest.",
+      "noLyrics": "This song has no lyrics yet",
+      "noLyricsHint": "Its key and tempo are at the top. To read the lyrics here, add them on the song's page."
     },
     "fullscreen": "Fullscreen",
     "swipeHint": "Swipe to change songs",
@@ -1082,7 +1105,7 @@
       "size": "Size",
       "scrollSpeed": "Scroll speed",
       "display": "Display",
-      "fullscreenHelp": "Hide the browser bars for more room",
+      "fullscreenHelp": "Hide the browser bars for more room.",
       "transpose": "Key",
       "shortcuts": "Keyboard shortcuts",
       "keyNav": "Previous / next song",
@@ -1496,7 +1519,8 @@
       "description": "Active vs inactive users"
     },
     "myBands": "My Bands",
-    "overview": "Overview"
+    "overview": "Overview",
+    "viewAnalytics": "See statistics"
   },
   "settings": {
     "title": "Settings",
@@ -1632,9 +1656,7 @@
     "empty": "You're not part of any band yet.",
     "emptySearch": "No bands found for \"{search}\".",
     "memberCount": "{count, plural, one {# member} other {# members}}",
-    "viewSetlists": "View Setlists",
     "bandSetlistsTitle": "Band Setlists",
-    "viewGigs": "View Gigs",
     "bandGigsTitle": "Band Gigs",
     "menu": {
       "manage": "Manage",
@@ -1739,7 +1761,13 @@
       "revokeConfirm": "Are you sure you want to revoke this invite? Already-shared links will stop working.",
       "copyLink": "Copy link",
       "linkCopied": "Link copied.",
-      "copyLinkManually": "Couldn't copy. Copy the link below manually."
+      "copyLinkManually": "Couldn't copy. Copy the link below manually.",
+      "emptyHint": "Create a link and send it to whoever is joining the band. Each invite sets the role of those who join with it.",
+      "usesShort": "{uses} uses",
+      "expiresOn": "Expires <date></date>",
+      "copyLinkFor": "Copy the link of invite {code}",
+      "revokeFor": "Revoke invite {code}",
+      "revokeTitle": "Revoke invite"
     },
     "permissions": {
       "title": "Permissions",
@@ -1761,7 +1789,8 @@
       },
       "save": "Save permissions",
       "saved": "Permissions updated.",
-      "saveFailed": "Couldn't update the permissions."
+      "saveFailed": "Couldn't update the permissions.",
+      "unsaved": "Unsaved changes"
     },
     "danger": {
       "title": "Danger Zone",
@@ -1781,13 +1810,15 @@
       "deleteDescription": "Permanently deletes the band, its members, invites, and setlists.",
       "deleteAction": "Delete band",
       "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
-      "deleted": "Band deleted."
+      "deleted": "Band deleted.",
+      "typeToConfirm": "To confirm, type the band's name: {name}"
     },
     "acceptInvite": {
       "title": "Band invite",
       "description": "You've been invited to join a band on Setlyst.",
       "cancel": "Cancel",
-      "accept": "Join band"
+      "accept": "Join band",
+      "joined": "You joined {name}."
     },
     "errors": {
       "nameLength": "Band name must be between 2 and 60 characters.",
@@ -1805,7 +1836,6 @@
         "settings": "Settings"
       },
       "stats": {
-        "members": "Members",
         "repertoire": "Songs in repertoire",
         "setlists": "Setlists",
         "gigs": "Confirmed gigs",
@@ -1838,7 +1868,12 @@
       "title": "Play together with your band",
       "description": "Create a band to share setlists, the repertoire and the gig calendar, or join one with an invite link."
     },
-    "favoriteNamed": "Favorite {name}"
+    "favoriteNamed": "Favorite {name}",
+    "card": {
+      "nextGig": "Next show",
+      "noUpcoming": "No shows booked",
+      "openSuggestions": "{count, plural, =1 {# suggestion up for a vote} other {# suggestions up for a vote}}"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -2190,6 +2225,8 @@
     },
     "mismatch": "The passwords don't match.",
     "notCompliant": "The password doesn't meet every requirement yet.",
+    "ruleMet": "met",
+    "ruleUnmet": "not met",
     "generate": "Generate a strong password",
     "copied": "Password copied to the clipboard."
   },
@@ -2633,7 +2670,8 @@
     "lists": {
       "total": "{count, plural, =0 {No results} one {# result} other {# results}}",
       "filteredBy": "Filtered by",
-      "clearFilter": "Remove filter {label}"
+      "clearFilter": "Remove filter {label}",
+      "clearAll": "Clear filters"
     },
     "bands": {
       "title": "Bands",
@@ -2946,7 +2984,7 @@
       "rename": "Rename {tag}",
       "removeTag": "Remove {tag}",
       "remove": "Remove",
-      "confirmDelete": "Remove from {count, plural, one {# song} other {# songs}}?",
+      "confirmDelete": "Remove “{tag}” from {count, plural, one {# song} other {# songs}}?",
       "renamed": "“{from}” is now “{to}”.",
       "deleted": "Tag “{tag}” removed."
     }
@@ -3234,14 +3272,8 @@
       }
     },
     "mock": {
-      "prev": "Previous",
-      "next": "Next",
-      "offline": "Offline",
-      "key": "Key",
       "capo": "Capo",
       "chorus": "Chorus",
-      "transpose": "Key",
-      "nextSong": "Next",
       "lyrics": {
         "l1": "[G]Down the dirt road till the [D/F#]evening falls",
         "l2": "[Em]The radio plays [C]our old song",
@@ -3308,6 +3340,7 @@
         "b3": "Pinned reminders for rehearsals and arrangements"
       }
     },
+    "moreTitle": "Everything a gigging routine calls for",
     "grid": {
       "suggestions": {
         "title": "Suggestions and votes",
@@ -3790,7 +3823,7 @@
       "noPassword": "No password set"
     },
     "sessions": {
-      "title": "Sign out of all devices",
+      "title": "Sessions",
       "description": "Ends your session on every device where you are signed in, including this one. Use it if you lost a phone or signed in on someone else's computer.",
       "action": "Sign out of all devices",
       "confirmTitle": "Sign out of all devices?",
@@ -4321,7 +4354,8 @@
       "unknownUser": "deleted account",
       "automatic": "Automatic detection",
       "resolvedBy": "{resolution} by @{username} on",
-      "outranked": "Only admins can act on staff accounts."
+      "outranked": "Only admins can act on staff accounts.",
+      "ownAccount": "You can't take corrective action on your own account."
     },
     "reasons": {
       "hate_term": "Hate speech",
@@ -5214,6 +5248,8 @@
     "gigCount": "{count, plural, =0 {No gigs} one {# gig} other {# gigs}}",
     "nextGig": "Next gig: {date}",
     "days": "{count, plural, one {# day} other {# days}}",
+    "today": "Today",
+    "dayOf": "Day {day} of {total}",
     "stats": {
       "total": "Gigs",
       "confirmed": "Confirmed",
@@ -5325,7 +5361,8 @@
     "notePlaceholder": "e.g. Good to open the second block.",
     "send": "Send suggestion",
     "created": "Suggestion sent to the band.",
-    "createFailed": "Couldn't send the suggestion."
+    "createFailed": "Couldn't send the suggestion.",
+    "progress": "{up} of {needed, plural, =1 {# vote} other {# votes}} to get in"
   },
   "bandNotes": {
     "title": "Reminders",
@@ -5435,7 +5472,8 @@
       "gross": "Received",
       "refunded": "Refunds",
       "payments": "Payments",
-      "showTable": "Show as a table"
+      "showTable": "Show as a table",
+      "empty": "No revenue in the last 12 months."
     },
     "table": {
       "month": "Month",
@@ -5671,6 +5709,7 @@
       "linesHint": "Pick a type, then tap the target chord.",
       "from": "from",
       "removeLine": "Remove",
+      "lineKind": "Line type",
       "key": "Key",
       "keyStartsHere": "A new key starts at this chord.",
       "keyHint": "Current key: {key}. Mark a modulation here.",
@@ -5941,7 +5980,10 @@
       "patternsTitle": "Harmonic reading",
       "patternsHint": "Cadences and progressions recognized in the degrees written.",
       "noPatterns": "No cadences recognized yet. They show up here as degrees are written.",
-      "resolvesTo": "resolves to"
+      "resolvesTo": "resolves to",
+      "occurrences": "{count}×",
+      "occurrencesTitle": "Occurs {count} times",
+      "occurrence": "Go to occurrence {n} of {count}"
     }
   }
 }

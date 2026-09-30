@@ -124,7 +124,7 @@ export default async function GigsPage({
     bandSetlistsFailed;
 
   return (
-    <div className="w-full space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <GigsTable
         initialGigs={gigs}
         bandsById={bandsById}

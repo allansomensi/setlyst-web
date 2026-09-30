@@ -13,6 +13,7 @@ import {
   unlockShare,
 } from "@/app/[locale]/dashboard/admin/actions";
 import { toastActionError } from "@/lib/action-toast";
+import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "./confirm-dialog";
 
 const REASON_MAX = 500;
@@ -62,9 +63,15 @@ export function ShareStatusBadge({
 export function ShareModerationButton({
   state,
   size = "sm",
+  compact = false,
 }: {
   state: ShareState;
   size?: "sm" | "default";
+  /**
+   * Icon only on a phone (the name stays as the accessible label and
+   * tooltip), for a table row that would otherwise push it off screen.
+   */
+  compact?: boolean;
 }) {
   const t = useTranslations("staff.share");
   const [open, setOpen] = useState(false);
@@ -91,24 +98,33 @@ export function ShareModerationButton({
     });
   };
 
+  const label = locked
+    ? t("unlock")
+    : state.share_token
+      ? t("revoke")
+      : t("lock");
+  const iconClass = cn("h-4 w-4", compact ? "sm:mr-1.5" : "mr-1.5");
+
   return (
     <>
       <Button
         variant="outline"
         size={size}
         onClick={() => setOpen(true)}
-        className={
-          locked ? undefined : "text-destructive hover:text-destructive"
-        }
+        title={compact ? label : undefined}
+        className={cn(
+          !locked && "text-destructive hover:text-destructive",
+          compact && "max-sm:px-2.5",
+        )}
       >
         {locked ? (
-          <LockOpen className="mr-1.5 h-4 w-4" />
+          <LockOpen className={iconClass} aria-hidden />
         ) : state.share_token ? (
-          <Link2Off className="mr-1.5 h-4 w-4" />
+          <Link2Off className={iconClass} aria-hidden />
         ) : (
-          <ShieldAlert className="mr-1.5 h-4 w-4" />
+          <ShieldAlert className={iconClass} aria-hidden />
         )}
-        {locked ? t("unlock") : state.share_token ? t("revoke") : t("lock")}
+        <span className={cn(compact && "max-sm:sr-only")}>{label}</span>
       </Button>
       <ConfirmDialog
         open={open}
@@ -137,9 +153,15 @@ export function ShareModerationButton({
               value={reason}
               onChange={(e) => setReason(e.target.value.slice(0, REASON_MAX))}
               placeholder={t("reasonPlaceholder")}
+              aria-describedby={`share-reason-hint-${state.id}`}
               rows={3}
             />
-            <p className="text-muted-foreground text-xs">{t("reasonHint")}</p>
+            <p
+              id={`share-reason-hint-${state.id}`}
+              className="text-muted-foreground text-xs"
+            >
+              {t("reasonHint")}
+            </p>
           </div>
         )}
       </ConfirmDialog>

@@ -54,7 +54,7 @@ export function SongVersionsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle as="h2" className="flex items-center gap-2 text-base">
           <Layers className="h-4 w-4" aria-hidden />
           {t("title")}
         </CardTitle>
@@ -125,7 +125,11 @@ export function SongVersionsCard({
           songId={songId}
           isOpen={isCreating}
           onClose={() => setIsCreating(false)}
-          taken={family.map((v) => (v.version_label ?? "").toLowerCase())}
+          // The original has no label: leaving it out keeps an empty field
+          // from reading as a duplicate of it.
+          taken={family.flatMap((v) =>
+            v.version_label ? [v.version_label.toLowerCase()] : [],
+          )}
         />
       )}
     </Card>
@@ -155,7 +159,7 @@ function NewVersionDialog({
     .filter((s) => s && !taken.includes(s.toLowerCase()));
 
   const trimmed = label.trim();
-  const duplicate = taken.includes(trimmed.toLowerCase());
+  const duplicate = trimmed.length > 0 && taken.includes(trimmed.toLowerCase());
   const valid = trimmed.length > 0 && trimmed.length <= MAX_LABEL && !duplicate;
 
   const submit = () => {
@@ -206,9 +210,12 @@ function NewVersionDialog({
               autoFocus
               disabled={isPending}
               aria-invalid={duplicate || undefined}
+              aria-describedby={duplicate ? "version-label-error" : undefined}
             />
             {duplicate && (
-              <p className="text-destructive text-xs">{t("duplicate")}</p>
+              <p id="version-label-error" className="text-destructive text-xs">
+                {t("duplicate")}
+              </p>
             )}
           </div>
           {suggestions.length > 0 && (
@@ -219,7 +226,7 @@ function NewVersionDialog({
                   type="button"
                   onClick={() => setLabel(suggestion)}
                   disabled={isPending}
-                  className="bg-muted hover:bg-accent hover:text-accent-foreground rounded-full px-2.5 py-0.5 text-xs transition-colors"
+                  className="bg-muted hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 rounded-full px-2.5 py-0.5 text-xs transition-colors outline-none focus-visible:ring-3 disabled:opacity-50 pointer-coarse:py-1.5"
                 >
                   {suggestion}
                 </button>

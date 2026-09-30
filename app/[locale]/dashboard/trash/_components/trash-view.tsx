@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatWallClock } from "@/lib/dates";
@@ -168,26 +169,22 @@ export function TrashView({
     : t("scopePersonal");
 
   return (
-    <div className="w-full space-y-6 pb-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="text-muted-foreground mt-1 max-w-xl">
-            {t("retention")}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          className="text-destructive hover:text-destructive gap-2"
-          onClick={() => setConfirmEmpty(true)}
-          disabled={nothingToEmpty || isPending}
-        >
-          <Trash2 className="h-4 w-4" aria-hidden />
-          {t("empty")}
-        </Button>
-      </div>
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
+      <PageHeader
+        title={t("title")}
+        description={t("retention")}
+        actions={
+          <Button
+            variant="outline"
+            className="text-destructive hover:text-destructive gap-2"
+            onClick={() => setConfirmEmpty(true)}
+            disabled={nothingToEmpty || isPending}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            {t("empty")}
+          </Button>
+        }
+      />
 
       <nav aria-label={t("scopes")} className="flex flex-wrap gap-2">
         <ScopeLink
@@ -261,76 +258,89 @@ export function TrashView({
             return (
               <li
                 key={key}
-                className="bg-card flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center"
+                className="bg-card flex items-start gap-3 rounded-xl border p-4 sm:items-center"
               >
+                {/* Beside the text at every width: stacked above it on a
+                    phone, the tile took a row of its own. */}
                 <span className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
                   <Icon className="h-5 w-5" aria-hidden />
                 </span>
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="max-w-full min-w-0 truncate font-medium">
-                      {item.title}
-                    </p>
-                    <Badge variant="outline" className="font-normal">
-                      {t(`types.${item.type}`)}
-                    </Badge>
-                    {item.batch_count > 0 && (
-                      <Badge variant="secondary" className="font-normal">
-                        {t("batch", { count: item.batch_count })}
+                <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p
+                        className="max-w-full min-w-0 truncate font-medium"
+                        title={item.title}
+                      >
+                        {item.title}
+                      </p>
+                      <Badge variant="outline" className="font-normal">
+                        {t(`types.${item.type}`)}
                       </Badge>
+                      {item.batch_count > 0 && (
+                        <Badge variant="secondary" className="font-normal">
+                          {t("batch", { count: item.batch_count })}
+                        </Badge>
+                      )}
+                    </div>
+                    {item.subtitle && (
+                      <p className="text-muted-foreground truncate text-sm">
+                        {formatSubtitle(item, locale)}
+                      </p>
                     )}
-                  </div>
-                  {item.subtitle && (
-                    <p className="text-muted-foreground truncate text-sm">
-                      {formatSubtitle(item, locale)}
-                    </p>
-                  )}
-                  <p className="text-muted-foreground text-xs">
-                    {item.deleted_by_username
-                      ? t("deletedBy", { user: item.deleted_by_username })
-                      : t("deletedByUnknown")}{" "}
-                    <ClientDate
-                      value={item.deleted_at}
-                      options={{ dateStyle: "medium", timeStyle: "short" }}
-                    />
-                    {" · "}
-                    <span className="text-foreground/80">
-                      {t("purgeOn")} <ClientDate value={item.purge_at} />
-                    </span>
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => restore(item)}
-                    disabled={isPending}
-                    aria-label={t("restoreNamed", { title: item.title })}
-                  >
-                    {pendingKey === key ? (
-                      <Loader2
-                        className="h-3.5 w-3.5 animate-spin"
-                        aria-hidden
+                    <p className="text-muted-foreground text-xs">
+                      {item.deleted_by_username
+                        ? t("deletedBy", { user: item.deleted_by_username })
+                        : t("deletedByUnknown")}{" "}
+                      <ClientDate
+                        value={item.deleted_at}
+                        options={{ dateStyle: "medium", timeStyle: "short" }}
                       />
-                    ) : (
-                      <ArchiveRestore className="h-3.5 w-3.5" aria-hidden />
-                    )}
-                    {t("restore")}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive gap-1.5"
-                    onClick={() => setToDelete(item)}
-                    disabled={isPending}
-                    aria-label={t("deleteNamed", { title: item.title })}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                    <span className="sr-only sm:not-sr-only">
-                      {t("deleteForever")}
-                    </span>
-                  </Button>
+                      {" · "}
+                      {/* Same date style as the deletion date before it
+                        (it was "30/10/2026" next to "30 de set. de 2026"). */}
+                      <span className="text-foreground/80">
+                        {t("purgeOn")}{" "}
+                        <ClientDate
+                          value={item.purge_at}
+                          options={{ dateStyle: "medium" }}
+                        />
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => restore(item)}
+                      disabled={isPending}
+                      aria-label={t("restoreNamed", { title: item.title })}
+                    >
+                      {pendingKey === key ? (
+                        <Loader2
+                          className="h-3.5 w-3.5 animate-spin"
+                          aria-hidden
+                        />
+                      ) : (
+                        <ArchiveRestore className="h-3.5 w-3.5" aria-hidden />
+                      )}
+                      {t("restore")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive gap-1.5"
+                      onClick={() => setToDelete(item)}
+                      disabled={isPending}
+                      aria-label={t("deleteNamed", { title: item.title })}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                      <span className="sr-only sm:not-sr-only">
+                        {t("deleteForever")}
+                      </span>
+                    </Button>
+                  </div>
                 </div>
               </li>
             );
@@ -457,7 +467,9 @@ function ScopeLink({
       )}
     >
       {icon}
-      <span className="max-w-40 truncate">{label}</span>
+      <span className="max-w-40 truncate" title={label}>
+        {label}
+      </span>
     </button>
   );
 }

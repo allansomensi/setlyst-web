@@ -79,6 +79,12 @@ export default async function DashboardLayout({
   const user = {
     id: session.user?.id,
     name: session.user?.name,
+    // "Allan Somensi" over "allan" where the profile has a name.
+    displayName:
+      [me?.first_name, me?.last_name]
+        .map((part) => part?.trim())
+        .filter(Boolean)
+        .join(" ") || null,
     role: session.user?.role,
     avatarUrl: me?.avatar_url ?? null,
   };

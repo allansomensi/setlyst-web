@@ -1,7 +1,15 @@
 "use client";
 
 import { memo } from "react";
-import { Archive, CopyPlus, RefreshCw, Trash2 } from "lucide-react";
+import {
+  Archive,
+  CopyPlus,
+  FileMusic,
+  MoreHorizontal,
+  Play,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +22,14 @@ import { useSortableRow } from "./use-sortable-row";
 import { SongKeyPicker } from "./song-key-picker";
 import { UserAvatar } from "@/components/user-avatar";
 import { formatApiDateTime } from "@/lib/dates";
+import { Link } from "@/components/nav-link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 /**
  * Memoised: opening a dialog, a pending action or a "Move" announcement
@@ -37,6 +53,7 @@ export const SortableSongRow = memo(function SortableSongRow({
   showAddedBy = false,
   onCopy,
   copyDisabled = false,
+  songHref,
 }: {
   setlistId: string;
   /** May change the key the setlist plays this song in. */
@@ -68,8 +85,14 @@ export const SortableSongRow = memo(function SortableSongRow({
    */
   onCopy?: (songId: string) => void;
   copyDisabled?: boolean;
+  /**
+   * The song's own page, when the person can open it (their song, or the
+   * band's); absent for a collaborator's song or one the setlist holds.
+   */
+  songHref?: string;
 }) {
   const t = useTranslations("setlists.songs");
+  const tCommon = useTranslations("common");
   const { song } = row;
   const { attributes, listeners, setNodeRef, isDragging, style } =
     useSortableRow(row.id);
@@ -175,9 +198,19 @@ export const SortableSongRow = memo(function SortableSongRow({
             </Badge>
           )}
         </div>
-        {/* The artist column is dropped on phones; keep the name visible. */}
+        {/* The artist column is dropped on phones; keep the name visible,
+            and the duration too where its column is gone (the running
+            time is half of what a setlist is about). */}
         <p className="text-muted-foreground truncate text-xs md:hidden">
           {song.artist_name}
+          {song.duration ? (
+            <span className="sm:hidden">
+              {song.artist_name ? " · " : null}
+              <span className="font-mono tabular-nums">
+                {formatDuration(song.duration)}
+              </span>
+            </span>
+          ) : null}
         </p>
       </TableCell>
       <TableCell className="text-muted-foreground hidden md:table-cell">
@@ -195,37 +228,67 @@ export const SortableSongRow = memo(function SortableSongRow({
       </TableCell>
       <TableCell className="w-12 text-right whitespace-nowrap">
         {isReordering && move && <MoveButtons label={song.title} move={move} />}
-        {!isReordering && onCopy && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-primary relative z-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCopy(song.id);
-            }}
-            disabled={copyDisabled}
-            aria-label={t("copyToLibraryFor", { title: song.title })}
-            title={t("copyToLibrary")}
-          >
-            <CopyPlus className="h-4 w-4" aria-hidden />
-          </Button>
-        )}
-        {!isReordering && canEdit && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive relative z-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(song.id);
-            }}
-            disabled={actionsDisabled}
-            aria-label={removeLabel ?? t("removeSong")}
-            title={removeLabel ?? t("removeSong")}
-          >
-            <Trash2 className="h-4 w-4" aria-hidden />
-          </Button>
+        {!isReordering && (
+          // One menu per row, like every other list in the app, instead of
+          // a bare trash can (and sometimes a copy button) on each row: it
+          // also says out loud what a click on the row does (Live Mode
+          // from here) and leads to the song itself, which the running
+          // order had no way to reach.
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground relative z-10 pointer-coarse:size-10"
+                onClick={(e) => e.stopPropagation()}
+                aria-label={tCommon("moreActionsFor", { name: song.title })}
+              >
+                <MoreHorizontal className="h-4 w-4" aria-hidden />
+              </Button>
+            </DropdownMenuTrigger>
+            {/* Clicks in the (portalled) menu still bubble to the row in
+                React's tree, where they would open Live Mode. */}
+            <DropdownMenuContent
+              align="end"
+              className="w-64"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DropdownMenuItem onSelect={() => onPlay(song.id)}>
+                <Play className="h-4 w-4" aria-hidden />
+                {t("liveFromHere")}
+              </DropdownMenuItem>
+              {songHref && (
+                <DropdownMenuItem asChild>
+                  <Link href={songHref}>
+                    <FileMusic className="h-4 w-4" aria-hidden />
+                    {t("openSong")}
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {onCopy && (
+                <DropdownMenuItem
+                  onSelect={() => onCopy(song.id)}
+                  disabled={copyDisabled}
+                >
+                  <CopyPlus className="h-4 w-4" aria-hidden />
+                  {t("copyToLibrary")}
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => onRemove(song.id)}
+                    disabled={actionsDisabled}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                    {removeLabel ?? t("removeSong")}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </TableCell>
     </TableRow>

@@ -1,5 +1,6 @@
 "use client";
 
+import { GigStatusBadge } from "@/components/content/gig-status-badge";
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -27,6 +28,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UpgradeHint } from "@/components/content/upgrade-hint";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PinButton } from "@/components/content/pin-button";
 import { useMounted } from "@/hooks/use-mounted";
 import { formatWallClock, parseWallClock, wallClockNow } from "@/lib/dates";
@@ -101,7 +103,7 @@ export function BandSetlistsSection({
       </CardHeader>
       <CardContent>
         {setlists.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{t("noSetlists")}</p>
+          <EmptyState compact icon={ListMusic} title={t("noSetlists")} />
         ) : (
           <ul className="divide-y rounded-lg border">
             {setlists.map((setlist) => (
@@ -197,7 +199,7 @@ export function BandGigsSection({
       </CardHeader>
       <CardContent>
         {shown.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{t("noUpcomingGigs")}</p>
+          <EmptyState compact icon={CalendarDays} title={t("noUpcomingGigs")} />
         ) : (
           <ul className="space-y-2">
             {shown.map((gig) => (
@@ -228,22 +230,33 @@ export function BandGigsSection({
                       })}
                       {gig.location && (
                         <>
-                          <MapPin className="ml-1 h-3 w-3" aria-hidden />
+                          <MapPin
+                            className="ml-1 h-3 w-3 shrink-0"
+                            aria-hidden
+                          />
                           <span className="truncate">{gig.location}</span>
                         </>
                       )}
                     </p>
+                    {/* Under the venue rather than beside it: a tour chip
+                        in the row used to squeeze the venue and the
+                        address down to a few letters each. */}
+                    {gig.tour_name && (
+                      <p className="text-muted-foreground mt-0.5 flex min-w-0 items-center gap-1 text-xs">
+                        <Route className="h-3 w-3 shrink-0" aria-hidden />
+                        <span className="truncate">{gig.tour_name}</span>
+                      </p>
+                    )}
                   </div>
-                  {gig.tour_name && (
-                    <Badge
-                      variant="secondary"
-                      className="hidden gap-1 font-normal sm:inline-flex"
-                    >
-                      <Route aria-hidden />
-                      {gig.tour_name}
-                    </Badge>
+                  {/* "Confirmed" is what an upcoming show is by default:
+                      only a cancelled one needs saying. */}
+                  {gig.status !== "confirmed" && (
+                    <GigStatusBadge
+                      status={gig.status}
+                      label={tStatus(gig.status)}
+                      className="shrink-0"
+                    />
                   )}
-                  <Badge variant="outline">{tStatus(gig.status)}</Badge>
                 </Link>
               </li>
             ))}
@@ -301,7 +314,7 @@ export function BandToursSection({
       </CardHeader>
       <CardContent>
         {sorted.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{t("noTours")}</p>
+          <EmptyState compact icon={Route} title={t("noTours")} />
         ) : (
           mounted && (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -335,6 +348,17 @@ export function SuggestionSettings({
   const [isPending, startTransition] = useTransition();
   const parsed = Number(votes);
   const valid = Number.isInteger(parsed) && parsed >= 1 && parsed <= 100;
+  const [saved, setSaved] = useState(value);
+  // A new value from the server (saved here or elsewhere, then
+  // revalidated) becomes the baseline the Save button compares against.
+  const [basedOn, setBasedOn] = useState(value);
+  if (basedOn !== value) {
+    setBasedOn(value);
+    setSaved(value);
+    setEnabled(value !== null);
+    setVotes(String(value ?? 3));
+  }
+  const isDirty = enabled ? !valid || parsed !== saved : saved !== null;
 
   const save = () => {
     if (enabled && !valid) return;
@@ -343,18 +367,26 @@ export function SuggestionSettings({
         bandId,
         enabled ? parsed : null,
       );
-      if (result.success) toast.success(t("thresholdSaved"));
-      else toastActionError(result, result.error);
+      if (result.success) {
+        setSaved(enabled ? parsed : null);
+        toast.success(t("thresholdSaved"));
+      } else toastActionError(result, result.error);
     });
   };
 
+  // Laid out like the other settings sections (invites, permissions, the
+  // danger zone): a heading over a panel, not a card with its own title.
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("suggestionSettingsTitle")}</CardTitle>
-        <CardDescription>{t("suggestionSettingsDescription")}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <section className="space-y-4" aria-labelledby="suggestion-settings">
+      <div>
+        <h2 id="suggestion-settings" className="text-lg font-semibold">
+          {t("suggestionSettingsTitle")}
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          {t("suggestionSettingsDescription")}
+        </p>
+      </div>
+      <div className="bg-card space-y-4 rounded-xl border p-4 shadow-(--shadow-surface)">
         <label className="flex items-center gap-3 text-sm">
           <Switch
             checked={enabled}
@@ -392,13 +424,20 @@ export function SuggestionSettings({
             </p>
           </div>
         )}
-        <Button onClick={save} disabled={isPending || (enabled && !valid)}>
-          {isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-          )}
-          {t("saveSettings")}
-        </Button>
-      </CardContent>
-    </Card>
+        {/* Same footer as the permissions below: on only once something
+            changed, so a press always does something. */}
+        <div className="flex justify-end">
+          <Button
+            onClick={save}
+            disabled={isPending || !isDirty || (enabled && !valid)}
+          >
+            {isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            )}
+            {t("saveSettings")}
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }

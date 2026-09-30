@@ -6,9 +6,6 @@ import { fetchAllServerPages } from "@/lib/api-server";
 import { canManageBandSetlists } from "@/lib/band-permissions";
 import { BandWithMembership, Setlist } from "@/types/api";
 import { SetlistsTable } from "@/app/[locale]/dashboard/setlists/_components/setlists-table";
-import { Button } from "@/components/ui/button";
-import { Link } from "@/components/nav-link";
-import { ChevronLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { fetchServerApiOnce } from "@/lib/server-data";
@@ -41,6 +38,7 @@ export default async function BandSetlistsPage({
   if (!isUuid(id)) notFound();
   const t = await getTranslations("bands");
   const tNav = await getTranslations("nav");
+  const tSetlists = await getTranslations("setlists");
 
   const [band, setlistsRes] = await Promise.all([
     fetchServerApiOnce<BandWithMembership>(`/bands/${id}`),
@@ -51,7 +49,7 @@ export default async function BandSetlistsPage({
   const canManage = canManageBandSetlists(band);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <PageBreadcrumbs
         items={[
           { label: tNav("bands"), href: "/dashboard/bands" },
@@ -60,30 +58,18 @@ export default async function BandSetlistsPage({
         ]}
       />
 
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          asChild
-          className="hidden shrink-0 sm:inline-flex"
-        >
-          <Link href={`/dashboard/bands/${id}`} aria-label={band.name}>
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("bandSetlistsTitle")}
-          </h1>
-        </div>
-      </div>
-
       <SetlistsTable
         initialSetlists={setlists}
         bandId={id}
         bandsById={{ [id]: { name: band.name, canManage } }}
         // Members without `manage_setlists` can't create setlists here.
         canCreate={canManage}
+        heading={{
+          title: t("bandSetlistsTitle"),
+          description: tSetlists("bandSubtitle", { name: band.name }),
+          backHref: `/dashboard/bands/${id}`,
+          backLabel: band.name,
+        }}
       />
     </div>
   );

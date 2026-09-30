@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import {
   Bell,
   Mail,
+  Megaphone,
   PanelTop,
   Plus,
   SquareStack,
@@ -11,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ClientDate } from "@/components/client-date";
 import { Link } from "@/components/nav-link";
 import { LoadErrorNotice } from "@/components/load-error-notice";
@@ -111,10 +113,20 @@ export default async function AdminAnnouncementsPage({
       {result === null ? (
         <LoadErrorNotice />
       ) : items.length === 0 ? (
-        <div className="bg-card text-muted-foreground flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-          <p className="text-foreground font-medium">{t("emptyTitle")}</p>
-          <p className="max-w-md text-sm">{t("emptyDescription")}</p>
-        </div>
+        <EmptyState
+          icon={Megaphone}
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          className="bg-card rounded-xl border border-dashed"
+          actions={
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/admin/announcements/new">
+                <Plus aria-hidden />
+                {t("new")}
+              </Link>
+            </Button>
+          }
+        />
       ) : (
         <ul className="space-y-3">
           {items.map((a) => {
@@ -134,7 +146,10 @@ export default async function AdminAnnouncementsPage({
                         />
                         <div className="min-w-0 space-y-1.5">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="max-w-full min-w-0 truncate font-medium">
+                            <p
+                              className="max-w-full min-w-0 truncate font-medium"
+                              title={a.title}
+                            >
                               {a.title}
                             </p>
                             <Badge
@@ -156,6 +171,7 @@ export default async function AdminAnnouncementsPage({
                                   <Icon
                                     key={key}
                                     className="size-3.5"
+                                    role="img"
                                     aria-label={t(
                                       `channels.${CHANNEL_LABELS[key]}`,
                                     )}

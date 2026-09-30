@@ -1,4 +1,5 @@
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
+import { PageHeader } from "@/components/page-header";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -38,11 +39,8 @@ export default async function ProfilePage() {
     user.username;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("subtitle")}</p>
-      </div>
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <PageHeader title={t("title")} description={t("subtitle")} />
 
       <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
         <aside className="space-y-4 lg:sticky lg:top-0 lg:self-start">
@@ -62,7 +60,10 @@ export default async function ProfilePage() {
                   @{user.username}
                 </p>
               </div>
-              <PlatformRoleBadge role={user.role} />
+              {/* Only a staff role says something: "User" on every
+                  member's card was noise (the public profile has no badge
+                  either). */}
+              {user.role !== "user" && <PlatformRoleBadge role={user.role} />}
               {user.bio && (
                 <p className="text-muted-foreground text-sm break-words whitespace-pre-line">
                   {user.bio}
@@ -71,12 +72,12 @@ export default async function ProfilePage() {
               <div className="text-muted-foreground flex flex-col items-center gap-1 text-xs">
                 {user.location && (
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="size-3.5" />
+                    <MapPin className="size-3.5" aria-hidden />
                     {user.location}
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <CalendarDays className="size-3.5" />
+                  <CalendarDays className="size-3.5" aria-hidden />
                   {t("joinedOn", {
                     date: formatApiDate(user.created_at, locale, {
                       month: "long",
@@ -113,14 +114,17 @@ export default async function ProfilePage() {
             href="/dashboard/settings/security"
             className="bg-card hover:bg-muted/50 focus-visible:ring-ring/50 flex items-center gap-3 rounded-xl border p-4 text-sm transition-colors outline-none focus-visible:ring-3"
           >
-            <ShieldCheck className="text-primary size-5 shrink-0" />
+            <ShieldCheck className="text-primary size-5 shrink-0" aria-hidden />
             <span className="min-w-0 flex-1">
               <span className="block font-medium">{t("securityLink")}</span>
               <span className="text-muted-foreground block text-xs">
                 {t("securityLinkHint")}
               </span>
             </span>
-            <ChevronRight className="text-muted-foreground size-4" />
+            <ChevronRight
+              className="text-muted-foreground size-4"
+              aria-hidden
+            />
           </Link>
         </aside>
 

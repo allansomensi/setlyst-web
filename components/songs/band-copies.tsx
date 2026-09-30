@@ -45,7 +45,7 @@ export function BandCopiesCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle as="h2" className="flex items-center gap-2 text-base">
           <Guitar className="h-4 w-4" aria-hidden />
           {t("cardTitle")}
         </CardTitle>
@@ -57,6 +57,7 @@ export function BandCopiesCard({
             <li key={copy.song_id} className="space-y-1.5">
               <Link
                 href={`/dashboard/songs/${copy.song_id}`}
+                title={copy.band_name}
                 className="block truncate text-sm font-medium hover:underline"
               >
                 {copy.band_name}

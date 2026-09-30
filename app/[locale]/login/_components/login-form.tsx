@@ -427,7 +427,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   if (step === "loadingChallenge") {
     return (
-      <Card className="w-full max-w-sm">
+      <Card size="lg" className="w-full max-w-md">
         <CardContent
           className="flex items-center justify-center py-12"
           role="status"
@@ -441,7 +441,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   if (step === "twoFactor" && challenge) {
     return (
-      <Card className="w-full max-w-sm">
+      <Card size="lg" className="w-full max-w-md">
         <CardHeader className="items-center text-center">
           <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
             {useRecovery ? (
@@ -568,7 +568,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card size="lg" className="w-full max-w-md">
       <CardHeader className="items-center text-center">
         <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
         <CardTitle as="h1" className="text-2xl font-bold">

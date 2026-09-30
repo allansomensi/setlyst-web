@@ -149,7 +149,7 @@ export function ForgotPasswordFlow() {
 
   if (step === "done") {
     return (
-      <Card className="w-full max-w-md">
+      <Card size="lg" className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="size-6" />
@@ -170,7 +170,7 @@ export function ForgotPasswordFlow() {
 
   if (step === "reset") {
     return (
-      <Card className="w-full max-w-md">
+      <Card size="lg" className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
             <MailCheck className="size-6" />
@@ -184,6 +184,16 @@ export function ForgotPasswordFlow() {
         </CardHeader>
         <CardContent>
           <form onSubmit={submitReset} className="space-y-4" noValidate>
+            {/* Lets a password manager save the new password under the
+                right account instead of asking which one it belongs to. */}
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              value={identifier.trim()}
+              readOnly
+              hidden
+            />
             <div className="space-y-2">
               <Label htmlFor="reset-code">{t("codeLabel")}</Label>
               <OtpInput
@@ -194,6 +204,7 @@ export function ForgotPasswordFlow() {
                 onComplete={() => passwordRef.current?.focus()}
                 disabled={pending}
                 invalid={Boolean(error) && code.length < 6}
+                aria-describedby={error ? "reset-error" : undefined}
               />
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="text-muted-foreground">
@@ -268,7 +279,11 @@ export function ForgotPasswordFlow() {
             </p>
 
             {error && (
-              <p role="alert" className="text-destructive text-sm font-medium">
+              <p
+                id="reset-error"
+                role="alert"
+                className="text-destructive text-sm font-medium"
+              >
                 {error}
               </p>
             )}
@@ -303,7 +318,7 @@ export function ForgotPasswordFlow() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card size="lg" className="w-full max-w-md">
       <CardHeader className="text-center">
         <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
           <KeyRound className="size-6" />
@@ -337,12 +352,17 @@ export function ForgotPasswordFlow() {
               onChange={(e) => setIdentifier(e.target.value)}
               disabled={pending}
               aria-invalid={Boolean(error) || undefined}
+              aria-describedby={error ? "identifier-error" : undefined}
               className="h-10"
             />
           </div>
 
           {error && (
-            <p role="alert" className="text-destructive text-sm font-medium">
+            <p
+              id="identifier-error"
+              role="alert"
+              className="text-destructive text-sm font-medium"
+            >
               {error}
             </p>
           )}

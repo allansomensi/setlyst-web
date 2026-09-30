@@ -157,43 +157,57 @@ export function PricingPlans({
               key={plan.code}
               className={cn(
                 "bg-card relative flex flex-col rounded-2xl border p-6 shadow-xs sm:p-7",
+                // Side by side, the cards share the parent's rows
+                // (subgrid), so prices, buttons and feature lists line up
+                // across cards whatever the length of each description
+                // or promotion.
+                plans.length >= 3
+                  ? "lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0"
+                  : "md:row-span-5 md:grid md:grid-rows-subgrid md:gap-y-0",
                 plan.highlighted &&
                   "border-primary/60 ring-primary/15 shadow-primary/5 shadow-lg ring-4",
               )}
             >
-              <div className="flex min-h-7 flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold tracking-tight">{name}</h2>
-                {plan.highlighted && (
-                  <Badge className="h-6 gap-1 px-2.5">
-                    <Sparkles />
-                    {t("recommended")}
-                  </Badge>
+              <div>
+                <div className="flex min-h-7 flex-wrap items-center gap-2">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    {name}
+                  </h2>
+                  {plan.highlighted && (
+                    <Badge className="h-6 gap-1 px-2.5">
+                      <Sparkles />
+                      {t("recommended")}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                  {pickLocalized(plan.description, locale)}
+                </p>
+              </div>
+
+              {/* Always rendered: it is one of the shared rows. */}
+              <div>
+                {promotion && (
+                  <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+                    <Tag className="size-4 shrink-0" />
+                    <span className="font-semibold">
+                      {t("promotion.off", {
+                        percent: promotion.discount_percent,
+                      })}
+                    </span>
+                    {pickLocalized(promotion.headline, locale) && (
+                      <span>{pickLocalized(promotion.headline, locale)}</span>
+                    )}
+                    <span className="text-amber-900/80 dark:text-amber-200/80">
+                      {t("promotion.until", {
+                        date: dateFormat.format(
+                          parseApiTimestamp(promotion.ends_at),
+                        ),
+                      })}
+                    </span>
+                  </div>
                 )}
               </div>
-              <p className="text-muted-foreground mt-2 min-h-12 text-sm leading-relaxed">
-                {pickLocalized(plan.description, locale)}
-              </p>
-
-              {promotion && (
-                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-                  <Tag className="size-4 shrink-0" />
-                  <span className="font-semibold">
-                    {t("promotion.off", {
-                      percent: promotion.discount_percent,
-                    })}
-                  </span>
-                  {pickLocalized(promotion.headline, locale) && (
-                    <span>{pickLocalized(promotion.headline, locale)}</span>
-                  )}
-                  <span className="text-amber-900/80 dark:text-amber-200/80">
-                    {t("promotion.until", {
-                      date: dateFormat.format(
-                        parseApiTimestamp(promotion.ends_at),
-                      ),
-                    })}
-                  </span>
-                </div>
-              )}
 
               <div className="mt-6">
                 {price.isFree ? (

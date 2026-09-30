@@ -35,7 +35,7 @@ export function GoogleConsentForm({
   const [attempted, setAttempted] = useState(false);
 
   return (
-    <Card className="w-full max-w-md">
+    <Card size="lg" className="w-full max-w-md">
       <CardHeader className="text-center">
         <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-full">
           <UserPlus className="size-6" />

@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { Gig, Setlist } from "@/types/api";
 import { GigDialog, BandOption } from "../../_components/gigs-dialog";
 import { Button } from "@/components/ui/button";
-import { ListMusic } from "lucide-react";
+import { ListMusic, Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Link } from "@/components/nav-link";
 
 interface LinkSetlistPromptProps {
   gig: Gig;
@@ -29,24 +31,37 @@ export function LinkSetlistPrompt({
 
   return (
     <>
-      <p className="text-muted-foreground text-sm">{t("noSetlistLinked")}</p>
-      {hasOptions ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setSession((n) => n + 1);
-            setIsOpen(true);
-          }}
-        >
-          <ListMusic className="mr-2 h-4 w-4" />
-          {t("linkSetlistAction")}
-        </Button>
-      ) : (
-        <p className="text-muted-foreground text-xs">
-          {t("noSetlistsAvailable")}
-        </p>
-      )}
+      <EmptyState
+        icon={ListMusic}
+        title={t("noSetlistLinked")}
+        description={hasOptions ? undefined : t("noSetlistsAvailable")}
+        actions={
+          hasOptions ? (
+            <Button
+              onClick={() => {
+                setSession((n) => n + 1);
+                setIsOpen(true);
+              }}
+            >
+              <ListMusic className="mr-2 h-4 w-4" aria-hidden />
+              {t("linkSetlistAction")}
+            </Button>
+          ) : (
+            <Button variant="outline" asChild>
+              <Link
+                href={
+                  gig.band_id
+                    ? `/dashboard/bands/${gig.band_id}/setlists`
+                    : "/dashboard/setlists"
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" aria-hidden />
+                {t("createSetlistAction")}
+              </Link>
+            </Button>
+          )
+        }
+      />
 
       <GigDialog
         key={`${gig.id}:${session}`}

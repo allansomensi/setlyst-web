@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SongDetailLoading() {
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
       <Skeleton className="h-4 w-48" />
       <div className="space-y-3">
         <Skeleton className="h-9 w-2/3" />

@@ -31,7 +31,13 @@ export async function AuthShell({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
 
   return (
-    <div className="bg-muted/40 flex min-h-dvh flex-col">
+    <div className="bg-muted/40 relative isolate flex min-h-dvh flex-col overflow-x-clip">
+      {/* A faint stage-light glow behind the card, echoing the landing
+          page: the form stays the only thing that asks for attention. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,color-mix(in_oklch,var(--primary)_14%,transparent),transparent)]"
+      />
       {/* Safe areas: the installed iOS app's status bar and home
           indicator, and the notches of a phone in landscape. */}
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-4 pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">

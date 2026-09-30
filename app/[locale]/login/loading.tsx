@@ -12,7 +12,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 export default function Loading() {
   return (
     <AuthShell>
-      <Card className="w-full max-w-sm">
+      <Card size="lg" className="w-full max-w-md">
         <CardHeader className="space-y-2 text-center">
           {/* Logo */}
           <Skeleton className="mx-auto mb-2 size-14 rounded-xl" />

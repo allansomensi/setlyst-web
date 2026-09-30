@@ -47,7 +47,9 @@ function mailto(email: string, subject?: string) {
 }
 
 const linkClass =
-  "text-primary focus-visible:ring-ring/50 rounded-sm font-medium break-all underline-offset-4 outline-none hover:underline focus-visible:ring-3";
+  // `overflow-wrap: anywhere` rather than `break-all`: an address only
+  // breaks when it can't fit on a line of its own, not mid-sentence.
+  "text-primary focus-visible:ring-ring/50 rounded-sm font-medium [overflow-wrap:anywhere] underline-offset-4 outline-none hover:underline focus-visible:ring-3";
 
 /**
  * Contact page (Decreto 7.962/2013 art. 2º and art. 4º, V; LGPD art. 41;
@@ -126,36 +128,9 @@ export default async function ContactPage({ params }: { params: Params }) {
         description={t("description")}
       />
 
-      <section
-        aria-labelledby="provider"
-        className="bg-card mt-10 rounded-2xl border p-6"
-      >
-        <h2
-          id="provider"
-          className="flex items-center gap-2 text-lg font-semibold"
-        >
-          <Building2 className="text-primary size-5" aria-hidden />
-          {t("provider.heading")}
-        </h2>
-        <address className="text-muted-foreground mt-3 space-y-1 not-italic">
-          <p className="text-foreground">
-            <LegalRichText
-              text={t("provider.body", {
-                name: CONTROLLER.name,
-                kind: CONTROLLER.kind,
-                taxIdLabel: CONTROLLER.taxIdLabel,
-                taxId: CONTROLLER.taxId,
-              })}
-            />
-          </p>
-          <p>
-            <LegalRichText
-              text={t("provider.address", { address: CONTROLLER.address })}
-            />
-          </p>
-        </address>
-      </section>
-
+      {/* The ways to reach us come first: that is what people open this
+          page for. The provider's identification (required in plain
+          view) follows the response times. */}
       <section aria-labelledby="channels" className="mt-10">
         <h2 id="channels" className="text-2xl font-bold tracking-tight">
           {t("channels.heading")}
@@ -185,28 +160,62 @@ export default async function ContactPage({ params }: { params: Params }) {
         </ul>
       </section>
 
-      <section
-        aria-labelledby="deadlines"
-        className="bg-muted/40 mt-10 rounded-2xl border p-6"
-      >
-        <h2
-          id="deadlines"
-          className="flex items-center gap-2 text-lg font-semibold"
+      <div className="mt-10 grid gap-4 md:grid-cols-2">
+        <section
+          aria-labelledby="deadlines"
+          className="bg-card rounded-2xl border p-6"
         >
-          <Clock className="text-primary size-5" aria-hidden />
-          {t("deadlines.heading")}
-        </h2>
-        <ul className="text-muted-foreground mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
-          <li>{t("deadlines.general")}</li>
-          <li>{t("deadlines.copyright")}</li>
-          <li>{t("deadlines.privacy")}</li>
-        </ul>
-      </section>
+          <h2
+            id="deadlines"
+            className="flex items-center gap-2 text-lg font-semibold"
+          >
+            <Clock className="text-primary size-5" aria-hidden />
+            {t("deadlines.heading")}
+          </h2>
+          <ul className="text-muted-foreground mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
+            <li>{t("deadlines.general")}</li>
+            <li>{t("deadlines.copyright")}</li>
+            <li>{t("deadlines.privacy")}</li>
+          </ul>
+        </section>
+
+        <section
+          aria-labelledby="provider"
+          className="bg-card rounded-2xl border p-6"
+        >
+          <h2
+            id="provider"
+            className="flex items-center gap-2 text-lg font-semibold"
+          >
+            <Building2 className="text-primary size-5" aria-hidden />
+            {t("provider.heading")}
+          </h2>
+          <address className="text-muted-foreground mt-3 space-y-1 text-sm leading-relaxed not-italic">
+            <p className="text-foreground">
+              <LegalRichText
+                text={t("provider.body", {
+                  name: CONTROLLER.name,
+                  kind: CONTROLLER.kind,
+                  taxIdLabel: CONTROLLER.taxIdLabel,
+                  taxId: CONTROLLER.taxId,
+                })}
+              />
+            </p>
+            <p>
+              <LegalRichText
+                text={t("provider.address", { address: CONTROLLER.address })}
+              />
+            </p>
+          </address>
+        </section>
+      </div>
 
       <section
         id="report"
         aria-labelledby="report-heading"
-        className="mt-10 scroll-mt-24"
+        // A comfortable reading measure for the running text: at the
+        // page's full width a line ran past 130 characters.
+        className="mt-12 max-w-3xl scroll-mt-24"
       >
         <h2 id="report-heading" className="text-2xl font-bold tracking-tight">
           {t("report.heading")}

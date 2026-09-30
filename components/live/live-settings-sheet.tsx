@@ -63,7 +63,8 @@ interface LiveSettingsSheetProps {
   hasNavigation?: boolean;
   /**
    * Offered on phones only when the browser supports it (not iOS Safari);
-   * larger screens have the button in the header.
+   * from `sm` up the header has the button (see LiveHeader), so this row
+   * hides at that same breakpoint — never both, never neither.
    */
   fullscreen?: { active: boolean; onToggle: () => void } | null;
   /** What a page-turner pedal does (setlist viewer only). */
@@ -281,7 +282,7 @@ export function LiveSettingsSheet({
                 onToggle={onToggleFitToScreen}
               />
               {fullscreen && (
-                <div className="md:hidden">
+                <div className="sm:hidden">
                   <SwitchRow
                     icon={Maximize}
                     label={t("fullscreen")}

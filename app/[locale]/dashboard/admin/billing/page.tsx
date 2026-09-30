@@ -14,6 +14,7 @@ import {
 import { Link } from "@/components/nav-link";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
+import { Kpi, KpiGrid } from "@/components/staff/kpi-grid";
 import { fetchServerApi } from "@/lib/api-server";
 import { formatMoney } from "@/lib/money";
 import { pickLocalized } from "@/lib/localized";
@@ -37,30 +38,6 @@ const STATUSES: SubscriptionStatus[] = [
   "canceled",
   "expired",
 ];
-
-function Metric({
-  label,
-  value,
-  hint,
-  tone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: string;
-  tone?: string;
-}) {
-  return (
-    <Card className="gap-1 py-4">
-      <CardContent className="space-y-1 px-4">
-        <p className="text-muted-foreground text-xs font-medium">{label}</p>
-        <p className={cn("text-2xl font-semibold tabular-nums", tone)}>
-          {value}
-        </p>
-        {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
-      </CardContent>
-    </Card>
-  );
-}
 
 export default async function BillingAdminPage() {
   const { isAdmin } = await requireStaffPage("billing");
@@ -109,8 +86,8 @@ export default async function BillingAdminPage() {
           <LoadErrorNotice />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Metric
+            <KpiGrid>
+              <Kpi
                 label={t("overview.enforcement")}
                 value={
                   overview.enforced
@@ -128,25 +105,25 @@ export default async function BillingAdminPage() {
                     : t("overview.enforcedOffHint")
                 }
               />
-              <Metric
+              <Kpi
                 label={t("overview.withoutSubscription")}
                 value={number.format(overview.accounts_without_subscription)}
               />
-              <Metric
+              <Kpi
                 label={t("overview.credits")}
                 value={number.format(overview.credits_issued)}
                 hint={t("overview.creditsSpent", {
                   count: overview.credits_spent,
                 })}
               />
-              <Metric
+              <Kpi
                 label={t("overview.redemptions")}
                 value={number.format(overview.promo_redemptions_last_30_days)}
                 hint={t("overview.referrals", {
                   count: overview.referrals_rewarded,
                 })}
               />
-            </div>
+            </KpiGrid>
             <div className="grid gap-3 md:grid-cols-2">
               <Card>
                 <CardHeader>
@@ -232,6 +209,7 @@ export default async function BillingAdminPage() {
                         {plan.highlighted && (
                           <Star
                             className="size-3.5 fill-current text-amber-500"
+                            role="img"
                             aria-label={t("plans.highlighted")}
                           />
                         )}

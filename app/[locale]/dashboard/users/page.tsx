@@ -30,7 +30,7 @@ export default async function UsersPage({
   const response = await fetchOrFailed(fetchAllServerPages<User>("/users"));
 
   return (
-    <div className="w-full space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <UsersTable
         initialUsers={response === FETCH_FAILED ? [] : (response.data ?? [])}
         loadError={response === FETCH_FAILED}

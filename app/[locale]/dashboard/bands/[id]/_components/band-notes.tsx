@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -240,36 +241,16 @@ export function BandNotes({ bandId, notes, canPin }: BandNotesProps) {
         onClose={() => setEditing(null)}
       />
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!toDelete}
         onOpenChange={(open) => !open && setToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("deleteTitle")}</DialogTitle>
-            <DialogDescription>{t("deleteConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setToDelete(null)}
-              disabled={isPending}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              )}
-              {t("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("deleteTitle")}
+        description={t("deleteConfirm")}
+        confirmLabel={t("delete")}
+        cancelLabel={t("cancel")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </Card>
   );
 }

@@ -159,17 +159,24 @@ function MobileDrawer({
               {user?.id && (
                 <UserAvatar
                   userId={user.id}
-                  name={user.name ?? ""}
+                  name={user.displayName || user.name || ""}
                   avatarUrl={user.avatarUrl}
                   size="md"
                 />
               )}
               <div className="min-w-0">
                 <DialogPrimitive.Title className="truncate text-base font-semibold">
-                  {user?.name ?? t("menu")}
+                  {user?.displayName || user?.name || t("menu")}
                 </DialogPrimitive.Title>
-                <p className={cn("truncate text-xs", ROLE_TEXT_STYLES[role])}>
-                  {tRoles(role)}
+                <p
+                  className={cn(
+                    "truncate text-xs",
+                    role === "user"
+                      ? "text-muted-foreground"
+                      : ROLE_TEXT_STYLES[role],
+                  )}
+                >
+                  {role === "user" ? `@${user?.name ?? ""}` : tRoles(role)}
                   <span className="text-muted-foreground">
                     {" · "}
                     {t("profile")}
@@ -222,7 +229,7 @@ function MobileDrawer({
                 onClick={close}
                 aria-label={t("settings")}
                 title={t("settings")}
-                className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-10 items-center justify-center rounded-md transition-colors"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex size-10 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3"
               >
                 <Settings className="h-5 w-5" aria-hidden />
               </Link>

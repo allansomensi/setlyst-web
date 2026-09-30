@@ -201,12 +201,14 @@ function CreatePromoCodeDialog({
             <div className="flex gap-2">
               <Input
                 id="promo-code"
+                autoFocus
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 className="font-mono uppercase"
                 placeholder={t("fields.codePlaceholder")}
                 maxLength={32}
                 aria-invalid={err(errors.code)}
+                aria-describedby="promo-code-hint"
                 spellCheck={false}
                 autoComplete="off"
               />
@@ -220,6 +222,7 @@ function CreatePromoCodeDialog({
               </Button>
             </div>
             <p
+              id="promo-code-hint"
               className={
                 err(errors.code)
                   ? "text-destructive text-xs"
@@ -280,6 +283,7 @@ function CreatePromoCodeDialog({
                 <Input
                   id="promo-days"
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   max={3650}
                   value={days}
@@ -295,6 +299,7 @@ function CreatePromoCodeDialog({
                 <Input
                   id="promo-credits"
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   max={100000}
                   value={credits}
@@ -313,6 +318,7 @@ function CreatePromoCodeDialog({
                 <Input
                   id="promo-discount"
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   max={100}
                   value={discount}
@@ -330,6 +336,7 @@ function CreatePromoCodeDialog({
               <Input
                 id="promo-max"
                 type="number"
+                inputMode="numeric"
                 min={1}
                 value={maxRedemptions}
                 onChange={(e) => setMaxRedemptions(e.target.value)}
@@ -360,8 +367,10 @@ function CreatePromoCodeDialog({
                 value={expiresAt}
                 onChange={(e) => setExpiresAt(e.target.value)}
                 aria-invalid={err(errors.window)}
+                aria-describedby="promo-expires-hint"
               />
               <p
+                id="promo-expires-hint"
                 className={
                   err(errors.window)
                     ? "text-destructive text-xs"
@@ -487,13 +496,16 @@ export function EditPromoCodeDialog({
             <Input
               id="edit-promo-max"
               type="number"
+              inputMode="numeric"
               min={Math.max(1, promo.redemptions_count)}
               value={maxRedemptions}
               onChange={(e) => setMaxRedemptions(e.target.value)}
               placeholder={t("fields.unlimited")}
               aria-invalid={maxInvalid}
+              aria-describedby="edit-promo-max-hint"
             />
             <p
+              id="edit-promo-max-hint"
               className={
                 maxInvalid
                   ? "text-destructive text-xs"
@@ -585,7 +597,7 @@ export function RedemptionsDialog({
                   <Link
                     href={`/dashboard/users/${r.user_id}`}
                     prefetch={false}
-                    className="font-medium hover:underline"
+                    className="min-w-0 truncate font-medium hover:underline"
                   >
                     @{r.username}
                   </Link>

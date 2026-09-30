@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/page-header";
 import { getTranslations } from "next-intl/server";
 import { SettingsNav } from "./_components/settings-nav";
 
@@ -15,10 +16,7 @@ export default async function SettingsLayout({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("description")}</p>
-      </div>
+      <PageHeader title={t("title")} description={t("description")} />
 
       <div className="lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
         <SettingsNav />

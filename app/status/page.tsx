@@ -299,9 +299,11 @@ export default async function StatusPage({
             </CardHeader>
             <CardContent className="divide-y p-0">
               {services.map((service) => (
+                // The card's own inset (px-4), so icons line up with the
+                // "Components" title above them.
                 <div
                   key={service.key}
-                  className="flex items-center justify-between gap-4 px-6 py-4"
+                  className="flex items-center justify-between gap-4 px-4 py-4"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="bg-muted rounded-lg p-2">
@@ -325,7 +327,7 @@ export default async function StatusPage({
                 </div>
               ))}
               {database && poolUsage !== null && (
-                <div className="space-y-1.5 px-6 py-4">
+                <div className="space-y-1.5 px-4 py-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
                       {t("connections")}

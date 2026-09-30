@@ -5,10 +5,8 @@ import { entityTitle } from "@/lib/page-metadata";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
 import { getEntitlements, hasFeature } from "@/lib/entitlements";
 import { setlistDisplayTitle } from "@/lib/repertoire";
-import { Setlist, SetlistItem } from "@/types/api";
-import { Link } from "@/components/nav-link";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { BandWithMembership, Setlist, SetlistItem } from "@/types/api";
+import { DetailBackButton } from "@/components/detail-header";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { SetlistFlowReport } from "./_components/setlist-flow-report";
 import { fetchServerApiOnce } from "@/lib/server-data";
@@ -55,39 +53,49 @@ export default async function SetlistAnalyticsPage({
   });
 
   const title = setlistDisplayTitle(setlist, tSetlists("repertoire.name"));
+  // A band setlist's trail goes through its band, as on the setlist's own
+  // page (it used to say "Setlists", a list the band setlist isn't
+  // reached from). Never fatal: without it the trail is the generic one.
+  const band = setlist.band_id
+    ? await fetchServerApi<BandWithMembership>(
+        `/bands/${setlist.band_id}`,
+      ).catch(() => null)
+    : null;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
       <PageBreadcrumbs
         items={[
-          { label: tNav("setlists"), href: "/dashboard/setlists" },
+          ...(band
+            ? [
+                { label: tNav("bands"), href: "/dashboard/bands" },
+                { label: band.name, href: `/dashboard/bands/${band.id}` },
+              ]
+            : [{ label: tNav("setlists"), href: "/dashboard/setlists" }]),
           { label: title, href: `/dashboard/setlists/${id}` },
           { label: t("title") },
         ]}
       />
-
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          asChild
-          className="hidden shrink-0 sm:inline-flex"
-        >
-          <Link href={`/dashboard/setlists/${id}`} aria-label={title}>
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-          </Link>
-        </Button>
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground truncate text-sm">{title}</p>
-        </div>
-      </div>
 
       <SetlistFlowReport
         setlistId={id}
         title={title}
         items={items}
         canExport={hasFeature(entitlements, "analytics_export")}
+        heading={
+          <>
+            <DetailBackButton
+              href={`/dashboard/setlists/${id}`}
+              label={title}
+            />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {t("title")}
+              </h1>
+              <p className="text-muted-foreground truncate">{title}</p>
+            </div>
+          </>
+        }
       />
     </div>
   );

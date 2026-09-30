@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { ScrollText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
 import { AuditEntry } from "@/components/staff/audit-entry";
+import {
+  hasListFilters,
+  ListEmptyState,
+} from "@/components/staff/list-empty-state";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import { DateRangeFilter } from "@/components/staff/date-range-filter";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
@@ -87,12 +92,15 @@ export default async function AdminAuditPage({
         <DateRangeFilter />
       </ListToolbar>
 
-      <Card>
-        <CardContent className="divide-y py-2">
+      <Card className="gap-0 py-1">
+        <CardContent className="divide-y">
           {entries.length === 0 ? (
-            <p className="text-muted-foreground py-8 text-center text-sm">
-              {t("empty")}
-            </p>
+            <ListEmptyState
+              icon={ScrollText}
+              title={t("empty")}
+              filtered={hasListFilters(params)}
+              clearHref="/dashboard/admin/audit"
+            />
           ) : (
             entries.map((entry) => <AuditEntry key={entry.id} entry={entry} />)
           )}

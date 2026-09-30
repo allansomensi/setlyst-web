@@ -181,7 +181,7 @@ export function AuditEntry({
   const href = targetHref(entry);
 
   return (
-    <div className="space-y-1 py-2.5">
+    <div className="space-y-1 py-3">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <Badge
           variant={DESTRUCTIVE.has(entry.action) ? "destructive" : "secondary"}

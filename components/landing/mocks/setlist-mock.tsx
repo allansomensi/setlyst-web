@@ -181,14 +181,16 @@ export async function SetlistMock({ className }: { className?: string }) {
           ) : (
             <li
               key={row.title}
-              className="grid grid-cols-[1rem_minmax(0,1fr)_2rem_3.25rem_2.5rem] items-center gap-2 px-4 py-2 sm:grid-cols-[1rem_minmax(0,1fr)_2rem_3.25rem_2.5rem_2.5rem]"
+              // The BPM column fits "124 BPM" on one line: narrower, it
+              // wrapped on most rows and broke the list's rhythm.
+              className="grid grid-cols-[1rem_minmax(0,1fr)_1.75rem_4rem_2rem] items-center gap-2 px-4 py-2 sm:grid-cols-[1rem_minmax(0,1fr)_2rem_4rem_2.25rem_2.5rem]"
             >
               <GripVertical className="text-muted-foreground/50 size-3.5" />
               <span className="truncate font-medium">{row.title}</span>
               <span className="text-muted-foreground font-mono">
                 {row.tone}
               </span>
-              <span className="text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground whitespace-nowrap tabular-nums">
                 {row.bpm} BPM
               </span>
               <EnergyBar value={row.energy} />

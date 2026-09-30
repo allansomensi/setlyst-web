@@ -35,7 +35,7 @@ export default async function ChangePasswordPage() {
 
   return (
     <AuthShell>
-      <Card className="w-full max-w-md">
+      <Card size="lg" className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="bg-primary/10 text-primary mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full">
             <KeyRound className="h-6 w-6" />

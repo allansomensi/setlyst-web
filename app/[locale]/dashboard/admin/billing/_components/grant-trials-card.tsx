@@ -70,6 +70,7 @@ export function GrantTrialsCard({
           <Input
             id="grant-trial-days"
             type="number"
+            inputMode="numeric"
             min={1}
             max={365}
             value={Number.isNaN(days) ? "" : days}

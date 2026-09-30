@@ -66,7 +66,7 @@ export async function createSetlist(data: {
 
   return guardedAction(
     () =>
-      fetchServerApi("/setlists", {
+      fetchServerApi<Setlist>("/setlists", {
         method: "POST",
         body: JSON.stringify({
           title,

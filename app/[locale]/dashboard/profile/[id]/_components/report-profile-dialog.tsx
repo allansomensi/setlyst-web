@@ -45,6 +45,15 @@ export function ReportProfileButton({
     setDetails("");
   };
 
+  // `close` refuses while a report is in flight, so the submit handler
+  // (which is that report) resets the dialog itself.
+  const finish = () => {
+    setDone(true);
+    setOpen(false);
+    setReason(null);
+    setDetails("");
+  };
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!reason || pending) return;
@@ -54,18 +63,14 @@ export function ReportProfileButton({
       if (!result.success) {
         if (result.apiCode === "ALREADY_EXISTS") {
           toast.info(t("alreadyReported"));
-          setDone(true);
-          close();
+          finish();
           return;
         }
         toastActionError(result, result.error);
         return;
       }
       toast.success(t("sent"));
-      setDone(true);
-      setOpen(false);
-      setReason(null);
-      setDetails("");
+      finish();
     } catch {
       toast.error(tApi("generic"));
     } finally {

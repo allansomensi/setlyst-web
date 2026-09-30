@@ -2,7 +2,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WhatsNewLoading() {
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-8" aria-hidden>
+    <div
+      className="mx-auto w-full max-w-6xl space-y-8 pb-10 *:max-w-4xl"
+      aria-hidden
+    >
       <div className="space-y-2">
         <Skeleton className="h-9 w-48" />
         <Skeleton className="h-4 w-full max-w-md" />

@@ -7,17 +7,16 @@ import {
   useTransition,
   type FormEvent,
 } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FileEdit, Loader2, Plus } from "lucide-react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import {
   Song,
   Artist,
   TONALITIES,
-  GENRES,
   Tonality,
   Genre,
-  formatGenre,
+  genreOptions,
 } from "@/types/api";
 import { createSong, updateSong } from "../actions";
 import { createArtist } from "../../artists/actions";
@@ -165,6 +164,7 @@ export function SongDialog({
 }: SongDialogProps) {
   const router = useAppRouter();
   const t = useTranslations("songs.dialog");
+  const locale = useLocale();
   const tFields = useTranslations("songs");
   const tCommon = useTranslations("common");
 
@@ -347,9 +347,14 @@ export function SongDialog({
               onValueChange={(value) => setTab(value as SongTab)}
               className="py-4"
             >
-              <TabsList className="w-full sm:w-fit">
+              {/* Phones: the four tabs share the full width evenly. */}
+              <TabsList className="w-full sm:w-fit [&>*]:flex-1 sm:[&>*]:flex-none">
                 <TabsTrigger value="basic">{t("tabs.basic")}</TabsTrigger>
-                <TabsTrigger value="music">{t("tabs.music")}</TabsTrigger>
+                <TabsTrigger value="music">
+                  {/* Four tabs across a phone: the short label there. */}
+                  <span className="sm:hidden">{t("tabs.musicShort")}</span>
+                  <span className="hidden sm:inline">{t("tabs.music")}</span>
+                </TabsTrigger>
                 <TabsTrigger value="links">
                   {t("tabs.links")}
                   {form.links.length > 0 && (
@@ -427,9 +432,9 @@ export function SongDialog({
                       disabled={isPending}
                     >
                       <option value="">{t("noneOption")}</option>
-                      {GENRES.map((g) => (
-                        <option key={g} value={g}>
-                          {formatGenre(g)}
+                      {genreOptions(locale).map((g) => (
+                        <option key={g.value} value={g.value}>
+                          {g.label}
                         </option>
                       ))}
                     </NativeSelect>
@@ -809,7 +814,7 @@ function ArtistField({
         {!locked && (
           <button
             type="button"
-            className="text-primary inline-flex items-center gap-1 text-xs font-medium underline-offset-2 hover:underline disabled:opacity-50"
+            className="text-primary relative inline-flex items-center gap-1 text-xs leading-none font-medium underline-offset-2 after:absolute after:-inset-2.5 after:content-[''] hover:underline disabled:opacity-50 pointer-fine:after:hidden"
             onClick={() => setIsCreating(true)}
             disabled={disabled}
           >

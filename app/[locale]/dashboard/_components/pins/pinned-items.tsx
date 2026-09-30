@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useId, useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   DndContext,
   KeyboardSensor,
@@ -41,6 +41,30 @@ import { cn } from "@/lib/utils";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import { MAX_PINS, type PinItemType, type PinnedItem } from "@/types/content";
 import { safeCallbackPath } from "@/lib/links";
+import { formatWallClock } from "@/lib/dates";
+
+/** A show's subtitle as the API sends it: its wall-clock start. */
+const GIG_WHEN = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(:\d{2})?$/;
+
+/**
+ * The line under a pin's title. A show's is its date, sent as a bare
+ * `2026-10-02 21:30`: written out in the viewer's language instead
+ * ("sex., 2 de out., 21:30").
+ */
+function pinSubtitle(item: PinnedItem, locale: string): string | null {
+  if (!item.subtitle) return null;
+  const match = item.item_type === "gig" && GIG_WHEN.exec(item.subtitle);
+  if (!match) return item.subtitle;
+  return (
+    formatWallClock(`${match[1]}T${match[2]}:00`, locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }) || item.subtitle
+  );
+}
 
 const PIN_SECTIONS: Record<PinItemType, string> = {
   setlist: "setlists",
@@ -80,6 +104,9 @@ export function PinnedItems({ initial }: { initial: PinnedItem[] }) {
   const t = useTranslations("pins");
   const [items, setItems] = useState(initial);
   const [isSaving, startSaving] = useTransition();
+  // A stable id, so dnd-kit's accessibility ids match between the server
+  // render and hydration (its own counter differs between the two).
+  const dndId = useId();
 
   // A server refresh (pin elsewhere, revalidation) replaces the list.
   const [basedOn, setBasedOn] = useState(initial);
@@ -162,6 +189,7 @@ export function PinnedItems({ initial }: { initial: PinnedItem[] }) {
         </div>
       ) : (
         <DndContext
+          id={dndId}
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={onDragEnd}
@@ -221,15 +249,17 @@ function PinnedCard({
     transition,
     isDragging,
   } = useSortable({ id: keyOf(item) });
+  const locale = useLocale();
   const Icon = TYPE_ICONS[item.item_type];
   const title = setlistDisplayTitle(item, tRepertoire("name"));
+  const subtitle = pinSubtitle(item, locale);
 
   return (
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "bg-card group flex items-center gap-2 rounded-xl border p-2 pr-1 transition-colors",
+        "bg-card group relative flex items-center gap-2 rounded-xl border p-2 pr-1 shadow-(--shadow-surface) transition-colors",
         isDragging
           ? "border-primary z-10 shadow-lg"
           : "hover:border-primary/40",
@@ -240,7 +270,7 @@ function PinnedCard({
         ref={setActivatorNodeRef}
         {...attributes}
         {...listeners}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex h-8 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none active:cursor-grabbing"
+        className="text-muted-foreground/60 hover:text-foreground group-hover:text-muted-foreground focus-visible:ring-ring/50 flex h-8 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none active:cursor-grabbing"
         aria-label={t("dragHandle", { title })}
       >
         <GripVertical className="h-4 w-4" aria-hidden />
@@ -253,14 +283,19 @@ function PinnedCard({
           <Icon className="h-4 w-4" aria-hidden />
         </span>
         <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold">{title}</span>
+          <span className="block truncate text-sm font-semibold" title={title}>
+            {title}
+          </span>
           <span className="text-muted-foreground block truncate text-xs">
             {t(`types.${item.item_type}`)}
-            {item.subtitle ? ` · ${item.subtitle}` : ""}
+            {subtitle ? ` · ${subtitle}` : ""}
           </span>
         </span>
       </Link>
-      <div className="flex shrink-0 items-center opacity-100 sm:opacity-60 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+      {/* With a mouse, the controls appear over the card's end on hover
+          or focus, so the title gets the whole width the rest of the
+          time; on a touch screen (no hover) they stay in the row. */}
+      <div className="flex shrink-0 items-center pointer-fine:absolute pointer-fine:inset-y-1 pointer-fine:right-1 pointer-fine:rounded-lg pointer-fine:bg-linear-to-r pointer-fine:from-transparent pointer-fine:via-(--color-card) pointer-fine:via-25% pointer-fine:to-(--color-card) pointer-fine:pl-6 pointer-fine:opacity-0 pointer-fine:transition-opacity pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100">
         <Button
           type="button"
           variant="ghost"

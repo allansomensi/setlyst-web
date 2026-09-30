@@ -8,6 +8,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { formatMoney } from "@/lib/money";
+import { cn } from "@/lib/utils";
 import type { MonthRevenue } from "@/types/finance";
 import { monthLabel } from "./month-label";
 
@@ -35,70 +36,87 @@ export function RevenueChart({
   }));
   const money = (cents: number) =>
     formatMoney(cents, currency, locale, { compact: true });
+  // With no revenue at all the axis invents a 0–4 scale and the bars are
+  // invisible: say so over the (still drawn) baseline instead.
+  const empty = data.every((m) => m.net_cents === 0 && m.gross_cents === 0);
 
   return (
-    <ChartContainer config={config} className="aspect-auto h-64 w-full">
-      <BarChart data={rows} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
-        <CartesianGrid vertical={false} strokeOpacity={0.4} />
-        <XAxis
-          dataKey="label"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          tickLine={false}
-          axisLine={false}
-          width={72}
-          tickFormatter={(value: number) => money(Math.round(value * 100))}
-        />
-        <ChartTooltip
-          cursor={{ fillOpacity: 0.15 }}
-          content={({ active, payload }) => {
-            const row = payload?.[0]?.payload as
-              (MonthRevenue & { label: string }) | undefined;
-            if (!active || !row) return null;
-            return (
-              <div className="bg-popover text-popover-foreground grid min-w-44 gap-1 rounded-lg border px-3 py-2 text-xs shadow-md">
-                <p className="font-medium">
-                  {monthLabel(row.month, locale, "long")}
-                </p>
-                <p className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">{t("net")}</span>
-                  <span className="font-medium tabular-nums">
-                    {money(row.net_cents)}
-                  </span>
-                </p>
-                <p className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">{t("gross")}</span>
-                  <span className="tabular-nums">{money(row.gross_cents)}</span>
-                </p>
-                {row.refunded_cents > 0 && (
+    <div className="relative">
+      {empty && (
+        <p className="text-muted-foreground pointer-events-none absolute inset-0 z-10 flex items-center justify-center pb-6 text-sm">
+          {t("empty")}
+        </p>
+      )}
+      <ChartContainer
+        config={config}
+        className={cn("aspect-auto h-64 w-full", empty && "opacity-40")}
+      >
+        <BarChart data={rows} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+          <CartesianGrid vertical={false} strokeOpacity={0.4} />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            width={72}
+            tickFormatter={(value: number) => money(Math.round(value * 100))}
+          />
+          <ChartTooltip
+            cursor={{ fillOpacity: 0.15 }}
+            content={({ active, payload }) => {
+              const row = payload?.[0]?.payload as
+                (MonthRevenue & { label: string }) | undefined;
+              if (!active || !row) return null;
+              return (
+                <div className="bg-popover text-popover-foreground grid min-w-44 gap-1 rounded-lg border px-3 py-2 text-xs shadow-md">
+                  <p className="font-medium">
+                    {monthLabel(row.month, locale, "long")}
+                  </p>
                   <p className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">
-                      {t("refunded")}
-                    </span>
-                    <span className="tabular-nums">
-                      −{money(row.refunded_cents)}
+                    <span className="text-muted-foreground">{t("net")}</span>
+                    <span className="font-medium tabular-nums">
+                      {money(row.net_cents)}
                     </span>
                   </p>
-                )}
-                <p className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">{t("payments")}</span>
-                  <span className="tabular-nums">{row.payments}</span>
-                </p>
-              </div>
-            );
-          }}
-        />
-        <Bar
-          dataKey="net"
-          fill="var(--color-net)"
-          radius={[4, 4, 0, 0]}
-          maxBarSize={40}
-        />
-      </BarChart>
-    </ChartContainer>
+                  <p className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">{t("gross")}</span>
+                    <span className="tabular-nums">
+                      {money(row.gross_cents)}
+                    </span>
+                  </p>
+                  {row.refunded_cents > 0 && (
+                    <p className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">
+                        {t("refunded")}
+                      </span>
+                      <span className="tabular-nums">
+                        −{money(row.refunded_cents)}
+                      </span>
+                    </p>
+                  )}
+                  <p className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">
+                      {t("payments")}
+                    </span>
+                    <span className="tabular-nums">{row.payments}</span>
+                  </p>
+                </div>
+              );
+            }}
+          />
+          <Bar
+            dataKey="net"
+            fill="var(--color-net)"
+            radius={[4, 4, 0, 0]}
+            maxBarSize={40}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
   );
 }

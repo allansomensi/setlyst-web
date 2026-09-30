@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useTranslations } from "next-intl";
 import { Gig, Setlist } from "@/types/api";
@@ -52,7 +52,11 @@ export function GigActions({
   personalSetlists,
   bands,
   tours = [],
-}: GigActionsProps) {
+  pin,
+}: GigActionsProps & {
+  /** The pin button, placed between Edit and the "more" menu, which stays last. */
+  pin?: ReactNode;
+}) {
   const router = useAppRouter();
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
@@ -115,30 +119,32 @@ export function GigActions({
 
   if (!canManage) {
     return (
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
+      <>
         <Button
           variant="outline"
           size="lg"
-          className="gap-2"
+          className="h-10 gap-2 px-3"
           onClick={addToCalendar}
+          title={t("addToCalendar")}
         >
           <CalendarPlus className="h-4 w-4" aria-hidden />
-          {t("addToCalendar")}
+          <span className="sr-only sm:not-sr-only">{t("addToCalendar")}</span>
         </Button>
         <Button
           variant="outline"
           size="lg"
-          className="gap-2"
+          className="h-10 gap-2 px-3"
           onClick={() => setIsShareOpen(true)}
           {...offlineDisabled}
+          title={offlineDisabled.title ?? t("shareBtn")}
         >
           <Share2 className="h-4 w-4" aria-hidden />
-          {t("shareBtn")}
+          <span className="sr-only sm:not-sr-only">{t("shareBtn")}</span>
         </Button>
         <Button
           variant="outline"
           size="lg"
-          className="gap-2"
+          className="h-10 gap-2 px-3"
           onClick={() => void exportFile()}
           disabled={exporting || offlineDisabled.disabled}
           title={offlineDisabled.title ?? tFiles("exportHint.gig")}
@@ -148,8 +154,9 @@ export function GigActions({
           ) : (
             <FileJson className="h-4 w-4" aria-hidden />
           )}
-          {tFiles("exportFile")}
+          <span className="sr-only sm:not-sr-only">{tFiles("exportFile")}</span>
         </Button>
+        {pin}
         <ShareGigDialog
           gigId={gig.id}
           shareToken={gig.share_token}
@@ -161,16 +168,40 @@ export function GigActions({
           isOpen={isShareOpen}
           onClose={() => setIsShareOpen(false)}
         />
-      </div>
+      </>
     );
   }
 
+  const openEdit = () => {
+    setEditSession((n) => n + 1);
+    setIsEditOpen(true);
+  };
+
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <>
+      {/* Changing the time, the setlist or the status is what a show's
+          page is mostly opened for: a button, not a menu item. */}
+      <Button
+        variant="outline"
+        size="lg"
+        className="h-10 gap-2 px-3"
+        onClick={openEdit}
+        {...offlineDisabled}
+        title={offlineDisabled.title ?? tCommon("edit")}
+      >
+        <Pencil className="h-4 w-4" aria-hidden />
+        <span className="sr-only sm:not-sr-only">{tCommon("edit")}</span>
+      </Button>
+      {pin}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="lg" className="px-3">
-            <MoreVertical className="h-4 w-4" />
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-10 px-3"
+            title={tCommon("moreActions")}
+          >
+            <MoreVertical className="h-4 w-4" aria-hidden />
             <span className="sr-only">{tCommon("moreActions")}</span>
           </Button>
         </DropdownMenuTrigger>
@@ -198,16 +229,6 @@ export function GigActions({
                 {tFiles("exportHint.gig")}
               </span>
             </span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setEditSession((n) => n + 1);
-              setIsEditOpen(true);
-            }}
-            disabled={offlineDisabled.disabled}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            {tCommon("edit")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -251,6 +272,6 @@ export function GigActions({
         onConfirm={confirmDelete}
         pending={isPending}
       />
-    </div>
+    </>
   );
 }

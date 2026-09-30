@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BandAvatar } from "@/components/bands/band-avatar";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { Link } from "@/i18n/routing";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
@@ -81,8 +82,29 @@ export default async function AdminBandDetailPage({
         ]}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+      <DetailHeader
+        actions={
+          <>
+            <Button variant="outline" asChild>
+              <Link href={`/dashboard/admin/songs?band_id=${band.id}`}>
+                <Music aria-hidden />
+                {t("songs", { count: band.song_count })}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={`/dashboard/admin/setlists?band_id=${band.id}`}>
+                <ListMusic aria-hidden />
+                {t("setlists", { count: band.setlist_count })}
+              </Link>
+            </Button>
+          </>
+        }
+      >
+        <DetailBackButton
+          href="/dashboard/admin/bands"
+          label={tNav("adminBands")}
+        />
+        <div className="flex min-w-0 items-center gap-4">
           <BandAvatar
             bandId={band.id}
             name={band.name}
@@ -105,21 +127,7 @@ export default async function AdminBandDetailPage({
             />
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/dashboard/admin/songs?band_id=${band.id}`}>
-              <Music className="mr-2 h-4 w-4" />
-              {t("songs", { count: band.song_count })}
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href={`/dashboard/admin/setlists?band_id=${band.id}`}>
-              <ListMusic className="mr-2 h-4 w-4" />
-              {t("setlists", { count: band.setlist_count })}
-            </Link>
-          </Button>
-        </div>
-      </div>
+      </DetailHeader>
 
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">

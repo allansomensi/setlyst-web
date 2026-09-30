@@ -1,5 +1,6 @@
 "use client";
 
+import { GigStatusBadge } from "@/components/content/gig-status-badge";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -10,17 +11,9 @@ import {
   ListMusic,
   MapPin,
 } from "lucide-react";
-import { PublicGig, GigStatus } from "@/types/api";
-import { Badge } from "@/components/ui/badge";
+import { PublicGig } from "@/types/api";
 import { Card } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { PublicRunningOrder } from "@/components/public/public-running-order";
 import { AppLogo } from "@/components/app-logo";
 import { PublicPreferences } from "@/components/public/public-preferences";
 import { formatWallClock } from "@/lib/dates";
@@ -30,15 +23,6 @@ interface PublicGigViewProps {
   gig: PublicGig;
 }
 
-const STATUS_VARIANT: Record<
-  GigStatus,
-  "default" | "destructive" | "secondary"
-> = {
-  confirmed: "default",
-  cancelled: "destructive",
-  completed: "secondary",
-};
-
 /**
  * The public, read-only page of a shared gig, in the visitor's language
  * (same locale resolution and preferences as the setlist share page).
@@ -46,7 +30,6 @@ const STATUS_VARIANT: Record<
 export function PublicGigView({ gig }: PublicGigViewProps) {
   const t = useTranslations("publicPage");
   const tStatus = useTranslations("gigs.dialog.status");
-  const tTable = useTranslations("setlists.songs.table");
   const tSetlists = useTranslations("setlists");
   const locale = useLocale();
 
@@ -79,9 +62,7 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
             <h1 className="min-w-0 text-3xl font-bold tracking-tight break-words">
               {gig.venue}
             </h1>
-            <Badge variant={STATUS_VARIANT[gig.status] ?? "secondary"}>
-              {tStatus(gig.status)}
-            </Badge>
+            <GigStatusBadge status={gig.status} label={tStatus(gig.status)} />
           </div>
 
           <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
@@ -124,72 +105,7 @@ export function PublicGigView({ gig }: PublicGigViewProps) {
               </div>
             </div>
 
-            <div className="bg-card overflow-hidden rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>{tTable("title")}</TableHead>
-                    <TableHead className="hidden sm:table-cell">
-                      {tTable("artist")}
-                    </TableHead>
-                    <TableHead className="text-right sm:text-left">
-                      {tTable("bpm")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {setlist.songs.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="text-muted-foreground h-24 text-center"
-                      >
-                        {t("noSongs")}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    setlist.songs.map((song, index) => (
-                      <TableRow key={`${index}-${song.title}`}>
-                        <TableCell className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
-                          {String(index + 1).padStart(2, "0")}
-                        </TableCell>
-                        <TableCell className="w-full max-w-0">
-                          <div className="flex items-center gap-2">
-                            {/* Full title on hover when it's cut short. */}
-                            <span
-                              className="truncate font-medium"
-                              title={song.title}
-                            >
-                              {song.title}
-                            </span>
-                            {song.tonality && (
-                              <Badge
-                                variant="outline"
-                                className="h-5 shrink-0 px-1.5 font-mono text-[10px]"
-                              >
-                                {song.tonality}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-muted-foreground truncate text-xs sm:hidden">
-                            {song.artist_name}
-                          </p>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground hidden sm:table-cell">
-                          {song.artist_name}
-                        </TableCell>
-                        <TableCell className="text-right sm:text-left">
-                          <span className="text-muted-foreground font-mono text-sm tabular-nums">
-                            {song.tempo ?? "–"}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <PublicRunningOrder setlist={setlist} emptyText={t("noSongs")} />
           </div>
         ) : (
           <Card className="text-muted-foreground flex flex-row items-center gap-2 px-4 py-6 text-sm">

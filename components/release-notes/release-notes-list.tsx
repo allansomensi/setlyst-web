@@ -227,7 +227,7 @@ export function ReleaseNotesList({
                         {items.map((item, itemIndex) => (
                           <li
                             key={itemIndex}
-                            className="relative text-sm leading-relaxed"
+                            className="relative text-sm leading-relaxed break-words"
                           >
                             <span
                               aria-hidden

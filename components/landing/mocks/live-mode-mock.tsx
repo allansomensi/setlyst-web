@@ -1,11 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import {
+  AlignLeft,
   ChevronLeft,
   ChevronRight,
-  Minus,
-  Plus,
-  Timer,
+  Mic,
   WifiOff,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +26,10 @@ function ChordLine({ line }: { line: string }) {
     <p className="flex flex-wrap">
       {parseChordLine(line).map((part, index) => (
         <span key={index} className="inline-flex flex-col whitespace-pre">
-          <span className="h-5 font-mono text-[0.8em] font-bold text-amber-300">
-            {part.chord || " "}
+          <span className="h-[1.15em] text-[0.8em] font-extrabold text-yellow-300">
+            {part.chord || " "}
           </span>
-          <span>{part.text || " "}</span>
+          <span>{part.text || " "}</span>
         </span>
       ))}
     </p>
@@ -37,13 +37,22 @@ function ChordLine({ line }: { line: string }) {
 }
 
 /**
- * Illustration of the Live Mode screen: a song in large type with chords
- * above the lyrics, key, tempo with a running metronome, and the
- * previous/next controls. Purely decorative (`aria-hidden`); the text
- * around it describes the feature.
+ * Illustration of the Live Mode screen with its high-contrast palette
+ * (black, white, yellow chords: `[data-live-contrast="high"]` in
+ * globals.css), laid out like the real screen: the header with the song,
+ * its place in the setlist, BPM with the running metronome and the key;
+ * section headings and the chorus accent of the lyrics; the previous /
+ * next bar with the coming song. Its labels are the Live Mode's own
+ * strings, so the picture never drifts from the product's wording.
+ * Purely decorative (`aria-hidden`); the text around it describes the
+ * feature.
  */
 export async function LiveModeMock({ className }: { className?: string }) {
-  const t = await getTranslations("landing.mock");
+  const [t, tLive, tLyrics] = await Promise.all([
+    getTranslations("landing.mock"),
+    getTranslations("liveMode"),
+    getTranslations("lyrics.toolbar"),
+  ]);
   const lines = [
     t("lyrics.l1"),
     t("lyrics.l2"),
@@ -55,90 +64,86 @@ export async function LiveModeMock({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 text-zinc-50 shadow-2xl shadow-black/30 select-none",
+        "relative overflow-hidden rounded-2xl border border-white/15 bg-black text-white shadow-2xl shadow-black/30 select-none",
         className,
       )}
     >
-      {/* Top bar */}
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5 text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
-        <span className="flex items-center gap-1">
-          <ChevronLeft className="size-3.5" />
-          {t("prev")}
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-white/20 py-2.5 pr-3 pl-4 sm:pl-2">
+        {/* Without the close button on a phone, the song's name fits. */}
+        <span className="hidden size-7 shrink-0 items-center justify-center text-white/80 sm:flex">
+          <X className="size-4" />
         </span>
-        <span className="flex items-center gap-2 tabular-nums">
-          <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300 normal-case">
-            <WifiOff className="size-3" />
-            {t("offline")}
-          </span>
-          3 / 12
-        </span>
-        <span className="flex items-center gap-1 text-zinc-200">
-          {t("next")}
-          <ChevronRight className="size-3.5" />
-        </span>
-      </div>
-
-      {/* Song header */}
-      <div className="flex flex-wrap items-end justify-between gap-3 px-5 pt-5">
-        <div>
-          <p className="text-xl font-bold tracking-tight sm:text-2xl">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-base leading-tight font-bold tracking-tight sm:text-lg">
             Estrada de Terra
           </p>
-          <p className="text-sm text-zinc-400">Banda Aurora</p>
+          <p className="truncate text-[10px] font-medium tracking-wider text-white/70 uppercase">
+            {t("setlistTitle")} ·{" "}
+            {tLive("songPosition", { current: 3, total: 12 })}
+          </p>
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="rounded-md bg-white/10 px-2 py-1 font-semibold">
-            {t("key")} <span className="text-amber-300">A</span>
-            <span className="ml-1 text-zinc-400">({t("capo")} 2)</span>
+        <span className="hidden items-center gap-1 rounded-full border border-amber-400/50 px-2 py-0.5 text-[10px] font-bold text-amber-400 sm:flex">
+          <WifiOff className="size-3" />
+          {tLive("offline")}
+        </span>
+        <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-bold tabular-nums">
+          92
+          <span className="text-[10px] opacity-70">{tLive("bpm")}</span>
+          {/* The running beat from `sm`: on a phone its room goes to
+              the setlist's name. */}
+          <span className="hidden gap-0.5 sm:flex">
+            <span className="landing-beat size-1.5 rounded-full bg-yellow-300" />
+            <span className="landing-beat size-1.5 rounded-full bg-zinc-600 [animation-delay:0.652s]" />
+            <span className="landing-beat size-1.5 rounded-full bg-zinc-600 [animation-delay:1.304s]" />
+            <span className="landing-beat size-1.5 rounded-full bg-zinc-600 [animation-delay:1.956s]" />
           </span>
-          <span className="flex items-center gap-1.5 rounded-md bg-white/10 px-2 py-1 font-semibold tabular-nums">
-            <Timer className="size-3.5 text-zinc-400" />
-            92 BPM
-            <span className="ml-1 flex gap-0.5">
-              <span className="landing-beat size-1.5 rounded-full bg-amber-300" />
-              <span className="landing-beat size-1.5 rounded-full bg-zinc-600 [animation-delay:0.652s]" />
-              <span className="landing-beat size-1.5 rounded-full bg-zinc-600 [animation-delay:1.304s]" />
-              <span className="landing-beat size-1.5 rounded-full bg-zinc-600 [animation-delay:1.956s]" />
-            </span>
-          </span>
-        </div>
+        </span>
+        <span className="rounded-full bg-yellow-300 px-2.5 py-1 text-xs font-bold text-black">
+          <span className="opacity-70">{tLive("key")}</span> G
+        </span>
       </div>
 
       {/* Lyrics */}
-      <div className="space-y-1 px-5 pt-4 pb-5 text-lg leading-snug sm:text-xl">
-        <p className="mb-2 inline-block rounded bg-violet-500/20 px-1.5 py-0.5 text-[10px] font-bold tracking-widest text-violet-200 uppercase">
+      <div className="relative px-5 pt-5 pb-3 text-lg leading-snug font-semibold sm:px-6 sm:text-xl">
+        <p className="mb-2 flex items-center gap-1.5 border-b border-white/30 pb-1 text-[10px] font-bold tracking-[0.14em] uppercase">
+          <Mic className="size-3" strokeWidth={2.5} />
           {t("chorus")}
         </p>
-        {lines.map((line) => (
-          <ChordLine key={line} line={line} />
-        ))}
+        <div className="space-y-1 border-l-2 border-yellow-300 pl-3">
+          {lines.map((line) => (
+            <ChordLine key={line} line={line} />
+          ))}
+        </div>
+        <p className="mt-5 flex items-center gap-1.5 border-b border-white/30 pb-1 text-[10px] font-bold tracking-[0.14em] uppercase">
+          <AlignLeft className="size-3" strokeWidth={2.5} />
+          {tLyrics("verse")} 2
+        </p>
+        {/* The song carries on below: auto-scroll will bring it up. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black to-transparent" />
       </div>
 
-      {/* Auto-scroll progress and controls */}
-      <div className="border-t border-white/10 px-4 py-3">
-        <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/10">
-          <div className="landing-scroll h-full w-2/5 rounded-full bg-violet-400" />
+      {/* Setlist progress and previous / next */}
+      <div className="border-t border-white/20">
+        <div className="h-0.5 bg-white/15">
+          <div className="h-full w-1/4 bg-yellow-300" />
         </div>
-        <div className="flex items-center justify-between text-xs text-zinc-300">
-          <span className="flex items-center gap-1.5">
-            <span className="flex size-6 items-center justify-center rounded-md bg-white/10">
-              <Minus className="size-3" />
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+          <span className="flex items-center gap-1 rounded-lg border border-white/40 px-2.5 py-1.5 text-[11px] font-bold tracking-wide text-white/80">
+            <ChevronLeft className="size-3.5" />
+            {tLive("prev")}
+          </span>
+          <span className="min-w-0 text-center">
+            <span className="block text-[9px] font-semibold tracking-[0.14em] text-white/60 uppercase">
+              {tLive("nextSong")}
             </span>
-            <span className="font-semibold">{t("transpose")}</span>
-            <span className="flex size-6 items-center justify-center rounded-md bg-white/10">
-              <Plus className="size-3" />
+            <span className="block truncate text-xs font-bold">
+              Luz do Farol
             </span>
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="rounded-md bg-white/10 px-2 py-1 font-semibold">
-              A−
-            </span>
-            <span className="rounded-md bg-white/10 px-2 py-1 font-semibold">
-              A+
-            </span>
-          </span>
-          <span className="hidden rounded-md bg-violet-500/25 px-2 py-1 font-semibold text-violet-100 sm:inline">
-            {t("nextSong")}: Luz do Farol
+          <span className="flex items-center gap-1 rounded-lg bg-yellow-300 px-2.5 py-1.5 text-[11px] font-bold tracking-wide text-black">
+            {tLive("next")}
+            <ChevronRight className="size-3.5" />
           </span>
         </div>
       </div>

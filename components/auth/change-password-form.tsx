@@ -61,6 +61,7 @@ export function ChangePasswordForm({
 }: ChangePasswordFormProps) {
   const t = useTranslations("changePassword");
   const tPassword = useTranslations("passwordPolicy");
+  const tErrors = useTranslations("apiErrors");
   const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [current, setCurrent] = useState("");
@@ -81,11 +82,18 @@ export function ChangePasswordForm({
     setError(null);
 
     startTransition(async () => {
+      // A server action rejects when the request itself fails (offline, a
+      // new deployment): uncaught inside a transition, that would replace
+      // the form with the error screen and lose what was typed.
       const result = await changeOwnPassword({
         currentPassword: current,
         newPassword: next,
-      });
+      }).catch(() => null);
 
+      if (!result) {
+        setError(tErrors("generic"));
+        return;
+      }
       if (!result.success) {
         if (result.apiCode === "PASSWORD_NOT_SET") {
           setNotSet(true);
@@ -139,6 +147,8 @@ export function ChangePasswordForm({
           onChange={(e) => setCurrent(e.target.value)}
           disabled={isPending}
           required
+          aria-invalid={Boolean(error) || undefined}
+          aria-describedby={error ? "change_password_error" : undefined}
           className="h-10"
         />
       </div>
@@ -197,7 +207,11 @@ export function ChangePasswordForm({
       <p className="text-muted-foreground text-xs">{t("signOutNotice")}</p>
 
       {error && (
-        <p role="alert" className="text-destructive text-sm font-medium">
+        <p
+          id="change_password_error"
+          role="alert"
+          className="text-destructive text-sm font-medium"
+        >
           {error}
         </p>
       )}

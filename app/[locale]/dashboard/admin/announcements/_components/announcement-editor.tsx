@@ -3,7 +3,6 @@
 import { useEffect, useState, useTransition } from "react";
 import {
   Archive,
-  ArrowLeft,
   Bell,
   Loader2,
   Lock,
@@ -34,7 +33,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Link } from "@/components/nav-link";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { ChoiceChips } from "@/components/staff/choice-chips";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
 import { AnnouncementBanner } from "@/components/announcements/announcement-banner";
@@ -405,7 +405,11 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
     };
     const found = issues.find((issue) => map[field]?.includes(issue));
     return found ? (
-      <p className="text-destructive text-xs" role="alert">
+      <p
+        id={`a-${field}-error`}
+        className="text-destructive text-xs"
+        role="alert"
+      >
         {t(`issues.${found}`)}
       </p>
     ) : null;
@@ -432,14 +436,80 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <Button variant="ghost" size="sm" asChild className="-ml-2">
-            <Link href="/dashboard/admin/announcements">
-              <ArrowLeft aria-hidden />
-              {t("back")}
-            </Link>
-          </Button>
+      <PageBreadcrumbs
+        items={[
+          { label: t("back"), href: "/dashboard/admin/announcements" },
+          { label: saved ? t("editTitle") : t("newTitle") },
+        ]}
+      />
+      <DetailHeader
+        actions={
+          <>
+            {saved && status === "draft" && (
+              <Button
+                variant="ghost"
+                onClick={() => setDialog("delete")}
+                disabled={pending}
+              >
+                <Trash2 aria-hidden />
+                {t("delete")}
+              </Button>
+            )}
+            {saved && canArchive(status) && (
+              <Button
+                variant="outline"
+                onClick={() => setDialog("archive")}
+                disabled={pending}
+              >
+                <Archive aria-hidden />
+                {t("archive")}
+              </Button>
+            )}
+            {!locked && (
+              <Button
+                variant="outline"
+                onClick={onSave}
+                disabled={pending || (!isDirty && !!saved)}
+              >
+                {pending && dialog === null ? (
+                  <Loader2 className="animate-spin" aria-hidden />
+                ) : (
+                  <Save aria-hidden />
+                )}
+                {status === null || status === "draft"
+                  ? t("saveDraft")
+                  : t("save")}
+              </Button>
+            )}
+            {(status === null || status === "draft") && !canPublish && (
+              <p className="text-muted-foreground max-w-56 text-xs">
+                {t("publishAdminOnly")}
+              </p>
+            )}
+            {(status === null || status === "draft") && canPublish && (
+              <Button
+                onClick={() => {
+                  setShowErrors(true);
+                  if (issues.length > 0) {
+                    toast.error(t("fixErrors"));
+                    return;
+                  }
+                  setDialog("publish");
+                }}
+                disabled={pending}
+              >
+                <Send aria-hidden />
+                {t("publish")}
+              </Button>
+            )}
+          </>
+        }
+      >
+        <DetailBackButton
+          href="/dashboard/admin/announcements"
+          label={t("back")}
+        />
+        <div className="min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {saved ? t("editTitle") : t("newTitle")}
@@ -460,66 +530,7 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
             </p>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {saved && status === "draft" && (
-            <Button
-              variant="ghost"
-              onClick={() => setDialog("delete")}
-              disabled={pending}
-            >
-              <Trash2 aria-hidden />
-              {t("delete")}
-            </Button>
-          )}
-          {saved && canArchive(status) && (
-            <Button
-              variant="outline"
-              onClick={() => setDialog("archive")}
-              disabled={pending}
-            >
-              <Archive aria-hidden />
-              {t("archive")}
-            </Button>
-          )}
-          {!locked && (
-            <Button
-              variant="outline"
-              onClick={onSave}
-              disabled={pending || (!isDirty && !!saved)}
-            >
-              {pending && dialog === null ? (
-                <Loader2 className="animate-spin" aria-hidden />
-              ) : (
-                <Save aria-hidden />
-              )}
-              {status === null || status === "draft"
-                ? t("saveDraft")
-                : t("save")}
-            </Button>
-          )}
-          {(status === null || status === "draft") && !canPublish && (
-            <p className="text-muted-foreground max-w-56 text-xs">
-              {t("publishAdminOnly")}
-            </p>
-          )}
-          {(status === null || status === "draft") && canPublish && (
-            <Button
-              onClick={() => {
-                setShowErrors(true);
-                if (issues.length > 0) {
-                  toast.error(t("fixErrors"));
-                  return;
-                }
-                setDialog("publish");
-              }}
-              disabled={pending}
-            >
-              <Send aria-hidden />
-              {t("publish")}
-            </Button>
-          )}
-        </div>
-      </div>
+      </DetailHeader>
 
       {(locked || status === "active" || lockedError) && (
         <Alert variant={lockedError ? "destructive" : "default"}>
@@ -550,6 +561,7 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
                 onChange={(e) => set("title", e.target.value)}
                 disabled={!can("title")}
                 aria-invalid={showErrors && issues.includes("titleLength")}
+                aria-describedby="a-title-error"
                 maxLength={TITLE_MAX + 20}
               />
               {issueText("title")}
@@ -566,7 +578,7 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
                 onChange={(e) => set("body", e.target.value)}
                 disabled={!can("body")}
                 aria-invalid={showErrors && issues.includes("bodyLength")}
-                aria-describedby="a-body-hint"
+                aria-describedby="a-body-hint a-body-error"
               />
               <p id="a-body-hint" className="text-muted-foreground text-xs">
                 {t("content.bodyHint")}
@@ -629,6 +641,12 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
                   value={form.cta_label}
                   onChange={(e) => set("cta_label", e.target.value)}
                   disabled={!can("cta_label")}
+                  aria-invalid={
+                    showErrors &&
+                    (issues.includes("ctaIncomplete") ||
+                      issues.includes("ctaLabelLength"))
+                  }
+                  aria-describedby="a-cta-hint a-cta-error"
                   placeholder={t("content.ctaLabelPlaceholder")}
                 />
               </div>
@@ -639,12 +657,21 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
                   value={form.cta_url}
                   onChange={(e) => set("cta_url", e.target.value)}
                   disabled={!can("cta_url")}
+                  aria-invalid={
+                    showErrors &&
+                    (issues.includes("ctaIncomplete") ||
+                      issues.includes("ctaUrl"))
+                  }
+                  aria-describedby="a-cta-hint a-cta-error"
                   placeholder="/dashboard/settings"
                   inputMode="url"
                   spellCheck={false}
                 />
               </div>
-              <p className="text-muted-foreground text-xs sm:col-span-2">
+              <p
+                id="a-cta-hint"
+                className="text-muted-foreground text-xs sm:col-span-2"
+              >
                 {t("content.ctaHint")}
               </p>
               <div className="sm:col-span-2">{issueText("cta")}</div>
@@ -835,8 +862,9 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
                   onChange={(e) => set("ends_at", e.target.value)}
                   disabled={!can("ends_at")}
                   aria-invalid={showErrors && issues.includes("windowOrder")}
+                  aria-describedby="a-end-hint a-window-error"
                 />
-                <p className="text-muted-foreground text-xs">
+                <p id="a-end-hint" className="text-muted-foreground text-xs">
                   {t("schedule.endHint")}
                 </p>
               </div>
@@ -855,7 +883,19 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
               {channels.length ? channels.join(" · ") : t("preview.noChannels")}
             </p>
           </div>
-          <Tabs defaultValue="modal">
+          {/* Opens on a channel this announcement actually uses (a new one
+              starts as a banner, not a window). */}
+          <Tabs
+            defaultValue={
+              payload.show_modal
+                ? "modal"
+                : payload.show_banner
+                  ? "banner"
+                  : payload.send_notification
+                    ? "notification"
+                    : "modal"
+            }
+          >
             <TabsList className="w-full">
               <TabsTrigger value="modal" className="flex-1">
                 {t("preview.modal")}
@@ -868,7 +908,14 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="modal">
-              <div className="bg-foreground/10 dark:bg-foreground/5 rounded-xl border p-4">
+              {/* Dimmed while the channel is off, so the preview doesn't
+                  read as something people will see. */}
+              <div
+                className={cn(
+                  "bg-foreground/10 dark:bg-foreground/5 rounded-xl border p-4",
+                  !payload.show_modal && "opacity-60",
+                )}
+              >
                 <div className="bg-background rounded-lg border p-5 shadow-lg">
                   <AnnouncementModalContent
                     announcement={{
@@ -887,7 +934,12 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
               )}
             </TabsContent>
             <TabsContent value="banner">
-              <div className="bg-background overflow-hidden rounded-xl border">
+              <div
+                className={cn(
+                  "bg-background overflow-hidden rounded-xl border",
+                  !payload.show_banner && "opacity-60",
+                )}
+              >
                 <AnnouncementBanner
                   announcement={payload}
                   onDismiss={() => undefined}
@@ -906,7 +958,12 @@ function Editor({ announcement, plans }: AnnouncementEditorProps) {
               )}
             </TabsContent>
             <TabsContent value="notification">
-              <div className="bg-popover w-full max-w-80 overflow-hidden rounded-xl border shadow-md">
+              <div
+                className={cn(
+                  "bg-popover w-full max-w-80 overflow-hidden rounded-xl border shadow-md",
+                  !payload.send_notification && "opacity-60",
+                )}
+              >
                 <p className="border-b px-3 py-2.5 text-sm font-semibold">
                   {t("preview.notificationsTitle")}
                 </p>

@@ -3,7 +3,7 @@ import { BreadcrumbSkeleton } from "@/components/page-skeletons";
 
 export default function AboutLoading() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8 pb-10">
+    <div className="mx-auto w-full max-w-6xl space-y-8 pb-10 *:max-w-4xl">
       <BreadcrumbSkeleton />
       <Skeleton className="h-56 w-full rounded-2xl" />
       <div className="space-y-3">

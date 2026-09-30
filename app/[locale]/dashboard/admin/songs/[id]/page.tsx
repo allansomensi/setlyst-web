@@ -2,10 +2,11 @@ import { cache } from "react";
 import { AuditStamp } from "@/components/audit-stamp";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChordProRenderer } from "@/components/lyrics/chord-pro-renderer";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { TagChip } from "@/components/tags/tag-chip";
 import { Link } from "@/i18n/routing";
@@ -60,7 +61,10 @@ export default async function AdminSongPage({ params }: { params: Params }) {
   const facts = [
     song.tonality && { label: t("key"), value: song.tonality },
     song.tempo && { label: t("bpm"), value: String(song.tempo) },
-    song.genre && { label: t("genre"), value: formatGenre(song.genre) },
+    song.genre && {
+      label: t("genre"),
+      value: formatGenre(song.genre, await getLocale()),
+    },
     song.duration && {
       label: t("duration"),
       value: formatDuration(song.duration),
@@ -76,7 +80,13 @@ export default async function AdminSongPage({ params }: { params: Params }) {
         ]}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <DetailHeader
+        actions={isAdmin ? <SongAdminActions song={song} /> : undefined}
+      >
+        <DetailBackButton
+          href="/dashboard/admin/songs"
+          label={tNav("adminSongs")}
+        />
         <div className="min-w-0 space-y-1">
           <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
             {song.title}
@@ -111,8 +121,7 @@ export default async function AdminSongPage({ params }: { params: Params }) {
             updatedBy={song.updated_by_username}
           />
         </div>
-        {isAdmin && <SongAdminActions song={song} />}
-      </div>
+      </DetailHeader>
 
       <div className="flex flex-wrap gap-2">
         {facts.map((fact) => (

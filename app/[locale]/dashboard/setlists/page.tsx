@@ -70,13 +70,15 @@ export default async function SetlistsPage() {
     personalFailed || sharedFailed || bandsFailed || bandSetlistsFailed;
 
   return (
-    <div className="w-full space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <SetlistsTable
         initialSetlists={setlists}
         bandsById={bandsById}
         loadError={hadError}
         quotas={quotas}
-        notice={<SetlistInvitations invitations={invitations} />}
+        notice={
+          <SetlistInvitations key="invitations" invitations={invitations} />
+        }
       />
     </div>
   );

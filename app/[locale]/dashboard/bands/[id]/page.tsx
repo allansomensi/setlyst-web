@@ -1,4 +1,5 @@
 import { entityTitle } from "@/lib/page-metadata";
+import { StatGrid } from "@/components/stat-grid";
 import { isUuid } from "@/lib/uuid";
 import {
   fetchAllServerPages,
@@ -189,8 +190,9 @@ export default async function BandDetailPage({
     />
   );
 
+  // Four, not five: the member count is in the header and on the Members
+  // tab, and a fifth tile sat alone on its own row on a phone.
   const stats = [
-    { label: t("stats.members"), value: band.member_count },
     { label: t("stats.repertoire"), value: repertoire?.song_count ?? 0 },
     {
       label: t("stats.setlists"),
@@ -201,7 +203,7 @@ export default async function BandDetailPage({
   ];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
       <div className="space-y-6">
         <PageBreadcrumbs
           items={[
@@ -212,16 +214,7 @@ export default async function BandDetailPage({
         <BandHeader band={band} />
       </div>
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-card rounded-xl border p-3">
-            <dt className="text-muted-foreground text-xs">{stat.label}</dt>
-            <dd className="mt-1 text-2xl font-bold tabular-nums">
-              {stat.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <StatGrid items={stats} />
 
       <BandTabs
         label={t("tabsLabel")}
@@ -277,12 +270,19 @@ export default async function BandDetailPage({
             value: "members",
             label: t("tabs.members"),
             count: band.member_count,
+            // Invites live with the members they bring in: "how do I add
+            // someone?" is asked on this tab, not under Settings.
             content: (
-              <BandMembersSection
-                band={band}
-                members={members}
-                currentUserId={currentUserId}
-              />
+              <>
+                <BandMembersSection
+                  band={band}
+                  members={members}
+                  currentUserId={currentUserId}
+                />
+                {isAdmin && (
+                  <BandInvitesSection bandId={band.id} invites={invites} />
+                )}
+              </>
             ),
           },
           {
@@ -296,7 +296,6 @@ export default async function BandDetailPage({
                       bandId={id}
                       value={band.suggestion_auto_accept_votes ?? null}
                     />
-                    <BandInvitesSection bandId={band.id} invites={invites} />
                     <BandPermissionsSection
                       bandId={band.id}
                       permissions={permissions}

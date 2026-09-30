@@ -8,7 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ListMusic } from "lucide-react";
 import { ActiveFilters } from "@/components/staff/active-filters";
+import {
+  hasListFilters,
+  ListEmptyState,
+} from "@/components/staff/list-empty-state";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import { ShareStatusBadge } from "@/components/staff/share-moderation";
@@ -75,7 +80,7 @@ export default async function AdminSetlistsPage({
         }}
       />
 
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>
@@ -94,12 +99,14 @@ export default async function AdminSetlistsPage({
           </TableHeader>
           <TableBody>
             {setlists.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {t("empty")}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="p-0">
+                  <ListEmptyState
+                    icon={ListMusic}
+                    title={t("empty")}
+                    filtered={hasListFilters(params)}
+                    clearHref="/dashboard/admin/setlists"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -111,11 +118,17 @@ export default async function AdminSetlistsPage({
                       prefetch={false}
                       className="group block max-w-56 min-w-0 sm:max-w-72"
                     >
-                      <span className="block truncate font-medium group-hover:underline">
+                      <span
+                        className="block truncate font-medium group-hover:underline"
+                        title={setlist.title}
+                      >
                         {setlist.title}
                       </span>
                       {setlist.description && (
-                        <span className="text-muted-foreground block max-w-72 truncate text-xs">
+                        <span
+                          className="text-muted-foreground block max-w-72 truncate text-xs"
+                          title={setlist.description}
+                        >
                           {setlist.description}
                         </span>
                       )}

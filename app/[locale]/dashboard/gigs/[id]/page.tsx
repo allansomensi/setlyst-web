@@ -1,4 +1,5 @@
 import { AuditStamp } from "@/components/audit-stamp";
+import { GigStatusBadge } from "@/components/content/gig-status-badge";
 import { isUuid } from "@/lib/uuid";
 import { entityTitle } from "@/lib/page-metadata";
 import { fetchServerApi, fetchAllServerPages } from "@/lib/api-server";
@@ -18,14 +19,17 @@ import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ChevronLeft,
   Calendar,
+  ExternalLink,
   StickyNote,
   Guitar,
+  ListMusic,
   Play,
   MapPin,
   Route,
 } from "lucide-react";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SetlistSongsManager } from "../../setlists/[id]/_components/setlists-songs-manager";
 import { toPickerSong, type PickerSong } from "@/lib/picker-song";
 import { GigActions } from "./_components/gig-actions";
@@ -41,15 +45,6 @@ import { notFound } from "next/navigation";
 import { ApiError } from "@/lib/api-server";
 import { fetchServerApiOnce } from "@/lib/server-data";
 import { fetchOrFailed, FETCH_FAILED } from "@/lib/fetch-or-failed";
-
-const STATUS_VARIANT: Record<
-  Gig["status"],
-  "default" | "destructive" | "secondary"
-> = {
-  confirmed: "default",
-  cancelled: "destructive",
-  completed: "secondary",
-};
 
 export async function generateMetadata({
   params,
@@ -173,7 +168,7 @@ export default async function GigDetailsPage({
     gigSetlist?.collaborators ?? null;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <PageBreadcrumbs
         items={[
           { label: tNav("gigs"), href: "/dashboard/gigs" },
@@ -181,121 +176,156 @@ export default async function GigDetailsPage({
         ]}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            asChild
-            className="hidden shrink-0 sm:inline-flex"
-          >
-            <Link href="/dashboard/gigs" aria-label={tNav("gigs")}>
-              <ChevronLeft className="h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
-                {gig.venue}
-              </h1>
-              <Badge variant={STATUS_VARIANT[gig.status]}>
-                {t(`dialog.status.${gig.status}`)}
-              </Badge>
-              {gig.band_id && (
-                <Badge variant="outline" className="gap-1 text-xs font-normal">
-                  <Guitar className="h-3 w-3" />
+      <DetailHeader
+        actions={
+          <>
+            {/* The one action that matters on stage keeps its label on a
+                phone, across the whole row (as on a setlist); the others
+                go icon-only beside it. */}
+            {gig.setlist_id && setlist && (
+              <Button
+                asChild
+                size="lg"
+                className="h-10 w-full gap-2 px-4 sm:w-auto"
+                title={t("liveModeBtn")}
+              >
+                <Link href={`/dashboard/setlists/${setlist.id}/live`}>
+                  <Play className="h-4 w-4" aria-hidden />
+                  {t("liveModeBtn")}
+                </Link>
+              </Button>
+            )}
+            <GigActions
+              gig={gig}
+              canManage={canManage}
+              personalSetlists={personalSetlists}
+              bands={manageableBands}
+              tours={tours}
+              pin={
+                <PinButton
+                  // Server elements handed to a client component as props
+                  // are validated like list children in development.
+                  key="pin"
+                  type="gig"
+                  id={gig.id}
+                  name={gig.venue}
+                  pinned={!!gig.is_pinned}
+                  variant="default"
+                  className="h-10"
+                />
+              }
+            />
+          </>
+        }
+      >
+        <DetailBackButton href="/dashboard/gigs" label={tNav("gigs")} />
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+              {gig.venue}
+            </h1>
+            <GigStatusBadge
+              status={gig.status}
+              label={t(`dialog.status.${gig.status}`)}
+            />
+            {gig.band_id && (
+              <Badge variant="outline" className="gap-1 font-normal" asChild>
+                <Link href={`/dashboard/bands/${gig.band_id}`}>
+                  <Guitar aria-hidden />
                   {bandInfo?.name ?? t("bandGig")}
-                </Badge>
-              )}
-              {gig.tour_id && gig.tour_name && (
-                <Badge
-                  variant="secondary"
-                  className="gap-1 text-xs font-normal"
-                  asChild
-                >
-                  <Link href={`/dashboard/tours/${gig.tour_id}`}>
-                    <Route className="h-3 w-3" aria-hidden />
-                    {gig.tour_name}
-                  </Link>
-                </Badge>
-              )}
+                </Link>
+              </Badge>
+            )}
+            {gig.tour_id && gig.tour_name && (
+              <Badge variant="secondary" className="gap-1 font-normal" asChild>
+                <Link href={`/dashboard/tours/${gig.tour_id}`}>
+                  <Route aria-hidden />
+                  {gig.tour_name}
+                </Link>
+              </Badge>
+            )}
+          </div>
+          <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <div className="bg-muted/50 text-foreground flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium">
+              <Calendar className="text-primary h-4 w-4" aria-hidden />
+              <span>
+                {formatWallClock(gig.scheduled_at, locale, {
+                  dateStyle: "full",
+                  timeStyle: "short",
+                })}
+              </span>
             </div>
-            <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-4 text-sm">
-              <div className="bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium">
-                <Calendar className="text-primary h-4 w-4" />
-                <span>
-                  {formatWallClock(gig.scheduled_at, locale, {
-                    dateStyle: "full",
-                    timeStyle: "short",
-                  })}
+            {gig.location && (
+              <div className="flex min-w-0 items-start gap-1.5">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span className="min-w-0 break-words">
+                  {/* A pasted map link reads as noise: the link after it
+                      opens it. */}
+                  {!isUrl(gig.location) && <>{gig.location} </>}
+                  {/* Where to go, in the phone's own maps app: what the
+                      address is for on the day. */}
+                  <a
+                    href={mapsUrl(gig.venue, gig.location)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary inline-flex items-center gap-0.5 font-medium whitespace-nowrap hover:underline"
+                  >
+                    {t("openInMaps")}
+                    <ExternalLink className="h-3 w-3" aria-hidden />
+                  </a>
                 </span>
-              </div>
-              {gig.location && (
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 shrink-0" />
-                  <span className="min-w-0 break-words">{gig.location}</span>
-                </div>
-              )}
-            </div>
-            {gig.notes && (
-              <div className="text-muted-foreground mt-2 flex items-start gap-1.5 text-sm">
-                <StickyNote className="mt-0.5 h-4 w-4 shrink-0" />
-                {/* Typed in a textarea: keep its line breaks. */}
-                <p className="min-w-0 break-words whitespace-pre-line">
-                  {gig.notes}
-                </p>
               </div>
             )}
-            <AuditStamp
-              updatedAt={gig.updated_at}
-              updatedBy={gig.updated_by_username}
-              className="mt-2"
-            />
           </div>
+          <AuditStamp
+            updatedAt={gig.updated_at}
+            updatedBy={gig.updated_by_username}
+            className="mt-2"
+          />
         </div>
+      </DetailHeader>
 
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <PinButton
-            type="gig"
-            id={gig.id}
-            name={gig.venue}
-            pinned={!!gig.is_pinned}
-            variant="default"
-          />
-          {gig.setlist_id && setlist && (
-            <Button
-              asChild
-              size="lg"
-              className="gap-2 px-3 sm:px-4"
-              title={t("liveModeBtn")}
-            >
-              <Link href={`/dashboard/setlists/${setlist.id}/live`}>
-                <Play className="h-4 w-4" aria-hidden />
-                <span className="sr-only sm:not-sr-only">
-                  {t("liveModeBtn")}
-                </span>
-              </Link>
-            </Button>
-          )}
-          <GigActions
-            gig={gig}
-            canManage={canManage}
-            personalSetlists={personalSetlists}
-            bands={manageableBands}
-            tours={tours}
-          />
-        </div>
-      </div>
+      {/* Load-in time, fee, contacts: what the band reads before leaving
+          home. It was a muted line in the header, easy to skim past. */}
+      {gig.notes && (
+        <section
+          aria-labelledby="gig-notes"
+          className="bg-card rounded-xl border p-4 shadow-(--shadow-surface)"
+        >
+          <h2
+            id="gig-notes"
+            className="text-muted-foreground mb-1.5 flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase"
+          >
+            <StickyNote className="h-3.5 w-3.5" aria-hidden />
+            {t("notesTitle")}
+          </h2>
+          {/* Typed in a textarea: keep its line breaks. */}
+          <p className="text-sm break-words whitespace-pre-line">{gig.notes}</p>
+        </section>
+      )}
 
       {gig.setlist_id && setlist ? (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-muted-foreground text-sm font-medium">
-              {t("setlistFor", {
-                title: setlist.is_repertoire
+            <h2 className="flex min-w-0 items-center gap-2 text-sm">
+              <ListMusic
+                className="text-primary h-4 w-4 shrink-0"
+                aria-hidden
+              />
+              <span className="text-muted-foreground shrink-0">
+                {t("setlistSectionTitle")}:
+              </span>
+              {/* The setlist has a page of its own (details, analytics,
+                  PDF): reachable from here. */}
+              <Link
+                href={`/dashboard/setlists/${setlist.id}`}
+                className="truncate font-medium hover:underline"
+                title={t("openSetlist")}
+              >
+                {setlist.is_repertoire
                   ? tSetlists("repertoire.name")
-                  : setlist.title,
-              })}
+                  : setlist.title}
+              </Link>
             </h2>
             <AuditStamp
               updatedAt={setlist.updated_at}
@@ -337,7 +367,7 @@ export default async function GigDetailsPage({
           />
         </div>
       ) : (
-        <div className="bg-muted/30 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-12 text-center">
+        <div className="bg-card rounded-xl border border-dashed">
           {canManage ? (
             <LinkSetlistPrompt
               gig={gig}
@@ -345,14 +375,29 @@ export default async function GigDetailsPage({
               bands={manageableBands}
             />
           ) : (
-            <p className="text-muted-foreground text-sm">
-              {t("noSetlistLinked")}
-            </p>
+            <EmptyState icon={ListMusic} title={t("noSetlistLinked")} />
           )}
         </div>
       )}
     </div>
   );
+}
+
+/** Whether a gig's location is a link (a pasted map URL) rather than an address. */
+function isUrl(value: string): boolean {
+  return /^https?:\/\/\S+$/i.test(value.trim());
+}
+
+/**
+ * Where "Open in Maps" goes: the pasted map link itself, or a maps search
+ * for the venue at that address (the venue name alone matches too many
+ * places; the address alone loses the door).
+ */
+function mapsUrl(venue: string, location: string): string {
+  if (isUrl(location)) return location.trim();
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${venue}, ${location}`,
+  )}`;
 }
 
 /** The gig's setlist with what its running-order editor needs. */

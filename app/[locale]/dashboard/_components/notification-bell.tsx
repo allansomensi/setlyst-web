@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Check, Megaphone, SlidersHorizontal } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  Check,
+  Megaphone,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { Link } from "@/components/nav-link";
@@ -187,10 +193,11 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
               : t("title")
           }
           className={cn(
-            "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 relative flex h-9 w-9 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3",
+            // size-10 on touch screens, like the other header controls.
+            "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 relative flex h-9 w-9 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3 pointer-coarse:size-10",
           )}
         >
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4" aria-hidden />
           {unreadCount > 0 && (
             <span className="bg-destructive absolute top-1 right-1 flex h-2 w-2 items-center justify-center rounded-full">
               <span className="sr-only">
@@ -201,10 +208,22 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
         </button>
       </PopoverTrigger>
 
+      {/* In the sidebar (`isCollapsed` given) the list opens beside the
+          rail when it's collapsed and above the footer, leaning into the
+          page, when it's expanded; it used to lean left and end up flush
+          against the window's edge. In the phone header it drops down,
+          right-aligned under the bell. Kept clear of the window's edges
+          either way. */}
       <PopoverContent
-        align={isCollapsed ? "start" : "end"}
-        side="top"
-        className="w-80 p-0"
+        align={isCollapsed === false ? "start" : "end"}
+        side={
+          isCollapsed === undefined ? "bottom" : isCollapsed ? "right" : "top"
+        }
+        sideOffset={8}
+        collisionPadding={8}
+        // gap-0: the base popover spaces its children apart, which opened
+        // wide bands around the separators here.
+        className="w-80 max-w-[calc(100vw-1rem)] gap-0 p-0"
       >
         <div className="flex items-center justify-between px-3 py-2.5">
           <p className="text-sm font-semibold">{t("title")}</p>
@@ -215,7 +234,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
               className="h-7 gap-1 px-2 text-xs"
               onClick={markAllAsRead}
             >
-              <Check className="h-3 w-3" />
+              <Check className="h-3 w-3" aria-hidden />
               {t("markAllRead")}
             </Button>
           )}
@@ -231,9 +250,10 @@ export function NotificationBell({ isCollapsed }: { isCollapsed?: boolean }) {
           )}
 
           {notifications && notifications.length === 0 && (
-            <p className="text-muted-foreground px-3 py-6 text-center text-sm">
+            <div className="text-muted-foreground flex flex-col items-center gap-2 px-3 py-8 text-center text-sm">
+              <BellOff className="size-6 opacity-60" aria-hidden />
               {t("empty")}
-            </p>
+            </div>
           )}
 
           {notifications?.map((notification) => {

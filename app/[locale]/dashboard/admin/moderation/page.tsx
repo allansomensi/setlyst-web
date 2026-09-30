@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { ShieldQuestion } from "lucide-react";
+import { ShieldCheck, ShieldQuestion } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
 import { ListPagination } from "@/components/staff/list-controls";
 import { LoadErrorNotice } from "@/components/load-error-notice";
@@ -109,12 +110,12 @@ export default async function ModerationPage({
       {flags === null ? (
         <LoadErrorNotice />
       ) : items.length === 0 ? (
-        <div className="bg-card text-muted-foreground flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-          <p className="text-foreground font-medium">
-            {t(`empty.${tab}.title`)}
-          </p>
-          <p className="max-w-md text-sm">{t(`empty.${tab}.description`)}</p>
-        </div>
+        <EmptyState
+          icon={ShieldCheck}
+          title={t(`empty.${tab}.title`)}
+          description={t(`empty.${tab}.description`)}
+          className="bg-card rounded-xl border border-dashed"
+        />
       ) : (
         <ul className="space-y-4">
           {items.map((flag) => (

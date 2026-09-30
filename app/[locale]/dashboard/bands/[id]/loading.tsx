@@ -8,10 +8,10 @@ import {
 
 export default function BandDetailLoading() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto w-full max-w-6xl space-y-8">
       <div className="space-y-6">
         <BreadcrumbSkeleton crumbs={2} />
-        <DetailHeaderSkeleton withDescription actions={3} />
+        <DetailHeaderSkeleton withDescription actions={2} />
       </div>
 
       <Separator />

@@ -9,6 +9,7 @@ import { Users2, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/components/nav-link";
 import { toastActionError } from "@/lib/action-toast";
+import { toast } from "@/lib/toast";
 
 export function AcceptInviteCard({ code }: { code: string }) {
   const t = useTranslations("bands.acceptInvite");
@@ -22,6 +23,9 @@ export function AcceptInviteCard({ code }: { code: string }) {
       const result = await acceptBandInvite(code);
       if (result.success) {
         const band = result.data;
+        // Landing on the band's page says it worked; the toast says it
+        // in words (and names the band the link was for).
+        if (band) toast.success(t("joined", { name: band.name }));
         router.push(band ? `/dashboard/bands/${band.id}` : "/dashboard/bands");
       } else if (result.code) {
         // Rate limit, expired session, read-only "viewing as"...: the
@@ -35,7 +39,9 @@ export function AcceptInviteCard({ code }: { code: string }) {
 
   return (
     <Card className="w-full items-center px-6 py-10 text-center">
-      <Users2 className="text-primary mb-2 h-10 w-10" />
+      <div className="bg-primary/10 text-primary mb-1 flex size-14 items-center justify-center rounded-full">
+        <Users2 className="size-7" aria-hidden />
+      </div>
       <h1 className="text-xl font-bold">{t("title")}</h1>
       <p className="text-muted-foreground text-sm">{t("description")}</p>
       <p className="bg-muted text-muted-foreground mt-2 w-fit rounded-md border px-3 py-1 font-mono text-sm">

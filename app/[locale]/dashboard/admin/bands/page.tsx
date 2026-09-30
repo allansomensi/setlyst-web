@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Guitar } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,6 +11,10 @@ import {
 } from "@/components/ui/table";
 import { BandAvatar } from "@/components/bands/band-avatar";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
+import {
+  hasListFilters,
+  ListEmptyState,
+} from "@/components/staff/list-empty-state";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import { Link } from "@/i18n/routing";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
@@ -31,7 +36,8 @@ export default async function AdminBandsPage({
   await requireStaffPage("content");
   const t = await getTranslations("staff.bands");
   const locale = await getLocale();
-  const { query, page } = adminListQuery(await searchParams, ["q", "user_id"]);
+  const params = await searchParams;
+  const { query, page } = adminListQuery(params, ["q", "user_id"]);
   const result = await fetchServerApi<PaginatedResponse<AdminBandSummary>>(
     `/admin/bands?${query}`,
   );
@@ -42,7 +48,7 @@ export default async function AdminBandsPage({
       <AdminPageHeader title={t("title")} description={t("description")} />
       <ListToolbar placeholder={t("search")} />
 
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>
@@ -63,12 +69,14 @@ export default async function AdminBandsPage({
           </TableHeader>
           <TableBody>
             {bands.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {t("empty")}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="p-0">
+                  <ListEmptyState
+                    icon={Guitar}
+                    title={t("empty")}
+                    filtered={hasListFilters(params)}
+                    clearHref="/dashboard/admin/bands"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -86,7 +94,10 @@ export default async function AdminBandsPage({
                         className="h-8 w-8"
                       />
                       <span className="max-w-48 min-w-0 sm:max-w-xs">
-                        <span className="block truncate font-medium group-hover:underline">
+                        <span
+                          className="block truncate font-medium group-hover:underline"
+                          title={band.name}
+                        >
                           {band.name}
                         </span>
                         <span className="text-muted-foreground block truncate text-xs">

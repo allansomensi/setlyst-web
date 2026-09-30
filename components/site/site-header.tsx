@@ -38,7 +38,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
-          <LocaleSwitcher />
+          <LocaleSwitcher short />
           <ThemeToggle />
           <span aria-hidden className="bg-border mx-1 h-6 w-px" />
           {signedIn ? (

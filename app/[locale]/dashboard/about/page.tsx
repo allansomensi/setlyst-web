@@ -63,7 +63,6 @@ const REPO_ICONS: Record<RepositoryKind, LucideIcon> = {
 
 export default async function AboutPage() {
   const t = await getTranslations("about");
-  const tNav = await getTranslations("nav");
 
   // The repositories and their latest commits (raw, English, with
   // gitmoji) are for the team; everyone else gets the version and the
@@ -78,12 +77,13 @@ export default async function AboutPage() {
   const deployedSha = process.env.VERCEL_GIT_COMMIT_SHA;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 pb-10">
+    // Starts at the same left edge as every other page (the content
+    // column of max-w-6xl) instead of centred on its own, narrower one;
+    // the sections themselves keep a comfortable reading width.
+    <div className="mx-auto w-full max-w-6xl space-y-8 pb-10 *:max-w-4xl">
       <PageBreadcrumbs
-        items={[
-          { label: tNav("home"), href: "/dashboard" },
-          { label: t("title") },
-        ]}
+        // The breadcrumbs' home icon already leads to the dashboard.
+        items={[{ label: t("title") }]}
       />
 
       {/* Hero */}

@@ -27,7 +27,7 @@ export default async function SongsPage() {
   const artists = artistsRes === FETCH_FAILED ? [] : (artistsRes?.data ?? []);
 
   return (
-    <div className="w-full space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <SongsTable
         initialSongs={songs}
         artists={artists}

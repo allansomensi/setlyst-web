@@ -5,8 +5,8 @@ import { CalendarDays, Guitar, Mic2, Route } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Badge } from "@/components/ui/badge";
 import { PinButton } from "@/components/content/pin-button";
-import { formatWallClock } from "@/lib/dates";
-import { tourPhase, type TourPhase } from "@/lib/tours";
+import { formatWallClock, parseWallClock } from "@/lib/dates";
+import { tourLengthDays, tourPhase, type TourPhase } from "@/lib/tours";
 import { cn } from "@/lib/utils";
 import type { Tour } from "@/types/content";
 
@@ -24,8 +24,21 @@ export function formatTourDates(
 ): string {
   const day = (value: string) =>
     formatWallClock(`${value}T00:00:00`, locale, { dateStyle: "medium" });
-  return tour.start_date === tour.end_date
-    ? day(tour.start_date)
+  if (tour.start_date === tour.end_date) return day(tour.start_date);
+  // A range written once ("15 de set. – 4 de nov. de 2026", the year and
+  // a shared month said only once) instead of two full dates, which
+  // wrapped over two lines on a tour card.
+  const start = parseWallClock(`${tour.start_date}T00:00:00`);
+  const end = parseWallClock(`${tour.end_date}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return `${day(tour.start_date)} – ${day(tour.end_date)}`;
+  }
+  const format = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  });
+  return typeof format.formatRange === "function"
+    ? format.formatRange(start, end)
     : `${day(tour.start_date)} – ${day(tour.end_date)}`;
 }
 
@@ -33,6 +46,14 @@ export function TourCard({ tour, today }: { tour: Tour; today: string }) {
   const t = useTranslations("tours");
   const locale = useLocale();
   const phase = tourPhase(tour, today);
+  const total = tourLengthDays(tour);
+  const elapsed =
+    phase === "current"
+      ? Math.min(
+          total,
+          tourLengthDays({ start_date: tour.start_date, end_date: today }),
+        )
+      : 0;
 
   return (
     <article className="bg-card hover:border-primary/40 group relative flex flex-col gap-3 rounded-xl border p-4 transition-colors">
@@ -42,7 +63,7 @@ export function TourCard({ tour, today }: { tour: Tour; today: string }) {
             <Route className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0">
-            <h3 className="truncate font-semibold">
+            <h3 className="truncate font-semibold" title={tour.name}>
               <Link
                 href={`/dashboard/tours/${tour.id}`}
                 className="focus-visible:ring-ring/50 rounded-sm after:absolute after:inset-0 focus-visible:ring-3 focus-visible:outline-none"
@@ -78,6 +99,23 @@ export function TourCard({ tour, today }: { tour: Tour; today: string }) {
           {t("gigCount", { count: tour.gig_count })}
         </span>
       </div>
+      {/* How far into a tour under way: "day 17 of 51". */}
+      {phase === "current" && (
+        <div className="space-y-1">
+          <p className="text-muted-foreground text-xs tabular-nums">
+            {t("dayOf", { day: elapsed, total })}
+          </p>
+          <div
+            className="bg-muted h-1.5 overflow-hidden rounded-full"
+            aria-hidden
+          >
+            <div
+              className="h-full rounded-full bg-emerald-500"
+              style={{ width: `${(elapsed / total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
       {tour.next_gig_at && phase !== "past" && (
         <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
           <CalendarDays className="h-3.5 w-3.5" aria-hidden />

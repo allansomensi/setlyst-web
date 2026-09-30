@@ -40,7 +40,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs",
+        "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-black/30 duration-150 supports-backdrop-filter:backdrop-blur-[2px] dark:bg-black/55",
         className,
       )}
       {...props}
@@ -67,7 +67,7 @@ function DialogContent({
         // tab list or a long link wraps or shrinks instead of pushing a
         // horizontal scrollbar into the dialog.
         className={cn(
-          "bg-popover text-popover-foreground ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 grid-cols-[minmax(0,1fr)] gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl p-4 text-sm ring-1 duration-100 outline-none sm:max-w-sm",
+          "bg-popover text-popover-foreground ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 grid-cols-[minmax(0,1fr)] gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-2xl p-5 text-sm shadow-[0_24px_64px_-16px_oklch(0.15_0.04_280/0.35),0_8px_20px_-8px_oklch(0.15_0.04_280/0.18)] ring-1 duration-150 outline-none sm:max-w-sm",
           // Keeps a long title from running under the × button.
           showCloseButton && "**:data-[slot=dialog-title]:pr-8",
           className,
@@ -79,7 +79,7 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
+              className="absolute top-3 right-3"
               size="icon-sm"
             >
               <XIcon aria-hidden />
@@ -115,7 +115,12 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "bg-muted/50 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t p-4 sm:flex-row sm:flex-wrap sm:justify-end",
+        // Sticky, so a long form (a song, a PDF export) keeps its
+        // buttons in reach instead of at the far end of the scroll; an
+        // opaque mix of the muted tint, since content passes under it.
+        // `-bottom-5` rather than 0: the sticky area is the dialog's
+        // content box, and the footer bleeds into its 1.25rem padding.
+        "sticky -bottom-5 z-10 -mx-5 -mb-5 flex flex-col-reverse gap-2 rounded-b-2xl border-t bg-[color-mix(in_oklab,var(--muted)_55%,var(--popover))] px-5 py-4 sm:flex-row sm:flex-wrap sm:justify-end",
         className,
       )}
       {...props}
@@ -138,7 +143,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-base leading-snug font-medium",
+        "font-heading text-lg leading-snug font-semibold tracking-tight",
         className,
       )}
       {...props}

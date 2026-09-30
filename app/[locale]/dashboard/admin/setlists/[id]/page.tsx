@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import {
   ShareModerationButton,
@@ -90,7 +91,15 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
         ]}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <DetailHeader
+        actions={
+          isAdmin ? <SetlistAdminActions setlist={setlist} /> : undefined
+        }
+      >
+        <DetailBackButton
+          href="/dashboard/admin/setlists"
+          label={tNav("adminSetlists")}
+        />
         <div className="min-w-0 space-y-1">
           <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
             {setlist.title}
@@ -130,8 +139,7 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
             updatedBy={setlist.updated_by_username}
           />
         </div>
-        {isAdmin && <SetlistAdminActions setlist={setlist} />}
-      </div>
+      </DetailHeader>
 
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-3">
@@ -227,7 +235,10 @@ export default async function AdminSetlistPage({ params }: { params: Params }) {
                       prefetch={false}
                       className="min-w-0 flex-1 hover:underline"
                     >
-                      <span className="block truncate font-medium">
+                      <span
+                        className="block truncate font-medium"
+                        title={song.title}
+                      >
                         {song.title}
                       </span>
                       <span className="text-muted-foreground block truncate text-xs">

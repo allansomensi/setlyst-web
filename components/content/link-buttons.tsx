@@ -26,6 +26,11 @@ export function LinkButtons({
       {links.map((link) => {
         const provider = PROVIDER_NAMES[link.provider] ?? link.provider;
         const label = link.label?.trim() || provider;
+        // The provider under the label, unless the label already is it
+        // ("Spotify" over "Spotify").
+        const showProvider =
+          label.localeCompare(provider, undefined, { sensitivity: "base" }) !==
+          0;
         return (
           <li key={link.url}>
             <a
@@ -36,9 +41,11 @@ export function LinkButtons({
               aria-label={t("openIn", { label, provider })}
             >
               <ProviderIcon provider={link.provider} />
-              <span className="min-w-0">
+              {/* flex-1: on a full-width button (a side card) the
+                  external-link mark sits at the right edge. */}
+              <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{label}</span>
-                {link.label?.trim() && (
+                {showProvider && (
                   <span className="text-muted-foreground block text-xs">
                     {provider}
                   </span>

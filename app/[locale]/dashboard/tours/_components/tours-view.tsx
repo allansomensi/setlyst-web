@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Route } from "lucide-react";
@@ -66,35 +67,35 @@ export function ToursView({
   const groups = groupTours(visible, today || "0000-00-00");
 
   return (
-    <div className="w-full space-y-6 pb-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
-        </div>
-        <div className="flex flex-col items-start gap-1 sm:items-end">
-          <div className="flex flex-wrap items-center gap-2">
-            {canCreate && <QuotaChip usage={quota} resource="tours" />}
-            <ImportSharedButton
-              kind="tour"
-              disabled={!canCreate || quotaFull}
-            />
-            <Button
-              onClick={() => setIsCreating(true)}
-              title={offlineDisabled.title}
-              disabled={createDisabled}
-            >
-              <Plus className="mr-2 h-4 w-4" aria-hidden />
-              {t("newTour")}
-            </Button>
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <div className="flex flex-col items-start gap-1 sm:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              {canCreate && <QuotaChip usage={quota} resource="tours" />}
+              <ImportSharedButton
+                kind="tour"
+                disabled={!canCreate || quotaFull}
+              />
+              <Button
+                onClick={() => setIsCreating(true)}
+                title={offlineDisabled.title}
+                disabled={createDisabled}
+              >
+                <Plus className="mr-2 h-4 w-4" aria-hidden />
+                {t("newTour")}
+              </Button>
+            </div>
+            {!canCreate ? (
+              <UpgradeHint message={t("locked")} />
+            ) : (
+              <QuotaLimitNotice usage={quota} resource="tours" />
+            )}
           </div>
-          {!canCreate ? (
-            <UpgradeHint message={t("locked")} />
-          ) : (
-            <QuotaLimitNotice usage={quota} resource="tours" />
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {bands.length > 0 && (
         <div className="space-y-1.5">

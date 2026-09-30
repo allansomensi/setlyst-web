@@ -27,6 +27,8 @@ import packageJson from "@/package.json";
 export interface SidebarUser {
   id?: string | null;
   name?: string | null;
+  /** First and last name, when the profile has them. */
+  displayName?: string | null;
   role?: UserRole | null;
   avatarUrl?: string | null;
 }
@@ -152,18 +154,26 @@ export function Sidebar({
         >
           <UserAvatar
             userId={user?.id ?? user?.name ?? ""}
-            name={user?.name ?? ""}
+            name={user?.displayName || user?.name || ""}
             avatarUrl={user?.id ? user.avatarUrl : null}
             size="sm"
           />
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
               <p className="group-hover:text-primary truncate text-sm font-medium transition-colors">
-                {user?.name}
+                {user?.displayName || user?.name}
               </p>
-              <p className={cn("truncate text-xs", ROLE_TEXT_STYLES[role])}>
-                {tRoles(role)}
-              </p>
+              {/* The role only says something for staff; everyone else
+                  sees the @handle other musicians know them by. */}
+              {role === "user" ? (
+                <p className="text-muted-foreground truncate text-xs">
+                  @{user?.name}
+                </p>
+              ) : (
+                <p className={cn("truncate text-xs", ROLE_TEXT_STYLES[role])}>
+                  {tRoles(role)}
+                </p>
+              )}
             </div>
           )}
         </Link>

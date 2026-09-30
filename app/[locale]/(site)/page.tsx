@@ -8,6 +8,7 @@ import {
   ListMusic,
   Mic2,
   ShieldCheck,
+  Sparkles,
   ThumbsUp,
   Users,
   WifiOff,
@@ -21,6 +22,7 @@ import { LiveModeMock } from "@/components/landing/mocks/live-mode-mock";
 import { SetlistMock } from "@/components/landing/mocks/setlist-mock";
 import { BillingNote } from "@/components/site/billing-note";
 import { FaqList } from "@/components/site/faq-list";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { pickLocalized } from "@/lib/localized";
 import { formatMoney } from "@/lib/money";
@@ -141,6 +143,7 @@ export default async function LandingPage({ params }: { params: Params }) {
   const { locale } = await params;
   const t = await getTranslations("landing");
   const tSeo = await getTranslations("seo");
+  const tPricing = await getTranslations("pricing");
   const [signedIn, plans, nonce, billingMode] = await Promise.all([
     isSignedIn(),
     getPublicPlans(),
@@ -188,15 +191,19 @@ export default async function LandingPage({ params }: { params: Params }) {
           aria-hidden
           className="bg-primary/10 sm:bg-primary/20 dark:bg-primary/15 pointer-events-none absolute -top-40 left-1/2 -z-10 h-[32rem] w-[56rem] -translate-x-1/2 rounded-full blur-3xl"
         />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-14 pb-20 sm:px-6 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:pb-28">
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] items-center gap-12 px-4 pt-14 pb-20 sm:px-6 sm:pt-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-14 lg:pb-28">
           <div>
-            <p className="bg-background/80 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm backdrop-blur">
-              <span className="bg-primary size-2 rounded-full" />
+            {/* Smaller type on phones keeps the badge on one line: wrapped,
+                the pill turned into a lopsided box. */}
+            <p className="bg-background/80 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs backdrop-blur sm:text-sm">
+              <span className="bg-primary size-2 shrink-0 rounded-full" />
               {enforced ? t("hero.badgeTrial") : t("hero.badgePreRelease")}
             </p>
+            {/* 3.5rem rather than text-6xl from lg: at 6xl the headline
+                broke into four ragged lines in its column. */}
             <h1
               id="hero-title"
-              className="mt-6 text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl"
+              className="mt-6 text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-[3.5rem] lg:leading-[1.05]"
             >
               {t("hero.title")}
             </h1>
@@ -224,8 +231,14 @@ export default async function LandingPage({ params }: { params: Params }) {
             </ul>
           </div>
 
-          <div className="relative lg:pl-4">
-            <LiveModeMock className="lg:rotate-1" />
+          <div className="relative">
+            {/* A stage-light glow under the screen, so the dark mock sits
+                in the page instead of on it. */}
+            <div
+              aria-hidden
+              className="bg-primary/25 dark:bg-primary/20 pointer-events-none absolute inset-x-8 top-10 bottom-0 -z-10 rounded-full blur-3xl"
+            />
+            <LiveModeMock />
           </div>
         </div>
       </section>
@@ -288,16 +301,27 @@ export default async function LandingPage({ params }: { params: Params }) {
             ))}
           </div>
 
-          <ul className="mt-28 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* The grid gets its own heading: right after the alternating
+              showcase it read as a stray block of cards. */}
+          <h3
+            id="more-title"
+            className="mt-24 text-center text-2xl font-bold tracking-tight text-balance sm:mt-28"
+          >
+            {t("moreTitle")}
+          </h3>
+          <ul
+            aria-labelledby="more-title"
+            className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {GRID.map(({ key, icon: Icon }) => (
               <li
                 key={key}
-                className="bg-card rounded-2xl border p-6 shadow-xs transition-shadow hover:shadow-md"
+                className="bg-card rounded-2xl border p-6 shadow-xs"
               >
                 <span className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
                   <Icon className="size-5" />
                 </span>
-                <h3 className="mt-4 font-semibold">{t(`grid.${key}.title`)}</h3>
+                <h4 className="mt-4 font-semibold">{t(`grid.${key}.title`)}</h4>
                 <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                   {t(`grid.${key}.description`)}
                 </p>
@@ -362,9 +386,17 @@ export default async function LandingPage({ params }: { params: Params }) {
                       "border-primary/60 ring-primary/15 ring-4",
                   )}
                 >
-                  <h3 className="text-lg font-semibold">
-                    {pickLocalized(plan.name, locale) || plan.code}
-                  </h3>
+                  <div className="flex min-h-6 flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-semibold">
+                      {pickLocalized(plan.name, locale) || plan.code}
+                    </h3>
+                    {plan.highlighted && (
+                      <Badge className="h-6 gap-1 px-2.5">
+                        <Sparkles />
+                        {tPricing("recommended")}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-muted-foreground mt-1 flex-1 text-sm leading-relaxed">
                     {pickLocalized(plan.description, locale)}
                   </p>
@@ -426,41 +458,43 @@ export default async function LandingPage({ params }: { params: Params }) {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* Final CTA. The same deep indigo panel in both themes (like the
+          hero's Live Mode screen): `bg-primary` turned into a glaring
+          lavender slab on the dark page, with dark text on it. */}
       <section
         aria-labelledby="cta-title"
-        className="px-4 pb-20 sm:px-6 sm:pb-28"
+        className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 sm:pb-28"
       >
-        <div className="bg-primary text-primary-foreground relative mx-auto max-w-6xl overflow-hidden rounded-3xl px-6 py-14 text-center sm:px-12 sm:py-16">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-[linear-gradient(135deg,oklch(0.47_0.2_280),oklch(0.33_0.17_287))] px-6 py-14 text-center text-white shadow-xl shadow-indigo-950/20 sm:px-12 sm:py-16 dark:ring-1 dark:ring-white/10">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.18),transparent_60%)]"
+            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.2),transparent_60%)]"
           />
           <h2
             id="cta-title"
-            className="relative text-3xl font-bold tracking-tight text-balance sm:text-4xl"
+            className="text-3xl font-bold tracking-tight text-balance sm:text-4xl"
           >
             {t("finalCta.title")}
           </h2>
-          <p className="text-primary-foreground/85 relative mx-auto mt-4 max-w-xl text-lg">
+          <p className="mx-auto mt-4 max-w-xl text-lg text-pretty text-white/80">
             {t("finalCta.description")}
           </p>
-          <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
               asChild
               size="lg"
-              variant="secondary"
-              className="focus-visible:ring-primary-foreground/60 h-11 px-5 text-base"
+              className="h-11 bg-white px-5 text-base text-indigo-950 hover:bg-white/90 focus-visible:ring-white/60"
             >
               <Link href={signedIn ? "/dashboard" : "/register"}>
                 {signedIn ? t("hero.ctaDashboard") : t("hero.ctaPrimary")}
+                <ArrowRight data-icon="inline-end" />
               </Link>
             </Button>
             <Button
               asChild
               size="lg"
               variant="ghost"
-              className="hover:bg-primary-foreground/10 hover:text-primary-foreground dark:hover:bg-primary-foreground/10 focus-visible:ring-primary-foreground/60 h-11 px-5 text-base"
+              className="h-11 px-5 text-base text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/60 dark:hover:bg-white/10"
             >
               <Link href="/pricing">{t("hero.ctaSecondary")}</Link>
             </Button>

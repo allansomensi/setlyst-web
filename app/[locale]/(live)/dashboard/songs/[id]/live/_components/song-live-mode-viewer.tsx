@@ -95,6 +95,8 @@ export function SongLiveModeViewer({
     disabled: settingsOpen,
   });
 
+  const hasLyrics = transpose.content.trim() !== "";
+
   // Base: 1.5rem (~text-2xl). Scaled by zoomLevel.
   const baseFontSize = 1.5 * controls.zoomLevel;
 
@@ -104,9 +106,17 @@ export function SongLiveModeViewer({
       className="bg-background text-foreground fixed inset-0 z-50 flex flex-col overflow-hidden"
     >
       <LiveHeader
-        closeHref="/dashboard/songs"
-        title={song.title}
-        subtitle={t("singleSongMode")}
+        // Back to the song it was opened from, as the setlist viewer goes
+        // back to its setlist — not to the top of the whole library.
+        closeHref={`/dashboard/songs/${song.id}`}
+        title={
+          song.version_label
+            ? `${song.title} · ${song.version_label}`
+            : song.title
+        }
+        // Who it's by, like everywhere else a song is named; the generic
+        // "single song" caption only when the artist isn't known.
+        subtitle={song.artist_name || t("singleSongMode")}
         isOnline={isOnline}
         tempo={song.tempo}
         playedKey={transpose.key}
@@ -134,7 +144,8 @@ export function SongLiveModeViewer({
 
         <LiveActiveControls
           controls={controls}
-          canAutoScroll={!fitToScreen}
+          // Nothing to scroll through: fit mode, or a song with no lyrics.
+          canAutoScroll={!fitToScreen && hasLyrics}
           metronomeRunning={metronomeSettings.isRunning}
           metronomeBpm={metronomeSettings.bpm}
           onStopMetronome={toggleMetronome}

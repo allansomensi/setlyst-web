@@ -7,6 +7,8 @@ import { deleteBand, leaveBand, transferBandOwnership } from "../../actions";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,7 @@ export function BandDangerZone({
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
+  const [deleteName, setDeleteName] = useState("");
 
   const otherMembers = members.filter((m) => m.user_id !== currentUserId);
 
@@ -65,8 +68,8 @@ export function BandDangerZone({
         toast.success(t("deleted"));
         router.push("/dashboard/bands");
       } else {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
-        setIsDeleteOpen(false);
       }
     });
   };
@@ -79,7 +82,6 @@ export function BandDangerZone({
         router.push("/dashboard/bands");
       } else {
         toastActionError(result, result.error);
-        setIsLeaveOpen(false);
       }
     });
   };
@@ -91,7 +93,7 @@ export function BandDangerZone({
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 
-      <div className="divide-y rounded-md border border-red-200 dark:border-red-950">
+      <div className="bg-card border-destructive/30 divide-y overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         {band.my_role === "owner" && otherMembers.length > 0 && (
           <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -100,7 +102,11 @@ export function BandDangerZone({
                 {t("transferDescription")}
               </p>
             </div>
-            <Button variant="outline" onClick={() => setIsTransferOpen(true)}>
+            <Button
+              variant="outline"
+              className="shrink-0 self-start sm:self-auto"
+              onClick={() => setIsTransferOpen(true)}
+            >
               {t("transferAction")}
             </Button>
           </div>
@@ -114,7 +120,11 @@ export function BandDangerZone({
                 {t("leaveDescription")}
               </p>
             </div>
-            <Button variant="outline" onClick={() => setIsLeaveOpen(true)}>
+            <Button
+              variant="outline"
+              className="text-destructive hover:text-destructive shrink-0 self-start sm:self-auto"
+              onClick={() => setIsLeaveOpen(true)}
+            >
               {t("leaveAction")}
             </Button>
           </div>
@@ -128,7 +138,14 @@ export function BandDangerZone({
                 {t("deleteDescription")}
               </p>
             </div>
-            <Button variant="destructive" onClick={() => setIsDeleteOpen(true)}>
+            <Button
+              variant="destructive"
+              className="shrink-0 self-start sm:self-auto"
+              onClick={() => {
+                setDeleteName("");
+                setIsDeleteOpen(true);
+              }}
+            >
               {t("deleteAction")}
             </Button>
           </div>
@@ -150,11 +167,18 @@ export function BandDangerZone({
                 required
                 disabled={isPending}
               >
-                {otherMembers.map((member) => (
-                  <option key={member.user_id} value={member.user_id}>
-                    {member.username}
-                  </option>
-                ))}
+                {otherMembers.map((member) => {
+                  const name = [member.first_name, member.last_name]
+                    .filter(Boolean)
+                    .join(" ");
+                  return (
+                    <option key={member.user_id} value={member.user_id}>
+                      {name
+                        ? `${name} (@${member.username})`
+                        : `@${member.username}`}
+                    </option>
+                  );
+                })}
               </NativeSelect>
             </div>
             <DialogFooter>
@@ -167,7 +191,9 @@ export function BandDangerZone({
                 {tCommon("cancel")}
               </Button>
               <Button type="submit" variant="destructive" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                )}
                 {t("transferAction")}
               </Button>
             </DialogFooter>
@@ -175,59 +201,43 @@ export function BandDangerZone({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isLeaveOpen} onOpenChange={setIsLeaveOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("leaveTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("leaveConfirm", { name: band.name })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsLeaveOpen(false)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmLeave}
-              disabled={isPending}
-            >
-              {t("leaveAction")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmActionDialog
+        open={isLeaveOpen}
+        onOpenChange={setIsLeaveOpen}
+        title={t("leaveTitle")}
+        description={t("leaveConfirm", { name: band.name })}
+        confirmLabel={t("leaveAction")}
+        onConfirm={confirmLeave}
+        pending={isPending}
+      />
 
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("deleteTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("deleteConfirm", { name: band.name })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleteOpen(false)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {t("deleteAction")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Deleting a band takes every setlist, show and member with it,
+          with no trash to come back from: typing the name makes sure it
+          is this band and on purpose. */}
+      <ConfirmActionDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        title={t("deleteTitle")}
+        description={t("deleteConfirm", { name: band.name })}
+        confirmLabel={t("deleteAction")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+        confirmDisabled={deleteName.trim() !== band.name.trim()}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="delete-band-name">
+            {t("typeToConfirm", { name: band.name })}
+          </Label>
+          <Input
+            id="delete-band-name"
+            value={deleteName}
+            onChange={(e) => setDeleteName(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            disabled={isPending}
+          />
+        </div>
+      </ConfirmActionDialog>
     </div>
   );
 }

@@ -102,7 +102,9 @@ export default async function UserProfilePage({
               className="ring-card size-28 text-4xl ring-4"
             />
             <div className="min-w-0 flex-1 sm:pb-1">
-              <h1 className="truncate text-2xl font-bold">{displayName}</h1>
+              <h1 className="truncate text-2xl font-bold" title={displayName}>
+                {displayName}
+              </h1>
               <p className="text-muted-foreground truncate text-sm">
                 @{profile.username}
               </p>

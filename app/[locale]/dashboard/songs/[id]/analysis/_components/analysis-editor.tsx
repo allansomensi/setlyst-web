@@ -860,6 +860,13 @@ export function AnalysisEditor({
         </div>
       )}
 
+      {editing && !empty && selected === null && !pending && (
+        // Below lg there's no side panel saying what to do next.
+        <p className="text-muted-foreground -mt-2 text-xs lg:hidden">
+          {t("overview.hint")}
+        </p>
+      )}
+
       <div
         className={cn(
           "grid gap-6",
@@ -913,6 +920,25 @@ export function AnalysisEditor({
           </aside>
         )}
       </div>
+
+      {/* Below lg the side panel isn't there: its overview (progress,
+          the summary to write, notes, legend) follows the chart instead,
+          or none of it could be reached on a phone. */}
+      {editing && (
+        <Card className="overflow-hidden py-0 lg:hidden">
+          <Overview
+            analysis={analysis}
+            chords={chords}
+            patterns={patterns}
+            analysed={analysed}
+            canEdit={canEdit}
+            onSummary={(summary) =>
+              apply((a) => ({ ...a, summary }), "summary")
+            }
+            onSelect={select}
+          />
+        </Card>
+      )}
 
       {!editing && (
         <Card>
@@ -971,9 +997,12 @@ export function AnalysisEditor({
       )}
 
       {/* Phones and tablets: the inspector docks at the bottom of the
-          screen, over the chart, which stays scrollable and tappable. */}
+          screen, over the chart, which stays scrollable and tappable. The
+          negative offsets cancel the scroll area's own padding (bottom and
+          sides, as the dashboard layout sets them), so the sheet sits flush
+          on the tab bar instead of a strip of chart showing under it. */}
       {editing && (inspector || pending) && (
-        <div className="sticky bottom-0 z-30 -mx-4 lg:hidden">
+        <div className="sticky -bottom-6 z-30 -mx-4 md:-bottom-8 md:-mx-8 lg:hidden">
           {pending ? (
             <PendingBar
               pending={pending}
@@ -1153,7 +1182,11 @@ function Overview({
             {t("progressCount", { analysed, total: chords.length })}
           </span>
         </div>
-        <Progress value={percent} className="h-1.5" />
+        <Progress
+          value={percent}
+          aria-label={t("progress")}
+          className="h-1.5"
+        />
         <p className="text-muted-foreground text-xs">{t("hint")}</p>
       </section>
 
@@ -1173,8 +1206,11 @@ function Overview({
       </section>
 
       <section className="space-y-2 px-4 py-4">
-        <h2 className="text-sm font-semibold">{t("summary")}</h2>
+        <h2 id="analysis-summary-heading" className="text-sm font-semibold">
+          {t("summary")}
+        </h2>
         <Textarea
+          aria-labelledby="analysis-summary-heading"
           value={analysis.summary}
           onChange={(event) => onSummary(event.target.value)}
           maxLength={LIMITS.summary}

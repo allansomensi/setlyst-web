@@ -6,7 +6,7 @@ import {
 
 export default function SetlistAnalyticsLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <BreadcrumbSkeleton crumbs={3} />
       <DetailHeaderSkeleton />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

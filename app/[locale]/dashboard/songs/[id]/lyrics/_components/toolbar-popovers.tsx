@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HelpCircle, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,12 +50,15 @@ const COMMON_CHORDS = [
 
 interface ChordPopoverProps {
   onInsert: (chord: string) => void;
+  disabled?: boolean;
 }
 
-export function ChordPopover({ onInsert }: ChordPopoverProps) {
+export function ChordPopover({ onInsert, disabled }: ChordPopoverProps) {
   const t = useTranslations("lyrics.toolbar");
   const [custom, setCustom] = useState("");
   const [open, setOpen] = useState(false);
+  const inputId = useId();
+  const commonId = useId();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,18 +68,24 @@ export function ChordPopover({ onInsert }: ChordPopoverProps) {
           size="sm"
           className="h-8 gap-1.5 text-xs"
           title={t("insertChord")}
+          disabled={disabled}
         >
-          <Music className="h-3.5 w-3.5" />
+          <Music className="h-3.5 w-3.5" aria-hidden />
           {t("chord")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3" align="start">
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs">{t("customChord")}</Label>
+            <Label htmlFor={inputId} className="text-xs">
+              {t("customChord")}
+            </Label>
             <div className="flex gap-2">
               <Input
+                id={inputId}
                 value={custom}
+                autoComplete="off"
+                spellCheck={false}
                 onChange={(e) => setCustom(e.target.value)}
                 placeholder={t("customChordPlaceholder")}
                 className="h-8 text-base md:text-sm"
@@ -103,10 +112,19 @@ export function ChordPopover({ onInsert }: ChordPopoverProps) {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">
+            {/* Names a group of buttons, not a field: a <label> here would
+                point at nothing. */}
+            <p
+              id={commonId}
+              className="text-muted-foreground text-xs leading-none font-medium"
+            >
               {t("commonChords")}
-            </Label>
-            <div className="flex flex-wrap gap-1">
+            </p>
+            <div
+              role="group"
+              aria-labelledby={commonId}
+              className="flex flex-wrap gap-1"
+            >
               {COMMON_CHORDS.map((c) => (
                 <button
                   key={c}
@@ -115,7 +133,7 @@ export function ChordPopover({ onInsert }: ChordPopoverProps) {
                     onInsert(c);
                     setOpen(false);
                   }}
-                  className="bg-muted hover:bg-accent hover:text-accent-foreground rounded px-2 py-0.5 font-mono text-xs transition-colors"
+                  className="bg-muted hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 rounded px-2 py-0.5 font-mono text-xs transition-colors outline-none focus-visible:ring-2 pointer-coarse:min-h-9 pointer-coarse:min-w-11 pointer-coarse:text-sm"
                 >
                   {c}
                 </button>

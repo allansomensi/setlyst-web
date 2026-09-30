@@ -184,6 +184,8 @@ export function FlagCard({
   const isOpen = flag.status === "open";
   const corrective = actionsForFlag(flag);
   const allowed = canActOnFlag(actor, flag);
+  // Staff can dismiss a flag on their own account but not act on it.
+  const isSelf = flag.user.id === actor.id;
   const changed = flag.current_value !== flag.value;
   const terms = detailTerms(flag.details);
   const isImage = isImageTarget(flag.target_type);
@@ -410,7 +412,7 @@ export function FlagCard({
                       variant="destructive"
                       size="sm"
                       onClick={() => openDialog(next)}
-                      disabled={flag.user.id === actor.id}
+                      disabled={isSelf}
                     >
                       <Icon aria-hidden />
                       {t(`actions.${next}`)}
@@ -429,6 +431,11 @@ export function FlagCard({
             {isOpen && !allowed && (
               <p className="text-muted-foreground w-full text-xs">
                 {t("card.outranked")}
+              </p>
+            )}
+            {isOpen && allowed && isSelf && corrective.length > 0 && (
+              <p className="text-muted-foreground w-full text-xs">
+                {t("card.ownAccount")}
               </p>
             )}
           </div>
@@ -467,8 +474,12 @@ export function FlagCard({
               rows={3}
               onChange={(event) => setNote(event.target.value)}
               placeholder={t("dialog.notePlaceholder")}
+              aria-describedby={`note-hint-${flag.id}`}
             />
-            <p className="text-muted-foreground text-xs">
+            <p
+              id={`note-hint-${flag.id}`}
+              className="text-muted-foreground text-xs"
+            >
               {action !== "dismiss" && notify
                 ? t("dialog.noteVisible")
                 : t("dialog.noteInternal")}

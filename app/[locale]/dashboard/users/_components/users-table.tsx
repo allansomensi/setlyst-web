@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -24,6 +24,8 @@ import {
 import { TablePagination } from "@/components/ui/table-pagination";
 import { PlatformRoleBadge } from "@/components/role-badge";
 import { UserStatusBadges } from "@/components/staff/user-status-badges";
+import { AdminPageHeader } from "@/components/staff/admin-page-header";
+import { ListEmptyState } from "@/components/staff/list-empty-state";
 import { useTableControls } from "@/hooks/use-table-controls";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { Link } from "@/i18n/routing";
@@ -111,22 +113,20 @@ export function UsersTable({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">
-            {t("subtitle", {
-              total: initialUsers.length,
-              banned: counts.banned,
-              inactive: counts.inactive,
-            })}
-          </p>
-        </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("add")}
-        </Button>
-      </div>
+      <AdminPageHeader
+        title={t("title")}
+        description={t("subtitle", {
+          total: initialUsers.length,
+          banned: counts.banned,
+          inactive: counts.inactive,
+        })}
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <Plus aria-hidden />
+            {t("add")}
+          </Button>
+        }
+      />
 
       {loadError && initialUsers.length === 0 && <LoadErrorNotice />}
 
@@ -135,7 +135,7 @@ export function UsersTable({
           value={search}
           onChange={setSearch}
           placeholder={t("searchPlaceholder")}
-          className="sm:max-w-sm"
+          className="w-full sm:max-w-sm"
         />
         <div className="flex gap-2">
           <Select
@@ -185,7 +185,7 @@ export function UsersTable({
         </div>
       </div>
 
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>
@@ -195,13 +195,19 @@ export function UsersTable({
                 sortConfig={sortConfig}
                 onSort={handleSort}
               />
+              {/* On a phone the role and the state move under the name
+                  (below), so the row's actions menu stays on screen
+                  instead of past a horizontal scroll. */}
               <SortableColumnHeader
                 label={t("columns.role")}
                 sortKey="role"
                 sortConfig={sortConfig}
                 onSort={handleSort}
+                className="hidden sm:table-cell"
               />
-              <TableHead>{t("columns.status")}</TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t("columns.status")}
+              </TableHead>
               <SortableColumnHeader
                 label={t("columns.lastLogin")}
                 sortKey="last_login_at"
@@ -223,12 +229,21 @@ export function UsersTable({
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {t("empty")}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={6} className="p-0">
+                  <ListEmptyState
+                    icon={Users}
+                    title={t("empty")}
+                    filtered={
+                      !!search || roleFilter !== "all" || stateFilter !== "all"
+                    }
+                    onClear={() => {
+                      setSearch("");
+                      setRoleFilter("all");
+                      setStateFilter("all");
+                      setCurrentPage(1);
+                    }}
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -256,16 +271,30 @@ export function UsersTable({
                         </span>
                         {/* Capped so a long email truncates instead of
                             stretching the whole table sideways. */}
-                        <span className="text-muted-foreground max-w-56 truncate text-xs sm:max-w-xs">
+                        <span
+                          className="text-muted-foreground max-w-56 truncate text-xs sm:max-w-xs"
+                          title={
+                            [fullName, user.email]
+                              .filter(Boolean)
+                              .join(" · ") || undefined
+                          }
+                        >
                           {[fullName, user.email].filter(Boolean).join(" · ") ||
                             "—"}
                         </span>
                       </Link>
+                      <div className="mt-1.5 flex flex-wrap gap-1 md:hidden">
+                        <PlatformRoleBadge
+                          role={user.role}
+                          className="sm:hidden"
+                        />
+                        <UserStatusBadges user={user} />
+                      </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <PlatformRoleBadge role={user.role} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <UserStatusBadges user={user} />
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">

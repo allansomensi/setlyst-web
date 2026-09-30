@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import {
   BandWithMembership,
   BandMember,
@@ -42,12 +42,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { UserAvatar } from "@/components/user-avatar";
 import { Link } from "@/components/nav-link";
 import { LogOut, X, Pencil, Loader2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 
 const ASSIGNABLE_ROLES: BandRole[] = ["member", "moderator", "admin"];
+
+/** "Marina Costa", or the username when no name was given. */
+function memberName(member: BandMember): string {
+  return (
+    [member.first_name, member.last_name].filter(Boolean).join(" ") ||
+    member.username
+  );
+}
 
 interface BandMembersSectionProps {
   band: BandWithMembership;
@@ -69,6 +79,7 @@ export function BandMembersSection({
   );
   const [titleInput, setTitleInput] = useState("");
 
+  const removingSelf = memberToRemove?.user_id === currentUserId;
   const myLevel = BAND_ROLE_LEVEL[band.my_role];
   const canManage = band.my_role === "owner" || band.my_role === "admin";
 
@@ -94,10 +105,11 @@ export function BandMembersSection({
 
       if (result.success) {
         toast.success(isSelf ? t("left") : t("removed"));
+        setMemberToRemove(null);
       } else {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
       }
-      setMemberToRemove(null);
     });
   };
 
@@ -106,8 +118,9 @@ export function BandMembersSection({
     setMemberToEditTitle(member);
   };
 
-  const confirmTitleEdit = () => {
-    if (!memberToEditTitle) return;
+  const confirmTitleEdit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!memberToEditTitle || isPending) return;
     const title = titleInput.trim() || null;
 
     startTransition(async () => {
@@ -132,13 +145,15 @@ export function BandMembersSection({
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("table.member")}</TableHead>
               <TableHead>{t("table.role")}</TableHead>
-              <TableHead className="text-right">{t("table.actions")}</TableHead>
+              <TableHead className="w-12 text-right">
+                <span className="sr-only">{t("table.actions")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -151,47 +166,56 @@ export function BandMembersSection({
                 (canManage && !isSelf && targetLevel < myLevel) ||
                 (isSelf && member.role !== "owner");
 
-              const displayName =
-                [member.first_name, member.last_name]
-                  .filter(Boolean)
-                  .join(" ") || member.username;
+              const displayName = memberName(member);
 
               return (
                 <TableRow key={member.id}>
                   <TableCell>
-                    <div className="flex flex-col">
-                      <span className="flex flex-wrap items-center gap-2 font-medium">
-                        <Link
-                          href={`/dashboard/profile/${member.user_id}`}
-                          className="hover:underline"
-                        >
-                          {displayName}
-                        </Link>
-                        {isSelf && (
-                          <span className="text-muted-foreground">
-                            ({tCommon("you")})
-                          </span>
-                        )}
-                        {member.title && (
-                          <Badge variant="secondary" className="font-normal">
-                            {member.title}
-                          </Badge>
-                        )}
-                        {(isSelf || canManage) && (
-                          <button
-                            type="button"
-                            onClick={() => openTitleEditor(member)}
-                            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:outline-none"
-                            title={t("editTitle")}
-                            aria-label={t("editTitle")}
+                    <div className="flex items-center gap-3">
+                      <UserAvatar
+                        userId={member.user_id}
+                        name={displayName}
+                        size="sm"
+                        className="hidden sm:flex"
+                      />
+                      {/* Name on the first line; the handle and what
+                          they play on the second, so a phone's narrow
+                          column doesn't stack name, badge and pencil one
+                          per line. */}
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="flex flex-wrap items-center gap-x-1.5 font-medium">
+                          <Link
+                            href={`/dashboard/profile/${member.user_id}`}
+                            className="hover:underline"
                           >
-                            <Pencil className="h-3 w-3" aria-hidden />
-                          </button>
-                        )}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        @{member.username}
-                      </span>
+                            {displayName}
+                          </Link>
+                          {isSelf && (
+                            <span className="text-muted-foreground font-normal">
+                              ({tCommon("you")})
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
+                          @{member.username}
+                          {member.title && (
+                            <Badge variant="secondary" className="font-normal">
+                              {member.title}
+                            </Badge>
+                          )}
+                          {(isSelf || canManage) && (
+                            <button
+                              type="button"
+                              onClick={() => openTitleEditor(member)}
+                              className="hover:text-foreground hover:bg-muted focus-visible:ring-ring rounded-sm p-1 focus-visible:ring-2 focus-visible:outline-none pointer-coarse:p-2"
+                              title={t("editTitle")}
+                              aria-label={t("editTitle")}
+                            >
+                              <Pencil className="h-3 w-3" aria-hidden />
+                            </button>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -203,7 +227,10 @@ export function BandMembersSection({
                         }
                         disabled={isPending}
                       >
-                        <SelectTrigger className="w-36">
+                        <SelectTrigger
+                          className="w-44"
+                          aria-label={`${t("table.role")}: ${displayName}`}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -246,77 +273,61 @@ export function BandMembersSection({
         </Table>
       </div>
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!memberToRemove}
         onOpenChange={(open) => !open && setMemberToRemove(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {memberToRemove?.user_id === currentUserId
-                ? t("leaveTitle")
-                : t("removeTitle")}
-            </DialogTitle>
-            <DialogDescription>
-              {memberToRemove?.user_id === currentUserId
-                ? t("leaveConfirm", { name: band.name })
-                : t("removeConfirm", {
-                    name: memberToRemove?.username ?? "",
-                  })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setMemberToRemove(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmRemove}
-              disabled={isPending}
-            >
-              {tCommon("confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={removingSelf ? t("leaveTitle") : t("removeTitle")}
+        description={
+          removingSelf
+            ? t("leaveConfirm", { name: band.name })
+            : t("removeConfirm", {
+                name: memberToRemove ? memberName(memberToRemove) : "",
+              })
+        }
+        confirmLabel={removingSelf ? t("leave") : t("remove")}
+        onConfirm={confirmRemove}
+        pending={isPending}
+      />
 
       <Dialog
         open={!!memberToEditTitle}
         onOpenChange={(open) => !open && setMemberToEditTitle(null)}
       >
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("editTitle")}</DialogTitle>
-            <DialogDescription>{t("editTitleDescription")}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-2">
-            <Label htmlFor="member-title">{t("titleLabel")}</Label>
-            <Input
-              id="member-title"
-              value={titleInput}
-              onChange={(e) => setTitleInput(e.target.value)}
-              placeholder={t("titlePlaceholder")}
-              maxLength={50}
-              disabled={isPending}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setMemberToEditTitle(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button onClick={confirmTitleEdit} disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {tCommon("save")}
-            </Button>
-          </DialogFooter>
+          {/* A form, so Enter in the field saves like every other dialog. */}
+          <form onSubmit={confirmTitleEdit} className="grid min-w-0 gap-4">
+            <DialogHeader>
+              <DialogTitle>{t("editTitle")}</DialogTitle>
+              <DialogDescription>{t("editTitleDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="member-title">{t("titleLabel")}</Label>
+              <Input
+                id="member-title"
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                placeholder={t("titlePlaceholder")}
+                maxLength={50}
+                disabled={isPending}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMemberToEditTitle(null)}
+                disabled={isPending}
+              >
+                {tCommon("cancel")}
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                )}
+                {tCommon("save")}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

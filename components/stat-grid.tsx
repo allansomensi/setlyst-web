@@ -25,9 +25,9 @@ export function StatGrid({
   className?: string;
 }) {
   return (
-    <div
+    <dl
       className={cn(
-        "bg-border grid gap-px overflow-hidden rounded-xl border",
+        "bg-border grid gap-px overflow-hidden rounded-xl border shadow-(--shadow-surface)",
         "grid-cols-2",
         items.length === 4 && "sm:grid-cols-4",
         items.length === 5 && "sm:grid-cols-3 lg:grid-cols-5",
@@ -47,15 +47,15 @@ export function StatGrid({
               "col-span-2 sm:col-span-1",
           )}
         >
-          <span className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
-            {Icon && <Icon className="h-3.5 w-3.5" />}
+          <dt className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+            {Icon && <Icon className="h-3.5 w-3.5" aria-hidden />}
             {label}
-          </span>
-          <span className="text-2xl font-semibold tracking-tight tabular-nums">
+          </dt>
+          <dd className="text-2xl font-semibold tracking-tight tabular-nums">
             {value}
-          </span>
+          </dd>
         </div>
       ))}
-    </div>
+    </dl>
   );
 }

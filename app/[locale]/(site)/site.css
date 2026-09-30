@@ -7,7 +7,8 @@
 @keyframes landing-beat {
   0%,
   24.9% {
-    background-color: var(--color-amber-300, oklch(87.9% 0.169 91.605));
+    /* The yellow of Live Mode's high-contrast palette (globals.css). */
+    background-color: var(--color-yellow-300, oklch(90.5% 0.182 98.111));
     transform: scale(1.35);
   }
   25%,

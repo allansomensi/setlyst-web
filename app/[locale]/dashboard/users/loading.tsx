@@ -10,7 +10,7 @@ import {
 
 export default function UsersLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Header Skeleton */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
@@ -24,7 +24,7 @@ export default function UsersLoading() {
       <Skeleton className="h-10 w-full max-w-sm" />
 
       {/* Table Skeleton */}
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>

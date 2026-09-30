@@ -163,11 +163,80 @@ const GENRE_DISPLAY_OVERRIDES: Partial<Record<Genre, string>> = {
   MPB: "MPB",
 };
 
-export function formatGenre(genre: string | null | undefined): string {
+/**
+ * Names that read wrong left in English in the other languages: the
+ * genres that are plain words ("Acoustic", "Other") rather than names
+ * used as they are everywhere ("Rock", "Jazz", "Heavy Metal"), and the
+ * Brazilian ones whose identifier drops the accent (Axé, Forró).
+ */
+const GENRE_ACCENTED: Partial<Record<Genre, string>> = {
+  Axe: "Axé",
+  Forro: "Forró",
+  Gaucho: "Gaúcho",
+};
+
+const GENRE_LOCALE_NAMES: Record<string, Partial<Record<Genre, string>>> = {
+  "pt-BR": {
+    Acoustic: "Acústico",
+    Alternative: "Alternativo",
+    AlternativeRock: "Rock Alternativo",
+    Classical: "Clássica",
+    ClassicRock: "Rock Clássico",
+    Electronic: "Eletrônica",
+    Latin: "Latina",
+    ProgressiveRock: "Rock Progressivo",
+    PsychedelicRock: "Rock Psicodélico",
+    SoftRock: "Soft Rock",
+    WorldMusic: "Música do Mundo",
+    Other: "Outro",
+  },
+  es: {
+    Acoustic: "Acústico",
+    Alternative: "Alternativo",
+    AlternativeRock: "Rock Alternativo",
+    Classical: "Clásica",
+    ClassicRock: "Rock Clásico",
+    Electronic: "Electrónica",
+    Latin: "Latina",
+    ProgressiveRock: "Rock Progresivo",
+    PsychedelicRock: "Rock Psicodélico",
+    WorldMusic: "Música del Mundo",
+    Other: "Otro",
+  },
+};
+
+/**
+ * A genre's display name in `locale` (English when none is given).
+ */
+export function formatGenre(
+  genre: string | null | undefined,
+  locale?: string,
+): string {
   if (!genre) return "";
-  const override = GENRE_DISPLAY_OVERRIDES[genre as Genre];
+  const localized = locale
+    ? GENRE_LOCALE_NAMES[locale]?.[genre as Genre]
+    : undefined;
+  if (localized) return localized;
+  const override =
+    GENRE_DISPLAY_OVERRIDES[genre as Genre] ?? GENRE_ACCENTED[genre as Genre];
   if (override) return override;
   return genre.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+}
+
+/**
+ * Every genre as a `{ value, label }` option, in the alphabetical order
+ * of `locale` ("Other" last), for a genre picker.
+ */
+export function genreOptions(
+  locale: string,
+): { value: Genre; label: string }[] {
+  const collator = new Intl.Collator(locale, { sensitivity: "base" });
+  const options: { value: Genre; label: string }[] = GENRES.filter(
+    (genre) => genre !== "Other",
+  ).map((value) => ({ value, label: formatGenre(value, locale) }));
+  options.sort((a, b) => collator.compare(a.label, b.label));
+  options.push({ value: "Other", label: formatGenre("Other", locale) });
+  return options;
 }
 
 export type Tonality = (typeof TONALITIES)[number];

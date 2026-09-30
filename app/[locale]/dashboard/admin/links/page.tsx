@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { CalendarDays, ListMusic } from "lucide-react";
+import { CalendarDays, Link2, ListMusic } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,6 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
+import {
+  hasListFilters,
+  ListEmptyState,
+} from "@/components/staff/list-empty-state";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import {
   ShareModerationButton,
@@ -36,7 +40,8 @@ export default async function AdminLinksPage({
   const t = await getTranslations("staff.links");
   const tShare = await getTranslations("staff.share");
   const locale = await getLocale();
-  const { query, page } = adminListQuery(await searchParams, ["q", "shared"]);
+  const params = await searchParams;
+  const { query, page } = adminListQuery(params, ["q", "shared"]);
   const result = await fetchServerApi<PaginatedResponse<SharedLink>>(
     `/admin/shared-links?${query}`,
   );
@@ -60,7 +65,7 @@ export default async function AdminLinksPage({
         ]}
       />
 
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>
@@ -68,7 +73,11 @@ export default async function AdminLinksPage({
               <TableHead className="hidden md:table-cell">
                 {t("columns.owner")}
               </TableHead>
-              <TableHead>{t("columns.status")}</TableHead>
+              {/* On a phone the state moves under the title, so the
+                  take-down button stays on screen. */}
+              <TableHead className="hidden sm:table-cell">
+                {t("columns.status")}
+              </TableHead>
               <TableHead className="hidden lg:table-cell">
                 {t("columns.updated")}
               </TableHead>
@@ -79,12 +88,14 @@ export default async function AdminLinksPage({
           </TableHeader>
           <TableBody>
             {links.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  {t("empty")}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="p-0">
+                  <ListEmptyState
+                    icon={Link2}
+                    title={t("empty")}
+                    filtered={hasListFilters(params)}
+                    clearHref="/dashboard/admin/links"
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -107,11 +118,15 @@ export default async function AdminLinksPage({
                               href={`/dashboard/admin/setlists/${link.id}`}
                               prefetch={false}
                               className="block truncate font-medium hover:underline"
+                              title={link.title}
                             >
                               {link.title}
                             </Link>
                           ) : (
-                            <span className="block truncate font-medium">
+                            <span
+                              className="block truncate font-medium"
+                              title={link.title}
+                            >
                               {link.title}
                             </span>
                           )}
@@ -131,6 +146,9 @@ export default async function AdminLinksPage({
                               </>
                             )}
                           </span>
+                          <div className="mt-1.5 sm:hidden">
+                            <ShareStatusBadge state={link} />
+                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -148,7 +166,7 @@ export default async function AdminLinksPage({
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <ShareStatusBadge state={link} />
                       {link.share_locked_at && (
                         <span className="text-muted-foreground mt-1 block max-w-56 text-xs">
@@ -165,7 +183,7 @@ export default async function AdminLinksPage({
                       {formatApiDate(link.updated_at, locale)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <ShareModerationButton state={link} />
+                      <ShareModerationButton state={link} compact />
                     </TableCell>
                   </TableRow>
                 );

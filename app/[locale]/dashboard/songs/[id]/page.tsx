@@ -149,7 +149,7 @@ export default async function SongDetailPage({
   const canExport = !song.band_id || (band ? canExportBandPdf(band) : false);
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
       <PageBreadcrumbs
         items={[
           { label: tNav("songs"), href: "/dashboard/songs" },

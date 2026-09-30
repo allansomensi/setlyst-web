@@ -87,16 +87,21 @@ export default async function TourPage({
     !canManage || setlistsRes === FETCH_FAILED ? [] : setlistsRes.data;
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
       <PageBreadcrumbs
         items={[
+          // A band's tour sits under the band: its "Tours" crumb is the
+          // band's Tours tab, not the list of every tour.
           ...(band
             ? [
                 { label: tNav("bands"), href: "/dashboard/bands" },
                 { label: band.name, href: `/dashboard/bands/${band.id}` },
+                {
+                  label: t("title"),
+                  href: `/dashboard/bands/${band.id}?tab=tours`,
+                },
               ]
-            : []),
-          { label: t("title"), href: "/dashboard/tours" },
+            : [{ label: t("title"), href: "/dashboard/tours" }]),
           { label: tour.name },
         ]}
       />

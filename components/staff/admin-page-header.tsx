@@ -1,26 +1,29 @@
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/page-header";
 
-/** Title block shared by the staff console pages. */
+/**
+ * Title block shared by the staff console pages. A thin alias of the
+ * app's `PageHeader`, so the console reads exactly like the rest of the
+ * dashboard: it used to keep its own copy (a fixed `text-3xl` title and
+ * actions not aligned to the title's first line), which drifted from the
+ * user-facing pages.
+ */
 export function AdminPageHeader({
   title,
   description,
   actions,
+  children,
 }: {
   title: string;
-  description?: string;
+  description?: ReactNode;
+  /** Buttons, primary last. */
   actions?: ReactNode;
+  /** Extra content under the description (a notice, a meta line). */
+  children?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight break-words">
-          {title}
-        </h1>
-        {description && <p className="text-muted-foreground">{description}</p>}
-      </div>
-      {actions && (
-        <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
-      )}
-    </div>
+    <PageHeader title={title} description={description} actions={actions}>
+      {children}
+    </PageHeader>
   );
 }

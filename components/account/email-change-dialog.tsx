@@ -225,9 +225,14 @@ export function EmailChangeDialog({
                 aria-invalid={
                   (email.length > 0 && !emailValid) || same || undefined
                 }
+                aria-describedby={same ? "new-email-error" : undefined}
                 className="h-10"
               />
-              {same && <p className="text-destructive text-xs">{t("same")}</p>}
+              {same && (
+                <p id="new-email-error" className="text-destructive text-xs">
+                  {t("same")}
+                </p>
+              )}
             </div>
             <ReauthProofField
               state={reauth}

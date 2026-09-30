@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTimeZone, getTranslations } from "next-intl/server";
+import { fetchServerApi } from "@/lib/api-server";
 import { requireStaffPage } from "@/lib/staff-guard";
+import type { ReleaseNote } from "@/types/public";
 import { ReleaseNoteEditor } from "../_components/release-note-editor";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,11 +27,38 @@ function todayIn(timeZone: string | undefined): string {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
+/**
+ * The next minor after the highest version released so far ("0.15.2" →
+ * "0.16.0"), shown as the version field's placeholder so it suggests a
+ * real number instead of a fixed example. Null when there are none yet.
+ */
+function nextMinor(notes: ReleaseNote[] | null): string | null {
+  const versions = (notes ?? [])
+    .map((n) => /^(\d+)\.(\d+)\.(\d+)/.exec(n.version))
+    .filter((m): m is RegExpExecArray => m !== null)
+    .map((m) => [Number(m[1]), Number(m[2]), Number(m[3])] as const);
+  if (versions.length === 0) return null;
+  const [major, minor] = versions.sort(
+    (a, b) => b[0] - a[0] || b[1] - a[1] || b[2] - a[2],
+  )[0];
+  return `${major}.${minor + 1}.0`;
+}
+
 export default async function NewReleaseNotePage() {
   await requireStaffPage(
     "releaseNotes.write",
     "/dashboard/admin/release-notes",
   );
-  const today = todayIn(await getTimeZone());
-  return <ReleaseNoteEditor note={null} canWrite today={today} />;
+  const [timeZone, notes] = await Promise.all([
+    getTimeZone(),
+    fetchServerApi<ReleaseNote[]>("/admin/release-notes").catch(() => null),
+  ]);
+  return (
+    <ReleaseNoteEditor
+      note={null}
+      canWrite
+      today={todayIn(timeZone)}
+      suggestedVersion={nextMinor(notes)}
+    />
+  );
 }

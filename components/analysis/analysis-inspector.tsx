@@ -377,6 +377,7 @@ export function AnalysisInspector({
                     >
                       <SelectTrigger
                         size="sm"
+                        aria-label={t("inspector.lineKind")}
                         className="h-7 w-full border-0 bg-transparent px-1 text-xs shadow-none"
                       >
                         <SelectValue />

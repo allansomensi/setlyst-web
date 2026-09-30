@@ -20,7 +20,9 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientDate } from "@/components/client-date";
+import { AdminPageHeader } from "@/components/staff/admin-page-header";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useRouter } from "@/i18n/routing";
 import { LOCALE_NAMES } from "@/i18n/locales";
 import { toastActionError } from "@/lib/action-toast";
@@ -153,12 +155,17 @@ function PromotionDialog({
             <Input
               id="promotion-name"
               value={name}
+              autoFocus={!promotion}
               maxLength={80}
               onChange={(e) => setName(e.target.value)}
               aria-invalid={err(errors.name)}
+              aria-describedby="promotion-name-hint"
               placeholder={t("fields.namePlaceholder")}
             />
-            <p className="text-muted-foreground text-xs">
+            <p
+              id="promotion-name-hint"
+              className="text-muted-foreground text-xs"
+            >
               {t("fields.nameHint")}
             </p>
           </div>
@@ -235,6 +242,7 @@ function PromotionDialog({
               <Input
                 id="promotion-percent"
                 type="number"
+                inputMode="numeric"
                 min={1}
                 max={100}
                 value={percent}
@@ -357,19 +365,31 @@ export function PromotionsManager({
     });
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => setEditing("new")}>
-          <Plus aria-hidden />
-          {t("new")}
-        </Button>
-      </div>
+    <>
+      <AdminPageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <Button onClick={() => setEditing("new")}>
+            <Plus aria-hidden />
+            {t("new")}
+          </Button>
+        }
+      />
 
       {promotions.length === 0 ? (
-        <div className="bg-card text-muted-foreground flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-          <p className="text-foreground font-medium">{t("emptyTitle")}</p>
-          <p className="max-w-md text-sm">{t("emptyDescription")}</p>
-        </div>
+        <EmptyState
+          icon={Percent}
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          className="bg-card rounded-xl border border-dashed"
+          actions={
+            <Button variant="outline" onClick={() => setEditing("new")}>
+              <Plus aria-hidden />
+              {t("new")}
+            </Button>
+          }
+        />
       ) : (
         <ul className="grid gap-3 md:grid-cols-2">
           {promotions.map((promotion) => {
@@ -475,6 +495,6 @@ export function PromotionsManager({
         pending={pending}
         onConfirm={remove}
       />
-    </div>
+    </>
   );
 }

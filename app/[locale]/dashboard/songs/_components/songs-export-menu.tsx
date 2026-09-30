@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, FileMusic, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
@@ -44,8 +44,9 @@ export function SongsExportMenu() {
           <span className="sr-only sm:not-sr-only">{t("export")}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onSelect={exportChordpro}>
+          <FileMusic className="mr-2 h-4 w-4" aria-hidden />
           {t("exportChordpro")}
         </DropdownMenuItem>
       </DropdownMenuContent>

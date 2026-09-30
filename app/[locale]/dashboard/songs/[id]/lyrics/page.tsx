@@ -33,7 +33,6 @@ import {
   Italic,
   Music,
   Eye,
-  EyeOff,
   Underline,
   ChevronDown,
   Check,
@@ -266,35 +265,47 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
   const handleSaveAndClose = useCallback(() => save({ close: true }), [save]);
 
   // Toolbar actions
+  //
+  // They write through React state, not the textarea itself, so its
+  // `readOnly` doesn't stop them: without this check the toolbar (and
+  // Ctrl+B/I/U) still changed the text of an offline, read-only copy, or
+  // under a save in flight.
+  const canEdit = !isReadOnly && !isPending;
 
   const applyBold = useCallback(() => {
-    if (textareaRef.current)
+    if (canEdit && textareaRef.current)
       wrapSelection(textareaRef.current, "**", "**", setLyrics);
-  }, []);
+  }, [canEdit]);
 
   const applyItalic = useCallback(() => {
-    if (textareaRef.current)
+    if (canEdit && textareaRef.current)
       wrapSelection(textareaRef.current, "*", "*", setLyrics);
-  }, []);
+  }, [canEdit]);
 
   const applyUnderline = useCallback(() => {
-    if (textareaRef.current)
+    if (canEdit && textareaRef.current)
       wrapSelection(textareaRef.current, "__", "__", setLyrics);
-  }, []);
+  }, [canEdit]);
 
-  const insertChord = useCallback((chord: string) => {
-    if (textareaRef.current)
-      insertAtCursor(textareaRef.current, `[${chord}]`, setLyrics);
-  }, []);
+  const insertChord = useCallback(
+    (chord: string) => {
+      if (canEdit && textareaRef.current)
+        insertAtCursor(textareaRef.current, `[${chord}]`, setLyrics);
+    },
+    [canEdit],
+  );
 
-  const insertSection = useCallback((template: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    // Headings only work on a line of their own.
-    const before = textarea.value.slice(0, textarea.selectionStart);
-    const prefix = before && !before.endsWith("\n") ? "\n" : "";
-    insertAtCursor(textarea, prefix + template, setLyrics);
-  }, []);
+  const insertSection = useCallback(
+    (template: string) => {
+      const textarea = textareaRef.current;
+      if (!canEdit || !textarea) return;
+      // Headings only work on a line of their own.
+      const before = textarea.value.slice(0, textarea.selectionStart);
+      const prefix = before && !before.endsWith("\n") ? "\n" : "";
+      insertAtCursor(textarea, prefix + template, setLyrics);
+    },
+    [canEdit],
+  );
 
   const handleLeave = useCallback(() => {
     guard.requestLeave(() => router.push(songHref));
@@ -394,7 +405,10 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
                 ) : (
                   <Save className="h-3.5 w-3.5" aria-hidden />
                 )}
-                {isPending ? t("saving") : t("save")}
+                {/* Icon-only on a phone: the song's title gets the room. */}
+                <span className="sr-only sm:not-sr-only">
+                  {isPending ? t("saving") : t("save")}
+                </span>
               </Button>
               <Button
                 size="sm"
@@ -411,119 +425,138 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="bg-muted/30 flex flex-wrap items-center gap-1 border-b px-4 py-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={applyBold}
-          title={t("toolbar.bold")}
-          aria-label={t("toolbar.bold")}
-        >
-          <Bold className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={applyItalic}
-          title={t("toolbar.italic")}
-          aria-label={t("toolbar.italic")}
-        >
-          <Italic className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={applyUnderline}
-          title={t("toolbar.underline")}
-          aria-label={t("toolbar.underline")}
-        >
-          <Underline className="h-3.5 w-3.5" />
-        </Button>
-
-        <div className="bg-border mx-1 h-5 w-px" />
-
-        <ChordPopover onInsert={insertChord} />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs">
-              {t("toolbar.section")}
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-80 w-52">
-            {INSERTABLE_SECTIONS.map((key) => (
-              <DropdownMenuItem
-                key={key}
-                onClick={() => insertSection(`[${t(`toolbar.${key}`)}]\n`)}
-              >
-                {t(`toolbar.${key}`)}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => insertSection(`{c: ${t("commentPlaceholder")}}\n`)}
-            >
-              {t("toolbar.comment")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <div className="bg-border mx-1 h-5 w-px" />
-
-        <Button
-          variant={showPreview ? "secondary" : "ghost"}
-          size="sm"
-          className="h-8 gap-1.5 text-xs"
-          onClick={() => setShowPreview((v) => !v)}
-          aria-pressed={showPreview}
-          title={t("toolbar.preview")}
-        >
-          {showPreview ? (
-            <Eye className="h-3.5 w-3.5" aria-hidden />
-          ) : (
-            <EyeOff className="h-3.5 w-3.5" aria-hidden />
+      {/* Toolbar: the writing tools, then the view toggles and help. On
+          a phone with the preview open the editor is hidden, so its tools
+          go too: they would type into a textarea nobody can see. */}
+      <div className="bg-muted/30 flex flex-wrap items-center gap-x-1 gap-y-1.5 border-b px-4 py-2">
+        <div
+          className={cn(
+            "flex-wrap items-center gap-1",
+            showPreview ? "hidden md:flex" : "flex",
           )}
-          {t("preview")}
-        </Button>
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={applyBold}
+            disabled={!canEdit}
+            title={t("toolbar.bold")}
+            aria-label={t("toolbar.bold")}
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={applyItalic}
+            disabled={!canEdit}
+            title={t("toolbar.italic")}
+            aria-label={t("toolbar.italic")}
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={applyUnderline}
+            disabled={!canEdit}
+            title={t("toolbar.underline")}
+            aria-label={t("toolbar.underline")}
+          >
+            <Underline className="h-3.5 w-3.5" />
+          </Button>
 
-        {showPreview && (
-          <>
-            <Button
-              variant={showChords ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5 text-xs"
-              onClick={() => setShowChords((v) => !v)}
-              aria-pressed={showChords}
-              title={t("toolbar.chords")}
-            >
-              <Music className="h-3.5 w-3.5" aria-hidden />
-              <span className="sr-only sm:not-sr-only">
-                {t("toolbar.chords")}
-              </span>
-            </Button>
-            <Button
-              variant={showSections ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5 text-xs"
-              onClick={() => setShowSections((v) => !v)}
-              aria-pressed={showSections}
-              title={t("toolbar.sections")}
-            >
-              <ListTree className="h-3.5 w-3.5" aria-hidden />
-              <span className="sr-only sm:not-sr-only">
-                {t("toolbar.sections")}
-              </span>
-            </Button>
-          </>
-        )}
+          <div className="bg-border mx-1 h-5 w-px" aria-hidden />
 
-        <div className="ml-auto">
-          <HelpPopover />
+          <ChordPopover onInsert={insertChord} disabled={!canEdit} />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-xs"
+                disabled={!canEdit}
+              >
+                {t("toolbar.section")}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-h-80 w-52">
+              {INSERTABLE_SECTIONS.map((key) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => insertSection(`[${t(`toolbar.${key}`)}]\n`)}
+                >
+                  {t(`toolbar.${key}`)}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  insertSection(`{c: ${t("commentPlaceholder")}}\n`)
+                }
+              >
+                {t("toolbar.comment")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="bg-border mx-1 hidden h-5 w-px md:block" aria-hidden />
+
+        <div className="flex flex-1 items-center gap-1">
+          <Button
+            variant={showPreview ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={() => setShowPreview((v) => !v)}
+            aria-pressed={showPreview}
+            title={t("toolbar.preview")}
+          >
+            {/* The pressed style carries the state; a crossed-out eye on a
+              button read as "preview is broken", not "show preview". */}
+            <Eye className="h-3.5 w-3.5" aria-hidden />
+            {t("preview")}
+          </Button>
+
+          {showPreview && (
+            <>
+              <Button
+                variant={showChords ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setShowChords((v) => !v)}
+                aria-pressed={showChords}
+                title={t("toolbar.chords")}
+              >
+                <Music className="h-3.5 w-3.5" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  {t("toolbar.chords")}
+                </span>
+              </Button>
+              <Button
+                variant={showSections ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setShowSections((v) => !v)}
+                aria-pressed={showSections}
+                title={t("toolbar.sections")}
+              >
+                <ListTree className="h-3.5 w-3.5" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  {t("toolbar.sections")}
+                </span>
+              </Button>
+            </>
+          )}
+
+          <div className="ml-auto">
+            <HelpPopover />
+          </div>
         </div>
       </div>
 
@@ -563,11 +596,33 @@ export default function EditLyricsPage({ params }: EditLyricsPageProps) {
             autoCorrect="off"
             autoCapitalize="off"
           />
-          <div className="text-muted-foreground border-t px-4 py-1.5 text-xs">
-            {t("stats", {
-              lines: lyrics.split("\n").length,
-              chars: lyrics.length,
-            })}
+          <div className="text-muted-foreground flex items-center justify-between gap-3 border-t px-4 py-1.5 text-xs">
+            <span>
+              {t("stats", {
+                lines: lyrics.split("\n").length,
+                chars: lyrics.length,
+              })}
+            </span>
+            {/* Whether there is anything left to save, without having to
+                read the Save button's disabled state. */}
+            {!isReadOnly && (
+              <span className="inline-flex items-center gap-1.5">
+                {isDirty ? (
+                  <>
+                    <span
+                      className="bg-chart-2 h-1.5 w-1.5 rounded-full"
+                      aria-hidden
+                    />
+                    {t("unsaved")}
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-3 w-3" aria-hidden />
+                    {t("savedInPlace")}
+                  </>
+                )}
+              </span>
+            )}
           </div>
         </div>
 

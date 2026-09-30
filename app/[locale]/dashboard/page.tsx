@@ -2,22 +2,18 @@ import { Suspense } from "react";
 import { staticTitle } from "@/lib/page-metadata";
 import { getTranslations } from "next-intl/server";
 import {
-  ListMusic,
-  Music,
   Disc3,
   Users,
   Guitar,
-  Calendar,
   BarChart3,
   ChevronRight,
   Route,
 } from "lucide-react";
 import { Link } from "@/components/nav-link";
+import { PageHeader } from "@/components/page-header";
 import { getDashboardMetrics } from "./actions";
-import {
-  LazyAdminMetricsCharts,
-  LazyUserMetricsCharts,
-} from "./_components/lazy-charts";
+import { LazyAdminMetricsCharts } from "./_components/lazy-charts";
+import { UserMetricsCharts } from "./_components/user-metrics";
 import { PinnedItems } from "./_components/pins/pinned-items";
 import {
   NextGigCard,
@@ -30,6 +26,7 @@ import { setlistDisplayTitle } from "@/lib/repertoire";
 import type { BandWithMembership, Gig, Setlist } from "@/types/api";
 import type { PinnedItem } from "@/types/content";
 import { getSession } from "@/lib/server/session";
+import { getMe } from "@/lib/server-data";
 
 /**
  * At most this many shows go to the "next show" card (each costs a setlist
@@ -133,11 +130,21 @@ export default async function DashboardPage() {
 
   const userRole = session?.user?.role;
 
-  const [metrics, pins] = await Promise.all([
+  const [metrics, pins, me] = await Promise.all([
     getDashboardMetrics(),
     fetchServerApi<PinnedItem[]>("/users/me/pins").catch(() => null),
+    // Already fetched (and cached) by the dashboard layout.
+    getMe().catch(() => null),
   ]);
+  // "Olá, Allan" rather than "Olá, allan": the first name when the
+  // profile has one, the username otherwise.
+  const greetingName = me?.first_name?.trim() || session?.user?.name || "";
 
+  // Shortcuts are for phones only, and only to the sections the bottom tab
+  // bar doesn't have (it holds Home, Songs, Setlists and Shows; the rest
+  // sits behind "More"). On larger screens the sidebar is always on
+  // screen with every section, and a grid repeating it item for item
+  // only pushed the overview down.
   const quickLinks = [
     {
       href: "/dashboard/analytics",
@@ -150,24 +157,6 @@ export default async function DashboardPage() {
       icon: Disc3,
       label: tNav("artists"),
       description: t("artists.description"),
-    },
-    {
-      href: "/dashboard/songs",
-      icon: Music,
-      label: tNav("songs"),
-      description: t("songs.description"),
-    },
-    {
-      href: "/dashboard/setlists",
-      icon: ListMusic,
-      label: tNav("setlists"),
-      description: t("setlists.description"),
-    },
-    {
-      href: "/dashboard/gigs",
-      icon: Calendar,
-      label: tNav("gigs"),
-      description: t("gigs.description"),
     },
     {
       href: "/dashboard/tours",
@@ -193,15 +182,11 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 pb-10">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          {t("title")}
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          {t("welcome", { name: session?.user?.name ?? "" })}
-        </p>
-      </div>
+    <div className="mx-auto w-full max-w-6xl space-y-10 pb-10">
+      <PageHeader
+        title={t("title")}
+        description={t("welcome", { name: greetingName })}
+      />
 
       {metrics && metrics.scope === "user" && (
         <OnboardingChecklist
@@ -219,11 +204,11 @@ export default async function DashboardPage() {
 
       {pins && <PinnedItems initial={pins} />}
 
-      <section className="space-y-3">
+      <section className="space-y-3 md:hidden">
         <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
           {t("shortcuts")}
         </h2>
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2">
           {quickLinks.map(({ href, icon: Icon, label, description }) => (
             <Link
               key={href}
@@ -231,18 +216,21 @@ export default async function DashboardPage() {
               className="group bg-card hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-ring/50 flex items-center gap-3 rounded-xl border p-3 transition-colors outline-none focus-visible:ring-3"
             >
               <span className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10">
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" aria-hidden />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold">
                   {label}
                 </span>
-                {/* Phones get a compact two-column grid of names only. */}
+                {/* Names only on a narrow phone; a line of context from `sm`. */}
                 <span className="text-muted-foreground hidden truncate text-xs sm:block">
                   {description}
                 </span>
               </span>
-              <ChevronRight className="text-muted-foreground/60 group-hover:text-foreground hidden h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 sm:block" />
+              <ChevronRight
+                className="text-muted-foreground/60 group-hover:text-foreground hidden h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 sm:block"
+                aria-hidden
+              />
             </Link>
           ))}
         </div>
@@ -253,7 +241,7 @@ export default async function DashboardPage() {
       )}
 
       {metrics && metrics.scope === "user" && (
-        <LazyUserMetricsCharts data={metrics} />
+        <UserMetricsCharts data={metrics} />
       )}
     </div>
   );

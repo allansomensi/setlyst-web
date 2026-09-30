@@ -129,7 +129,7 @@ export async function SiteFooter() {
               mail: (chunks) => (
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="hover:text-foreground focus-visible:ring-ring/50 rounded-sm break-all underline-offset-4 outline-none hover:underline focus-visible:ring-3"
+                  className="hover:text-foreground focus-visible:ring-ring/50 rounded-sm [overflow-wrap:anywhere] underline-offset-4 outline-none hover:underline focus-visible:ring-3"
                 >
                   {chunks}
                 </a>

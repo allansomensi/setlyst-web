@@ -61,8 +61,13 @@ function NumberField({
           onChange(e.target.value === "" ? Number.NaN : Number(e.target.value))
         }
         aria-invalid={invalid}
+        aria-describedby={hint ? `${id}-hint` : undefined}
       />
-      {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
+      {hint && (
+        <p id={`${id}-hint`} className="text-muted-foreground text-xs">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
@@ -253,11 +258,14 @@ export function BillingSettingsForm({
 
         <Separator />
 
-        <fieldset className="space-y-3">
+        {/* Named by a span, not a <legend>: a legend only names its
+            fieldset as the first child, and this one shares a row with the
+            switch. */}
+        <fieldset className="space-y-3" aria-labelledby="referral-title">
           <div className="flex items-center justify-between gap-4">
-            <legend className="text-sm font-semibold">
+            <span id="referral-title" className="text-sm font-semibold">
               {t("referral.title")}
-            </legend>
+            </span>
             <div className="flex items-center gap-2">
               <Label htmlFor="referral-enabled" className="text-sm font-normal">
                 {t("referral.enabled")}
@@ -364,6 +372,7 @@ export function BillingSettingsForm({
                     <Input
                       id={`${base}-days`}
                       type="number"
+                      inputMode="numeric"
                       min={1}
                       max={3650}
                       value={Number.isNaN(reward.days) ? "" : reward.days}
@@ -387,6 +396,7 @@ export function BillingSettingsForm({
                     <Input
                       id={`${base}-cost`}
                       type="number"
+                      inputMode="numeric"
                       min={1}
                       max={100_000}
                       value={Number.isNaN(reward.cost) ? "" : reward.cost}
@@ -533,6 +543,7 @@ export function BillingSettingsForm({
           </Label>
           <Input
             id="enforce-confirm"
+            autoFocus
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             autoComplete="off"

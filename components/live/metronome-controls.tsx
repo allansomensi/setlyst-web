@@ -2,15 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Hand,
-  Metronome,
-  Minus,
-  Pause,
-  Plus,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
+import { Hand, Minus, Pause, Play, Plus, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -146,129 +138,139 @@ export function MetronomeControls({
     onBeatsPerBarChange(next);
   };
 
+  // Two deliberate rows rather than one wrapping strip: in the settings
+  // sheet the strip used to break wherever it ran out of room, leaving the
+  // sound toggle and the beat dots stranded on a line of their own.
+  // Row 1 is what is used mid-song (start/stop, tempo, the beat); row 2 is
+  // set up once (tap tempo, time signature, audible click).
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <Button
-        variant={isRunning ? "default" : "ghost"}
-        size="icon"
-        onClick={onToggleRunning}
-        className="h-10 w-10 shrink-0 rounded-lg"
-        title={isRunning ? t("stop") : t("start")}
-        // Fixed name plus pressed state, like the click toggle below.
-        aria-label={t("label")}
-        aria-pressed={isRunning}
-      >
-        {isRunning ? (
-          <Pause className="h-5 w-5" aria-hidden />
-        ) : (
-          <Metronome className="h-5 w-5" aria-hidden />
-        )}
-      </Button>
-
-      {/* Tempo */}
-      <div className="bg-background/50 flex items-center rounded-lg border">
+    <div className={cn("flex flex-col gap-2", className)}>
+      <div className="flex items-center gap-2">
         <Button
-          variant="ghost"
+          variant={isRunning ? "default" : "outline"}
           size="icon"
-          className="h-10 w-10"
-          onClick={() => adjustBpm(-BPM_STEP)}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            adjustBpm(-BPM_STEP_LARGE);
-          }}
-          disabled={bpm <= MIN_BPM}
-          title={t("decreaseTempo")}
-          aria-label={t("decreaseTempo")}
+          onClick={onToggleRunning}
+          className="h-10 w-10 shrink-0 rounded-lg"
+          title={isRunning ? t("stop") : t("start")}
+          // Fixed name plus pressed state, like the click toggle below.
+          aria-label={t("label")}
+          aria-pressed={isRunning}
         >
-          <Minus className="h-4 w-4" aria-hidden />
+          {isRunning ? (
+            <Pause className="h-5 w-5" aria-hidden />
+          ) : (
+            <Play className="h-5 w-5" aria-hidden />
+          )}
         </Button>
 
-        <span
-          className="flex w-18 flex-col items-center leading-none"
-          title={isSongTempo ? t("songTempo") : t("manualTempo")}
-          aria-live="polite"
-        >
-          <span className="font-mono text-sm font-bold tabular-nums">
-            {bpm}
-          </span>
-          <span
-            className={cn(
-              "text-[11px] tracking-wider uppercase",
-              isSongTempo ? "text-primary" : "text-muted-foreground",
-            )}
+        {/* Tempo */}
+        <div className="bg-background/50 flex items-center rounded-lg border">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => adjustBpm(-BPM_STEP)}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              adjustBpm(-BPM_STEP_LARGE);
+            }}
+            disabled={bpm <= MIN_BPM}
+            title={t("decreaseTempo")}
+            aria-label={t("decreaseTempo")}
           >
-            {isSongTempo ? t("bpmFromSong") : t("bpm")}
-          </span>
-        </span>
+            <Minus className="h-4 w-4" aria-hidden />
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10"
-          onClick={() => adjustBpm(BPM_STEP)}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            adjustBpm(BPM_STEP_LARGE);
-          }}
-          disabled={bpm >= MAX_BPM}
-          title={t("increaseTempo")}
-          aria-label={t("increaseTempo")}
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-        </Button>
+          <span
+            className="flex w-18 flex-col items-center leading-none"
+            title={isSongTempo ? t("songTempo") : t("manualTempo")}
+            aria-live="polite"
+          >
+            <span className="font-mono text-sm font-bold tabular-nums">
+              {bpm}
+            </span>
+            <span
+              className={cn(
+                "text-[11px] tracking-wider uppercase",
+                isSongTempo ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              {isSongTempo ? t("bpmFromSong") : t("bpm")}
+            </span>
+          </span>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => adjustBpm(BPM_STEP)}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              adjustBpm(BPM_STEP_LARGE);
+            }}
+            disabled={bpm >= MAX_BPM}
+            title={t("increaseTempo")}
+            aria-label={t("increaseTempo")}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+          </Button>
+        </div>
+
+        <div className="px-1">
+          <BeatDots
+            metronome={metronome}
+            isRunning={isRunning}
+            beatsPerBar={beatsPerBar}
+          />
+        </div>
       </div>
 
-      {/* Tap tempo — the way to set a tempo for a song that has none saved. */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleTap}
-        className="h-10 gap-1.5 px-3"
-        title={t("tapTempoTitle")}
-      >
-        <Hand className="h-4 w-4" aria-hidden />
-        <span className="text-xs font-bold tracking-wider">{t("tap")}</span>
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Tap tempo — the way to set a tempo for a song that has none saved. */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleTap}
+          className="h-10 gap-1.5 px-3"
+          title={t("tapTempoTitle")}
+        >
+          <Hand className="h-4 w-4" aria-hidden />
+          <span className="text-xs font-bold tracking-wider">{t("tap")}</span>
+        </Button>
 
-      {/* Time signature */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={cycleBeatsPerBar}
-        className="h-10 px-3 font-mono text-xs font-bold"
-        title={t("beatsPerBarTitle")}
-        aria-label={`${t("beatsPerBarTitle")}: ${beatsPerBar}/4`}
-      >
-        {beatsPerBar}/4
-      </Button>
+        {/* Time signature */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={cycleBeatsPerBar}
+          className="h-10 px-3 font-mono text-xs font-bold"
+          title={t("beatsPerBarTitle")}
+          aria-label={`${t("beatsPerBarTitle")}: ${beatsPerBar}/4`}
+        >
+          {beatsPerBar}/4
+        </Button>
 
-      {/* Audible click — off by default, since on stage the useful metronome
-          is a silent one. */}
-      <Button
-        variant={audioEnabled ? "secondary" : "ghost"}
-        size="icon"
-        onClick={() => onAudioEnabledChange(!audioEnabled)}
-        className="h-10 w-10"
-        title={audioEnabled ? t("muteClick") : t("unmuteClick")}
-        // One fixed name with a pressed state: a label that flips between
-        // "mute" and "unmute" on top of aria-pressed reads as a double
-        // negative to screen readers.
-        aria-label={t("clickSound")}
-        aria-pressed={audioEnabled}
-      >
-        {audioEnabled ? (
-          <Volume2 className="h-4 w-4" aria-hidden />
-        ) : (
-          <VolumeX className="h-4 w-4" aria-hidden />
-        )}
-      </Button>
-
-      <div className="px-1">
-        <BeatDots
-          metronome={metronome}
-          isRunning={isRunning}
-          beatsPerBar={beatsPerBar}
-        />
+        {/* Audible click — off by default, since on stage the useful
+            metronome is a silent one. Labelled on screen (a crossed-out
+            speaker alone didn't say what it would silence), and named by
+            that same text with a pressed state: a label flipping between
+            "mute" and "unmute" on top of aria-pressed reads as a double
+            negative to screen readers. */}
+        <Button
+          variant={audioEnabled ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => onAudioEnabledChange(!audioEnabled)}
+          className="h-10 gap-1.5 px-3 text-xs font-bold"
+          title={audioEnabled ? t("muteClick") : t("unmuteClick")}
+          aria-pressed={audioEnabled}
+        >
+          {audioEnabled ? (
+            <Volume2 className="h-4 w-4" aria-hidden />
+          ) : (
+            <VolumeX className="h-4 w-4" aria-hidden />
+          )}
+          {t("clickSound")}
+        </Button>
       </div>
     </div>
   );

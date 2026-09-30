@@ -10,7 +10,7 @@ import {
 
 export default function GigsLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-9 w-32" />
@@ -21,7 +21,7 @@ export default function GigsLoading() {
 
       <Skeleton className="h-9 w-full max-w-sm" />
 
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>

@@ -13,6 +13,7 @@ import { LoadErrorNotice } from "@/components/load-error-notice";
 import { SortableColumnHeader } from "@/components/ui/sortable-column-header";
 import { useTableControls } from "@/hooks/use-table-controls";
 import { useSyncSearchParams } from "@/hooks/use-url-state";
+import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
 import {
@@ -25,7 +26,7 @@ import {
   useOfflineArtists,
   useOfflineSongs,
 } from "@/hooks/use-offline-library";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +79,7 @@ import { useOfflineDisabled } from "@/components/offline-disabled";
 const SEARCHABLE_KEYS = [
   "title",
   "artist_name",
-  "genre",
+  "genre_label",
   "tags_text",
   "lyrics_text",
 ] as const;
@@ -111,6 +112,7 @@ export function SongsTable({
   quotas = null,
 }: SongsTableProps) {
   const t = useTranslations("songs");
+  const locale = useLocale();
   const tCommon = useTranslations("common");
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -159,6 +161,9 @@ export function SongsTable({
     return availableSongs.map((song) => ({
       ...song,
       artist_name: getArtistName(song.artist_id),
+      // The genre as shown ("Clássica"), so search and sort follow the
+      // visible label rather than the stored identifier ("Classical").
+      genre_label: song.genre ? formatGenre(song.genre, locale) : null,
       tags_text: (song.tags ?? []).join(" "),
       // Whether the text carries chords or is a lyric alone: the tag
       // that shows which songs still need their chart written.
@@ -170,7 +175,7 @@ export function SongsTable({
         .replace(/\{[^}]*\}/g, " ")
         .replace(/\s+/g, " "),
     }));
-  }, [availableSongs, availableArtists]);
+  }, [availableSongs, availableArtists, locale]);
 
   // The library's tag vocabulary, most used first — quick filters here and
   // suggestions in the song dialog.
@@ -245,49 +250,45 @@ export function SongsTable({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <>
+            <SongsExportMenu />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <SongsExportMenu />
+            <Button
+              variant="outline"
+              onClick={() => setIsImportOpen(true)}
+              {...offlineDisabled}
+            >
+              <FileUp className="h-4 w-4 sm:mr-2" aria-hidden />
+              <span className="sr-only sm:not-sr-only">
+                {t("importChordpro")}
+              </span>
+            </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setIsImportOpen(true)}
-            {...offlineDisabled}
-          >
-            <FileUp className="h-4 w-4 sm:mr-2" aria-hidden />
-            <span className="sr-only sm:not-sr-only">
-              {t("importChordpro")}
-            </span>
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => setManagingTags(true)}
+              {...offlineDisabled}
+            >
+              <Tags className="h-4 w-4 sm:mr-2" aria-hidden />
+              <span className="sr-only sm:not-sr-only">{t("manageTags")}</span>
+            </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setManagingTags(true)}
-            {...offlineDisabled}
-          >
-            <Tags className="h-4 w-4 sm:mr-2" aria-hidden />
-            <span className="sr-only sm:not-sr-only">{t("manageTags")}</span>
-          </Button>
-
-          <QuotaChip usage={songQuota} resource="songs" />
-          <Button
-            onClick={() => handleOpenDialog()}
-            {...offlineDisabled}
-            disabled={offlineDisabled.disabled || songsFull}
-          >
-            <Plus className="mr-2 h-4 w-4" aria-hidden />
-            {t("addSong")}
-          </Button>
-        </div>
-      </div>
+            <QuotaChip usage={songQuota} resource="songs" />
+            <Button
+              onClick={() => handleOpenDialog()}
+              {...offlineDisabled}
+              disabled={offlineDisabled.disabled || songsFull}
+            >
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              {t("addSong")}
+            </Button>
+          </>
+        }
+      />
       <QuotaLimitNotice usage={songQuota} resource="songs" className="-mt-3" />
 
       {/* Search */}
@@ -310,7 +311,7 @@ export function SongsTable({
       {/* Table */}
       <div
         className={cn(
-          "bg-card rounded-md border",
+          "bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)",
           isPending && "pointer-events-none opacity-60",
         )}
       >
@@ -339,7 +340,7 @@ export function SongsTable({
               />
               <SortableColumnHeader
                 label={t("table.genre")}
-                sortKey="genre"
+                sortKey="genre_label"
                 sortConfig={sortConfig}
                 onSort={handleSort}
                 className="hidden lg:table-cell"
@@ -439,12 +440,14 @@ export function SongsTable({
                       <Link
                         href={`/dashboard/songs/${song.id}`}
                         data-no-row-click
+                        // Truncated on phones, next to the badges.
+                        title={song.title}
                         className="focus-visible:ring-ring block min-w-0 truncate rounded-sm hover:underline focus-visible:ring-2 focus-visible:outline-none"
                       >
                         {song.title}
                       </Link>
                       {song.version_label && (
-                        <span className="bg-secondary text-secondary-foreground max-w-32 shrink-0 truncate rounded px-1 py-0.5 text-[11px] font-medium">
+                        <span className="bg-secondary text-secondary-foreground max-w-32 shrink-0 truncate rounded px-1 py-0.5 text-[11px] leading-none font-medium">
                           {song.version_label}
                         </span>
                       )}
@@ -457,23 +460,31 @@ export function SongsTable({
                         </span>
                       )}
                       <OfflineIndicator kind="song" id={song.id} />
-                      {song.lyrics && (
+                      {/* One mark, not two: every chart has lyrics, so
+                          "letra" + "cifra" side by side said the same thing
+                          twice on almost every row. "cifra" = chords
+                          written; "letra" alone = the chart still to do. */}
+                      {song.has_chords ? (
                         <span
-                          className="bg-primary/10 text-primary shrink-0 rounded px-1 py-0.5 text-[11px] font-medium"
-                          title={t("dialog.lyricsTitle")}
-                        >
-                          {t("lyricsTag")}
-                        </span>
-                      )}
-                      {song.has_chords && (
-                        <span
-                          className="shrink-0 rounded bg-emerald-500/10 px-1 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
+                          className="shrink-0 rounded bg-emerald-500/10 px-1 py-0.5 text-[11px] leading-none font-medium text-emerald-700 dark:text-emerald-300"
                           title={t("chordsTagTitle")}
                         >
                           {t("chordsTag")}
                         </span>
-                      )}
+                      ) : song.lyrics?.trim() ? (
+                        <span
+                          className="bg-primary/10 text-primary shrink-0 rounded px-1 py-0.5 text-[11px] leading-none font-medium"
+                          title={t("lyricsTagTitle")}
+                        >
+                          {t("lyricsTag")}
+                        </span>
+                      ) : null}
                     </div>
+                    {/* The artist column is dropped on phones: its name
+                        goes right under the title, before the tags. */}
+                    <p className="text-muted-foreground truncate text-xs font-normal sm:hidden">
+                      {song.artist_name}
+                    </p>
                     {song.tags?.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
                         {song.tags.slice(0, 3).map((tag) => (
@@ -495,16 +506,12 @@ export function SongsTable({
                           </button>
                         ))}
                         {song.tags.length > 3 && (
-                          <span className="text-muted-foreground text-[11px]">
+                          <span className="text-muted-foreground self-center text-[11px]">
                             +{song.tags.length - 3}
                           </span>
                         )}
                       </div>
                     )}
-                    {/* The artist column is dropped on phones. */}
-                    <p className="text-muted-foreground truncate text-xs font-normal sm:hidden">
-                      {song.artist_name}
-                    </p>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     {song.artist_name}
@@ -519,7 +526,7 @@ export function SongsTable({
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden text-xs lg:table-cell">
-                    {song.genre ? formatGenre(song.genre) : "—"}
+                    {song.genre ? formatGenre(song.genre, locale) : "—"}
                   </TableCell>
                   <TableCell className="hidden font-mono text-xs sm:table-cell">
                     {song.tempo ?? "—"}

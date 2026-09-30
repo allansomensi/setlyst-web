@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GigDetailLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <BreadcrumbSkeleton crumbs={2} />
       <DetailHeaderSkeleton withDescription withMeta actions={2} />
       <div className="space-y-2">

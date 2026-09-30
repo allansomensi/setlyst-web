@@ -25,7 +25,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { filterBySearch } from "@/lib/search";
-import { cn } from "@/lib/utils";
+import { cn, formatDuration } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -309,6 +309,7 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
         artist: artistNames.get(song.artist_id) ?? "",
         tonality: song.tonality ?? "",
         tempo: song.tempo ?? null,
+        duration: song.duration ?? null,
         tags: song.tags ?? [],
       }))
       .sort(
@@ -345,6 +346,10 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
     );
   }, [available, tag, songKey, query]);
   const visible = matches.slice(0, MAX_VISIBLE);
+  const selectedSeconds = useMemo(() => {
+    const durations = new Map(available.map((s) => [s.id, s.duration ?? 0]));
+    return selected.reduce((sum, id) => sum + (durations.get(id) ?? 0), 0);
+  }, [available, selected]);
   const filtering = query !== "" || tag !== "" || songKey !== "";
 
   const toggle = (id: string, on: boolean) => {
@@ -422,6 +427,13 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
       {!suggesting && (
         <span role="status" aria-live="polite">
           {t("selectedCount", { count: selected.length })}
+          {/* How much time the ticked songs add to the show. */}
+          {selectedSeconds > 0 && (
+            <span className="text-foreground font-mono font-medium tabular-nums">
+              {" · +"}
+              {formatDuration(selectedSeconds)}
+            </span>
+          )}
         </span>
       )}
       {!suggesting && selected.length > 0 && (
@@ -529,6 +541,7 @@ function MySongsForm(props: AddSongDialogProps & { suggesting: boolean }) {
                   song.artist,
                   song.tonality,
                   song.tempo ? `${song.tempo} BPM` : null,
+                  song.duration ? formatDuration(song.duration) : null,
                 ]
                   .filter(Boolean)
                   .join(" · ");
@@ -763,6 +776,7 @@ function RepertoirePicker(props: AddSongDialogProps & { suggesting: boolean }) {
                         song.artist_name,
                         song.tonality,
                         song.tempo ? `${song.tempo} BPM` : null,
+                        song.duration ? formatDuration(song.duration) : null,
                       ]
                         .filter(Boolean)
                         .join(" · ")}

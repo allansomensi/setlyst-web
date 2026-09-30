@@ -149,19 +149,24 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
 
           <div className="mt-4 grid gap-2 border-t pt-4">
             {signedIn ? (
-              <Button asChild size="lg" className="h-10">
+              <Button asChild size="lg" className="h-11 text-base">
                 <Link href="/dashboard" onClick={close}>
                   {t("dashboard")}
                 </Link>
               </Button>
             ) : (
               <>
-                <Button asChild size="lg" className="h-10">
+                <Button asChild size="lg" className="h-11 text-base">
                   <Link href="/register" onClick={close}>
                     {t("signUp")}
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-10">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-11 text-base"
+                >
                   <Link href="/login" onClick={close}>
                     {t("signIn")}
                   </Link>
@@ -170,9 +175,20 @@ export function SiteMobileMenu({ signedIn }: { signedIn: boolean }) {
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4">
-            <LocaleSwitcher className="min-w-0 flex-1 sm:flex-none" />
-            <ThemeToggle />
+          {/* Preferences as labelled rows: two bare controls side by side
+              read as a toolbar nobody asked for, and the language name
+              was centred in a stretched box. */}
+          <div className="mt-4 grid gap-3 border-t pt-4 pl-3">
+            <div className="flex items-center justify-between gap-3">
+              <span
+                aria-hidden
+                className="text-muted-foreground text-sm font-medium"
+              >
+                {t("language")}
+              </span>
+              <LocaleSwitcher className="pointer-coarse:min-h-11" />
+            </div>
+            <ThemeToggle layout="segmented" labelled />
           </div>
         </nav>
       </div>

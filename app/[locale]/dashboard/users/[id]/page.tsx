@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/nav-link";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { PlatformRoleBadge } from "@/components/role-badge";
 import { QuotaUsageList } from "@/components/quota-usage-list";
@@ -134,7 +135,7 @@ export default async function UserDetailPage({ params }: { params: Params }) {
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <PageBreadcrumbs
         items={[
           { label: tNav("adminUsers"), href: "/dashboard/users" },
@@ -142,7 +143,21 @@ export default async function UserDetailPage({ params }: { params: Params }) {
         ]}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <DetailHeader
+        actions={
+          <>
+            {administrable && (
+              <ViewAsButton
+                userId={user.id}
+                username={user.username}
+                disabled={user.status !== "active" || user.is_banned}
+              />
+            )}
+            <UserActionsMenu user={user} actor={actor} variant="button" />
+          </>
+        }
+      >
+        <DetailBackButton href="/dashboard/users" label={tNav("adminUsers")} />
         <div className="flex min-w-0 items-center gap-4">
           {/* The shared avatar: the photo when there is one, otherwise the
               same initials-on-a-hue shown for this person everywhere else. */}
@@ -165,17 +180,7 @@ export default async function UserDetailPage({ params }: { params: Params }) {
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 gap-2">
-          {administrable && (
-            <ViewAsButton
-              userId={user.id}
-              username={user.username}
-              disabled={user.status !== "active" || user.is_banned}
-            />
-          )}
-          <UserActionsMenu user={user} actor={actor} variant="button" />
-        </div>
-      </div>
+      </DetailHeader>
 
       {user.is_banned && (
         <Alert variant="destructive">

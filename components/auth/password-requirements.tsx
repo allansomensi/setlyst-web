@@ -86,6 +86,7 @@ export function PasswordRequirements({
             ok={states[rule]}
             touched={touched}
             label={t(`rules.${rule}`)}
+            stateLabel={states[rule] ? t("ruleMet") : t("ruleUnmet")}
           />
         ))}
         {extra.map(({ key, ok }) => (
@@ -94,6 +95,7 @@ export function PasswordRequirements({
             ok={ok}
             touched={touched}
             label={t(`rules.${key}`)}
+            stateLabel={ok ? t("ruleMet") : t("ruleUnmet")}
           />
         ))}
       </ul>
@@ -105,10 +107,13 @@ function Requirement({
   ok,
   touched,
   label,
+  stateLabel,
 }: {
   ok: boolean;
   touched: boolean;
   label: string;
+  /** Read after the rule: the icon and colour say it only to the eye. */
+  stateLabel: string;
 }) {
   const Icon = !touched ? Circle : ok ? Check : X;
   return (
@@ -121,7 +126,10 @@ function Requirement({
       )}
     >
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-      <span>{label}</span>
+      <span>
+        {label}
+        {touched && <span className="sr-only">: {stateLabel}</span>}
+      </span>
     </li>
   );
 }

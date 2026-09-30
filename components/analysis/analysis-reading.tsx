@@ -167,6 +167,12 @@ export function ChordReading({
  * The cadences and progressions the written degrees form, in song order,
  * each with the chords it spans ("Gm7 → C7 → F7M"); a click selects the
  * first one.
+ *
+ * The same progression on the same chords (a song's G → Am deceptive
+ * cadence, four times over) is listed once with a count, its explanation
+ * said once: listed separately, a short song filled the panel with copies
+ * of one sentence. With `onSelect`, numbered buttons jump to each place it
+ * occurs.
  */
 export function AnalysisPatterns({
   chords,
@@ -190,13 +196,39 @@ export function AnalysisPatterns({
     );
   }
 
+  // Grouped by what is read (name and chord symbols), in order of first
+  // appearance.
+  const groups = new Map<string, { pattern: Pattern; starts: number[] }>();
+  for (const pattern of patterns) {
+    const key = [
+      pattern.id,
+      pattern.target ?? "",
+      pattern.resolved ? "r" : "",
+      pattern.chords.map((chord) => chords[chord] ?? "?").join(">"),
+    ].join("|");
+    const group = groups.get(key);
+    if (group) group.starts.push(pattern.chords[0]);
+    else groups.set(key, { pattern, starts: [pattern.chords[0]] });
+  }
+
   return (
     <ol className={cn("space-y-1.5 text-sm", className)}>
-      {patterns.map((pattern) => {
+      {[...groups.entries()].map(([key, { pattern, starts }]) => {
         const { name, hint } = patternName(pattern);
+        const count = starts.length;
         const content = (
           <>
-            <span className="block font-medium">{name}</span>
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="font-medium">{name}</span>
+              {count > 1 && (
+                <span
+                  className="text-muted-foreground shrink-0 text-xs tabular-nums"
+                  title={t("occurrencesTitle", { count })}
+                >
+                  {t("occurrences", { count })}
+                </span>
+              )}
+            </span>
             <span className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-1 font-mono text-xs font-semibold">
               {pattern.chords.map((chord, i) => (
                 <span key={chord} className="inline-flex items-center gap-1">
@@ -213,15 +245,33 @@ export function AnalysisPatterns({
           </>
         );
         return (
-          <li key={`${pattern.id}-${pattern.chords.join("-")}`}>
+          <li key={key}>
             {onSelect ? (
-              <button
-                type="button"
-                onClick={() => onSelect(pattern.chords[0])}
-                className="hover:bg-muted/60 focus-visible:ring-ring/50 -mx-1.5 block w-[calc(100%+0.75rem)] rounded-md px-1.5 py-1 text-left outline-none focus-visible:ring-3"
-              >
-                {content}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => onSelect(starts[0])}
+                  className="hover:bg-muted/60 focus-visible:ring-ring/50 -mx-1.5 block w-[calc(100%+0.75rem)] rounded-md px-1.5 py-1 text-left outline-none focus-visible:ring-3"
+                >
+                  {content}
+                </button>
+                {count > 1 && (
+                  <span className="mt-1 mb-1.5 flex flex-wrap gap-1">
+                    {starts.map((start, i) => (
+                      <button
+                        key={start}
+                        type="button"
+                        onClick={() => onSelect(start)}
+                        aria-label={t("occurrence", { n: i + 1, count })}
+                        title={t("occurrence", { n: i + 1, count })}
+                        className="bg-muted hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 inline-flex h-5 min-w-5 items-center justify-center rounded px-1 text-[0.7rem] font-medium tabular-nums outline-none focus-visible:ring-2 pointer-coarse:h-8 pointer-coarse:min-w-8"
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </span>
+                )}
+              </>
             ) : (
               <div className="py-1">{content}</div>
             )}

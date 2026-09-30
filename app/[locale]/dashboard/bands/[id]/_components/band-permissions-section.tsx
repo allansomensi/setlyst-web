@@ -10,6 +10,7 @@ import {
 import { updateBandRolePermissions } from "../../actions";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
@@ -91,15 +92,19 @@ export function BandPermissionsSection({
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 
-      <div className="bg-card overflow-x-auto rounded-md border">
+      <div className="bg-card overflow-x-auto rounded-xl border shadow-(--shadow-surface)">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b">
-              <th className="p-3 text-left font-medium">
+            <tr className="bg-muted/30 border-b">
+              <th scope="col" className="p-3 text-left font-medium">
                 {t("permissionColumn")}
               </th>
               {CONFIGURABLE_BAND_ROLES.map((role) => (
-                <th key={role} className="p-3 text-center font-medium">
+                <th
+                  key={role}
+                  scope="col"
+                  className="p-3 text-center font-medium"
+                >
                   {t(`roles.${role}`)}
                 </th>
               ))}
@@ -118,12 +123,14 @@ export function BandPermissionsSection({
                 </td>
                 {CONFIGURABLE_BAND_ROLES.map((role) => (
                   <td key={role} className="p-3 text-center">
-                    <input
-                      type="checkbox"
-                      className="accent-primary h-4 w-4"
+                    {/* Named by its row and column: a bare checkbox in a
+                        grid read as just "checkbox, checked". */}
+                    <Checkbox
                       checked={matrix[role][permission]}
-                      onChange={() => toggle(role, permission)}
+                      onCheckedChange={() => toggle(role, permission)}
                       disabled={isPending}
+                      aria-label={`${t(`permissionLabels.${permission}`)}: ${t(`roles.${role}`)}`}
+                      className="align-middle"
                     />
                   </td>
                 ))}
@@ -133,9 +140,16 @@ export function BandPermissionsSection({
         </table>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
+        {isDirty && (
+          <p className="text-muted-foreground text-sm" role="status">
+            {t("unsaved")}
+          </p>
+        )}
         <Button onClick={handleSave} disabled={isPending || !isDirty}>
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+          )}
           {t("save")}
         </Button>
       </div>

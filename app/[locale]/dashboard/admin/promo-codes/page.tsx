@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AdminPageHeader } from "@/components/staff/admin-page-header";
+import { TicketPercent } from "lucide-react";
+import {
+  hasListFilters,
+  ListEmptyState,
+} from "@/components/staff/list-empty-state";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
@@ -26,7 +31,8 @@ export default async function PromoCodesPage({
   await requireStaffPage("promoCodes", "/dashboard/admin/billing");
   const t = await getTranslations("billingAdmin.promoCodes");
   const locale = await getLocale();
-  const { query, page } = adminListQuery(await searchParams, ["q"]);
+  const params = await searchParams;
+  const { query, page } = adminListQuery(params, ["q"]);
   const [result, planOptions] = await Promise.all([
     fetchServerApi<PaginatedResponse<PromoCode>>(
       `/admin/promo-codes?${query}`,
@@ -50,10 +56,17 @@ export default async function PromoCodesPage({
       {result === null ? (
         <LoadErrorNotice />
       ) : items.length === 0 ? (
-        <div className="bg-card text-muted-foreground flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-          <p className="text-foreground font-medium">{t("emptyTitle")}</p>
-          <p className="max-w-md text-sm">{t("emptyDescription")}</p>
-        </div>
+        <ListEmptyState
+          compact={false}
+          icon={TicketPercent}
+          title={t("emptyTitle")}
+          description={
+            hasListFilters(params) ? undefined : t("emptyDescription")
+          }
+          filtered={hasListFilters(params)}
+          clearHref="/dashboard/admin/promo-codes"
+          className="bg-card rounded-xl border border-dashed"
+        />
       ) : (
         <PromoCodesTable codes={items} plans={plans} />
       )}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { StatGrid } from "@/components/stat-grid";
+import { GigStatusBadge } from "@/components/content/gig-status-badge";
+import { Fragment, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   CalendarDays,
-  ChevronLeft,
   Clock,
   FileJson,
   Guitar,
@@ -12,6 +13,7 @@ import {
   ListMusic,
   Loader2,
   MapPin,
+  MoreVertical,
   Pencil,
   Plus,
   Trash2,
@@ -34,13 +36,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PinButton } from "@/components/content/pin-button";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
-import { formatWallClock } from "@/lib/dates";
+import { formatWallClock, parseWallClock, wallClockNow } from "@/lib/dates";
 import { localToday, tourLengthDays, tourPhase } from "@/lib/tours";
 import { cn, formatDuration } from "@/lib/utils";
-import type { Gig, GigStatus, Setlist } from "@/types/api";
+import type { Gig, Setlist } from "@/types/api";
 import type { TourDetail } from "@/types/content";
 import { updateGig } from "../../../gigs/actions";
 import { GigDialog } from "../../../gigs/_components/gigs-dialog";
@@ -48,13 +60,6 @@ import { setlistDisplayTitle } from "@/lib/repertoire";
 import { deleteTour } from "../../actions";
 import { TourDialog } from "../../_components/tour-dialog";
 import { PHASE_STYLES, formatTourDates } from "../../_components/tour-card";
-
-const STATUS_STYLES: Record<GigStatus, string> = {
-  confirmed: "border-primary/40 bg-primary/10 text-primary",
-  completed:
-    "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  cancelled: "border-destructive/40 bg-destructive/10 text-destructive",
-};
 
 interface TourDetailViewProps {
   tour: TourDetail;
@@ -98,6 +103,16 @@ export function TourDetailView({
   const gigs = [...tour.gigs].sort((a, b) =>
     a.scheduled_at.localeCompare(b.scheduled_at),
   );
+  // "You are here" on a tour under way: the first show still ahead, on
+  // the viewer's clock (so only after mount). Drawn only between shows,
+  // where it says something the dates alone don't at a glance.
+  const nowMs = mounted ? wallClockNow() : null;
+  const nextIndex =
+    nowMs === null
+      ? -1
+      : gigs.findIndex(
+          (gig) => parseWallClock(gig.scheduled_at).getTime() >= nowMs,
+        );
 
   const stats = [
     { label: t("stats.total"), value: tour.stats.total_gigs },
@@ -168,114 +183,122 @@ export function TourDetailView({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            asChild
-            className="hidden shrink-0 sm:inline-flex"
-            aria-label={tCommon("back")}
-          >
-            <Link href="/dashboard/tours">
-              <ChevronLeft className="h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
-          <div className="min-w-0 space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
-                {tour.name}
-              </h1>
-              {phase && (
-                <Badge variant="outline" className={PHASE_STYLES[phase]}>
-                  {t(`phase.${phase}`)}
-                </Badge>
-              )}
-            </div>
-            <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="h-4 w-4" aria-hidden />
-                {formatTourDates(tour, locale)}
-                <span className="text-muted-foreground/80">
-                  ({t("days", { count: tourLengthDays(tour) })})
+      {/* Edit and pin in reach; exporting and deleting, rarer (and one of
+          them destructive), behind the menu, as on a show's page. A red
+          "Delete" used to sit in the header next to "Edit". */}
+      <DetailHeader
+        actions={
+          <>
+            {canManage && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setIsEditing(true)}
+                title={tCommon("edit")}
+              >
+                <Pencil className="h-4 w-4" aria-hidden />
+                <span className="sr-only sm:not-sr-only">
+                  {tCommon("edit")}
                 </span>
-              </span>
-              {band && (
-                <Link
-                  href={`/dashboard/bands/${band.id}`}
-                  className="inline-flex items-center gap-1.5 hover:underline"
+              </Button>
+            )}
+            <PinButton
+              type="tour"
+              id={tour.id}
+              name={tour.name}
+              pinned={!!tour.is_pinned}
+              variant="default"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label={tCommon("moreActions")}
+                  title={tCommon("moreActions")}
                 >
-                  <Guitar className="h-4 w-4" aria-hidden />
-                  {band.name}
-                </Link>
-              )}
-            </p>
-            {tour.description && (
-              <p className="max-w-2xl text-sm whitespace-pre-wrap">
-                {tour.description}
-              </p>
+                  {exporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <MoreVertical className="h-4 w-4" aria-hidden />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72">
+                <DropdownMenuItem
+                  className="items-start"
+                  onSelect={() => void exportFile()}
+                  disabled={exporting}
+                >
+                  <FileJson className="mt-0.5 mr-2 h-4 w-4 shrink-0" />
+                  <span className="min-w-0">
+                    <span className="block">{tFiles("exportFile")}</span>
+                    <span className="text-muted-foreground block text-xs">
+                      {tFiles("exportHint.tour")}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+                {canManage && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={() => setIsDeleting(true)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {tCommon("delete")}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        }
+      >
+        <DetailBackButton
+          href={
+            band ? `/dashboard/bands/${band.id}?tab=tours` : "/dashboard/tours"
+          }
+          label={band ? band.name : t("title")}
+        />
+        <div className="min-w-0 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+              {tour.name}
+            </h1>
+            {phase && (
+              <Badge variant="outline" className={PHASE_STYLES[phase]}>
+                {t(`phase.${phase}`)}
+              </Badge>
             )}
           </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {canManage && (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setIsEditing(true)}
-            >
-              <Pencil className="h-4 w-4" aria-hidden />
-              <span className="sr-only sm:not-sr-only">{tCommon("edit")}</span>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => void exportFile()}
-            disabled={exporting}
-            title={tFiles("exportHint.tour")}
-          >
-            {exporting ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <FileJson className="h-4 w-4" aria-hidden />
-            )}
-            <span className="sr-only sm:not-sr-only">
-              {tFiles("exportFile")}
-            </span>
-          </Button>
-          <PinButton
-            type="tour"
-            id={tour.id}
-            name={tour.name}
-            pinned={!!tour.is_pinned}
-            variant="default"
-          />
-          {canManage && (
-            <Button
-              variant="outline"
-              className="text-destructive hover:text-destructive gap-2"
-              onClick={() => setIsDeleting(true)}
-            >
-              <Trash2 className="h-4 w-4" aria-hidden />
-              <span className="sr-only sm:not-sr-only">
-                {tCommon("delete")}
+          <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="h-4 w-4" aria-hidden />
+              {formatTourDates(tour, locale)}
+              <span className="text-muted-foreground/80">
+                ({t("days", { count: tourLengthDays(tour) })})
               </span>
-            </Button>
+            </span>
+            {band && (
+              <Link
+                href={`/dashboard/bands/${band.id}`}
+                className="inline-flex items-center gap-1.5 hover:underline"
+              >
+                <Guitar className="h-4 w-4" aria-hidden />
+                {band.name}
+              </Link>
+            )}
+          </p>
+          {tour.description && (
+            <p className="max-w-2xl text-sm whitespace-pre-wrap">
+              {tour.description}
+            </p>
           )}
         </div>
-      </header>
+      </DetailHeader>
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-card rounded-xl border p-3">
-            <dt className="text-muted-foreground text-xs">{stat.label}</dt>
-            <dd className="mt-1 text-xl font-bold tabular-nums">
-              {stat.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <StatGrid items={stats} />
 
       <section aria-labelledby="tour-gigs" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -309,115 +332,141 @@ export function TourDetailView({
         </div>
 
         {gigs.length === 0 ? (
-          <div className="bg-card flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-12 text-center">
-            <CalendarDays
-              className="text-muted-foreground h-8 w-8"
-              aria-hidden
+          <div className="bg-card rounded-xl border border-dashed">
+            <EmptyState
+              icon={CalendarDays}
+              title={t("noGigs")}
+              description={canManage ? t("noGigsHint") : undefined}
+              actions={
+                canManage ? (
+                  <Button
+                    className="gap-2"
+                    onClick={() => {
+                      setGigSession((n) => n + 1);
+                      setIsAddingGig(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" aria-hidden />
+                    {t("addGig")}
+                  </Button>
+                ) : undefined
+              }
             />
-            <p className="font-medium">{t("noGigs")}</p>
-            <p className="text-muted-foreground max-w-md text-sm">
-              {t("noGigsHint")}
-            </p>
           </div>
         ) : (
           <ol className="relative space-y-3 border-l-2 pl-5 sm:ml-2">
-            {gigs.map((gig) => (
-              <li key={gig.id} className="relative">
-                <span
-                  className={cn(
-                    "absolute top-5 -left-[27px] h-3 w-3 rounded-full border-2",
-                    gig.status === "cancelled"
-                      ? "border-destructive bg-background"
-                      : gig.status === "completed"
-                        ? "border-emerald-500 bg-emerald-500"
-                        : "border-primary bg-background",
-                  )}
-                  aria-hidden
-                />
-                <article className="bg-card flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 space-y-1">
-                    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                      {formatWallClock(gig.scheduled_at, locale, {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <h3 className="font-semibold">
-                      <Link
-                        href={`/dashboard/gigs/${gig.id}`}
-                        className="hover:underline"
-                      >
-                        {gig.venue}
-                      </Link>
-                    </h3>
-                    {gig.location && (
-                      <p className="text-muted-foreground flex items-center gap-1 text-sm">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                        <span className="truncate">{gig.location}</span>
-                      </p>
+            {gigs.map((gig, index) => (
+              <Fragment key={gig.id}>
+                {index === nextIndex && index > 0 && (
+                  <li className="relative flex items-center gap-2">
+                    <span
+                      className="bg-primary ring-primary/20 absolute top-1/2 -left-[27px] h-3 w-3 -translate-y-1/2 rounded-full ring-4"
+                      aria-hidden
+                    />
+                    <span className="text-primary text-xs font-semibold tracking-wide uppercase">
+                      {t("today")}
+                    </span>
+                    <span className="bg-primary/30 h-px flex-1" aria-hidden />
+                  </li>
+                )}
+                <li className="relative">
+                  <span
+                    className={cn(
+                      "absolute top-5 -left-[27px] h-3 w-3 rounded-full border-2",
+                      gig.status === "cancelled"
+                        ? "border-destructive bg-background"
+                        : gig.status === "completed"
+                          ? "border-emerald-500 bg-emerald-500"
+                          : "border-primary bg-background",
                     )}
-                    {gig.setlist ? (
-                      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                    aria-hidden
+                  />
+                  <article className="bg-card flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                        {formatWallClock(gig.scheduled_at, locale, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      <h3 className="font-semibold break-words">
                         <Link
-                          href={`/dashboard/setlists/${gig.setlist.id}`}
-                          className="text-primary inline-flex items-center gap-1.5 font-medium hover:underline"
+                          href={`/dashboard/gigs/${gig.id}`}
+                          className="hover:underline"
                         >
-                          <ListMusic className="h-4 w-4" aria-hidden />
-                          {setlistDisplayTitle(
-                            gig.setlist,
-                            tRepertoire("name"),
-                          )}
+                          {gig.venue}
                         </Link>
-                        <span className="text-muted-foreground">
-                          {t("setlistSummary", {
-                            count: gig.setlist.song_count,
-                          })}
-                        </span>
-                        <span className="text-muted-foreground inline-flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" aria-hidden />
-                          {formatDuration(gig.setlist.total_duration)}
-                        </span>
-                      </p>
-                    ) : (
-                      <p className="text-muted-foreground text-sm">
-                        {t("noSetlist")}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className={STATUS_STYLES[gig.status]}
-                    >
-                      {tGigs(`status.${gig.status}`)}
-                    </Badge>
-                    {canManage && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => unlinkGig(gig.id)}
-                        disabled={isPending}
-                        aria-label={t("unlinkNamed", { venue: gig.venue })}
-                        title={t("unlink")}
-                      >
-                        {pendingGig === gig.id ? (
-                          <Loader2
-                            className="h-4 w-4 animate-spin"
+                      </h3>
+                      {gig.location && (
+                        <p className="text-muted-foreground flex items-center gap-1 text-sm">
+                          <MapPin
+                            className="h-3.5 w-3.5 shrink-0"
                             aria-hidden
                           />
-                        ) : (
-                          <Unlink className="h-4 w-4" aria-hidden />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </article>
-              </li>
+                          <span className="truncate">{gig.location}</span>
+                        </p>
+                      )}
+                      {gig.setlist ? (
+                        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                          <Link
+                            href={`/dashboard/setlists/${gig.setlist.id}`}
+                            className="text-primary inline-flex items-center gap-1.5 font-medium hover:underline"
+                          >
+                            <ListMusic className="h-4 w-4" aria-hidden />
+                            {setlistDisplayTitle(
+                              gig.setlist,
+                              tRepertoire("name"),
+                            )}
+                          </Link>
+                          <span className="text-muted-foreground">
+                            {t("setlistSummary", {
+                              count: gig.setlist.song_count,
+                            })}
+                          </span>
+                          <span className="text-muted-foreground inline-flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" aria-hidden />
+                            {formatDuration(gig.setlist.total_duration)}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">
+                          {t("noSetlist")}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <GigStatusBadge
+                        status={gig.status}
+                        label={tGigs(`status.${gig.status}`)}
+                      />
+                      {canManage && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => unlinkGig(gig.id)}
+                          disabled={isPending}
+                          aria-label={t("unlinkNamed", { venue: gig.venue })}
+                          title={t("unlink")}
+                        >
+                          {pendingGig === gig.id ? (
+                            <Loader2
+                              className="h-4 w-4 animate-spin"
+                              aria-hidden
+                            />
+                          ) : (
+                            <Unlink className="h-4 w-4" aria-hidden />
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </article>
+                </li>
+              </Fragment>
             ))}
           </ol>
         )}
@@ -485,35 +534,15 @@ export function TourDetailView({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("deleteTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("deleteConfirm", { name: tour.name })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleting(false)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isPending}
-            >
-              {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              )}
-              {t("moveToTrash")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmActionDialog
+        open={isDeleting}
+        onOpenChange={setIsDeleting}
+        title={t("deleteTitle")}
+        description={t("deleteConfirm", { name: tour.name })}
+        confirmLabel={t("moveToTrash")}
+        onConfirm={confirmDelete}
+        pending={isPending}
+      />
     </div>
   );
 }

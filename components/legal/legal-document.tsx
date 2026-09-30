@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
-import { FileText, History } from "lucide-react";
+import { ChevronDown, FileText, History, ListOrdered } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { LegalRichText } from "@/components/legal/legal-rich-text";
 import { PrintButton } from "@/components/legal/print-button";
+import { ScrollCurrentIntoView } from "@/components/legal/scroll-current-into-view";
+import { TocScrollSpy } from "@/components/legal/toc-scroll-spy";
 import {
   getLegalText,
   getLegalVersions,
@@ -80,7 +82,10 @@ export async function LegalDocumentView({
             >
               {t("documentsHeading")}
             </p>
-            <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:gap-0.5 lg:overflow-visible lg:px-0 lg:pb-0">
+            <ul
+              id="legal-documents"
+              className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:gap-0.5 lg:overflow-visible lg:px-0 lg:pb-0"
+            >
               {LEGAL_DOCUMENTS.map((item) => {
                 const current = item === doc;
                 return (
@@ -88,6 +93,7 @@ export async function LegalDocumentView({
                     <Link
                       href={LEGAL_HREFS[item]}
                       aria-current={current && !archived ? "page" : undefined}
+                      data-current={current || undefined}
                       className={cn(
                         "focus-visible:ring-ring/50 flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-3 lg:border-transparent lg:py-2",
                         current
@@ -102,6 +108,7 @@ export async function LegalDocumentView({
                 );
               })}
             </ul>
+            <ScrollCurrentIntoView containerId="legal-documents" />
           </nav>
         </aside>
 
@@ -146,14 +153,28 @@ export async function LegalDocumentView({
           </header>
 
           {/* Table of contents (inline below xl, sidebar at xl) */}
-          <details className="bg-muted/40 mt-8 rounded-xl border p-4 xl:hidden print:hidden">
-            <summary className="cursor-pointer text-sm font-semibold">
-              {t("toc")}
+          <details className="group bg-card mt-8 rounded-xl border xl:hidden print:hidden">
+            {/* Same disclosure look as the FAQs (chevron, whole row
+                clickable) instead of the browser's bare triangle. */}
+            <summary className="focus-visible:ring-ring/50 flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus-visible:ring-3 [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center gap-2">
+                <ListOrdered
+                  aria-hidden
+                  className="text-muted-foreground size-4"
+                />
+                {t("toc")}
+              </span>
+              <ChevronDown
+                aria-hidden
+                className="text-muted-foreground size-4 transition-transform group-open:rotate-180"
+              />
             </summary>
-            <TableOfContents
-              sections={text.sections}
-              historyLabel={t("history")}
-            />
+            <div className="border-t px-4 pt-1 pb-4">
+              <TableOfContents
+                sections={text.sections}
+                historyLabel={t("history")}
+              />
+            </div>
           </details>
 
           <div className="mt-8 space-y-10">
@@ -191,8 +212,10 @@ export async function LegalDocumentView({
                       return (
                         <div key={index} className="leading-relaxed">
                           {group.text && (
-                            <p className="flex gap-3">
-                              <span className="text-muted-foreground w-10 shrink-0 text-sm tabular-nums">
+                            // Narrower clause gutter on phones, where every
+                            // pixel of the measure counts.
+                            <p className="flex gap-2 sm:gap-3">
+                              <span className="text-muted-foreground w-8 shrink-0 text-sm tabular-nums sm:w-10">
                                 {sectionIndex + 1}.{clause}
                               </span>
                               <span className="text-foreground/90">
@@ -201,7 +224,7 @@ export async function LegalDocumentView({
                             </p>
                           )}
                           {group.list && (
-                            <ol className="text-foreground/90 marker:text-muted-foreground mt-3 ml-13 list-[lower-alpha] space-y-2 pl-5">
+                            <ol className="text-foreground/90 marker:text-muted-foreground mt-3 ml-10 list-[lower-alpha] space-y-2 pl-5 sm:ml-13">
                               {group.list.map((item) => (
                                 <li key={item} className="pl-1">
                                   <LegalRichText text={item} />
@@ -285,7 +308,11 @@ export async function LegalDocumentView({
         </article>
 
         <aside className="hidden xl:block print:hidden">
-          <nav aria-labelledby="legal-toc" className="sticky top-24">
+          <nav
+            id="legal-toc-nav"
+            aria-labelledby="legal-toc"
+            className="sticky top-24"
+          >
             <h2
               id="legal-toc"
               className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase"
@@ -296,6 +323,13 @@ export async function LegalDocumentView({
               sections={text.sections}
               historyLabel={t("history")}
               compact
+            />
+            <TocScrollSpy
+              navId="legal-toc-nav"
+              sectionIds={[
+                ...text.sections.map((section) => section.id),
+                "history",
+              ]}
             />
           </nav>
         </aside>
@@ -314,7 +348,7 @@ function TableOfContents({
   compact?: boolean;
 }) {
   const linkClass =
-    "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex gap-2 rounded-sm outline-none focus-visible:ring-3";
+    "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 aria-[current=location]:text-primary flex gap-2 rounded-sm transition-colors outline-none focus-visible:ring-3 aria-[current=location]:font-medium";
   return (
     <ol
       className={cn(

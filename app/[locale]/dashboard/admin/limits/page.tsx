@@ -32,7 +32,7 @@ export default async function AdminLimitsPage() {
         </AlertDescription>
       </Alert>
       <Card>
-        <CardContent className="pt-6">
+        <CardContent>
           <DefaultLimitsForm initial={limits} canEdit={isAdmin} />
         </CardContent>
       </Card>

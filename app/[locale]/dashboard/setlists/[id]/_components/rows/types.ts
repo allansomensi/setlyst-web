@@ -44,3 +44,25 @@ export function songNumbersOf(rows: Row[]): Map<string, number> {
   }
   return numbers;
 }
+
+/**
+ * What each block holds: its songs (up to the next block; a break
+ * doesn't end one) and their running time, without the breaks. Songs with
+ * no duration count as songs but add no time.
+ */
+export function blockTotalsOf(
+  rows: Row[],
+): Map<string, { songs: number; seconds: number }> {
+  const totals = new Map<string, { songs: number; seconds: number }>();
+  let current: { songs: number; seconds: number } | null = null;
+  for (const row of rows) {
+    if (row.kind === "block") {
+      current = { songs: 0, seconds: 0 };
+      totals.set(row.id, current);
+    } else if (row.kind === "song" && current) {
+      current.songs += 1;
+      current.seconds += row.song.duration ?? 0;
+    }
+  }
+  return totals;
+}

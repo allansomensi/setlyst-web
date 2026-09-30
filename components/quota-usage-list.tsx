@@ -186,7 +186,10 @@ export function QuotaChip({
           ? "border-destructive/40 bg-destructive/10 text-destructive"
           : warn
             ? "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300"
-            : "text-muted-foreground bg-muted/40",
+            : // Nothing to act on yet: on a phone the room goes to the
+              // page's buttons, which would otherwise wrap onto a second
+              // row (the allowance is still in Settings → Plan).
+              "text-muted-foreground bg-muted/40 hidden sm:inline-flex",
         className,
       )}
     >

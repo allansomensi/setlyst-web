@@ -25,6 +25,7 @@ import {
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { isNoChangeError } from "@/lib/api-errors";
+import { cn } from "@/lib/utils";
 
 export interface BandOption {
   id: string;
@@ -57,17 +58,33 @@ interface GigDialogProps {
 
 const STATUSES: GigStatus[] = ["confirmed", "cancelled", "completed"];
 
-/** Converts an ISO-ish API timestamp into the value a
- * `datetime-local` input expects ("YYYY-MM-DDTHH:MM"). */
-function toDatetimeLocalValue(value?: string | null): string {
-  if (!value) return "";
-  return value.slice(0, 16);
-}
+/** The status picker's dot and checked tint: the same colours as the
+ * GigStatusBadge the show will wear on every list. */
+const STATUS_DOT: Record<GigStatus, string> = {
+  confirmed: "bg-primary",
+  completed: "bg-emerald-500",
+  cancelled: "bg-destructive",
+};
+const STATUS_CHECKED: Record<GigStatus, string> = {
+  confirmed:
+    "has-checked:border-primary/40 has-checked:bg-primary/10 has-checked:text-primary",
+  completed:
+    "has-checked:border-emerald-500/40 has-checked:bg-emerald-500/10 has-checked:text-emerald-700 dark:has-checked:text-emerald-300",
+  cancelled:
+    "has-checked:border-destructive/40 has-checked:bg-destructive/10 has-checked:text-destructive",
+};
 
 interface GigFormState {
   venue: string;
   location: string;
-  scheduledAt: string;
+  /**
+   * The venue's wall-clock date ("YYYY-MM-DD") and time ("HH:MM"), as two
+   * fields: one `datetime-local` input showed "mm/dd/yyyy, --:--" squeezed
+   * into half a row, and on a phone opened a single picker for both where
+   * most people only wanted to change one.
+   */
+  date: string;
+  time: string;
   status: GigStatus;
   /** "" = personal. */
   scope: string;
@@ -86,7 +103,8 @@ function initialState(
   return {
     venue: gig?.venue ?? "",
     location: gig?.location ?? "",
-    scheduledAt: toDatetimeLocalValue(gig?.scheduled_at),
+    date: gig?.scheduled_at?.slice(0, 10) ?? "",
+    time: gig?.scheduled_at?.slice(11, 16) ?? "",
     status: gig?.status ?? "confirmed",
     scope: fixedBandId ?? gig?.band_id ?? "",
     setlistId: gig?.setlist_id ?? "",
@@ -95,10 +113,11 @@ function initialState(
   } satisfies GigFormState;
 }
 
-type GigField = "venue" | "scheduledAt";
+type GigField = "venue" | "date" | "time";
 const FIELD_ORDER = [
   { key: "venue", id: "gig-venue" },
-  { key: "scheduledAt", id: "gig-scheduled-at" },
+  { key: "date", id: "gig-date" },
+  { key: "time", id: "gig-time" },
 ] as const satisfies readonly { key: GigField; id: string }[];
 
 /**
@@ -134,7 +153,6 @@ export function GigDialog({
   const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
   const closeGuard = useDialogCloseGuard({ isDirty, isPending, onClose });
   const [errors, setErrors] = useState<FieldErrors<GigField>>({});
-  const tErrors = useTranslations("gigs.errors");
 
   const set = <K extends keyof GigFormState>(
     key: K,
@@ -158,15 +176,15 @@ export function GigDialog({
 
     const nextErrors: FieldErrors<GigField> = {};
     if (!form.venue.trim()) nextErrors.venue = t("venueRequired");
-    if (!form.scheduledAt) {
-      nextErrors.scheduledAt = tErrors("scheduledAtRequired");
-    }
-    if (nextErrors.venue || nextErrors.scheduledAt) {
+    if (!form.date) nextErrors.date = t("dateRequired");
+    if (!form.time) nextErrors.time = t("timeRequired");
+    if (nextErrors.venue || nextErrors.date || nextErrors.time) {
       setErrors(nextErrors);
       focusFirstError(nextErrors, FIELD_ORDER);
       return;
     }
     setErrors({});
+    const scheduledAt = `${form.date}T${form.time}`;
 
     startTransition(async () => {
       const result = isEditing
@@ -175,7 +193,7 @@ export function GigDialog({
             {
               venue: form.venue,
               location: form.location,
-              scheduled_at: form.scheduledAt,
+              scheduled_at: scheduledAt,
               setlist_id: form.setlistId || null,
               tour_id: form.tourId || null,
               status: form.status,
@@ -186,7 +204,7 @@ export function GigDialog({
         : await createGig({
             venue: form.venue,
             location: form.location || undefined,
-            scheduled_at: form.scheduledAt,
+            scheduled_at: scheduledAt,
             band_id: form.scope || undefined,
             setlist_id: form.setlistId || undefined,
             tour_id: form.tourId || undefined,
@@ -207,7 +225,7 @@ export function GigDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={closeGuard.onOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
           <form onSubmit={handleSubmit} noValidate>
             <DialogHeader>
               <DialogTitle>
@@ -245,41 +263,34 @@ export function GigDialog({
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,9rem)] gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="gig-scheduled-at">
-                    {t("scheduledAtLabel")} *
-                  </Label>
+                  <Label htmlFor="gig-date">{t("dateLabel")} *</Label>
                   <Input
-                    id="gig-scheduled-at"
-                    type="datetime-local"
-                    value={form.scheduledAt}
-                    onChange={(e) => set("scheduledAt", e.target.value)}
+                    id="gig-date"
+                    type="date"
+                    value={form.date}
+                    onChange={(e) => set("date", e.target.value)}
                     required
                     aria-required
                     disabled={isPending}
-                    {...fieldA11y("gig-scheduled-at", errors.scheduledAt)}
+                    {...fieldA11y("gig-date", errors.date)}
                   />
-                  <FieldError
-                    fieldId="gig-scheduled-at"
-                    message={errors.scheduledAt}
-                  />
+                  <FieldError fieldId="gig-date" message={errors.date} />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="gig-status">{t("statusLabel")}</Label>
-                  <NativeSelect
-                    id="gig-status"
-                    value={form.status}
-                    onChange={(e) => set("status", e.target.value as GigStatus)}
+                  <Label htmlFor="gig-time">{t("timeLabel")} *</Label>
+                  <Input
+                    id="gig-time"
+                    type="time"
+                    value={form.time}
+                    onChange={(e) => set("time", e.target.value)}
+                    required
+                    aria-required
                     disabled={isPending}
-                  >
-                    {STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {t(`status.${status}`)}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    {...fieldA11y("gig-time", errors.time)}
+                  />
+                  <FieldError fieldId="gig-time" message={errors.time} />
                 </div>
               </div>
 
@@ -361,6 +372,44 @@ export function GigDialog({
                   </NativeSelect>
                 </div>
               )}
+
+              {/* Three options, all visible: one tap instead of opening a
+                  select, and each wears the colour it will have on the
+                  lists. */}
+              <fieldset className="space-y-2">
+                <legend className="text-sm leading-none font-medium">
+                  {t("statusLabel")}
+                </legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {STATUSES.map((status) => (
+                    <label
+                      key={status}
+                      className={cn(
+                        "has-focus-visible:ring-ring/50 text-muted-foreground hover:bg-muted/50 flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border px-1.5 text-[13px] transition-colors has-checked:font-medium has-focus-visible:ring-3 has-disabled:cursor-not-allowed has-disabled:opacity-60 sm:text-sm pointer-coarse:min-h-11",
+                        STATUS_CHECKED[status],
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="gig-status"
+                        value={status}
+                        checked={form.status === status}
+                        onChange={() => set("status", status)}
+                        disabled={isPending}
+                        className="sr-only"
+                      />
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "size-1.5 shrink-0 rounded-full",
+                          STATUS_DOT[status],
+                        )}
+                      />
+                      <span className="truncate">{t(`status.${status}`)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
 
               <div className="space-y-2">
                 <Label htmlFor="gig-notes">{t("notesLabel")}</Label>

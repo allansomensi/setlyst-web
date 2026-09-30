@@ -13,7 +13,7 @@ export default function SettingsLoading() {
         <Card key={i}>
           <CardHeader className="space-y-2">
             <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-4 w-72" />
+            <Skeleton className="h-4 w-72 max-w-full" />
           </CardHeader>
           <CardContent className="space-y-3">
             <Skeleton className="h-10 w-full" />

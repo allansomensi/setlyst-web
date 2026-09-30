@@ -151,12 +151,29 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Not inherited: set on every scroll container (see html below). */
+    scrollbar-width: thin;
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+    /*
+     * Thin scrollbars in the theme's own colours: the browser's default
+     * (a wide, light-grey bar on Windows and Linux, even over the dark
+     * theme) was the one piece of chrome that ignored it.
+     */
+    scrollbar-color: color-mix(
+        in oklab,
+        var(--muted-foreground) 35%,
+        transparent
+      )
+      transparent;
+  }
+  /* Selected text in the brand's tint rather than the OS blue. */
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 22%, transparent);
   }
 }
 

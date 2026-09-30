@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTimeZone, useTranslations } from "next-intl";
 import {
   CheckCircle2,
-  Clock,
   Info,
   KeyRound,
   Link2,
@@ -91,8 +90,6 @@ export function SecuritySection({
   readOnly,
 }: SecuritySectionProps) {
   const t = useTranslations("security");
-  const locale = useLocale();
-  const timeZone = useTimeZone();
 
   if (!security) {
     return (
@@ -144,45 +141,11 @@ export function SecuritySection({
           readOnly={readOnly}
         />
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="text-primary size-4" />
-            {t("activity.title")}
-          </CardTitle>
-          <CardDescription>{t("activity.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid gap-3 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-muted-foreground">
-                {t("activity.lastLogin")}
-              </dt>
-              <dd className="font-medium">
-                {security.last_login_at
-                  ? formatApiDateTime(security.last_login_at, locale, timeZone)
-                  : t("activity.never")}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">
-                {t("activity.passwordChanged")}
-              </dt>
-              <dd className="font-medium">
-                {!passwordSet
-                  ? t("activity.noPassword")
-                  : passwordChangedAt
-                    ? formatApiDate(passwordChangedAt, locale, {
-                        dateStyle: "medium",
-                        timeZone,
-                      })
-                    : t("activity.never")}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
-      <SessionsCard readOnly={readOnly} />
+      {/* The last sign-in sits with the sessions: it's what tells you
+          whether to sign out everywhere. (It used to be a card of its
+          own, beside a "password changed on" the password card already
+          shows.) */}
+      <SessionsCard readOnly={readOnly} lastLoginAt={security.last_login_at} />
     </div>
   );
 }
@@ -258,10 +221,18 @@ function StaffTwoFactorNotice({
 }
 
 /** "Sign out everywhere": revokes every session, then signs this device out. */
-function SessionsCard({ readOnly }: { readOnly: boolean }) {
+function SessionsCard({
+  readOnly,
+  lastLoginAt,
+}: {
+  readOnly: boolean;
+  lastLoginAt: string | null;
+}) {
   const t = useTranslations("security.sessions");
+  const tActivity = useTranslations("security.activity");
   const tApi = useTranslations("apiErrors");
   const locale = useLocale();
+  const timeZone = useTimeZone();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
@@ -293,6 +264,16 @@ function SessionsCard({ readOnly }: { readOnly: boolean }) {
         </CardTitle>
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground text-sm">
+          {tActivity("lastLogin")}:{" "}
+          <span className="text-foreground font-medium">
+            {lastLoginAt
+              ? formatApiDateTime(lastLoginAt, locale, timeZone)
+              : tActivity("never")}
+          </span>
+        </p>
+      </CardContent>
       <CardFooter>
         <Button
           variant="outline"

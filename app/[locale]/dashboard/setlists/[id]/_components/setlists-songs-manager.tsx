@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useId, useMemo, useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
 import type { Announcements, ScreenReaderInstructions } from "@dnd-kit/core";
 import { useTranslations } from "next-intl";
@@ -8,7 +8,9 @@ import {
   Check,
   ChevronDown,
   Coffee,
+  GripVertical,
   Layers,
+  ListMusic,
   ListOrdered,
   ListPlus,
   Plus,
@@ -39,12 +41,12 @@ import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +66,7 @@ import { SortableBlockRow } from "./rows/block-row";
 import { SortableBreakRow } from "./rows/break-row";
 import { SortableSongRow } from "./rows/song-row";
 import {
+  blockTotalsOf,
   itemsToRows,
   songNumbersOf,
   type Row,
@@ -117,6 +120,8 @@ export function SetlistSongsManager({
 }: SetlistSongsManagerProps) {
   const router = useAppRouter();
   const t = useTranslations("setlists.songs");
+  // Stable across server render and hydration (see PinnedItems).
+  const dndId = useId();
   const tCommon = useTranslations("common");
   const tTrash = useTranslations("trash");
   const offlineDisabled = useOfflineDisabled();
@@ -139,6 +144,13 @@ export function SetlistSongsManager({
   const reorder = useSetlistReorder(setlistId, baseRows);
   const displayRows = reorder.rows;
   const songNumbers = songNumbersOf(displayRows);
+  // What each block holds, worked out from the order on screen, so it
+  // follows a drag in reorder mode before anything is saved.
+  const blockTotals = useMemo(() => blockTotalsOf(displayRows), [displayRows]);
+  // Nothing moved yet: saving would only send the same order back.
+  const orderChanged =
+    reorder.isReordering &&
+    displayRows.some((row, index) => row.id !== baseRows[index]?.id);
 
   const [isPending, startTransition] = useTransition();
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -297,6 +309,13 @@ export function SetlistSongsManager({
     });
   };
 
+  // The song's own page: the person's own songs and the band's. A
+  // collaborator's song (or one the setlist holds) isn't theirs to open.
+  const songHrefOf = (song: SetlistSong) =>
+    band || (!!myId && !song.held && song.user_id === myId)
+      ? `/dashboard/songs/${song.id}`
+      : undefined;
+
   // Songs of personal setlists that aren't in the person's library —
   // someone else's, or held by the setlist — can be copied there.
   const canCopy = (song: SetlistSong) =>
@@ -354,6 +373,8 @@ export function SetlistSongsManager({
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {reorder.isReordering ? (
             <>
+              {/* Labelled on phones too: a bare ✕ and ✓ next to each
+                  other left "which one keeps my changes?" to a guess. */}
               <Button
                 variant="ghost"
                 className="gap-2"
@@ -361,13 +382,15 @@ export function SetlistSongsManager({
                 disabled={busy}
               >
                 <X className="h-4 w-4" aria-hidden />
-                <span className="sr-only sm:not-sr-only">
-                  {t("cancelReorder")}
-                </span>
+                {t("cancelReorder")}
               </Button>
-              <Button className="gap-2" onClick={reorder.save} disabled={busy}>
+              <Button
+                className="gap-2"
+                onClick={reorder.save}
+                disabled={busy || !orderChanged}
+              >
                 <Check className="h-4 w-4" aria-hidden />
-                <span className="sr-only sm:not-sr-only">{t("saveOrder")}</span>
+                {t("saveOrder")}
               </Button>
             </>
           ) : (
@@ -451,9 +474,9 @@ export function SetlistSongsManager({
                   ) : (
                     <Send className="h-4 w-4" aria-hidden />
                   )}
-                  <span className="sr-only sm:not-sr-only">
-                    {canManage ? t("addSong") : t("suggestSong")}
-                  </span>
+                  {/* The main action of the page keeps its words on a
+                      phone; the two beside it go icon-only. */}
+                  {canManage ? t("addSong") : t("suggestSong")}
                 </Button>
               )}
             </>
@@ -461,48 +484,77 @@ export function SetlistSongsManager({
         </div>
       </div>
 
-      <div
-        className={cn(
-          "bg-card overflow-hidden rounded-xl border",
-          busy && "pointer-events-none opacity-60",
-        )}
-      >
-        <DndContext
-          sensors={reorder.sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={reorder.onDragEnd}
-          accessibility={{ announcements, screenReaderInstructions }}
+      {reorder.isReordering && (
+        <p className="border-primary/30 bg-primary/5 text-muted-foreground flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
+          <GripVertical
+            className="text-primary mt-0.5 h-4 w-4 shrink-0"
+            aria-hidden
+          />
+          {t("reorderHint")}
+        </p>
+      )}
+
+      {displayRows.length === 0 ? (
+        // An empty running order gets a proper first step instead of a
+        // table header over "No songs added yet".
+        <div className="bg-card rounded-xl border border-dashed">
+          <EmptyState
+            icon={ListMusic}
+            title={t("emptyTitle")}
+            description={canManage ? t("emptyDescription") : t("emptyReadOnly")}
+            actions={
+              canManage || band ? (
+                <Button
+                  className="gap-2"
+                  onClick={() => setIsAddOpen(true)}
+                  {...offlineDisabled}
+                  disabled={!!offlineDisabled.disabled}
+                >
+                  {canManage ? (
+                    <Plus className="h-4 w-4" aria-hidden />
+                  ) : (
+                    <Send className="h-4 w-4" aria-hidden />
+                  )}
+                  {canManage ? t("addSong") : t("suggestSong")}
+                </Button>
+              ) : undefined
+            }
+          />
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)",
+            busy && "pointer-events-none opacity-60",
+          )}
         >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  {reorder.isReordering ? "" : "#"}
-                </TableHead>
-                <TableHead>{t("table.title")}</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  {t("table.artist")}
-                </TableHead>
-                <TableHead className="hidden sm:table-cell">
-                  {t("table.duration")}
-                </TableHead>
-                <TableHead>{t("table.bpm")}</TableHead>
-                <TableHead className="w-12 text-right">
-                  <span className="sr-only">{t("table.actions")}</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayRows.length === 0 ? (
+          <DndContext
+            id={dndId}
+            sensors={reorder.sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={reorder.onDragEnd}
+            accessibility={{ announcements, screenReaderInstructions }}
+          >
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-muted-foreground h-24 text-center"
-                  >
-                    {t("empty")}
-                  </TableCell>
+                  <TableHead className="w-12">
+                    {reorder.isReordering ? "" : "#"}
+                  </TableHead>
+                  <TableHead>{t("table.title")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("table.artist")}
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {t("table.duration")}
+                  </TableHead>
+                  <TableHead>{t("table.bpm")}</TableHead>
+                  <TableHead className="w-12 text-right">
+                    <span className="sr-only">{t("table.actions")}</span>
+                  </TableHead>
                 </TableRow>
-              ) : (
+              </TableHeader>
+              <TableBody>
                 <SortableContext
                   items={displayRows.map((row) => row.id)}
                   strategy={verticalListSortingStrategy}
@@ -535,6 +587,7 @@ export function SetlistSongsManager({
                           actionsDisabled={actionsDisabled}
                           showAddedBy={showAddedBy}
                           onCopy={canCopy(row.song) ? handleCopy : undefined}
+                          songHref={songHrefOf(row.song)}
                           copyDisabled={!!offlineDisabled.disabled || busy}
                           move={move}
                         />
@@ -545,6 +598,8 @@ export function SetlistSongsManager({
                         <SortableBlockRow
                           key={row.id}
                           row={row}
+                          songCount={blockTotals.get(row.id)?.songs ?? 0}
+                          duration={blockTotals.get(row.id)?.seconds ?? 0}
                           isReordering={reorder.isReordering}
                           onEdit={() =>
                             openBlockDialog({ id: row.id, name: row.name })
@@ -579,11 +634,11 @@ export function SetlistSongsManager({
                     );
                   })}
                 </SortableContext>
-              )}
-            </TableBody>
-          </Table>
-        </DndContext>
-      </div>
+              </TableBody>
+            </Table>
+          </DndContext>
+        </div>
+      )}
 
       <p role="status" aria-live="polite" className="sr-only">
         {reorder.isReordering ? moveAnnouncement : ""}

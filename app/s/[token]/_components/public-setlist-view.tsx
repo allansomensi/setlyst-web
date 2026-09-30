@@ -5,15 +5,6 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { PublicSetlist } from "@/types/api";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Clock, Download, Eye, Flag, Music } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { formatDuration } from "@/lib/utils";
@@ -21,6 +12,7 @@ import { apiPath } from "@/lib/api-endpoint";
 import { ExportPdfDialog } from "@/components/setlists/export-pdf-dialog";
 import { PublicPreferences } from "@/components/public/public-preferences";
 import { LinkButtons } from "@/components/content/link-buttons";
+import { PublicRunningOrder } from "@/components/public/public-running-order";
 
 interface PublicSetlistViewProps {
   setlist: PublicSetlist;
@@ -29,7 +21,6 @@ interface PublicSetlistViewProps {
 
 export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
   const t = useTranslations("publicPage");
-  const tTable = useTranslations("setlists.songs.table");
   const tSetlists = useTranslations("setlists");
   const locale = useLocale();
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
@@ -98,87 +89,7 @@ export function PublicSetlistView({ setlist, token }: PublicSetlistViewProps) {
           <LinkButtons links={setlist.links} />
         )}
 
-        <div className="bg-card overflow-hidden rounded-xl border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>{tTable("title")}</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  {tTable("artist")}
-                </TableHead>
-                <TableHead className="text-right sm:text-left">
-                  {tTable("duration")}
-                </TableHead>
-                <TableHead className="hidden sm:table-cell">
-                  {tTable("bpm")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {setlist.songs.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-muted-foreground h-24 text-center"
-                  >
-                    {t("noSongs")}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                setlist.songs.map((song, index) => (
-                  <TableRow key={`${song.position}-${index}`}>
-                    <TableCell className="text-muted-foreground font-mono text-xs font-medium tabular-nums">
-                      {String(index + 1).padStart(2, "0")}
-                    </TableCell>
-                    <TableCell className="w-full max-w-0">
-                      <div className="flex items-center gap-2">
-                        {/* Full title on hover when it's cut short. */}
-                        <span
-                          className="truncate font-medium"
-                          title={song.title}
-                        >
-                          {song.title}
-                        </span>
-                        {song.tonality && (
-                          <Badge
-                            variant="outline"
-                            className="h-5 shrink-0 px-1.5 font-mono text-[10px]"
-                          >
-                            {song.tonality}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground truncate text-xs md:hidden">
-                        {song.artist_name}
-                        {song.tempo ? (
-                          <span className="sm:hidden">
-                            {/* Separator only between two things. */}
-                            {song.artist_name ? " · " : null}
-                            {song.tempo} {tTable("bpm")}
-                          </span>
-                        ) : null}
-                      </p>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground hidden md:table-cell">
-                      {song.artist_name}
-                    </TableCell>
-                    <TableCell className="text-right sm:text-left">
-                      <span className="text-muted-foreground font-mono text-sm tabular-nums">
-                        {song.duration ? formatDuration(song.duration) : "–"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <span className="text-muted-foreground font-mono text-sm tabular-nums">
-                        {song.tempo ?? "–"}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <PublicRunningOrder setlist={setlist} emptyText={t("noSongs")} />
 
         <div className="text-muted-foreground flex flex-col items-center gap-1 pt-2 text-center text-xs sm:flex-row sm:justify-between sm:text-left">
           <span className="flex items-center gap-1.5">

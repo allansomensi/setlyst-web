@@ -140,7 +140,10 @@ function EmailBanner({
           aria-label={t("label")}
           className="flex items-start gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-950 md:items-center md:px-8 dark:text-amber-100"
         >
-          <MailWarning className="mt-0.5 size-4 shrink-0 text-amber-600 md:mt-0 dark:text-amber-400" />
+          <MailWarning
+            className="mt-0.5 size-4 shrink-0 text-amber-600 md:mt-0 dark:text-amber-400"
+            aria-hidden
+          />
           <p className="min-w-0 flex-1">
             {email ? (
               <>
@@ -226,8 +229,11 @@ function TermsGate() {
 
   // On the settings page the person may be exporting their data or
   // deleting the account instead of accepting: a banner reminds them, and
-  // the modal opens on request. Anywhere else it blocks.
-  const onSettings = /\/dashboard\/settings\/?$/.test(pathname ?? "");
+  // the modal opens on request. Anywhere else it blocks. Any settings
+  // page: since the settings were split into pages, "Export data" and
+  // "Delete account" (below) lead to /dashboard/settings/data, which the
+  // old exact match blocked again, so neither could actually be used.
+  const onSettings = /\/dashboard\/settings(\/|$)/.test(pathname ?? "");
   const open = !accepted && (onSettings ? reviewOpen : true);
   const blocking = !onSettings;
 

@@ -7,6 +7,7 @@ import {
   FileText,
   Info,
   CircleHelp,
+  ExternalLink,
   Lock,
   Mail,
   Megaphone,
@@ -39,14 +40,24 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-foreground h-9 w-9"
+          // size-10 on touch screens, like the links beside it.
+          className="text-muted-foreground hover:text-foreground h-9 w-9 pointer-coarse:size-10"
           aria-label={t("help")}
           title={t("help")}
         >
           <CircleHelp className="h-4 w-4" aria-hidden />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="end" className="w-56">
+      {/* Kept off the window's edges: aligned to its end, the menu ran
+          past the left edge from the sidebar's footer and was pushed
+          flush against it. */}
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        collisionPadding={8}
+        className="w-56"
+      >
         <DropdownMenuLabel>{t("help")}</DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <a href={`mailto:${SUPPORT_EMAIL}`} onClick={onNavigate}>
@@ -66,25 +77,30 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
             rel="noreferrer"
             onClick={onNavigate}
           >
-            <BookOpen className="mr-2 h-4 w-4" />
+            <BookOpen className="mr-2 h-4 w-4" aria-hidden />
             {t("wiki")}
+            {/* Opens in a new tab, unlike everything else here. */}
+            <ExternalLink
+              className="text-muted-foreground ml-auto h-3.5 w-3.5"
+              aria-hidden
+            />
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href={STATUS_PATH} onClick={onNavigate}>
-            <Activity className="mr-2 h-4 w-4" />
+            <Activity className="mr-2 h-4 w-4" aria-hidden />
             {t("status")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/dashboard/about" onClick={onNavigate}>
-            <Info className="mr-2 h-4 w-4" />
+            <Info className="mr-2 h-4 w-4" aria-hidden />
             {t("about")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/dashboard/announcements" onClick={onNavigate}>
-            <Megaphone className="mr-2 h-4 w-4" />
+            <Megaphone className="mr-2 h-4 w-4" aria-hidden />
             {tAnnouncements("pageTitle")}
           </Link>
         </DropdownMenuItem>
@@ -94,19 +110,19 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
         </DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link href="/legal/terms" onClick={onNavigate}>
-            <FileText className="mr-2 h-4 w-4" />
+            <FileText className="mr-2 h-4 w-4" aria-hidden />
             {tLegal("documents.terms.short")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/legal/privacy" onClick={onNavigate}>
-            <Lock className="mr-2 h-4 w-4" />
+            <Lock className="mr-2 h-4 w-4" aria-hidden />
             {tLegal("documents.privacy.short")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/legal/security" onClick={onNavigate}>
-            <ShieldCheck className="mr-2 h-4 w-4" />
+            <ShieldCheck className="mr-2 h-4 w-4" aria-hidden />
             {tLegal("documents.security.short")}
           </Link>
         </DropdownMenuItem>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/page-header";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ReleaseNotesList } from "@/components/release-notes/release-notes-list";
@@ -24,25 +25,25 @@ export default async function WhatsNewPage() {
   const notes = result.ok && Array.isArray(result.data) ? result.data : null;
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-8">
+    // The page's left edge and header line up with every other page; the
+    // timeline keeps its reading width.
+    <div className="mx-auto w-full max-w-6xl space-y-8 pb-10 *:max-w-4xl">
       <MarkReleasesSeen latestId={notes ? latestReleaseId(notes) : null} />
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground">
-          {t.rich("description", {
-            wiki: (chunks) => (
-              <a
-                href={WIKI_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                {chunks}
-              </a>
-            ),
-          })}
-        </p>
-      </div>
+      <PageHeader
+        title={t("title")}
+        description={t.rich("description", {
+          wiki: (chunks) => (
+            <a
+              href={WIKI_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              {chunks}
+            </a>
+          ),
+        })}
+      />
 
       {notes === null ? (
         <Alert>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import {
@@ -78,9 +79,12 @@ export function Choice<T extends string | number>({
   render: (value: T) => string;
   disabled?: boolean;
 }) {
+  const id = useId();
   return (
     <div className="space-y-1.5">
-      <Label className="text-muted-foreground text-xs">{label}</Label>
+      <Label htmlFor={id} className="text-muted-foreground text-xs">
+        {label}
+      </Label>
       <Select
         value={String(value)}
         onValueChange={(raw) => {
@@ -89,7 +93,7 @@ export function Choice<T extends string | number>({
         }}
         disabled={disabled}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger id={id} className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

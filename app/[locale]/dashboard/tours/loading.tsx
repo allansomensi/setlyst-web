@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ToursLoading() {
   return (
-    <div className="w-full space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-9 w-40" />

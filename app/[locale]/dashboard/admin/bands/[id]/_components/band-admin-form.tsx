@@ -93,9 +93,12 @@ export function BandAdminForm({
             onChange={(e) => setLogoUrl(e.target.value)}
             placeholder="https://"
             aria-invalid={!logoValid}
+            aria-describedby={logoValid ? undefined : "band-logo-error"}
           />
           {!logoValid && (
-            <p className="text-destructive text-xs">{t("logoInvalid")}</p>
+            <p id="band-logo-error" className="text-destructive text-xs">
+              {t("logoInvalid")}
+            </p>
           )}
         </div>
       </fieldset>

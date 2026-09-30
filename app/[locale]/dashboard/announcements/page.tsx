@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/page-header";
 import { getTranslations } from "next-intl/server";
 import { LoadErrorNotice } from "@/components/load-error-notice";
 import { fetchAllServerPages } from "@/lib/api-server";
@@ -17,11 +18,9 @@ export default async function AnnouncementsPage() {
     .catch(() => null);
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">{t("pageTitle")}</h1>
-        <p className="text-muted-foreground">{t("pageDescription")}</p>
-      </div>
+    // Lined up with every other page; the list keeps its reading width.
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10 *:max-w-3xl">
+      <PageHeader title={t("pageTitle")} description={t("pageDescription")} />
       {result === null ? (
         <LoadErrorNotice />
       ) : (

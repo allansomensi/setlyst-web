@@ -7,8 +7,8 @@ import { BandAvatar } from "@/components/bands/band-avatar";
 import { BandRoleBadge } from "@/components/bands/band-role-badge";
 import { BandDialog } from "../../_components/band-dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Pencil, ListMusic, CalendarDays } from "lucide-react";
-import { Link } from "@/components/nav-link";
+import { Pencil } from "lucide-react";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
 import { useTranslations } from "next-intl";
 import { PinButton } from "@/components/content/pin-button";
 
@@ -19,19 +19,36 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
 
   const canManage = band.my_role === "owner" || band.my_role === "admin";
 
+  // The band's setlists and shows used to have buttons here too, next to
+  // the tabs that hold the same lists (each with its own "see all" link):
+  // two ways to the same place, side by side. The header keeps what is
+  // about the band itself.
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="flex items-start gap-3 sm:gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          asChild
-          className="hidden shrink-0 sm:inline-flex"
-        >
-          <Link href="/dashboard/bands" aria-label={tNav("bands")}>
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-          </Link>
-        </Button>
+    <>
+      <DetailHeader
+        actions={
+          <>
+            <PinButton
+              type="band"
+              id={band.id}
+              name={band.name}
+              pinned={!!band.is_pinned}
+              variant="default"
+            />
+            {canManage && (
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(true)}
+                className="gap-2"
+              >
+                <Pencil className="h-4 w-4" aria-hidden />
+                {t("menu.edit")}
+              </Button>
+            )}
+          </>
+        }
+      >
+        <DetailBackButton href="/dashboard/bands" label={tNav("bands")} />
 
         <BandAvatar
           bandId={band.id}
@@ -40,7 +57,7 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
           className="h-14 w-14 shrink-0 text-lg"
         />
 
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight wrap-break-word sm:text-3xl">
               {band.name}
@@ -48,58 +65,25 @@ export function BandHeader({ band }: { band: BandWithMembership }) {
             <BandRoleBadge role={band.my_role} />
           </div>
           {band.description && (
-            <p className="text-muted-foreground wrap-break-word">
+            <p className="text-muted-foreground max-w-2xl wrap-break-word">
               {band.description}
             </p>
           )}
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground text-sm">
             {t("memberCount", { count: band.member_count })}
           </p>
           <AuditStamp
             updatedAt={band.updated_at}
             updatedBy={band.updated_by_username}
-            className="mt-1"
           />
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-        <PinButton
-          type="band"
-          id={band.id}
-          name={band.name}
-          pinned={!!band.is_pinned}
-          variant="default"
-        />
-        <Button variant="outline" asChild className="gap-2 px-2.5 sm:px-4">
-          <Link href={`/dashboard/bands/${band.id}/setlists`}>
-            <ListMusic className="h-4 w-4" aria-hidden />
-            <span className="sr-only sm:not-sr-only">{t("viewSetlists")}</span>
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="gap-2 px-2.5 sm:px-4">
-          <Link href={`/dashboard/bands/${band.id}/gigs`}>
-            <CalendarDays className="h-4 w-4" aria-hidden />
-            <span className="sr-only sm:not-sr-only">{t("viewGigs")}</span>
-          </Link>
-        </Button>
-        {canManage && (
-          <Button
-            variant="outline"
-            onClick={() => setIsDialogOpen(true)}
-            className="gap-2 px-2.5 sm:px-4"
-          >
-            <Pencil className="h-4 w-4" aria-hidden />
-            <span className="sr-only sm:not-sr-only">{t("menu.edit")}</span>
-          </Button>
-        )}
-      </div>
+      </DetailHeader>
 
       <BandDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         band={band}
       />
-    </div>
+    </>
   );
 }

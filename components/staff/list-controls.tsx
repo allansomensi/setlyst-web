@@ -96,7 +96,9 @@ export function ListToolbar({
         value={query}
         onChange={setQuery}
         placeholder={placeholder}
-        className="sm:max-w-sm"
+        // `w-full`: in the row (from `sm` up) the box would otherwise
+        // shrink to the input's intrinsic width and clip its placeholder.
+        className="w-full sm:max-w-sm"
       />
       {filters.map((filter) => (
         <Select

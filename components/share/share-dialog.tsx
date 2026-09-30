@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import {
   Copy,
+  ExternalLink,
   Globe,
   Link2Off,
   Loader2,
@@ -199,6 +200,18 @@ export function ShareDialog({
                     <Copy className="h-4 w-4" aria-hidden />
                     <span className="sr-only">{t("copyLink")}</span>
                   </Button>
+                  {/* See what the people with the link will see. */}
+                  <Button variant="outline" size="icon" asChild>
+                    <a
+                      href={publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={t("openLink")}
+                    >
+                      <ExternalLink className="h-4 w-4" aria-hidden />
+                      <span className="sr-only">{t("openLink")}</span>
+                    </a>
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -292,7 +305,7 @@ export function ShareDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             {tCommon("close")}
           </Button>
           {!shareToken && !shareLock && (

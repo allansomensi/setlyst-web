@@ -61,12 +61,14 @@ import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { PinButton } from "@/components/content/pin-button";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import { toastActionError } from "@/lib/action-toast";
-import { cn } from "@/lib/utils";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { ClientDate } from "@/components/client-date";
+import { PageHeader } from "@/components/page-header";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { cn, formatDuration } from "@/lib/utils";
 
 const SEARCHABLE_KEYS = ["title", "description"] as const;
 
@@ -105,6 +107,16 @@ interface SetlistsTableProps {
    * the API, so the buttons are hidden rather than left to fail.
    */
   canCreate?: boolean;
+  /**
+   * A band's page: its own title (and the way back to the band) instead
+   * of the "Setlists" page header, with the actions on the same row.
+   */
+  heading?: {
+    title: string;
+    description?: string;
+    backHref?: string;
+    backLabel?: string;
+  };
 }
 
 export function SetlistsTable({
@@ -115,6 +127,7 @@ export function SetlistsTable({
   quotas = null,
   notice,
   canCreate = true,
+  heading,
 }: SetlistsTableProps) {
   const router = useAppRouter();
   const offlineDisabled = useOfflineDisabled();
@@ -149,11 +162,22 @@ export function SetlistsTable({
   });
   // The repertoire is stored as "Repertoire": search and sort by the
   // translated name people actually see.
+  //
+  // Favourites first: that's what the star is for. The list is personal,
+  // shared and band setlists concatenated, so a starred band setlist used
+  // to stay at the bottom with nothing to show for the star. The sort is
+  // stable (the API's order is kept within each group), and a column
+  // sort the person picks still takes over.
   const availableSetlists = useMemo(
     () =>
-      cachedSetlists.map((setlist) =>
-        setlist.is_repertoire ? { ...setlist, title: repertoireName } : setlist,
-      ),
+      cachedSetlists
+        .map((setlist) =>
+          setlist.is_repertoire
+            ? { ...setlist, title: repertoireName }
+            : setlist,
+        )
+        // `!!`: an older offline copy may lack the field.
+        .sort((a, b) => Number(!!b.is_favorite) - Number(!!a.is_favorite)),
     [cachedSetlists, repertoireName],
   );
 
@@ -245,36 +269,55 @@ export function SetlistsTable({
     }
   };
 
+  const headerActions =
+    quota || !bandId || canCreate ? (
+      <>
+        <QuotaChip usage={quota} resource="setlists" />
+        {!bandId && <ImportSharedButton kind="setlist" disabled={quotaFull} />}
+        {canCreate && (
+          <Button
+            onClick={() => handleOpenDialog()}
+            {...offlineDisabled}
+            disabled={offlineDisabled.disabled || quotaFull}
+          >
+            <Plus className="mr-2 h-4 w-4" aria-hidden />
+            {t("addSetlist")}
+          </Button>
+        )}
+      </>
+    ) : undefined;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* A band's page has its own title above this table. */}
-        {!bandId && (
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {t("title")}
+      {heading ? (
+        // A band's page: back to the band, its title, and the band's
+        // "New setlist" on the title's row (it used to float alone on a
+        // row of its own between the title and the search).
+        <DetailHeader actions={headerActions}>
+          {heading.backHref && (
+            <DetailBackButton
+              href={heading.backHref}
+              label={heading.backLabel ?? heading.title}
+            />
+          )}
+          <div className="min-w-0 space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+              {heading.title}
             </h1>
-            <p className="text-muted-foreground">{t("subtitle")}</p>
+            {heading.description && (
+              <p className="text-muted-foreground max-w-2xl text-pretty">
+                {heading.description}
+              </p>
+            )}
           </div>
-        )}
-        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
-          <QuotaChip usage={quota} resource="setlists" />
-          {!bandId && (
-            <ImportSharedButton kind="setlist" disabled={quotaFull} />
-          )}
-          {canCreate && (
-            <Button
-              onClick={() => handleOpenDialog()}
-              {...offlineDisabled}
-              disabled={offlineDisabled.disabled || quotaFull}
-            >
-              <Plus className="mr-2 h-4 w-4" aria-hidden />
-              {t("addSetlist")}
-            </Button>
-          )}
-        </div>
-      </div>
+        </DetailHeader>
+      ) : (
+        <PageHeader
+          title={t("title")}
+          description={t("subtitle")}
+          actions={headerActions}
+        />
+      )}
       <QuotaLimitNotice usage={quota} resource="setlists" className="-mt-3" />
       {notice}
 
@@ -289,7 +332,7 @@ export function SetlistsTable({
       {/* Table */}
       <div
         className={cn(
-          "bg-card rounded-md border",
+          "bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)",
           isPending && "pointer-events-none opacity-60",
         )}
       >
@@ -302,9 +345,20 @@ export function SetlistsTable({
                 sortConfig={sortConfig}
                 onSort={handleSort}
               />
+              {/* Songs and running time, the two things that tell one
+                  setlist from another at a glance. They replace a
+                  "Description" column that was an em dash on almost every
+                  row; a description now sits under the title instead. */}
               <SortableColumnHeader
-                label={t("table.description")}
-                sortKey="description"
+                label={t("table.songs")}
+                sortKey="song_count"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                className="hidden md:table-cell"
+              />
+              <SortableColumnHeader
+                label={t("table.duration")}
+                sortKey="total_duration"
                 sortConfig={sortConfig}
                 onSort={handleSort}
                 className="hidden md:table-cell"
@@ -324,7 +378,7 @@ export function SetlistsTable({
           <TableBody>
             {setlists.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   {/* Only a failure we couldn't paper over with the local
                       copy is worth showing as one — see isFromCache. */}
                   {loadError && !isFromCache ? (
@@ -402,11 +456,14 @@ export function SetlistsTable({
                           // row's layout as it was.
                           className="text-muted-foreground focus-visible:ring-ring/50 -mx-2 flex size-8 shrink-0 items-center justify-center rounded-md outline-none hover:text-yellow-500 focus-visible:ring-3 disabled:opacity-50 pointer-coarse:size-10"
                           // Offline, the tooltip says why it's off instead.
+                          // Says what the star does (keeps the setlist at
+                          // the top of this list), so it doesn't read as a
+                          // second pin: the pin puts it on the home page.
                           title={
                             offlineDisabled.title ??
                             (setlist.is_favorite
                               ? t("unfavorite")
-                              : t("favorite"))
+                              : t("favoriteHint"))
                           }
                           aria-label={
                             setlist.is_favorite
@@ -432,24 +489,30 @@ export function SetlistsTable({
                         <Link
                           href={`/dashboard/setlists/${setlist.id}`}
                           data-no-row-click
+                          // Truncated beside the badges on narrow screens.
+                          title={setlist.title}
                           className="focus-visible:ring-ring min-w-0 truncate rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
                         >
                           {setlist.title}
                         </Link>
                         <OfflineIndicator kind="setlist" id={setlist.id} />
+                        {/* The tags give way to the title on a phone; the
+                            line under it says the same in fewer pixels. */}
                         {setlist.is_repertoire && (
                           <Badge
                             variant="secondary"
-                            className="text-xs"
+                            className="hidden text-xs sm:inline-flex"
                             title={t("repertoire.tooltip")}
                           >
                             {t("repertoire.badge")}
                           </Badge>
                         )}
-                        {isBandSetlist && (
+                        {/* Not on the band's own page, where every row
+                            would repeat the name in the title above. */}
+                        {isBandSetlist && !bandId && (
                           <Badge
                             variant="outline"
-                            className="gap-1 text-xs font-normal"
+                            className="hidden gap-1 text-xs font-normal sm:inline-flex"
                             title={t("bandSetlistTooltip", {
                               name: bandInfo?.name ?? "",
                             })}
@@ -463,7 +526,7 @@ export function SetlistsTable({
                         {sharedRole ? (
                           <Badge
                             variant="outline"
-                            className="gap-1 text-xs font-normal"
+                            className="hidden gap-1 text-xs font-normal sm:inline-flex"
                             title={t("collaborators.sharedByTooltip", {
                               username: setlist.owner_username ?? "",
                               role: t(`collaborators.roles.${sharedRole}`),
@@ -492,12 +555,20 @@ export function SetlistsTable({
                         )}
                         <ChevronRight className="text-muted-foreground h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                       </div>
+                      <SetlistMetaLine
+                        setlist={setlist}
+                        bandName={
+                          isBandSetlist && !bandId ? bandInfo?.name : undefined
+                        }
+                      />
                     </TableCell>
-                    <TableCell
-                      className="text-muted-foreground hidden max-w-xs truncate text-sm md:table-cell"
-                      title={setlist.description ?? ""}
-                    >
-                      {setlist.description ?? "—"}
+                    <TableCell className="text-muted-foreground hidden text-sm tabular-nums md:table-cell">
+                      {setlist.song_count ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden font-mono text-sm tabular-nums md:table-cell">
+                      {setlist.total_duration
+                        ? formatDuration(setlist.total_duration)
+                        : "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
                       <ClientDate value={setlist.created_at} />
@@ -614,5 +685,50 @@ export function SetlistsTable({
         pending={isPending}
       />
     </div>
+  );
+}
+
+/**
+ * The line under a setlist's title: its description, when it has one,
+ * and on a phone (where the songs and duration columns and the tags are
+ * hidden) how many songs, how long, and whose. Indented to line up with
+ * the title, past the star and the icon.
+ */
+function SetlistMetaLine({
+  setlist,
+  bandName,
+}: {
+  setlist: Setlist;
+  bandName?: string;
+}) {
+  const t = useTranslations("setlists");
+  const compact = [
+    setlist.song_count != null
+      ? t("songCount", { count: setlist.song_count })
+      : null,
+    setlist.total_duration ? formatDuration(setlist.total_duration) : null,
+    bandName ?? null,
+    setlist.collaborator_role
+      ? t("collaborators.sharedBy", { username: setlist.owner_username ?? "" })
+      : null,
+  ].filter(Boolean);
+  const description = setlist.description?.trim();
+  if (compact.length === 0 && !description) return null;
+
+  return (
+    <p
+      className={cn(
+        "text-muted-foreground mt-0.5 truncate pl-12 text-xs pointer-coarse:pl-14",
+        !description && "md:hidden",
+      )}
+    >
+      {compact.length > 0 && (
+        <span className="md:hidden">
+          {compact.join(" · ")}
+          {description && " · "}
+        </span>
+      )}
+      {description && <span title={description}>{description}</span>}
+    </p>
   );
 }

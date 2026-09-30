@@ -1,8 +1,10 @@
 "use client";
 
+import { GigStatusBadge } from "@/components/content/gig-status-badge";
+import { PageHeader } from "@/components/page-header";
 import { useMemo, useState, useTransition } from "react";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { Gig, GigStatus, QuotaReport, Setlist } from "@/types/api";
+import { Gig, QuotaReport, Setlist } from "@/types/api";
 import { useSearchParams } from "next/navigation";
 import { useSyncSearchParams } from "@/hooks/use-url-state";
 import { foldForSearch } from "@/lib/search";
@@ -60,6 +62,10 @@ import { Link } from "@/components/nav-link";
 import { useOfflineDisabled } from "@/components/offline-disabled";
 import { ImportSharedButton } from "@/components/shared-files/import-shared-dialog";
 
+/** Amber: a to-do, not an error. */
+const NO_SETLIST_STYLE =
+  "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+
 interface BandLookupEntry {
   name: string;
   canManage: boolean;
@@ -97,15 +103,6 @@ interface GigsTableProps {
   canCreate?: boolean;
 }
 
-const STATUS_VARIANT: Record<
-  GigStatus,
-  "default" | "destructive" | "secondary"
-> = {
-  confirmed: "default",
-  cancelled: "destructive",
-  completed: "secondary",
-};
-
 export function GigsTable({
   initialGigs,
   bandsById,
@@ -123,6 +120,7 @@ export function GigsTable({
   const t = useTranslations("gigs");
   const tCommon = useTranslations("common");
   const tTrash = useTranslations("trash");
+  const tPagination = useTranslations("pagination");
   const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
@@ -211,12 +209,28 @@ export function GigsTable({
     });
   };
 
-  const formatDateTime = (value: string) => formatWallClock(value, locale);
+  // With the weekday: "Friday or Saturday?" is the first thing a
+  // musician reads off a date.
+  const formatDateTime = (value: string) =>
+    formatWallClock(value, locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-  const renderRow = (gig: Gig) => {
+  const renderRow = (gig: Gig, isUpcoming = false) => {
     const bandInfo = gig.band_id ? bandsById[gig.band_id] : undefined;
     const isBandGig = !!gig.band_id;
     const canManage = !isBandGig || bandInfo?.canManage === true;
+    // A show coming up with nothing to play yet is the one thing on this
+    // list that needs doing.
+    // On a band's own shows page every row is that band's: no badge.
+    const showBand = isBandGig && !fixedBandId;
+    const needsSetlist =
+      isUpcoming && gig.status !== "cancelled" && !gig.setlist_id;
 
     return (
       <TableRow
@@ -237,11 +251,17 @@ export function GigsTable({
             <Link
               href={`/dashboard/gigs/${gig.id}`}
               data-no-row-click
-              className="focus-visible:ring-ring min-w-0 truncate rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none"
+              title={gig.venue}
+              className={cn(
+                "focus-visible:ring-ring min-w-0 truncate rounded-sm font-medium group-hover:underline focus-visible:ring-2 focus-visible:outline-none",
+                // Still listed among the upcoming ones, but plainly off.
+                gig.status === "cancelled" &&
+                  "text-muted-foreground decoration-muted-foreground/60 line-through",
+              )}
             >
               {gig.venue}
             </Link>
-            {isBandGig && (
+            {showBand && (
               <Badge
                 variant="outline"
                 className="hidden shrink-0 gap-1 text-xs font-normal sm:inline-flex"
@@ -264,8 +284,21 @@ export function GigsTable({
                   data-no-row-click
                 >
                   <Route className="h-3 w-3" aria-hidden />
-                  <span className="max-w-32 truncate">{gig.tour_name}</span>
+                  <span className="max-w-32 truncate" title={gig.tour_name}>
+                    {gig.tour_name}
+                  </span>
                 </Link>
+              </Badge>
+            )}
+            {needsSetlist && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "hidden shrink-0 font-normal sm:inline-flex",
+                  NO_SETLIST_STYLE,
+                )}
+              >
+                {t("noSetlistBadge")}
               </Badge>
             )}
             <ChevronRight className="text-muted-foreground hidden h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 sm:block" />
@@ -282,35 +315,46 @@ export function GigsTable({
                 <span aria-hidden> ·</span>
               </span>
             )}
-            <span className="shrink-0">{formatDateTime(gig.scheduled_at)}</span>
-            {isBandGig && (
-              <span
-                className="flex min-w-0 items-center gap-1"
-                title={t("bandGigTooltip", { name: bandInfo?.name ?? "" })}
-              >
-                <span aria-hidden>·</span>
-                <Guitar className="h-3 w-3 shrink-0" aria-hidden />
-                <span className="truncate">
-                  {bandInfo?.name ?? t("bandGig")}
-                </span>
-              </span>
-            )}
-            {gig.tour_id && gig.tour_name && (
-              <span className="flex min-w-0 items-center gap-1">
-                <span aria-hidden>·</span>
-                <Route className="h-3 w-3 shrink-0" aria-hidden />
-                <span className="truncate">{gig.tour_name}</span>
+            <span className="truncate">{formatDateTime(gig.scheduled_at)}</span>
+            {needsSetlist && (
+              <span className="shrink-0 font-medium text-amber-700 dark:text-amber-300">
+                <span aria-hidden>· </span>
+                {t("noSetlistBadge")}
               </span>
             )}
           </div>
+          {/* The band and the tour on a line of their own: squeezed next
+              to the date they were cut down to "Ba… · Auror…". */}
+          {(showBand || (gig.tour_id && gig.tour_name)) && (
+            <div className="text-muted-foreground mt-0.5 flex min-w-0 items-center gap-3 text-xs sm:hidden">
+              {showBand && (
+                <span
+                  className="flex min-w-0 items-center gap-1"
+                  title={t("bandGigTooltip", { name: bandInfo?.name ?? "" })}
+                >
+                  <Guitar className="h-3 w-3 shrink-0" aria-hidden />
+                  <span className="truncate">
+                    {bandInfo?.name ?? t("bandGig")}
+                  </span>
+                </span>
+              )}
+              {gig.tour_id && gig.tour_name && (
+                <span className="flex min-w-0 items-center gap-1">
+                  <Route className="h-3 w-3 shrink-0" aria-hidden />
+                  <span className="truncate">{gig.tour_name}</span>
+                </span>
+              )}
+            </div>
+          )}
         </TableCell>
         <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
           {formatDateTime(gig.scheduled_at)}
         </TableCell>
         <TableCell className="hidden sm:table-cell">
-          <Badge variant={STATUS_VARIANT[gig.status]}>
-            {t(`dialog.status.${gig.status}`)}
-          </Badge>
+          <GigStatusBadge
+            status={gig.status}
+            label={t(`dialog.status.${gig.status}`)}
+          />
         </TableCell>
         <TableCell className="text-right" data-no-row-click>
           <div className="flex items-center justify-end gap-0.5">
@@ -373,36 +417,34 @@ export function GigsTable({
     );
   };
 
+  const headerActions = (
+    <>
+      <QuotaChip usage={quota} resource="gigs" />
+      {!fixedBandId && <ImportSharedButton kind="gig" disabled={quotaFull} />}
+      {canCreate && (
+        <Button
+          onClick={() => handleOpenDialog()}
+          {...offlineDisabled}
+          disabled={offlineDisabled.disabled || quotaFull}
+        >
+          <Plus className="mr-2 h-4 w-4" aria-hidden />
+          {t("addGig")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* A band's page has its own title above this table. */}
-        {!fixedBandId && (
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {t("title")}
-            </h1>
-            <p className="text-muted-foreground">{t("subtitle")}</p>
-          </div>
-        )}
-        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
-          <QuotaChip usage={quota} resource="gigs" />
-          {!fixedBandId && (
-            <ImportSharedButton kind="gig" disabled={quotaFull} />
-          )}
-          {canCreate && (
-            <Button
-              onClick={() => handleOpenDialog()}
-              {...offlineDisabled}
-              disabled={offlineDisabled.disabled || quotaFull}
-            >
-              <Plus className="mr-2 h-4 w-4" aria-hidden />
-              {t("addGig")}
-            </Button>
-          )}
-        </div>
-      </div>
+      {/* A band's page has its own title above this table: there, its
+          actions share the search's row instead (below). */}
+      {!fixedBandId && (
+        <PageHeader
+          title={t("title")}
+          description={t("subtitle")}
+          actions={headerActions}
+        />
+      )}
       <QuotaLimitNotice usage={quota} resource="gigs" className="-mt-3" />
 
       {tourFilter && (
@@ -423,16 +465,23 @@ export function GigsTable({
         </div>
       )}
 
-      <SearchInput
-        value={search}
-        onChange={setSearch}
-        placeholder={t("searchPlaceholder")}
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder={t("searchPlaceholder")}
+          className="w-full min-w-0 sm:w-auto sm:max-w-sm sm:flex-1"
+        />
+        {fixedBandId && canCreate && (
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {headerActions}
+          </div>
+        )}
+      </div>
 
       <div
         className={cn(
-          "bg-card rounded-md border",
+          "bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)",
           isPending && "pointer-events-none opacity-60",
         )}
       >
@@ -501,7 +550,7 @@ export function GigsTable({
                     </TableCell>
                   </TableRow>
                 )}
-                {upcoming.map(renderRow)}
+                {upcoming.map((gig) => renderRow(gig, now !== null))}
 
                 {past.length > 0 && (
                   <TableRow className="hover:bg-transparent">
@@ -513,22 +562,34 @@ export function GigsTable({
                     </TableCell>
                   </TableRow>
                 )}
-                {past.map(renderRow)}
+                {past.map((gig) => renderRow(gig))}
               </>
             )}
           </TableBody>
         </Table>
       </div>
 
-      <p className="text-muted-foreground text-sm">
-        {tCommon("showing", {
-          count: filtered.length,
-          total: availableGigs.length,
-          entity:
-            availableGigs.length !== 1 ? tCommon("results") : tCommon("result"),
-        })}
-        {search && ` ${tCommon("showingFor", { search })}`}
-      </p>
+      {/* The same summary as the paginated lists' footer (songs,
+          artists, setlists): this list is grouped by date instead of
+          paged, so it is all on one "page". */}
+      {filtered.length > 0 && (
+        <p
+          aria-live="polite"
+          className="text-muted-foreground text-center text-sm sm:text-left"
+        >
+          {tPagination("range", {
+            first: 1,
+            last: filtered.length,
+            total: filtered.length,
+          })}
+          {search.trim() && (
+            <span className="sr-only sm:not-sr-only">
+              {" "}
+              {tPagination("forSearch", { search: search.trim() })}
+            </span>
+          )}
+        </p>
+      )}
 
       <GigDialog
         key={`${editingGig?.id ?? "new"}:${dialogSession}`}

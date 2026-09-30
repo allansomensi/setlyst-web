@@ -6,10 +6,10 @@ import {
 
 export default function BandSetlistsLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <BreadcrumbSkeleton crumbs={3} />
       <DetailHeaderSkeleton />
-      <TableSkeleton rows={5} columns={4} />
+      <TableSkeleton rows={5} columns={5} />
     </div>
   );
 }

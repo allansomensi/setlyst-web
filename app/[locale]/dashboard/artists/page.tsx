@@ -21,7 +21,7 @@ export default async function ArtistsPage() {
   const artists = hadError ? [] : (response?.data ?? []);
 
   return (
-    <div className="w-full space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <ArtistsTable
         initialArtists={artists}
         loadError={hadError}

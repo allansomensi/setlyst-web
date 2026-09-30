@@ -23,21 +23,30 @@ export function LocaleSwitcher({
   className,
   fullWidth = false,
   compact = false,
+  short = false,
 }: {
   className?: string;
   fullWidth?: boolean;
   /**
-   * Icon only below `sm`: "Português (Brasil)" alone is wider than a
-   * third of a phone screen, which is more than a slim header can give
-   * it next to the theme picker. The name stays in the accessible label.
+   * The language code ("PT") below `sm`, the full name from `sm` up:
+   * "Português (Brasil)" alone is wider than a third of a phone screen,
+   * which is more than a slim header can give it next to the theme
+   * picker. The full name stays in the accessible label and the list.
    */
   compact?: boolean;
+  /**
+   * Always the language code: the desktop header, where the full name
+   * made the picker the widest control in the row (the list still names
+   * each language in itself).
+   */
+  short?: boolean;
 }) {
   const t = useTranslations("site");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const code = locale.split("-")[0].toUpperCase();
 
   const change = (next: AppLocale) => {
     // Read at click time (not with useSearchParams) so the header never
@@ -67,16 +76,36 @@ export function LocaleSwitcher({
           fullWidth ? "w-full" : "w-auto",
           className,
         )}
-        aria-label={t("language")}
+        // The trigger may show only the code: the label names the
+        // current language in full.
+        aria-label={
+          isAppLocale(locale)
+            ? `${t("language")}: ${LOCALE_NAMES[locale]}`
+            : t("language")
+        }
       >
         {isPending ? (
           <Loader2 className="text-muted-foreground size-4 animate-spin" />
         ) : (
           <Languages className="text-muted-foreground size-4" />
         )}
-        <span className={cn(compact && "hidden sm:inline")}>
+        {short || compact ? (
+          <SelectValue>
+            <span
+              className={cn(
+                "font-medium tracking-wide",
+                compact && !short && "sm:hidden",
+              )}
+            >
+              {code}
+            </span>
+            {compact && !short && isAppLocale(locale) && (
+              <span className="hidden sm:inline">{LOCALE_NAMES[locale]}</span>
+            )}
+          </SelectValue>
+        ) : (
           <SelectValue />
-        </span>
+        )}
       </SelectTrigger>
       <SelectContent align="end">
         {(Object.keys(LOCALE_NAMES) as AppLocale[]).map((code) => (

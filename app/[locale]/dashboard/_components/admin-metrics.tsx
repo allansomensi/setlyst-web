@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AdminMetrics, formatGenre } from "@/types/api";
 import {
   Card,
@@ -25,10 +25,11 @@ import {
   YAxis,
 } from "recharts";
 import { Disc3, Guitar, ListMusic, Music, Users } from "lucide-react";
-import { StatGrid } from "./stat-grid";
+import { StatGrid } from "@/components/stat-grid";
 
 export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
   const t = useTranslations("metrics");
+  const locale = useLocale();
 
   const roleChartConfig = {} as ChartConfig;
 
@@ -82,7 +83,7 @@ export function AdminMetricsCharts({ data }: { data: AdminMetrics }) {
   // "ProgressiveRock") — format them for display ("Progressive Rock").
   const genresData = data.top_genres.map((g) => ({
     ...g,
-    genre: formatGenre(g.genre),
+    genre: formatGenre(g.genre, locale),
   }));
 
   return (

@@ -12,7 +12,14 @@ import type { Song } from "@/types/api";
  */
 export type PickerSong = Pick<
   Song,
-  "id" | "title" | "artist_id" | "version_label" | "tonality" | "tempo" | "tags"
+  | "id"
+  | "title"
+  | "artist_id"
+  | "version_label"
+  | "tonality"
+  | "tempo"
+  | "duration"
+  | "tags"
 >;
 
 /** The projection the page applies (see PickerSong). */
@@ -24,6 +31,9 @@ export function toPickerSong(song: Song): PickerSong {
     version_label: song.version_label ?? null,
     tonality: song.tonality ?? null,
     tempo: song.tempo ?? null,
+    // Shown in the picker and summed for the selection: building a set
+    // against a time slot is mostly arithmetic.
+    duration: song.duration ?? null,
     tags: song.tags ?? [],
   };
 }

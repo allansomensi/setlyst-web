@@ -1,6 +1,6 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { ChevronRight, Disc3, Guitar, ListMusic, Music } from "lucide-react";
+import { Link } from "@/components/nav-link";
 import { UserMetrics, formatGenre } from "@/types/api";
 import {
   Card,
@@ -9,173 +9,131 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { Disc3, Guitar, ListMusic, Music } from "lucide-react";
-import { StatGrid } from "./stat-grid";
+import { StatGrid } from "@/components/stat-grid";
+import { BreakdownBars } from "../analytics/_components/breakdown-bars";
 
+/** Rows per ranking on the home page; Statistics has the full lists. */
+const TOP_ROWS = 5;
+
+/**
+ * The repertoire at a glance on the dashboard home: the headline counts,
+ * the top genres and artists, and how complete the songs are.
+ *
+ * The rankings use the same proportional bars as Statistics (plain HTML)
+ * instead of a charting library: the same data looked different on the
+ * two pages, and the home had two 300px-tall charts for five rows each.
+ * Being plain markup, this renders with the page (no chart bundle, no
+ * placeholder that pops in), and the full breakdowns are one link away.
+ */
 export function UserMetricsCharts({ data }: { data: UserMetrics }) {
   const t = useTranslations("metrics");
-
-  const genresChartConfig = {
-    count: {
-      label: t("quantity"),
-      color: "var(--chart-1)",
-    },
-  } satisfies ChartConfig;
+  const tNav = useTranslations("nav");
+  const tAnalytics = useTranslations("analytics");
+  const locale = useLocale();
 
   // Genre values come from the backend as compact identifiers (e.g.
   // "ProgressiveRock") — format them for display ("Progressive Rock").
-  const genresData = data.top_genres.map((g) => ({
-    ...g,
-    genre: formatGenre(g.genre),
+  const genreRows = data.top_genres.slice(0, TOP_ROWS).map((g) => ({
+    key: g.genre,
+    label: formatGenre(g.genre, locale),
+    count: g.count,
+  }));
+  const artistRows = data.top_artists_by_songs.slice(0, TOP_ROWS).map((a) => ({
+    key: a.artist_name,
+    label: a.artist_name,
+    count: a.song_count,
   }));
 
-  const artistsChartConfig = {
-    song_count: {
-      label: t("quantity"),
-      color: "var(--chart-2)",
-    },
-  } satisfies ChartConfig;
-
   return (
-    <section className="flex flex-col space-y-3">
-      <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-        {t("overview")}
-      </h2>
+    <section aria-labelledby="overview-title" className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2
+          id="overview-title"
+          className="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+        >
+          {t("overview")}
+        </h2>
+        <Link
+          href="/dashboard/analytics"
+          className="text-primary focus-visible:ring-ring/50 -my-1 inline-flex items-center gap-0.5 rounded-sm py-1 text-sm font-medium outline-none hover:underline focus-visible:ring-3"
+        >
+          {t("viewAnalytics")}
+          <ChevronRight className="size-4" aria-hidden />
+        </Link>
+      </div>
+      {/* Same labels as Statistics ("Songs", not "Total songs"). */}
       <StatGrid
         items={[
-          { label: t("myBands"), value: data.total_bands, icon: Guitar },
+          { label: tNav("songs"), value: data.total_songs, icon: Music },
+          { label: tNav("artists"), value: data.total_artists, icon: Disc3 },
           {
-            label: t("platformOverview.totalArtists"),
-            value: data.total_artists,
-            icon: Disc3,
-          },
-          {
-            label: t("platformOverview.totalSongs"),
-            value: data.total_songs,
-            icon: Music,
-          },
-          {
-            label: t("platformOverview.totalSetlists"),
+            label: tNav("setlists"),
             value: data.total_setlists,
             icon: ListMusic,
           },
+          { label: tNav("bands"), value: data.total_bands, icon: Guitar },
         ]}
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="flex flex-col">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
           <CardHeader>
-            <CardTitle>{t("topGenres.title")}</CardTitle>
+            <CardTitle className="text-base">{t("topGenres.title")}</CardTitle>
             <CardDescription>{t("topGenres.description")}</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 pb-4">
-            <ChartContainer config={genresChartConfig} className="h-75 w-full">
-              <BarChart
-                accessibilityLayer
-                data={genresData}
-                layout="vertical"
-                margin={{ left: 0, right: 12 }}
-              >
-                <CartesianGrid
-                  horizontal={false}
-                  strokeDasharray="3 3"
-                  className="stroke-muted"
-                />
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="genre"
-                  type="category"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={10}
-                  width={130}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Bar
-                  dataKey="count"
-                  fill="var(--color-count)"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ChartContainer>
+          <CardContent>
+            <BreakdownBars
+              rows={genreRows}
+              total={data.total_songs}
+              emptyText={tAnalytics("breakdowns.empty")}
+            />
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col">
+        <Card>
           <CardHeader>
-            <CardTitle>{t("topArtists.title")}</CardTitle>
+            <CardTitle className="text-base">{t("topArtists.title")}</CardTitle>
             <CardDescription>{t("topArtists.description")}</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 pb-4">
-            <ChartContainer config={artistsChartConfig} className="h-75 w-full">
-              <BarChart
-                accessibilityLayer
-                data={data.top_artists_by_songs}
-                margin={{ left: -20, right: 12 }}
-                layout="vertical"
-              >
-                <CartesianGrid
-                  horizontal={false}
-                  strokeDasharray="3 3"
-                  className="stroke-muted"
-                />
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="artist_name"
-                  type="category"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={10}
-                  width={100}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Bar
-                  dataKey="song_count"
-                  fill="var(--color-song_count)"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ChartContainer>
+          <CardContent>
+            <BreakdownBars
+              rows={artistRows}
+              total={data.total_songs}
+              emptyText={tAnalytics("breakdowns.empty")}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Full width between two columns, a third column on large
+            screens. */}
+        <Card className="md:col-span-2 lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="text-base">
+              {t("repertoireHealth.title")}
+            </CardTitle>
+            <CardDescription>
+              {t("repertoireHealth.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-1 lg:gap-4">
+            <CoverageBar
+              label={t("repertoireHealth.withLyrics")}
+              value={data.songs_with_lyrics}
+              total={data.total_songs}
+            />
+            <CoverageBar
+              label={t("repertoireHealth.withTonality")}
+              value={data.songs_with_tonality}
+              total={data.total_songs}
+            />
+            <CoverageBar
+              label={t("repertoireHealth.withBpm")}
+              value={data.songs_with_tempo}
+              total={data.total_songs}
+            />
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("repertoireHealth.title")}</CardTitle>
-          <CardDescription>{t("repertoireHealth.description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-3">
-          <CoverageBar
-            label={t("repertoireHealth.withLyrics")}
-            value={data.songs_with_lyrics}
-            total={data.total_songs}
-          />
-          <CoverageBar
-            label={t("repertoireHealth.withTonality")}
-            value={data.songs_with_tonality}
-            total={data.total_songs}
-          />
-          <CoverageBar
-            label={t("repertoireHealth.withBpm")}
-            value={data.songs_with_tempo}
-            total={data.total_songs}
-          />
-        </CardContent>
-      </Card>
     </section>
   );
 }

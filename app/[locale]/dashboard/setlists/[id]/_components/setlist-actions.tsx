@@ -76,17 +76,19 @@ export function SetlistActions({
   );
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-2">
-      {/* Icon-only on phones, so every action fits one row. */}
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+      {/* The one action that matters on stage keeps its label on a
+          phone, across the whole row; the others go icon-only on the row
+          below it. */}
       <Button
         asChild
         size="lg"
-        className="h-10 gap-2 px-3 sm:px-4"
+        className="h-10 w-full gap-2 px-4 sm:w-auto"
         title={t("liveModeBtn")}
       >
         <Link href={`/dashboard/setlists/${setlistId}/live`}>
           <Play className="h-4 w-4" aria-hidden />
-          <span className="sr-only sm:not-sr-only">{t("liveModeBtn")}</span>
+          {t("liveModeBtn")}
         </Link>
       </Button>
 

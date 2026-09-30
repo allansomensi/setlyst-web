@@ -90,7 +90,11 @@ export function QuotaEditor({
             {t("unlimitedHint")}
           </span>
         </span>
-        <Switch checked={unlimited} onCheckedChange={setUnlimited} />
+        <Switch
+          checked={unlimited}
+          onCheckedChange={setUnlimited}
+          disabled={isPending}
+        />
       </label>
 
       <div
@@ -121,7 +125,7 @@ export function QuotaEditor({
                   : ""
               }
               aria-invalid={invalid.includes(resource)}
-              disabled={unlimited}
+              disabled={unlimited || isPending}
             />
           </div>
         ))}

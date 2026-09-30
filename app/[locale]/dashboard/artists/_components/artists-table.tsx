@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { useState, useTransition } from "react";
 import { Artist, QuotaReport } from "@/types/api";
 import { deleteArtist } from "../actions";
@@ -37,6 +38,7 @@ import { useOfflineArtists } from "@/hooks/use-offline-library";
 import {
   Disc3,
   MoreHorizontal,
+  Music,
   Plus,
   Pencil,
   SearchX,
@@ -46,6 +48,7 @@ import { toastActionError } from "@/lib/action-toast";
 import { toastMovedToTrash } from "@/components/content/trash-toast";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { ClientDate } from "@/components/client-date";
+import { Link } from "@/components/nav-link";
 
 const SEARCHABLE_KEYS = ["name"] as const;
 
@@ -134,26 +137,23 @@ export function ArtistsTable({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <QuotaChip usage={quota} resource="artists" />
-          <Button
-            onClick={() => handleOpenDialog()}
-            {...offlineDisabled}
-            disabled={offlineDisabled.disabled || quotaFull}
-          >
-            <Plus className="mr-2 h-4 w-4" aria-hidden />
-            {t("addArtist")}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <>
+            <QuotaChip usage={quota} resource="artists" />
+            <Button
+              onClick={() => handleOpenDialog()}
+              {...offlineDisabled}
+              disabled={offlineDisabled.disabled || quotaFull}
+            >
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              {t("addArtist")}
+            </Button>
+          </>
+        }
+      />
       <QuotaLimitNotice usage={quota} resource="artists" className="-mt-3" />
 
       {/* Search */}
@@ -166,7 +166,7 @@ export function ArtistsTable({
 
       {/* Table */}
       <div
-        className={`bg-card rounded-md border ${isPending ? "pointer-events-none opacity-60" : ""}`}
+        className={`bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface) ${isPending ? "pointer-events-none opacity-60" : ""}`}
       >
         <Table>
           <TableHeader>
@@ -178,10 +178,17 @@ export function ArtistsTable({
                 onSort={handleSort}
               />
               <SortableColumnHeader
+                label={t("table.songs")}
+                sortKey="song_count"
+                sortConfig={sortConfig}
+                onSort={handleSort}
+              />
+              <SortableColumnHeader
                 label={t("table.registeredOn")}
                 sortKey="created_at"
                 sortConfig={sortConfig}
                 onSort={handleSort}
+                className="hidden sm:table-cell"
               />
               <TableHead className="text-right">{t("table.actions")}</TableHead>
             </TableRow>
@@ -189,7 +196,7 @@ export function ArtistsTable({
           <TableBody>
             {artists.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center">
                   {/* Only a failure the local copy couldn't cover. */}
                   {loadError && !isFromCache ? (
                     <LoadErrorNotice />
@@ -226,10 +233,29 @@ export function ArtistsTable({
             ) : (
               artists.map((artist) => (
                 <TableRow key={artist.id}>
-                  <TableCell className="w-full max-w-0 truncate font-medium">
+                  <TableCell
+                    className="w-full max-w-0 truncate font-medium"
+                    title={artist.name}
+                  >
                     {artist.name}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="tabular-nums">
+                    {/* The artist's songs, one tap away: the songs list
+                        searched by the artist's name. */}
+                    {artist.song_count ? (
+                      <Link
+                        href={`/dashboard/songs?q=${encodeURIComponent(artist.name)}`}
+                        className="text-primary focus-visible:ring-ring/50 inline-flex items-center gap-1.5 rounded-sm font-medium outline-none hover:underline focus-visible:ring-3"
+                        aria-label={t("table.songsOf", { name: artist.name })}
+                      >
+                        <Music className="h-3.5 w-3.5" aria-hidden />
+                        {artist.song_count}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground hidden sm:table-cell">
                     <ClientDate value={artist.created_at} />
                   </TableCell>
                   <TableCell className="text-right">

@@ -38,6 +38,8 @@ export function ManageTagsDialog({
   onTagChanged?: (from: string, to: string | null) => void;
 }) {
   const t = useTranslations("tags.manage");
+  const tTags = useTranslations("tags");
+  const tCommon = useTranslations("common");
   const [tags, setTags] = useState<TagCount[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -79,6 +81,8 @@ export function ManageTagsDialog({
 
   const normalizedDraft = normalizeTag(draft);
   const draftIssue = normalizedDraft ? tagIssue(normalizedDraft) : "characters";
+  // An empty field just can't be saved; only a real problem gets a message.
+  const visibleIssue = normalizedDraft ? draftIssue : null;
 
   const rename = (tag: string) => {
     if (!normalizedDraft || draftIssue || normalizedDraft === tag) {
@@ -135,8 +139,9 @@ export function ManageTagsDialog({
         </DialogHeader>
 
         {tags === null ? (
-          <div className="flex justify-center py-6">
+          <div role="status" className="flex justify-center py-6">
             <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
+            <span className="sr-only">{tCommon("loading")}</span>
           </div>
         ) : tags.length === 0 ? (
           <p className="text-muted-foreground py-4 text-center text-sm">
@@ -151,7 +156,7 @@ export function ManageTagsDialog({
               >
                 {editing === tag ? (
                   <form
-                    className="flex flex-1 items-center gap-1"
+                    className="flex flex-1 flex-wrap items-center gap-1"
                     onSubmit={(e) => {
                       e.preventDefault();
                       rename(tag);
@@ -161,10 +166,13 @@ export function ManageTagsDialog({
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       maxLength={MAX_TAG_LENGTH}
-                      className="h-8"
+                      className="h-8 min-w-0 flex-1"
                       autoFocus
                       aria-label={t("newName")}
-                      aria-invalid={Boolean(draftIssue)}
+                      aria-invalid={Boolean(visibleIssue)}
+                      aria-describedby={
+                        visibleIssue ? "manage-tags-rename-issue" : undefined
+                      }
                     />
                     <Button
                       type="submit"
@@ -186,14 +194,29 @@ export function ManageTagsDialog({
                       variant="ghost"
                       className="h-8 w-8"
                       onClick={() => setEditing(null)}
+                      disabled={isPending}
                       aria-label={t("cancel")}
                     >
                       <X className="h-4 w-4" />
                     </Button>
+                    {/* Why the check is greyed out: a red border alone
+                        left people guessing what was wrong. */}
+                    {visibleIssue && (
+                      <p
+                        id="manage-tags-rename-issue"
+                        className="text-destructive w-full text-xs"
+                      >
+                        {tTags(`issues.${visibleIssue}`, {
+                          max: MAX_TAG_LENGTH,
+                        })}
+                      </p>
+                    )}
                   </form>
                 ) : confirmDelete === tag ? (
                   <div className="flex flex-1 items-center justify-between gap-2 text-sm">
-                    <span>{t("confirmDelete", { count: song_count })}</span>
+                    <span>
+                      {t("confirmDelete", { tag, count: song_count })}
+                    </span>
                     <span className="flex gap-1">
                       <Button
                         size="sm"
@@ -203,10 +226,15 @@ export function ManageTagsDialog({
                       >
                         {t("remove")}
                       </Button>
+                      {/* Focus lands here: the trash button that opened
+                          this row is gone, and a stray Enter should keep
+                          the tag, not delete it. */}
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => setConfirmDelete(null)}
+                        disabled={isPending}
+                        autoFocus
                       >
                         {t("cancel")}
                       </Button>

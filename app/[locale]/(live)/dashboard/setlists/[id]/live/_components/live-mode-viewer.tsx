@@ -302,8 +302,14 @@ export function LiveModeViewer({
     );
   }
 
+  const hasLyrics = transpose.content.trim() !== "";
+
   // Base: 1.5rem (~text-2xl). Scaled by zoomLevel.
   const baseFontSize = 1.5 * controls.zoomLevel;
+
+  const nextKey = nextSong
+    ? playedKey(nextSong.tonality, semitonesFor(nextSong.id))
+    : null;
 
   const position = t("songPosition", {
     current: safeIndex + 1,
@@ -318,7 +324,8 @@ export function LiveModeViewer({
       <LiveHeader
         closeHref={`/dashboard/setlists/${setlist.id}`}
         title={titleWithVersion(currentSong)}
-        subtitle={`${setlist.is_repertoire ? tRepertoire("name") : setlist.title} · ${position}`}
+        subtitle={setlist.is_repertoire ? tRepertoire("name") : setlist.title}
+        position={position}
         isOnline={isOnline}
         tempo={currentSong.tempo}
         playedKey={transpose.key}
@@ -392,7 +399,8 @@ export function LiveModeViewer({
 
         <LiveActiveControls
           controls={controls}
-          canAutoScroll={!fitToScreen}
+          // Nothing to scroll through: fit mode, or a song with no lyrics.
+          canAutoScroll={!fitToScreen && hasLyrics}
           metronomeRunning={metronomeSettings.isRunning}
           metronomeBpm={metronomeSettings.bpm}
           onStopMetronome={toggleMetronome}
@@ -450,8 +458,19 @@ export function LiveModeViewer({
                 className="[@media(max-height:500px)]:hidden"
               />
             )}
-            <p className="truncate text-sm font-bold md:text-lg">
-              {nextSong ? titleWithVersion(nextSong) : t("endOfShow")}
+            <p className="flex min-w-0 items-center justify-center gap-1.5 text-sm font-bold md:gap-2 md:text-lg">
+              <span className="truncate">
+                {nextSong ? titleWithVersion(nextSong) : t("endOfShow")}
+              </span>
+              {/* The key it'll be played in (after this setlist's
+                  transposition): what a guitarist checks for a capo or a
+                  retune before counting in. Never truncated. */}
+              {nextKey && (
+                <span className="text-foreground/80 shrink-0 rounded-md border px-1.5 py-0.5 text-xs leading-none font-bold md:text-sm">
+                  <span className="sr-only">{t("key")} </span>
+                  {nextKey}
+                </span>
+              )}
             </p>
           </div>
 

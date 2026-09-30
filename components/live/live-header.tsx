@@ -21,6 +21,12 @@ interface LiveHeaderProps {
   closeHref: string;
   title: string;
   subtitle: string;
+  /**
+   * Where this song falls in the set ("3 of 14"). Kept apart from the
+   * subtitle so it never truncates: on a phone a long setlist name used
+   * to push it off the end, and it is the part a performer glances for.
+   */
+  position?: string;
   isOnline: boolean;
   tempo?: number | null;
   /** The key being played (after transposing), if the song has one. */
@@ -36,10 +42,12 @@ interface LiveHeaderProps {
   songList?: Omit<LiveSongListProps, "children">;
 }
 
+// Short screens (a phone in landscape) step the title back down: the
+// header there competes with the lyrics for ~350px of height.
 const titleClass =
-  "truncate text-base leading-tight font-bold sm:text-lg md:text-2xl";
+  "truncate text-base leading-tight font-bold sm:text-lg md:text-2xl [@media(max-height:500px)]:text-lg";
 const subtitleClass =
-  "text-muted-foreground truncate text-[11px] font-normal tracking-wider uppercase md:text-xs";
+  "text-muted-foreground flex min-w-0 gap-[0.4em] text-[11px] font-normal tracking-wider uppercase md:text-xs";
 
 /**
  * Top bar shared by both Live Mode viewers: leave, what's playing, the
@@ -53,6 +61,7 @@ export function LiveHeader({
   closeHref,
   title,
   subtitle,
+  position,
   isOnline,
   tempo,
   playedKey,
@@ -66,6 +75,18 @@ export function LiveHeader({
 }: LiveHeaderProps) {
   const t = useTranslations("liveMode");
 
+  const subtitleContent = (
+    <>
+      <span className="truncate">{subtitle}</span>
+      {position && (
+        <span className="shrink-0 tabular-nums">
+          <span aria-hidden>·{"\u00A0"}</span>
+          {position}
+        </span>
+      )}
+    </>
+  );
+
   return (
     <header
       className={cn(
@@ -76,7 +97,7 @@ export function LiveHeader({
         // safe-area inset (notch, status bar, landscape corners). The
         // breakpoint variants restate the insets instead of a plain
         // `md:py-3`, which used to override the top inset on iPad.
-        "[--px:0.5rem] [--py:0.5rem] md:[--px:1.5rem] md:[--py:0.75rem]",
+        "[--px:0.5rem] [--py:0.5rem] md:[--px:1.5rem] md:[--py:0.75rem] [@media(max-height:500px)]:[--py:0.375rem]",
         "pt-[max(var(--py),env(safe-area-inset-top))] pb-(--py)",
         "pr-[max(var(--px),env(safe-area-inset-right))] pl-[max(var(--px),env(safe-area-inset-left))]",
       )}
@@ -96,13 +117,13 @@ export function LiveHeader({
           <h1 className="min-w-0">
             <LiveSongList {...songList}>
               <span className={cn("block", titleClass)}>{title}</span>
-              <span className={cn("block", subtitleClass)}>{subtitle}</span>
+              <span className={subtitleClass}>{subtitleContent}</span>
             </LiveSongList>
           </h1>
         ) : (
           <div className="min-w-0">
             <h1 className={titleClass}>{title}</h1>
-            <p className={subtitleClass}>{subtitle}</p>
+            <p className={subtitleClass}>{subtitleContent}</p>
           </div>
         )}
       </div>
@@ -163,7 +184,9 @@ export function LiveHeader({
             variant="ghost"
             size="icon"
             onClick={onToggleFullscreen}
-            className="h-10 w-10"
+            // On a phone the song title needs the room more: full screen
+            // is one tap away in the settings sheet there.
+            className="hidden h-10 w-10 sm:inline-flex"
             aria-label={t("fullscreen")}
             aria-pressed={isFullscreen}
             title={t("fullscreen")}

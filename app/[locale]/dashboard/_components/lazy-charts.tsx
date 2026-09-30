@@ -4,9 +4,10 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
- * Recharts is large and only needed below the fold: the dashboard home and
- * Analytics load it on demand, in the browser, with a placeholder of the
- * same size meanwhile, instead of shipping it with every page's first load.
+ * Recharts is large and only needed below the fold: the staff overview
+ * and Analytics load it on demand, in the browser, with a placeholder of
+ * the same size meanwhile, instead of shipping it with every page's first
+ * load. (A member's home overview is plain markup: see user-metrics.tsx.)
  */
 function ChartsSkeleton() {
   return (
@@ -20,11 +21,6 @@ function ChartsSkeleton() {
     </div>
   );
 }
-
-export const LazyUserMetricsCharts = dynamic(
-  () => import("./user-metrics").then((m) => m.UserMetricsCharts),
-  { ssr: false, loading: ChartsSkeleton },
-);
 
 export const LazyAdminMetricsCharts = dynamic(
   () => import("./admin-metrics").then((m) => m.AdminMetricsCharts),

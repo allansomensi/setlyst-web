@@ -211,7 +211,7 @@ export function RegisterForm({
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card size="lg" className="w-full max-w-md">
       <CardHeader className="items-center text-center">
         <AppLogo size={56} priority className="mx-auto mb-2 rounded-xl" />
         <CardTitle as="h1" className="text-2xl font-bold">
@@ -292,6 +292,8 @@ export function RegisterForm({
               maxLength={254}
               disabled={pending}
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               value={form.email}
               onChange={set("email")}
               onBlur={() => setEmailTouched(true)}
@@ -432,7 +434,11 @@ export function RegisterForm({
               autoComplete="new-password"
               value={form.confirm}
               onChange={set("confirm")}
-              aria-invalid={confirmMismatch || undefined}
+              aria-invalid={
+                confirmMismatch || (attempted && form.confirm.length === 0)
+                  ? true
+                  : undefined
+              }
               aria-describedby={confirmMismatch ? "confirm-error" : undefined}
               className="h-10"
             />

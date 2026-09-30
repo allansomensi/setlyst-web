@@ -24,7 +24,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Loader2, Plus, X } from "lucide-react";
+import { Copy, Link2, Loader2, Plus, X } from "lucide-react";
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ClientDate } from "@/components/client-date";
+import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { onFormSubmit } from "@/lib/forms";
@@ -82,8 +86,19 @@ export function BandInvitesSection({
       });
 
       if (result.success) {
-        toast.success(t("created"));
         setIsDialogOpen(false);
+        // The next thing anyone does with a new invite is send it: the
+        // link is one tap away (a tap, so the clipboard is allowed).
+        const code = result.data?.code;
+        toast.success(t("created"), {
+          duration: 10_000,
+          ...(code && {
+            action: {
+              label: t("copyLink"),
+              onClick: () => void copyInviteLink(code),
+            },
+          }),
+        });
       } else {
         toastActionError(result, result.error);
       }
@@ -96,10 +111,11 @@ export function BandInvitesSection({
       const result = await revokeBandInvite(bandId, inviteToRevoke.id);
       if (result.success) {
         toast.success(t("revoked"));
+        setInviteToRevoke(null);
       } else {
+        // The dialog stays open so the person can retry or cancel.
         toastActionError(result, result.error);
       }
-      setInviteToRevoke(null);
     });
   };
 
@@ -113,79 +129,137 @@ export function BandInvitesSection({
     }
   };
 
+  // Live invites first, newest first; spent ones after, dimmed.
+  const sorted = [...invites].sort((a, b) => {
+    const live = (invite: BandInvite) =>
+      inviteStatus(invite) === "active" ? 0 : 1;
+    return live(a) - live(b) || b.created_at.localeCompare(a.created_at);
+  });
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold">{t("title")}</h2>
           <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={() => setIsDialogOpen(true)} className="self-start">
+          <Plus className="mr-2 h-4 w-4" aria-hidden />
           {t("createInvite")}
         </Button>
       </div>
 
       {invites.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("empty")}</p>
+        <div className="bg-card rounded-xl border border-dashed">
+          <EmptyState
+            compact
+            icon={Link2}
+            title={t("empty")}
+            description={t("emptyHint")}
+          />
+        </div>
       ) : (
-        <div className="bg-card rounded-md border">
+        <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("table.code")}</TableHead>
-                <TableHead>{t("table.role")}</TableHead>
-                <TableHead>{t("table.uses")}</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t("table.role")}
+                </TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t("table.uses")}
+                </TableHead>
                 <TableHead>{t("table.status")}</TableHead>
                 <TableHead className="text-right">
-                  {t("table.actions")}
+                  <span className="sr-only">{t("table.actions")}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invites.map((invite) => {
+              {sorted.map((invite) => {
                 const status = inviteStatus(invite);
+                const active = status === "active";
+                const uses = `${invite.uses_count}${
+                  invite.max_uses !== null ? ` / ${invite.max_uses}` : ""
+                }`;
                 return (
-                  <TableRow key={invite.id}>
-                    <TableCell className="font-mono">{invite.code}</TableCell>
-                    <TableCell>{t(`roles.${invite.role}`)}</TableCell>
+                  <TableRow
+                    key={invite.id}
+                    className={cn(!active && "text-muted-foreground")}
+                  >
                     <TableCell>
-                      {invite.uses_count}
-                      {invite.max_uses !== null ? ` / ${invite.max_uses}` : ""}
+                      <span
+                        className={cn(
+                          "font-mono text-sm",
+                          !active && "line-through decoration-1",
+                        )}
+                      >
+                        {invite.code}
+                      </span>
+                      {/* On a phone the role and uses columns fold in
+                          under the code. */}
+                      <span className="text-muted-foreground block text-xs sm:hidden">
+                        {t(`roles.${invite.role}`)} · {t("usesShort", { uses })}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {t(`roles.${invite.role}`)}
+                    </TableCell>
+                    <TableCell className="hidden tabular-nums sm:table-cell">
+                      {uses}
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={status === "active" ? "outline" : "secondary"}
+                        variant="outline"
+                        className={cn(
+                          active
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                            : "bg-muted text-muted-foreground",
+                        )}
                       >
                         {t(`status.${status}`)}
                       </Badge>
+                      {active && invite.expires_at && (
+                        <span className="text-muted-foreground mt-1 block text-xs">
+                          {t.rich("expiresOn", {
+                            date: () => (
+                              <ClientDate
+                                value={invite.expires_at}
+                                options={{ day: "numeric", month: "short" }}
+                              />
+                            ),
+                          })}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => copyInviteLink(invite.code)}
-                          title={t("copyLink")}
-                          aria-label={t("copyLink")}
-                        >
-                          <Copy className="h-4 w-4" aria-hidden />
-                        </Button>
-                        {status === "active" && (
+                      {/* A spent invite has nothing left to do: copying
+                          a dead link would only hand someone an error. */}
+                      {active && (
+                        <div className="flex justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            onClick={() => copyInviteLink(invite.code)}
+                            title={t("copyLink")}
+                            aria-label={t("copyLinkFor", { code: invite.code })}
+                          >
+                            <Copy className="h-4 w-4" aria-hidden />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive"
                             onClick={() => setInviteToRevoke(invite)}
                             disabled={isPending}
                             title={t("revoke")}
-                            aria-label={t("revoke")}
+                            aria-label={t("revokeFor", { code: invite.code })}
                           >
                             <X className="h-4 w-4" aria-hidden />
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -204,9 +278,9 @@ export function BandInvitesSection({
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="role">{t("roleLabel")}</Label>
+                <Label htmlFor="invite-role">{t("roleLabel")}</Label>
                 <NativeSelect
-                  id="role"
+                  id="invite-role"
                   name="role"
                   defaultValue="member"
                   disabled={isPending}
@@ -219,9 +293,9 @@ export function BandInvitesSection({
                 </NativeSelect>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expires_in_hours">{t("expiresLabel")}</Label>
+                <Label htmlFor="invite-expires">{t("expiresLabel")}</Label>
                 <NativeSelect
-                  id="expires_in_hours"
+                  id="invite-expires"
                   name="expires_in_hours"
                   defaultValue="168"
                   disabled={isPending}
@@ -237,11 +311,12 @@ export function BandInvitesSection({
                 </NativeSelect>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="max_uses">{t("maxUsesLabel")}</Label>
+                <Label htmlFor="invite-max-uses">{t("maxUsesLabel")}</Label>
                 <Input
-                  id="max_uses"
+                  id="invite-max-uses"
                   name="max_uses"
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   placeholder={t("maxUsesPlaceholder")}
                   disabled={isPending}
@@ -258,41 +333,25 @@ export function BandInvitesSection({
                 {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {tCommon("save")}
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                )}
+                {t("createInvite")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmActionDialog
         open={!!inviteToRevoke}
         onOpenChange={(open) => !open && setInviteToRevoke(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("revoke")}</DialogTitle>
-            <DialogDescription>{t("revokeConfirm")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setInviteToRevoke(null)}
-              disabled={isPending}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmRevoke}
-              disabled={isPending}
-            >
-              {t("revoke")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={t("revokeTitle")}
+        description={t("revokeConfirm")}
+        confirmLabel={t("revoke")}
+        onConfirm={confirmRevoke}
+        pending={isPending}
+      />
     </div>
   );
 }

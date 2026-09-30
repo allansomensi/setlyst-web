@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { LinksEditor } from "@/components/content/links-editor";
@@ -66,6 +67,7 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
   const t = useTranslations("setlists.dialog");
   const tRepertoire = useTranslations("setlists.repertoire");
   const tCommon = useTranslations("common");
+  const router = useAppRouter();
 
   const [isPending, startTransition] = useTransition();
   const [title, setTitle] = useState(setlist?.title ?? "");
@@ -108,6 +110,9 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
     setErrors({});
 
     startTransition(async () => {
+      // Kept apart from `result`: the two actions' result types differ,
+      // and only creating returns the new setlist.
+      let newId: string | undefined;
       const result = isEditing
         ? await updateSetlist(
             setlist.id,
@@ -123,11 +128,20 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
             description,
             band_id: bandId,
             links: checked.links,
+          }).then((created) => {
+            if (created.success && "data" in created) {
+              newId = created.data?.id;
+            }
+            return created;
           });
 
       if (result.success) {
         toast.success(isEditing ? t("updated") : t("created"));
         onClose();
+        // A new setlist is empty: straight to it, where the next step
+        // (adding songs) is, rather than back to a list where it still
+        // has to be found and opened. Same as a new tour.
+        if (newId) router.push(`/dashboard/setlists/${newId}`);
       } else {
         toastActionError(result, result.error || t("saveFailed"));
       }
@@ -139,7 +153,11 @@ function SetlistForm({ setlist, onClose, bandId }: SetlistDialogProps) {
       <DialogHeader>
         <DialogTitle>{isEditing ? t("editTitle") : t("addTitle")}</DialogTitle>
         <DialogDescription>
-          {isRepertoire ? tRepertoire("editHint") : t("description")}
+          {isRepertoire
+            ? tRepertoire("editHint")
+            : isEditing
+              ? t("description")
+              : t("addDescription")}
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">

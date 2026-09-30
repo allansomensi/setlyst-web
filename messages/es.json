@@ -178,15 +178,6 @@
     "artists": {
       "description": "Los artistas de tu repertorio"
     },
-    "songs": {
-      "description": "Agrega y organiza tu repertorio"
-    },
-    "setlists": {
-      "description": "Crea y administra tus setlists"
-    },
-    "gigs": {
-      "description": "Programa shows y vincula una setlist"
-    },
     "users": {
       "description": "Gestiona usuarios y permisos"
     },
@@ -243,6 +234,8 @@
     "table": {
       "name": "Nombre",
       "registeredOn": "Registrado el",
+      "songs": "Canciones",
+      "songsOf": "Ver las canciones de {name}",
       "actions": "Acciones"
     },
     "empty": "No hay artistas registrados. Empieza agregando uno.",
@@ -283,6 +276,7 @@
     "lyricsTag": "letra",
     "chordsTag": "cifra",
     "chordsTagTitle": "Tiene cifra: acordes identificados en la letra",
+    "lyricsTagTitle": "Solo la letra: aún sin acordes",
     "table": {
       "title": "Título",
       "artist": "Artista",
@@ -342,6 +336,7 @@
       "tabs": {
         "basic": "Básico",
         "music": "Detalles musicales",
+        "musicShort": "Detalles",
         "links": "Enlaces",
         "tags": "Etiquetas"
       },
@@ -477,7 +472,7 @@
       "intro": "Setlyst lee ChordPro y el formato habitual de \"acordes sobre la letra\", así que puedes pegar lo que ya escribiste o tecleaste.",
       "inlineChords": "Acordes entre corchetes, justo antes de la sílaba donde entran.",
       "sections": "Una sección en su propia línea, en español, inglés o portugués, con o sin corchetes, números y repeticiones (\"Verso 2\", \"Coro x2\").",
-      "environments": "Secciones ChordPro: coro, verso, puente, y {sot}…{eot} para tablaturas.",
+      "environments": "Secciones ChordPro: coro, verso, puente, y '{sot}…{eot}' para tablaturas.",
       "comment": "Una nota para la banda, mostrada en la letra.",
       "formatting": "Negrita, cursiva y subrayado.",
       "pasteTip": "Consejo: al pegar una canción con los acordes en la línea de arriba, se colocan sobre las sílabas correctas automáticamente."
@@ -496,6 +491,7 @@
       "repeatChorus": "Repetir estribillo"
     },
     "savedInPlace": "Guardado",
+    "unsaved": "Cambios sin guardar",
     "saveAndClose": "Guardar y cerrar",
     "saveAndCloseShort": "Listo",
     "saveShortcut": "Guardar (Ctrl+S)",
@@ -517,6 +513,8 @@
     "analyticsBtn": "Estadísticas",
     "favorite": "Marcar como favorito",
     "unfavorite": "Quitar de favoritos",
+    "favoriteHint": "Marcar como favorita: la setlist queda al principio de la lista",
+    "bandSubtitle": "Las setlists de {name}. El Repertorio reúne todas las canciones de la banda.",
     "searchPlaceholder": "Buscar setlist…",
     "totalDuration": "Duración total",
     "analytics": {
@@ -543,6 +541,7 @@
         "breakLine": "Pausa"
       },
       "emptyReport": "Añade canciones al setlist para ver el análisis de flujo.",
+      "emptyTitle": "Todavía no hay nada que analizar",
       "addSongs": "Abrir setlist",
       "energyAxisLabel": "Energía",
       "noBpm": "Sin BPM",
@@ -598,6 +597,8 @@
     "table": {
       "title": "Título",
       "description": "Descripción",
+      "songs": "Canciones",
+      "duration": "Duración",
       "createdAt": "Creado el",
       "actions": "Acciones"
     },
@@ -641,6 +642,7 @@
       "addTitle": "Nueva setlist",
       "editTitle": "Editar setlist",
       "description": "Ingresa los datos de la setlist.",
+      "addDescription": "Ponle un nombre a la setlist. Después agregas las canciones y ordenas el show.",
       "titleLabel": "Título",
       "titlePlaceholder": "ej.: Gira de verano 2026",
       "descriptionLabel": "Descripción (opcional)",
@@ -667,6 +669,11 @@
       "saveOrder": "Guardar orden",
       "cancelReorder": "Cancelar",
       "empty": "Aún no hay canciones agregadas.",
+      "emptyTitle": "No hay canciones en esta setlist",
+      "emptyDescription": "Agrega las canciones del show. Después organízalas en bloques y pausas y ajusta el orden: la duración total se actualiza sola.",
+      "emptyReadOnly": "Cuando alguien agregue canciones, el orden del show aparecerá aquí.",
+      "reorderHint": "Arrastra las filas por el asa o usa las flechas para cambiar el orden. No se guarda nada hasta que pulses “Guardar orden”.",
+      "openSong": "Abrir la canción",
       "table": {
         "pos": "Pos",
         "title": "Título",
@@ -680,7 +687,7 @@
       "orderSaved": "Orden guardado.",
       "addDialog": {
         "title": "Agregar canción a la setlist",
-        "description": "Selecciona una canción de tu repertorio para agregar a esta setlist.",
+        "description": "Elige una o más canciones. Se agregan al final de la setlist, en el orden en que las elijas.",
         "songLabel": "Canción",
         "selectSong": "Selecciona una canción",
         "noMoreSongs": "No hay más canciones disponibles",
@@ -735,6 +742,8 @@
       "addBlock": "Agregar bloque",
       "addBreak": "Agregar pausa",
       "blockLabel": "Bloque",
+      "blockSummary": "Bloque · {count, plural, =0 {sin canciones} =1 {# canción} other {# canciones}}",
+      "blockDuration": "Duración de las canciones de este bloque",
       "editMarker": "Editar “{name}”",
       "deleteMarker": "Quitar “{name}”",
       "breakDefaultLabel": "Pausa",
@@ -756,6 +765,7 @@
       "breakLabelLabel": "Texto (opcional)",
       "breakDurationLabel": "Duración (minutos, opcional)",
       "playFromHere": "Abrir el Modo en vivo desde esta canción",
+      "liveFromHere": "Modo en vivo desde aquí",
       "removeSong": "Quitar de la setlist",
       "addBlockHint": "Un encabezado que agrupa canciones",
       "addBreakHint": "Una pausa entre canciones, con duración opcional",
@@ -825,6 +835,7 @@
       "linkLabel": "Enlace público",
       "copyLink": "Copiar enlace",
       "qrCode": "Generar código QR",
+      "openLink": "Abrir la página pública",
       "linkCopied": "Enlace copiado.",
       "enableAction": "Generar enlace público",
       "enableHint": "El enlace se puede desactivar en cualquier momento.",
@@ -944,7 +955,6 @@
       "venuePlaceholder": "ej., Niceto Club",
       "locationLabel": "Ubicación",
       "locationPlaceholder": "Dirección o enlace del mapa (opcional)",
-      "scheduledAtLabel": "Fecha y hora",
       "statusLabel": "Estado",
       "status": {
         "confirmed": "Confirmado",
@@ -968,7 +978,11 @@
       "noTourOption": "Sin gira",
       "currentTour": "Gira actual",
       "currentSetlist": "Setlist actual",
-      "venueRequired": "Indica el lugar del show."
+      "venueRequired": "Indica el lugar del show.",
+      "dateLabel": "Fecha",
+      "timeLabel": "Hora",
+      "dateRequired": "Elige la fecha del show.",
+      "timeRequired": "Indica la hora del show."
     },
     "errors": {
       "venueLength": "El lugar debe tener entre 1 y 255 caracteres.",
@@ -986,6 +1000,7 @@
       "linkLabel": "Enlace público",
       "copyLink": "Copiar enlace",
       "qrCode": "Generar código QR",
+      "openLink": "Abrir la página pública",
       "linkCopied": "Enlace copiado.",
       "enableAction": "Generar enlace público",
       "enableHint": "El enlace se puede desactivar en cualquier momento.",
@@ -1009,7 +1024,13 @@
       "description": "Añade un show con su fecha y lugar y vincula la setlist que vas a tocar."
     },
     "addToCalendar": "Añadir al calendario",
-    "calendarFailed": "No se pudo crear el archivo de calendario de este show."
+    "calendarFailed": "No se pudo crear el archivo de calendario de este show.",
+    "noSetlistBadge": "Sin setlist",
+    "openInMaps": "Abrir en el mapa",
+    "notesTitle": "Notas",
+    "setlistSectionTitle": "Setlist del show",
+    "openSetlist": "Abrir setlist",
+    "createSetlistAction": "Crear una setlist"
   },
   "liveMode": {
     "noSongs": "No hay canciones en esta setlist",
@@ -1065,7 +1086,9 @@
       "highContrastHelp": "Fondo negro, letra blanca y acordes destacados. Más legible bajo las luces del escenario.",
       "fitToScreen": "Modo compacto",
       "fitToScreenHelp": "Ajusta la canción entera a una pantalla, en columnas si hay espacio, sin desplazamiento.",
-      "fitOverflow": "Demasiado larga para caber en una pantalla a un tamaño legible. Desplázate para ver el resto."
+      "fitOverflow": "Demasiado larga para caber en una pantalla a un tamaño legible. Desplázate para ver el resto.",
+      "noLyrics": "Esta canción aún no tiene letra",
+      "noLyricsHint": "El tono y el tempo están arriba. Para leer la letra aquí, agrégala en la página de la canción."
     },
     "fullscreen": "Pantalla completa",
     "swipeHint": "Desliza para cambiar de canción",
@@ -1082,7 +1105,7 @@
       "size": "Tamaño",
       "scrollSpeed": "Velocidad de desplazamiento",
       "display": "Visualización",
-      "fullscreenHelp": "Oculta las barras del navegador para ganar espacio",
+      "fullscreenHelp": "Oculta las barras del navegador para ganar espacio.",
       "transpose": "Tonalidad",
       "shortcuts": "Atajos de teclado",
       "keyNav": "Canción anterior / siguiente",
@@ -1496,7 +1519,8 @@
       "description": "Usuarios activos vs inactivos"
     },
     "myBands": "Mis bandas",
-    "overview": "Resumen"
+    "overview": "Resumen",
+    "viewAnalytics": "Ver estadísticas"
   },
   "settings": {
     "title": "Configuración",
@@ -1632,9 +1656,7 @@
     "empty": "Todavía no formas parte de ninguna banda.",
     "emptySearch": "No se encontraron bandas para \"{search}\".",
     "memberCount": "{count, plural, one {# integrante} other {# integrantes}}",
-    "viewSetlists": "Ver setlists",
     "bandSetlistsTitle": "Setlists de la banda",
-    "viewGigs": "Ver shows",
     "bandGigsTitle": "Shows de la banda",
     "menu": {
       "manage": "Gestionar",
@@ -1739,7 +1761,13 @@
       "revokeConfirm": "¿Seguro que deseas revocar esta invitación? Los enlaces ya compartidos dejarán de funcionar.",
       "copyLink": "Copiar enlace",
       "linkCopied": "Enlace copiado.",
-      "copyLinkManually": "No se pudo copiar. Copia el enlace de abajo manualmente."
+      "copyLinkManually": "No se pudo copiar. Copia el enlace de abajo manualmente.",
+      "emptyHint": "Crea un enlace y envíalo a quien vaya a entrar en la banda. Cada invitación define el rol de quien entre con ella.",
+      "usesShort": "{uses} usos",
+      "expiresOn": "Vence el <date></date>",
+      "copyLinkFor": "Copiar el enlace de la invitación {code}",
+      "revokeFor": "Revocar la invitación {code}",
+      "revokeTitle": "Revocar invitación"
     },
     "permissions": {
       "title": "Permisos",
@@ -1761,7 +1789,8 @@
       },
       "save": "Guardar permisos",
       "saved": "Permisos actualizados.",
-      "saveFailed": "No se pudieron actualizar los permisos."
+      "saveFailed": "No se pudieron actualizar los permisos.",
+      "unsaved": "Cambios sin guardar"
     },
     "danger": {
       "title": "Zona de peligro",
@@ -1781,13 +1810,15 @@
       "deleteDescription": "Elimina permanentemente la banda, sus integrantes, invitaciones y setlists.",
       "deleteAction": "Eliminar banda",
       "deleteConfirm": "¿Seguro que deseas eliminar \"{name}\"? Esta acción no se puede deshacer.",
-      "deleted": "Banda eliminada."
+      "deleted": "Banda eliminada.",
+      "typeToConfirm": "Para confirmar, escribe el nombre de la banda: {name}"
     },
     "acceptInvite": {
       "title": "Invitación a banda",
       "description": "Fuiste invitado a unirte a una banda en Setlyst.",
       "cancel": "Cancelar",
-      "accept": "Unirme a la banda"
+      "accept": "Unirme a la banda",
+      "joined": "Te uniste a {name}."
     },
     "errors": {
       "nameLength": "El nombre de la banda debe tener entre 2 y 60 caracteres.",
@@ -1805,7 +1836,6 @@
         "settings": "Configuración"
       },
       "stats": {
-        "members": "Miembros",
         "repertoire": "Canciones en el repertorio",
         "setlists": "Setlists",
         "gigs": "Shows confirmados",
@@ -1838,7 +1868,12 @@
       "title": "Toca junto a tu banda",
       "description": "Crea una banda para compartir setlists, el repertorio y la agenda de shows, o únete a una con un enlace de invitación."
     },
-    "favoriteNamed": "Marcar {name} como favorita"
+    "favoriteNamed": "Marcar {name} como favorita",
+    "card": {
+      "nextGig": "Próximo show",
+      "noUpcoming": "Ningún show programado",
+      "openSuggestions": "{count, plural, =1 {# sugerencia en votación} other {# sugerencias en votación}}"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -2190,6 +2225,8 @@
     },
     "mismatch": "Las contraseñas no coinciden.",
     "notCompliant": "La contraseña aún no cumple todos los requisitos.",
+    "ruleMet": "cumplido",
+    "ruleUnmet": "no cumplido",
     "generate": "Generar una contraseña segura",
     "copied": "Contraseña copiada al portapapeles."
   },
@@ -2633,7 +2670,8 @@
     "lists": {
       "total": "{count, plural, =0 {Ningún resultado} one {# resultado} other {# resultados}}",
       "filteredBy": "Filtrado por",
-      "clearFilter": "Quitar filtro {label}"
+      "clearFilter": "Quitar filtro {label}",
+      "clearAll": "Limpiar filtros"
     },
     "bands": {
       "title": "Bandas",
@@ -2946,7 +2984,7 @@
       "rename": "Renombrar {tag}",
       "removeTag": "Quitar {tag}",
       "remove": "Quitar",
-      "confirmDelete": "¿Quitar de {count, plural, one {# canción} other {# canciones}}?",
+      "confirmDelete": "¿Quitar «{tag}» de {count, plural, one {# canción} other {# canciones}}?",
       "renamed": "«{from}» ahora es «{to}».",
       "deleted": "Etiqueta «{tag}» quitada."
     }
@@ -3234,14 +3272,8 @@
       }
     },
     "mock": {
-      "prev": "Anterior",
-      "next": "Siguiente",
-      "offline": "Sin conexión",
-      "key": "Tono",
       "capo": "Cejilla",
       "chorus": "Estribillo",
-      "transpose": "Tono",
-      "nextSong": "Siguiente",
       "lyrics": {
         "l1": "[G]Sigo el camino hasta que [D/F#]cae la tarde",
         "l2": "[Em]La radio suena [C]nuestra canción",
@@ -3308,6 +3340,7 @@
         "b3": "Recordatorios fijados para ensayos y acuerdos"
       }
     },
+    "moreTitle": "Todo lo que pide la rutina de shows",
     "grid": {
       "suggestions": {
         "title": "Sugerencias y votación",
@@ -3790,7 +3823,7 @@
       "noPassword": "Sin contraseña definida"
     },
     "sessions": {
-      "title": "Cerrar sesión en todos los dispositivos",
+      "title": "Sesiones",
       "description": "Cierra tu sesión en todos los dispositivos donde entraste, incluido este. Úsalo si perdiste un teléfono o entraste en la computadora de otra persona.",
       "action": "Cerrar sesión en todos los dispositivos",
       "confirmTitle": "¿Cerrar sesión en todos los dispositivos?",
@@ -4321,7 +4354,8 @@
       "unknownUser": "cuenta eliminada",
       "automatic": "Detección automática",
       "resolvedBy": "{resolution} por @{username} el",
-      "outranked": "Solo los administradores pueden actuar sobre cuentas del equipo."
+      "outranked": "Solo los administradores pueden actuar sobre cuentas del equipo.",
+      "ownAccount": "No puedes aplicar acciones correctivas a tu propia cuenta."
     },
     "reasons": {
       "hate_term": "Discurso de odio",
@@ -4947,9 +4981,9 @@
   "pins": {
     "pin": "Fijar",
     "unpin": "Desfijar",
-    "pinNamed": "Fijar “{name}” en el inicio",
-    "unpinNamed": "Desfijar “{name}” del inicio",
-    "pinned": "Fijado en el inicio.",
+    "pinNamed": "Fijar “{name}” en la página Inicio",
+    "unpinNamed": "Desfijar “{name}” de la página Inicio",
+    "pinned": "Fijado en la página Inicio.",
     "unpinned": "Quitado de los fijados.",
     "failed": "No se pudieron actualizar los fijados.",
     "title": "Fijados",
@@ -5214,6 +5248,8 @@
     "gigCount": "{count, plural, =0 {Ningún show} one {# show} other {# shows}}",
     "nextGig": "Próximo show: {date}",
     "days": "{count, plural, one {# día} other {# días}}",
+    "today": "Hoy",
+    "dayOf": "Día {day} de {total}",
     "stats": {
       "total": "Shows",
       "confirmed": "Confirmados",
@@ -5325,7 +5361,8 @@
     "notePlaceholder": "ej.: Buena para abrir el segundo bloque.",
     "send": "Enviar sugerencia",
     "created": "Sugerencia enviada a la banda.",
-    "createFailed": "No se pudo enviar la sugerencia."
+    "createFailed": "No se pudo enviar la sugerencia.",
+    "progress": "{up} de {needed, plural, =1 {# voto} other {# votos}} para entrar"
   },
   "bandNotes": {
     "title": "Recordatorios",
@@ -5435,7 +5472,8 @@
       "gross": "Recibido",
       "refunded": "Reembolsos",
       "payments": "Pagos",
-      "showTable": "Ver como tabla"
+      "showTable": "Ver como tabla",
+      "empty": "Sin ingresos en los últimos 12 meses."
     },
     "table": {
       "month": "Mes",
@@ -5671,6 +5709,7 @@
       "linesHint": "Elige el tipo y toca el acorde de destino.",
       "from": "desde",
       "removeLine": "Eliminar",
+      "lineKind": "Tipo de línea",
       "key": "Tonalidad",
       "keyStartsHere": "Un nuevo tono empieza en este acorde.",
       "keyHint": "Vigente: {key}. Marca aquí una modulación.",
@@ -5941,7 +5980,10 @@
       "patternsTitle": "Lectura armónica",
       "patternsHint": "Cadencias y progresiones reconocidas en los grados escritos.",
       "noPatterns": "Todavía no se reconoce ninguna cadencia. Aparecen aquí a medida que se escriben los grados.",
-      "resolvesTo": "resuelve en"
+      "resolvesTo": "resuelve en",
+      "occurrences": "{count}×",
+      "occurrencesTitle": "Aparece {count} veces",
+      "occurrence": "Ir a la aparición {n} de {count}"
     }
   }
 }

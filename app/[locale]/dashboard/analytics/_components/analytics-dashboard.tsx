@@ -1,7 +1,8 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { useRef, useState, useTransition } from "react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import {
   CalendarDays,
   Clock,
@@ -82,6 +83,7 @@ export function AnalyticsDashboard({
   canExport,
 }: AnalyticsDashboardProps) {
   const t = useTranslations("analytics");
+  const locale = useLocale();
   const tEnergy = useTranslations("songs.energy");
   const tApi = useTranslations("apiErrors");
   const format = useFormatter();
@@ -139,7 +141,7 @@ export function AnalyticsDashboard({
   }));
   const genreRows = stats.genres.slice(0, 10).map((row) => ({
     key: row.key,
-    label: formatGenre(row.key),
+    label: formatGenre(row.key, locale),
     count: row.count,
   }));
   const artistRows = stats.artists.slice(0, 10).map((row) => ({
@@ -236,7 +238,10 @@ export function AnalyticsDashboard({
       id: "genres",
       label: t("breakdowns.genres"),
       header: [t("csv.genre"), t("csv.songs")],
-      rows: stats.genres.map((row) => [formatGenre(row.key), row.count]),
+      rows: stats.genres.map((row) => [
+        formatGenre(row.key, locale),
+        row.count,
+      ]),
     },
     {
       id: "artists",
@@ -276,18 +281,18 @@ export function AnalyticsDashboard({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground mt-1">{subtitle}</p>
-        </div>
-        <ReportExportMenu
-          targetRef={reportRef}
-          title={title}
-          tables={tables}
-          allowed={canExport}
-        />
-      </div>
+      <PageHeader
+        title={title}
+        description={subtitle}
+        actions={
+          <ReportExportMenu
+            targetRef={reportRef}
+            title={title}
+            tables={tables}
+            allowed={canExport}
+          />
+        }
+      />
 
       {loadError && <LoadErrorNotice />}
 
@@ -299,10 +304,22 @@ export function AnalyticsDashboard({
           >
             {t("kpi.title")}
           </h2>
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-            {kpis.map(({ icon: Icon, label, value, hint }) => (
-              <div key={label} className="bg-card rounded-xl border p-3">
-                <dt className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          {/* One panel divided by hairlines, as the dashboard's numbers.
+              Four columns at most, so every label fits on one line (seven
+              across cut "Tempo de repertório" to "Tempo de rep…"); with an
+              odd count the last cell spans two, so no row ends in a hole. */}
+          <dl className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-xl border shadow-(--shadow-surface) sm:grid-cols-4">
+            {kpis.map(({ icon: Icon, label, value, hint }, index) => (
+              <div
+                key={label}
+                className={cn(
+                  "bg-card p-3 sm:p-4",
+                  index === kpis.length - 1 &&
+                    kpis.length % 2 === 1 &&
+                    "col-span-2",
+                )}
+              >
+                <dt className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
                   <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   <span className="truncate">{label}</span>
                 </dt>

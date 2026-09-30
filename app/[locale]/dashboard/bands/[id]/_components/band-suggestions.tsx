@@ -35,6 +35,7 @@ import {
 import { UserAvatar } from "@/components/user-avatar";
 import { ClientDate } from "@/components/client-date";
 import { UpgradeHint } from "@/components/content/upgrade-hint";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { cn } from "@/lib/utils";
@@ -228,8 +229,24 @@ export function BandSuggestions({
             {t("loading")}
           </p>
         ) : items.length === 0 ? (
-          <div className="text-muted-foreground rounded-lg border border-dashed px-4 py-8 text-center text-sm">
-            {filter === "open" ? t("emptyOpen") : t("empty")}
+          <div className="rounded-lg border border-dashed">
+            <EmptyState
+              compact
+              icon={Vote}
+              title={filter === "open" ? t("emptyOpen") : t("empty")}
+              actions={
+                filter === "open" && canSuggest ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsSuggesting(true)}
+                    className="gap-2"
+                  >
+                    <MessageSquarePlus className="h-4 w-4" aria-hidden />
+                    {t("suggest")}
+                  </Button>
+                ) : undefined
+              }
+            />
           </div>
         ) : (
           <ul className="space-y-3">
@@ -279,6 +296,27 @@ export function BandSuggestions({
                           · <ClientDate value={s.created_at} />
                         </span>
                       </div>
+                      {/* How close the song is to getting in on votes
+                          alone: the reason to vote at all. */}
+                      {s.status === "open" && autoAcceptVotes && (
+                        <div className="text-muted-foreground flex items-center gap-2 pt-0.5 text-xs">
+                          <span
+                            className="bg-muted h-1.5 w-24 overflow-hidden rounded-full"
+                            aria-hidden
+                          >
+                            <span
+                              className="block h-full rounded-full bg-emerald-500 transition-[width] motion-reduce:transition-none"
+                              style={{
+                                width: `${Math.min(100, (s.votes.up / autoAcceptVotes) * 100)}%`,
+                              }}
+                            />
+                          </span>
+                          {t("progress", {
+                            up: Math.min(s.votes.up, autoAcceptVotes),
+                            needed: autoAcceptVotes,
+                          })}
+                        </div>
+                      )}
                       {s.note && (
                         <p className="bg-muted/50 rounded-md px-3 py-2 text-sm whitespace-pre-wrap">
                           {s.note}

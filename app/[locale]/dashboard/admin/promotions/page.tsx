@@ -29,9 +29,14 @@ export default async function PromotionsPage() {
 
   return (
     <>
-      <AdminPageHeader title={t("title")} description={t("description")} />
+      {/* The manager renders the header itself when it loads, so its
+          "new promotion" button sits in the header like on every other
+          staff page (it opens the manager's own dialog). */}
       {promotions === null ? (
-        <LoadErrorNotice />
+        <>
+          <AdminPageHeader title={t("title")} description={t("description")} />
+          <LoadErrorNotice />
+        </>
       ) : (
         <PromotionsManager promotions={promotions} plans={plans} />
       )}

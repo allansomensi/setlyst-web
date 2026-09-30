@@ -341,15 +341,15 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
             </div>
           </div>
 
-          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {/* The same hairline data sheet as the song's own page. */}
+          <dl className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-lg border sm:grid-cols-5 [&>:last-child]:col-span-2 sm:[&>:last-child]:col-span-1">
             {facts.map(([label, value]) => (
-              <div
-                key={label}
-                className="bg-muted/40 rounded-lg border px-3 py-2"
-              >
+              <div key={label} className="bg-card min-w-0 px-3 py-2">
                 <dt className="text-muted-foreground text-xs">{label}</dt>
-                <dd className="font-mono text-sm font-medium">
-                  {value ?? <span className="text-muted-foreground">—</span>}
+                <dd className="mt-0.5 truncate text-sm font-semibold">
+                  {value ?? (
+                    <span className="text-muted-foreground font-normal">—</span>
+                  )}
                 </dd>
               </div>
             ))}
@@ -545,18 +545,6 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
               ? t("fileIssues.size", { max: CHORDPRO_MAX_BYTES / 1024 })
               : t("pasteHint")}
           </p>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={() => runPreview(pasted)}
-              disabled={isPending || !pasted.trim() || pastedTooLarge}
-            >
-              {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              )}
-              {t("previewButton")}
-            </Button>
-          </div>
         </TabsContent>
       </Tabs>
 
@@ -564,6 +552,20 @@ function ImportFlow({ onClose, artists, allowed }: ImportChordProDialogProps) {
         <Button variant="outline" onClick={requestClose} disabled={isPending}>
           {tCommon("cancel")}
         </Button>
+        {/* The step's primary action sits where every dialog keeps it,
+            not floating inside the tab under the text box. */}
+        {source === "paste" && (
+          <Button
+            type="button"
+            onClick={() => runPreview(pasted)}
+            disabled={isPending || !pasted.trim() || pastedTooLarge}
+          >
+            {isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            )}
+            {t("previewButton")}
+          </Button>
+        )}
       </DialogFooter>
     </>
   );

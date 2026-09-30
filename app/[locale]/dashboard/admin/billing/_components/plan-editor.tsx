@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Link } from "@/components/nav-link";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { useRouter } from "@/i18n/routing";
@@ -201,16 +202,30 @@ export function PlanEditor({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <Button variant="ghost" size="sm" asChild className="-ml-2">
-            <Link href="/dashboard/admin/billing">
-              <ArrowLeft aria-hidden />
-              {t("back")}
-            </Link>
-          </Button>
+      <PageBreadcrumbs
+        items={[
+          { label: t("back"), href: "/dashboard/admin/billing" },
+          { label: isNew ? t("newTitle") : form.name["pt-BR"] || form.code },
+        ]}
+      />
+      <DetailHeader
+        actions={
+          readOnly ? undefined : (
+            <Button onClick={save} disabled={pending || (!dirty && !isNew)}>
+              {pending ? (
+                <Loader2 className="animate-spin" aria-hidden />
+              ) : (
+                <Save aria-hidden />
+              )}
+              {t("save")}
+            </Button>
+          )
+        }
+      >
+        <DetailBackButton href="/dashboard/admin/billing" label={t("back")} />
+        <div className="min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
               {isNew
                 ? t("newTitle")
                 : t("editTitle", { name: form.name["pt-BR"] || form.code })}
@@ -228,19 +243,9 @@ export function PlanEditor({
             {readOnly ? t("readOnly") : t("description")}
           </p>
         </div>
-        {!readOnly && (
-          <Button onClick={save} disabled={pending || (!dirty && !isNew)}>
-            {pending ? (
-              <Loader2 className="animate-spin" aria-hidden />
-            ) : (
-              <Save aria-hidden />
-            )}
-            {t("save")}
-          </Button>
-        )}
-      </div>
+      </DetailHeader>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t("identity.title")}</CardTitle>
@@ -258,9 +263,11 @@ export function PlanEditor({
                   className="font-mono"
                   placeholder="studio"
                   aria-invalid={err(errors.code)}
+                  aria-describedby="plan-code-hint"
                   spellCheck={false}
                 />
                 <p
+                  id="plan-code-hint"
                   className={cn(
                     "text-xs",
                     err(errors.code)
@@ -368,8 +375,12 @@ export function PlanEditor({
                   value={form.monthly}
                   onChange={(e) => set("monthly", e.target.value)}
                   aria-invalid={err(errors.monthly)}
+                  aria-describedby="plan-monthly-hint"
                 />
-                <p className="text-muted-foreground text-xs tabular-nums">
+                <p
+                  id="plan-monthly-hint"
+                  className="text-muted-foreground text-xs tabular-nums"
+                >
                   {monthly === null
                     ? t("pricing.invalidAmount")
                     : t("pricing.cents", { cents: monthly })}
@@ -384,8 +395,12 @@ export function PlanEditor({
                   value={form.yearly}
                   onChange={(e) => set("yearly", e.target.value)}
                   aria-invalid={err(errors.yearly)}
+                  aria-describedby="plan-yearly-hint"
                 />
-                <p className="text-muted-foreground text-xs tabular-nums">
+                <p
+                  id="plan-yearly-hint"
+                  className="text-muted-foreground text-xs tabular-nums"
+                >
                   {yearly === null
                     ? t("pricing.invalidAmount")
                     : t("pricing.cents", { cents: yearly })}
@@ -451,6 +466,8 @@ export function PlanEditor({
                   id="plan-order"
                   disabled={readOnly}
                   type="number"
+                  min={-10_000}
+                  max={10_000}
                   className="w-24"
                   value={form.sort_order}
                   onChange={(e) => set("sort_order", e.target.value)}
@@ -472,7 +489,10 @@ export function PlanEditor({
                 key={feature}
                 className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
               >
-                <Label htmlFor={`feature-${feature}`} className="font-normal">
+                <Label
+                  htmlFor={`feature-${feature}`}
+                  className="leading-snug font-normal"
+                >
                   {tFeatures.has(feature) ? tFeatures(feature) : feature}
                 </Label>
                 <Switch
@@ -495,14 +515,21 @@ export function PlanEditor({
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {LIMITABLE_QUOTA_RESOURCES.map((resource) => (
-              <div key={resource} className="space-y-1">
-                <Label htmlFor={`limit-${resource}`} className="text-xs">
+              // A column: when a long name wraps to two lines, `mt-auto`
+              // keeps this field's box on the same line as its neighbours'.
+              <div key={resource} className="flex flex-col gap-1">
+                <Label
+                  htmlFor={`limit-${resource}`}
+                  className="text-xs leading-snug"
+                >
                   {tQuota(resource)}
                 </Label>
                 <Input
+                  className="mt-auto"
                   id={`limit-${resource}`}
                   disabled={readOnly}
                   type="number"
+                  inputMode="numeric"
                   min={0}
                   max={MAX_LIMIT}
                   value={form.limits[resource]}

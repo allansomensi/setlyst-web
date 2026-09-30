@@ -7,9 +7,7 @@ import { canManageBandSetlists } from "@/lib/band-permissions";
 import { BandWithMembership, Gig, Setlist } from "@/types/api";
 import { GigsTable } from "@/app/[locale]/dashboard/gigs/_components/gigs-table";
 import { BandOption } from "@/app/[locale]/dashboard/gigs/_components/gigs-dialog";
-import { Button } from "@/components/ui/button";
-import { Link } from "@/components/nav-link";
-import { ChevronLeft } from "lucide-react";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
 import { getTranslations } from "next-intl/server";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { fetchServerApiOnce } from "@/lib/server-data";
@@ -59,7 +57,7 @@ export default async function BandGigsPage({
     : [];
 
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <PageBreadcrumbs
         items={[
           { label: tNav("bands"), href: "/dashboard/bands" },
@@ -68,23 +66,15 @@ export default async function BandGigsPage({
         ]}
       />
 
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          asChild
-          className="hidden shrink-0 sm:inline-flex"
-        >
-          <Link href={`/dashboard/bands/${id}`} aria-label={band.name}>
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+      <DetailHeader>
+        <DetailBackButton href={`/dashboard/bands/${id}`} label={band.name} />
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
             {t("bandGigsTitle")}
           </h1>
+          <p className="text-muted-foreground">{band.name}</p>
         </div>
-      </div>
+      </DetailHeader>
 
       <GigsTable
         initialGigs={gigs}

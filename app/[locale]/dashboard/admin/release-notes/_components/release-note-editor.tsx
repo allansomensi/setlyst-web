@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowUp,
   EyeOff,
   Info,
@@ -32,7 +31,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ClientDate } from "@/components/client-date";
-import { Link } from "@/components/nav-link";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { ReleaseNotesList } from "@/components/release-notes/release-notes-list";
 import { ConfirmDialog } from "@/components/staff/confirm-dialog";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
@@ -88,11 +88,14 @@ export function ReleaseNoteEditor({
   note,
   canWrite,
   today,
+  suggestedVersion,
 }: {
   note: ReleaseNote | null;
   canWrite: boolean;
   /** `YYYY-MM-DD`, for a new note's default date. */
   today: string;
+  /** For a new note: the next version, as the field's placeholder. */
+  suggestedVersion?: string | null;
 }) {
   const t = useTranslations("releaseNotesAdmin");
   const tKinds = useTranslations("releaseNotes.kinds");
@@ -127,9 +130,13 @@ export function ReleaseNoteEditor({
       (i) => i.field === field && (loc === undefined || i.locale === loc),
     );
 
-  const issueText = (issue: ReleaseIssue | undefined, max?: number) =>
+  const issueText = (
+    issue: ReleaseIssue | undefined,
+    max?: number,
+    id?: string,
+  ) =>
     issue ? (
-      <p className="text-destructive text-xs" role="alert">
+      <p id={id} className="text-destructive text-xs" role="alert">
         {t(`issues.${issue.code}`, { max: max ?? 0 })}
       </p>
     ) : null;
@@ -279,14 +286,77 @@ export function ReleaseNoteEditor({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <Button variant="ghost" size="sm" asChild className="-ml-2">
-            <Link href="/dashboard/admin/release-notes">
-              <ArrowLeft aria-hidden />
-              {t("back")}
-            </Link>
-          </Button>
+      <PageBreadcrumbs
+        items={[
+          { label: t("back"), href: "/dashboard/admin/release-notes" },
+          {
+            label: saved
+              ? t("editTitle", { version: saved.version })
+              : t("newTitle"),
+          },
+        ]}
+      />
+      <DetailHeader
+        actions={
+          canWrite ? (
+            <>
+              {saved && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setDialog("delete")}
+                  disabled={pending}
+                >
+                  <Trash2 aria-hidden />
+                  {t("delete")}
+                </Button>
+              )}
+              {saved && isPublished && (
+                <Button
+                  variant="outline"
+                  onClick={() => setDialog("unpublish")}
+                  disabled={pending}
+                >
+                  <EyeOff aria-hidden />
+                  {t("unpublish")}
+                </Button>
+              )}
+              <Button
+                variant={isPublished ? "default" : "outline"}
+                onClick={onSave}
+                disabled={pending || (!!saved && !isDirty)}
+              >
+                {pending && dialog === null ? (
+                  <Loader2 className="animate-spin" aria-hidden />
+                ) : (
+                  <Save aria-hidden />
+                )}
+                {isPublished ? t("saveChanges") : t("saveDraft")}
+              </Button>
+              {!isPublished && (
+                <Button
+                  onClick={() => {
+                    setShowErrors(true);
+                    if (issues.length > 0) {
+                      toast.error(t("fixErrors"));
+                      return;
+                    }
+                    setDialog("publish");
+                  }}
+                  disabled={pending}
+                >
+                  <Send aria-hidden />
+                  {t("publish")}
+                </Button>
+              )}
+            </>
+          ) : undefined
+        }
+      >
+        <DetailBackButton
+          href="/dashboard/admin/release-notes"
+          label={t("back")}
+        />
+        <div className="min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {saved
@@ -321,59 +391,7 @@ export function ReleaseNoteEditor({
             </p>
           )}
         </div>
-        {canWrite && (
-          <div className="flex flex-wrap gap-2">
-            {saved && (
-              <Button
-                variant="ghost"
-                onClick={() => setDialog("delete")}
-                disabled={pending}
-              >
-                <Trash2 aria-hidden />
-                {t("delete")}
-              </Button>
-            )}
-            {saved && isPublished && (
-              <Button
-                variant="outline"
-                onClick={() => setDialog("unpublish")}
-                disabled={pending}
-              >
-                <EyeOff aria-hidden />
-                {t("unpublish")}
-              </Button>
-            )}
-            <Button
-              variant={isPublished ? "default" : "outline"}
-              onClick={onSave}
-              disabled={pending || (!!saved && !isDirty)}
-            >
-              {pending && dialog === null ? (
-                <Loader2 className="animate-spin" aria-hidden />
-              ) : (
-                <Save aria-hidden />
-              )}
-              {isPublished ? t("saveChanges") : t("saveDraft")}
-            </Button>
-            {!isPublished && (
-              <Button
-                onClick={() => {
-                  setShowErrors(true);
-                  if (issues.length > 0) {
-                    toast.error(t("fixErrors"));
-                    return;
-                  }
-                  setDialog("publish");
-                }}
-                disabled={pending}
-              >
-                <Send aria-hidden />
-                {t("publish")}
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+      </DetailHeader>
 
       {readOnly && (
         <Alert>
@@ -388,7 +406,9 @@ export function ReleaseNoteEditor({
         </Alert>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      {/* `minmax(0,1fr)`: a lone `auto` column grew to the preview's
+          min-content width and pushed the cards off a phone's screen. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-2">
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -403,16 +423,22 @@ export function ReleaseNoteEditor({
                   onChange={(e) =>
                     setForm((p) => ({ ...p, version: e.target.value }))
                   }
-                  placeholder="0.12.0"
+                  placeholder={suggestedVersion ?? "1.0.0"}
                   className="font-mono"
                   disabled={readOnly}
                   aria-invalid={Boolean(issueFor("version"))}
+                  aria-describedby={
+                    issueFor("version") ? "rn-version-error" : "rn-version-hint"
+                  }
                   spellCheck={false}
                 />
                 {issueFor("version") ? (
-                  issueText(issueFor("version"))
+                  issueText(issueFor("version"), undefined, "rn-version-error")
                 ) : (
-                  <p className="text-muted-foreground text-xs">
+                  <p
+                    id="rn-version-hint"
+                    className="text-muted-foreground text-xs"
+                  >
                     {t("release.versionHint")}
                   </p>
                 )}
@@ -428,8 +454,9 @@ export function ReleaseNoteEditor({
                   }
                   disabled={readOnly}
                   aria-invalid={Boolean(issueFor("released_on"))}
+                  aria-describedby="rn-date-error"
                 />
-                {issueText(issueFor("released_on"))}
+                {issueText(issueFor("released_on"), undefined, "rn-date-error")}
               </div>
             </CardContent>
           </Card>
@@ -492,8 +519,13 @@ export function ReleaseNoteEditor({
                     locale === "es" ? form.title.en || undefined : undefined
                   }
                   aria-invalid={Boolean(issueFor("title", locale))}
+                  aria-describedby="rn-title-error"
                 />
-                {issueText(issueFor("title", locale), RELEASE_TITLE_MAX)}
+                {issueText(
+                  issueFor("title", locale),
+                  RELEASE_TITLE_MAX,
+                  "rn-title-error",
+                )}
               </div>
 
               <div className="space-y-2">
@@ -612,9 +644,16 @@ export function ReleaseNoteEditor({
                               : t("items.placeholder")
                           }
                           aria-invalid={Boolean(itemIssue)}
+                          aria-describedby={`${textId}-error`}
                         />
                         <div className="flex items-start justify-between gap-2">
-                          <div>{issueText(itemIssue, RELEASE_ITEM_MAX)}</div>
+                          <div>
+                            {issueText(
+                              itemIssue,
+                              RELEASE_ITEM_MAX,
+                              `${textId}-error`,
+                            )}
+                          </div>
                           <Counter
                             value={item.text[locale]}
                             max={RELEASE_ITEM_MAX}

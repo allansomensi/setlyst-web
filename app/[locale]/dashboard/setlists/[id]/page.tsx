@@ -26,15 +26,8 @@ import {
 import { getEntitlements, hasFeature } from "@/lib/entitlements";
 import { setlistDisplayTitle } from "@/lib/repertoire";
 import { Link } from "@/components/nav-link";
-import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  Clock,
-  Guitar,
-  Library,
-  Music,
-  UsersRound,
-} from "lucide-react";
+import { DetailBackButton, DetailHeader } from "@/components/detail-header";
+import { Clock, Guitar, Library, Music, UsersRound } from "lucide-react";
 import { SetlistCollaborators } from "@/components/setlists/setlist-collaborators";
 import { SetlistSongsManager } from "./_components/setlists-songs-manager";
 import { toPickerSong } from "@/lib/picker-song";
@@ -175,7 +168,7 @@ export default async function SetlistDetailsPage({
   const allArtists = allArtistsRes === FETCH_FAILED ? [] : allArtistsRes.data;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <PageBreadcrumbs
         items={[
           ...(band
@@ -188,110 +181,99 @@ export default async function SetlistDetailsPage({
         ]}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            asChild
-            className="hidden shrink-0 sm:inline-flex"
-          >
-            <Link
-              href={
-                band ? `/dashboard/bands/${band.id}` : "/dashboard/setlists"
-              }
-              aria-label={band ? band.name : tNav("setlists")}
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
-                {title}
-              </h1>
-              {setlist.is_repertoire && (
-                <Badge variant="secondary" className="gap-1">
-                  <Library aria-hidden />
-                  {t("repertoire.badge")}
-                </Badge>
-              )}
-              {band && (
-                <Badge variant="outline" className="gap-1 font-normal" asChild>
-                  <Link href={`/dashboard/bands/${band.id}`}>
-                    <Guitar aria-hidden />
-                    {band.name}
-                  </Link>
-                </Badge>
-              )}
-              {sharedRole && (
-                <Badge variant="outline" className="gap-1 font-normal">
-                  <UsersRound aria-hidden />
-                  {t("collaborators.sharedByRole", {
-                    username: setlist.owner_username ?? "",
-                    role: t(`collaborators.roles.${sharedRole}`),
-                  })}
-                </Badge>
-              )}
-            </div>
+      <DetailHeader
+        actions={
+          <SetlistActions
+            setlist={setlist}
+            canEdit={canEditDetails}
+            canShare={canManage}
+            canExport={canExport}
+            pdfInPlan={hasFeature(entitlements, "pdf_export")}
+            setlistId={setlist.id}
+            setlistTitle={title}
+            shareToken={setlist.share_token}
+            shareLock={
+              setlist.share_locked_at
+                ? { reason: setlist.share_lock_reason ?? null }
+                : null
+            }
+          />
+        }
+      >
+        <DetailBackButton
+          href={band ? `/dashboard/bands/${band.id}` : "/dashboard/setlists"}
+          label={band ? band.name : tNav("setlists")}
+        />
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">
+              {title}
+            </h1>
             {setlist.is_repertoire && (
-              <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
-                {t("repertoire.explanation")}
-              </p>
+              <Badge variant="secondary" className="gap-1">
+                <Library aria-hidden />
+                {t("repertoire.badge")}
+              </Badge>
             )}
-            {setlist.description && (
-              <p className="text-muted-foreground mt-0.5 break-words">
-                {setlist.description}
-              </p>
+            {band && (
+              <Badge variant="outline" className="gap-1 font-normal" asChild>
+                <Link href={`/dashboard/bands/${band.id}`}>
+                  <Guitar aria-hidden />
+                  {band.name}
+                </Link>
+              </Badge>
             )}
-            <AuditStamp
-              updatedAt={setlist.updated_at}
-              updatedBy={setlist.updated_by_username}
-              className="mt-1"
+            {sharedRole && (
+              <Badge variant="outline" className="gap-1 font-normal">
+                <UsersRound aria-hidden />
+                {t("collaborators.sharedByRole", {
+                  username: setlist.owner_username ?? "",
+                  role: t(`collaborators.roles.${sharedRole}`),
+                })}
+              </Badge>
+            )}
+          </div>
+          {setlist.is_repertoire && (
+            <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+              {t("repertoire.explanation")}
+            </p>
+          )}
+          {setlist.description && (
+            <p className="text-muted-foreground mt-0.5 break-words">
+              {setlist.description}
+            </p>
+          )}
+          <AuditStamp
+            updatedAt={setlist.updated_at}
+            updatedBy={setlist.updated_by_username}
+            className="mt-1"
+          />
+          {collaborators && (
+            <SetlistCollaborators
+              setlistId={setlist.id}
+              collaborators={collaborators}
+              myRole={sharedRole}
+              className="mt-2"
             />
-            {collaborators && (
-              <SetlistCollaborators
-                setlistId={setlist.id}
-                collaborators={collaborators}
-                myRole={sharedRole}
-                className="mt-2"
-              />
-            )}
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
-                <Clock className="text-primary h-4 w-4" />
-                <span>
-                  {t("totalDuration")}:{" "}
-                  <span className="text-foreground font-mono tabular-nums">
-                    {formatDuration(setlist.total_duration)}
-                  </span>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
+              <Clock className="text-primary h-4 w-4" />
+              <span>
+                {t("totalDuration")}:{" "}
+                <span className="text-foreground font-mono tabular-nums">
+                  {formatDuration(setlist.total_duration)}
                 </span>
-              </div>
-              <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
-                <Music className="text-primary h-4 w-4" />
-                <span>{t("songCount", { count: setlistSongs.length })}</span>
-              </div>
-              <SetlistOfflineStatus setlistId={setlist.id} />
+              </span>
             </div>
+            <div className="text-muted-foreground bg-muted/50 flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium">
+              <Music className="text-primary h-4 w-4" />
+              <span>{t("songCount", { count: setlistSongs.length })}</span>
+            </div>
+            <SetlistOfflineStatus setlistId={setlist.id} />
           </div>
         </div>
-
-        <SetlistActions
-          setlist={setlist}
-          canEdit={canEditDetails}
-          canShare={canManage}
-          canExport={canExport}
-          pdfInPlan={hasFeature(entitlements, "pdf_export")}
-          setlistId={setlist.id}
-          setlistTitle={title}
-          shareToken={setlist.share_token}
-          shareLock={
-            setlist.share_locked_at
-              ? { reason: setlist.share_lock_reason ?? null }
-              : null
-          }
-        />
-      </div>
+      </DetailHeader>
 
       {setlist.links && setlist.links.length > 0 && (
         <section aria-labelledby="setlist-links" className="space-y-2">

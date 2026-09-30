@@ -104,7 +104,9 @@ export function DefaultLimitsForm({
           </legend>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {group.resources.map((resource) => (
-              <div key={resource} className="space-y-1">
+              // A column: a name that wraps keeps the field's box in line
+              // with its neighbours' (`mt-auto`).
+              <div key={resource} className="flex flex-col gap-1">
                 <label
                   htmlFor={`default-${resource}`}
                   className="text-muted-foreground text-xs font-medium"
@@ -112,6 +114,7 @@ export function DefaultLimitsForm({
                   {tQuota(`resources.${resource}`)}
                 </label>
                 <Input
+                  className="mt-auto"
                   id={`default-${resource}`}
                   inputMode="numeric"
                   value={draft[resource]}
@@ -122,6 +125,11 @@ export function DefaultLimitsForm({
                     }))
                   }
                   aria-invalid={invalid.includes(resource)}
+                  aria-describedby={
+                    invalid.includes(resource)
+                      ? "default-limits-error"
+                      : undefined
+                  }
                 />
               </div>
             ))}
@@ -130,7 +138,7 @@ export function DefaultLimitsForm({
       ))}
 
       {invalid.length > 0 && (
-        <p className="text-destructive text-sm">
+        <p id="default-limits-error" className="text-destructive text-sm">
           {t("invalid", { max: MAX_LIMIT })}
         </p>
       )}

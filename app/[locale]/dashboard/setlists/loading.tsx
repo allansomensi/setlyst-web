@@ -10,7 +10,7 @@ import {
 
 export default function SetlistsLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Header Skeleton */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
@@ -24,15 +24,19 @@ export default function SetlistsLoading() {
       <Skeleton className="h-9 w-full max-w-sm" />
 
       {/* Table Skeleton */}
-      <div className="bg-card rounded-md border">
+      <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>
                 <Skeleton className="h-4 w-32" />
               </TableHead>
+              {/* Songs and duration, as in SetlistsTable. */}
               <TableHead className="hidden md:table-cell">
-                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-14" />
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                <Skeleton className="h-4 w-14" />
               </TableHead>
               <TableHead className="hidden sm:table-cell">
                 <Skeleton className="h-4 w-24" />
@@ -45,11 +49,14 @@ export default function SetlistsLoading() {
           <TableBody>
             {Array.from({ length: 5 }).map((_, i) => (
               <TableRow key={i}>
-                <TableCell>
+                <TableCell className="w-full">
                   <Skeleton className="h-5 w-48 max-w-full" />
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  <Skeleton className="h-5 w-72 max-w-full" />
+                  <Skeleton className="h-5 w-8" />
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Skeleton className="h-5 w-14" />
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <Skeleton className="h-5 w-24" />

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Eye, Pencil, Plus } from "lucide-react";
+import { Eye, Pencil, Plus, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ClientDate } from "@/components/client-date";
 import { Link } from "@/components/nav-link";
 import { LoadErrorNotice } from "@/components/load-error-notice";
@@ -63,9 +64,21 @@ export default async function AdminReleaseNotesPage() {
       {sorted === null ? (
         <LoadErrorNotice />
       ) : sorted.length === 0 ? (
-        <div className="bg-card text-muted-foreground rounded-xl border border-dashed px-6 py-14 text-center text-sm">
-          {t("empty")}
-        </div>
+        <EmptyState
+          icon={Sparkles}
+          title={t("empty")}
+          className="bg-card rounded-xl border border-dashed"
+          actions={
+            canWrite ? (
+              <Button variant="outline" asChild>
+                <Link href="/dashboard/admin/release-notes/new">
+                  <Plus aria-hidden />
+                  {t("new")}
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <Card className="gap-0 py-0">
           <CardContent className="divide-y p-0">
@@ -79,7 +92,10 @@ export default async function AdminReleaseNotesPage() {
                   v{note.version}
                 </Badge>
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate font-medium">
+                  <p
+                    className="truncate font-medium"
+                    title={pickLocalized(note.title, locale) || undefined}
+                  >
                     {pickLocalized(note.title, locale) || t("untitled")}
                   </p>
                   <p className="text-muted-foreground flex flex-wrap gap-x-3 text-xs">

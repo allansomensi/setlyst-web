@@ -12,6 +12,7 @@ import { revalidateDashboard } from "@/lib/revalidate";
 import { getTranslations } from "next-intl/server";
 import {
   Band,
+  BandInvite,
   BandRole,
   BandRolePermission,
   BandRolePermissionEntry,
@@ -174,12 +175,13 @@ export async function leaveBand(
 export async function createBandInvite(
   bandId: string,
   data: { role?: BandRole; max_uses?: number; expires_in_hours?: number },
-): Promise<ActionResult<void>> {
+): Promise<ActionResult<BandInvite>> {
   if (!isUuid(bandId)) return invalidRequest();
 
+  // The new invite comes back, so its link can be copied right away.
   return guardedAction(
     () =>
-      fetchServerApi(apiPath`/bands/${bandId}/invites`, {
+      fetchServerApi<BandInvite>(apiPath`/bands/${bandId}/invites`, {
         method: "POST",
         body: JSON.stringify(data),
       }),

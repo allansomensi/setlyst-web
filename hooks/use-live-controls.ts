@@ -83,16 +83,6 @@ export function useLiveControls({
     );
   }, []);
 
-  // Fit mode has nothing to scroll: switch the auto-scroll off rather than
-  // merely pausing it, or leaving fit mode would set the song moving
-  // again on its own. Adjusted during render (the transition is known
-  // right here), not in an effect after it.
-  const [wasFitToScreen, setWasFitToScreen] = useState(fitToScreen);
-  if (wasFitToScreen !== fitToScreen) {
-    setWasFitToScreen(fitToScreen);
-    if (fitToScreen) setAutoScroll(false);
-  }
-
   useEffect(() => {
     // Nothing to scroll through when the whole song is already on screen.
     if (!isAutoScroll || fitToScreen) return;

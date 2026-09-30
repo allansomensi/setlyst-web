@@ -6,7 +6,7 @@ import {
 
 export default function SetlistDetailLoading() {
   return (
-    <div className="w-full space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <BreadcrumbSkeleton crumbs={2} />
       <DetailHeaderSkeleton withDescription withMeta actions={2} />
       <ListSkeleton rows={8} />

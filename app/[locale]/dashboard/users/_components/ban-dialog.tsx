@@ -75,7 +75,11 @@ export function BanDialog({ user, onOpenChange, onDone }: BanDialogProps) {
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="ban-duration">{t("duration")}</Label>
-          <Select value={duration} onValueChange={setDuration}>
+          <Select
+            value={duration}
+            onValueChange={setDuration}
+            disabled={isPending}
+          >
             <SelectTrigger id="ban-duration" className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -96,6 +100,7 @@ export function BanDialog({ user, onOpenChange, onDone }: BanDialogProps) {
             onChange={(e) => setReason(e.target.value.slice(0, REASON_MAX))}
             placeholder={t("reasonPlaceholder")}
             rows={3}
+            disabled={isPending}
           />
           <p className="text-muted-foreground text-xs">
             {t("reasonHint")} · {reason.length}/{REASON_MAX}

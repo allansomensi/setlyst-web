@@ -274,13 +274,17 @@ export function ImportSharedDialog({
                 <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                   {t(`kind.${preview.kind}`)}
                 </p>
-                <p className="truncate font-semibold">{preview.title}</p>
+                <p className="truncate font-semibold" title={preview.title}>
+                  {preview.title}
+                </p>
                 <p className="text-muted-foreground text-sm">
                   {facts.join(" · ")}
                 </p>
                 <p className="text-muted-foreground mt-1 flex items-center gap-1.5 truncate text-xs">
                   <FileJson className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  <span className="truncate">{preview.name}</span>
+                  <span className="truncate" title={preview.name}>
+                    {preview.name}
+                  </span>
                 </p>
               </div>
             </div>

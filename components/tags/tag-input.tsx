@@ -95,7 +95,7 @@ export function TagInput({
     <div className="space-y-1.5">
       <div
         className={cn(
-          "border-input focus-within:border-ring focus-within:ring-ring/50 flex min-h-9 flex-wrap items-center gap-1 rounded-md border bg-transparent px-2 py-1 shadow-xs focus-within:ring-[3px]",
+          "border-input focus-within:border-ring focus-within:ring-ring/50 dark:bg-input/30 flex min-h-9 flex-wrap items-center gap-1 rounded-md border bg-transparent px-2 py-1 shadow-xs focus-within:ring-[3px] pointer-coarse:min-h-10",
           disabled && "pointer-events-none opacity-50",
           issue && "border-destructive",
         )}
@@ -142,7 +142,9 @@ export function TagInput({
                 ? ""
                 : t("placeholder")
           }
-          className="placeholder:text-muted-foreground min-w-24 flex-1 bg-transparent py-0.5 text-sm outline-none"
+          // 16px on phones, like Input: below that iOS zooms the page in
+          // when the field gets focus.
+          className="placeholder:text-muted-foreground min-w-24 flex-1 bg-transparent py-0.5 text-base outline-none md:text-sm"
           role="combobox"
           aria-expanded={focused && matches.length > 0}
           aria-controls={listId}

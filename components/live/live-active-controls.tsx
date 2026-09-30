@@ -151,7 +151,9 @@ export function LiveActiveControls({
           <Button
             variant="ghost"
             size="icon"
-            className="text-muted-foreground h-10 w-7 rounded-full"
+            // 36px wide at the least: this sits right next to Pause, and a
+            // narrower target was easy to miss (or hit instead) mid-song.
+            className="text-muted-foreground h-10 w-9 rounded-full"
             onClick={() => setCollapsed(!collapsed)}
             aria-label={
               collapsed ? t("active.expandScroll") : t("active.collapseScroll")
@@ -180,10 +182,12 @@ export function LiveActiveControls({
           size="sm"
           className="h-10 gap-1.5 rounded-full px-3"
           onClick={onStopMetronome}
-          aria-label={t("metronome.stop")}
           title={t("metronome.stop")}
         >
           <Metronome className="text-primary h-4 w-4" />
+          {/* Hidden text rather than an aria-label, as on the pause button
+              above: the name keeps the visible tempo in it. */}
+          <span className="sr-only">{t("metronome.stop")} </span>
           <span className="font-mono text-xs font-semibold tabular-nums">
             {metronomeBpm}
           </span>

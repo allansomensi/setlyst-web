@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   Bar,
   BarChart,
@@ -15,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import {
+  ChartSpline,
   CircleCheck,
   Clock,
   Coffee,
@@ -45,6 +46,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ReportExportMenu } from "@/components/content/report-export-menu";
+import { DetailHeader } from "@/components/detail-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   analyzeSetlist,
   blockDurations,
@@ -89,12 +92,24 @@ interface Point {
 function markersOf(entries: FlowEntry[], breakLabel: string): Marker[] {
   const markers: Marker[] = [];
   let songs = 0;
+  const add = (marker: Marker) => {
+    // A break followed by the next block ("Interval", then "Set 2") sits
+    // between the same two songs: one line with both names, instead of
+    // two labels printed over each other. The break's dashes win.
+    const last = markers[markers.length - 1];
+    if (last && last.x === marker.x) {
+      last.label = `${last.label} · ${marker.label}`;
+      if (marker.kind === "break") last.kind = "break";
+      return;
+    }
+    markers.push(marker);
+  };
   for (const entry of entries) {
     if (entry.kind === "song") songs += 1;
     else if (entry.kind === "block") {
-      markers.push({ x: songs + 0.5, kind: "block", label: entry.name });
+      add({ x: songs + 0.5, kind: "block", label: entry.name });
     } else {
-      markers.push({
+      add({
         x: songs + 0.5,
         kind: "break",
         label: entry.label || breakLabel,
@@ -115,10 +130,18 @@ export function SetlistFlowReport({
   title,
   items,
   canExport,
-}: SetlistFlowReportProps) {
+  heading,
+}: SetlistFlowReportProps & {
+  /**
+   * The page's title block, rendered in one header row with the export
+   * menu (which needs this component's report ref).
+   */
+  heading?: ReactNode;
+}) {
   const t = useTranslations("setlists.analytics");
   const tInsights = useTranslations("insights");
   const tEnergy = useTranslations("songs.energy");
+  const format = useFormatter();
   const reportRef = useRef<HTMLDivElement>(null);
   const [showTable, setShowTable] = useState(false);
 
@@ -226,18 +249,27 @@ export function SetlistFlowReport({
   ];
 
   if (songs.length === 0) {
+    // The page's title and way back stay: the empty report used to be a
+    // lone card, with no heading saying which page this was.
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-          <ListMusic className="text-muted-foreground h-8 w-8" aria-hidden />
-          <p className="text-muted-foreground text-sm">{t("emptyReport")}</p>
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/dashboard/setlists/${setlistId}`}>
-              {t("addSongs")}
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <DetailHeader>{heading}</DetailHeader>
+        <div className="bg-card rounded-xl border border-dashed">
+          <EmptyState
+            icon={ChartSpline}
+            title={t("emptyTitle")}
+            description={t("emptyReport")}
+            actions={
+              <Button asChild>
+                <Link href={`/dashboard/setlists/${setlistId}`}>
+                  <ListMusic aria-hidden />
+                  {t("addSongs")}
+                </Link>
+              </Button>
+            }
+          />
+        </div>
+      </div>
     );
   }
 
@@ -300,17 +332,26 @@ export function SetlistFlowReport({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end" data-export-ignore>
-        <ReportExportMenu
-          targetRef={reportRef}
-          title={`${t("title")} ${title}`}
-          tables={csvTables}
-          allowed={canExport}
-        />
-      </div>
+      <DetailHeader
+        actions={
+          <div data-export-ignore>
+            <ReportExportMenu
+              targetRef={reportRef}
+              title={`${t("title")} ${title}`}
+              tables={csvTables}
+              allowed={canExport}
+            />
+          </div>
+        }
+      >
+        {heading}
+      </DetailHeader>
 
       <div ref={reportRef} className="space-y-6">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* One hairline-divided panel, like the other pages' headline
+            numbers (components/stat-grid.tsx), rather than four floating
+            cards; this one keeps a hint line under each value. */}
+        <dl className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-xl border shadow-(--shadow-surface) sm:grid-cols-4">
           <Kpi
             icon={ListMusic}
             label={t("kpi.songs")}
@@ -345,12 +386,17 @@ export function SetlistFlowReport({
             hint={
               avgEnergy != null
                 ? t("kpi.energyValue", {
-                    value: avgEnergy.toFixed(1).replace(".", ","),
+                    // In the reader's notation: "2,6" in pt/es, "2.6" in
+                    // English (it was a comma in every language).
+                    value: format.number(avgEnergy, {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    }),
                   })
                 : undefined
             }
           />
-        </div>
+        </dl>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <InsightList
@@ -720,13 +766,15 @@ function Kpi({
   hint?: string;
 }) {
   return (
-    <div className="bg-card rounded-xl border p-4">
-      <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+    <div className="bg-card flex flex-col gap-1 p-4">
+      <dt className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
         <Icon className="h-3.5 w-3.5" aria-hidden />
         {label}
-      </p>
-      <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
-      {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
+      </dt>
+      <dd className="text-2xl font-semibold tracking-tight tabular-nums">
+        {value}
+      </dd>
+      {hint && <dd className="text-muted-foreground text-xs">{hint}</dd>}
     </div>
   );
 }
