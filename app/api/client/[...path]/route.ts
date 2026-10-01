@@ -4,7 +4,7 @@ import {
   isSameOriginRequest,
   jsonError,
   pickQuery,
-  unauthorized,
+  noSessionResponse,
 } from "@/lib/server/api-route";
 import { getApiToken } from "@/lib/server/api-token";
 import {
@@ -91,7 +91,7 @@ async function handle(
     if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
       return tooLarge();
     }
-    if (!(await getApiToken())) return unauthorized();
+    if (!(await getApiToken())) return noSessionResponse();
     const text = await readLimitedBody(request);
     if (text === null) return tooLarge();
     body = text || undefined;

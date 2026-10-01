@@ -63,12 +63,15 @@ const loadTicket = cache(async function loadTicket(
   }
 });
 
-/** Admins and moderators, for the assignee picker (empty if it fails). */
+/**
+ * Active admins and moderators, for the assignee picker (empty if it
+ * fails). The API refuses deactivated staff as assignees.
+ */
 async function loadStaff(): Promise<StaffMember[]> {
   const pages = await Promise.all(
     (["admin", "moderator"] as const).map((role) =>
       fetchServerApi<PaginatedResponse<User>>(
-        `/users?role=${role}&per_page=100`,
+        `/users?role=${role}&state=active&per_page=100`,
       ).catch(() => null),
     ),
   );
@@ -122,6 +125,9 @@ export default async function SupportTicketPage({
   const locale = await getLocale();
   const timeZone = await getTimeZone();
   const { ticket, messages, other_tickets: others } = detail;
+  // Staff don't handle their own requests (the API refuses it): a
+  // colleague does.
+  const ownRequest = ticket.user_id === actor.id;
   const when = (value: string | null) =>
     value ? formatApiDateTime(value, locale, timeZone) : null;
   const context = contextEntries(ticket.context);
@@ -180,7 +186,13 @@ export default async function SupportTicketPage({
               <CardTitle>{t("composer.title")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <TicketComposer ticketId={ticket.id} status={ticket.status} />
+              {ownRequest ? (
+                <p className="text-muted-foreground text-sm">
+                  {t("detail.ownRequest")}
+                </p>
+              ) : (
+                <TicketComposer ticketId={ticket.id} status={ticket.status} />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -191,11 +203,18 @@ export default async function SupportTicketPage({
               <CardTitle>{t("detail.manage")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <TicketControls
-                ticket={ticket}
-                staff={staff}
-                viewerId={actor.id}
-              />
+              {ownRequest ? (
+                <p className="text-muted-foreground text-sm">
+                  {t("detail.ownRequest")}
+                </p>
+              ) : (
+                <TicketControls
+                  ticket={ticket}
+                  // Never the requester (the API refuses it).
+                  staff={staff.filter((member) => member.id !== ticket.user_id)}
+                  viewerId={actor.id}
+                />
+              )}
             </CardContent>
           </Card>
 

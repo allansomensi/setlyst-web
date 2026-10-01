@@ -3,7 +3,8 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { assertSafeEndpoint } from "@/lib/api-endpoint";
 import { getApiBaseUrl } from "@/lib/api-server";
-import { getApiToken } from "@/lib/server/api-token";
+import { getApiToken, getSessionToken } from "@/lib/server/api-token";
+import { isImpersonationExpired } from "@/lib/session-api-token";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { isUuid } from "@/lib/uuid";
 import { isSameOriginRequest, pickQuery } from "@/lib/server/request-guards";
@@ -35,6 +36,22 @@ export function jsonError(
 
 export const unauthorized = () =>
   jsonError(401, "SESSION_REVOKED", "Sign in again.");
+/**
+ * The 401 for a request without a usable API token. A "view as" that ran
+ * out is not a dead session: it answers `IMPERSONATION_EXPIRED`, and the
+ * client refreshes the session (which restores the staff member's own)
+ * instead of signing out. See lib/api-client.ts.
+ */
+export async function noSessionResponse(): Promise<NextResponse> {
+  if (isImpersonationExpired(await getSessionToken())) {
+    return jsonError(
+      401,
+      "IMPERSONATION_EXPIRED",
+      "The view-as session ended.",
+    );
+  }
+  return unauthorized();
+}
 export const badRequest = (message = "Invalid request.") =>
   jsonError(400, "BAD_REQUEST", message);
 
@@ -76,7 +93,7 @@ export async function forwardToApi(
   }
 
   const token = options.anonymous ? null : await getApiToken();
-  if (!token && !options.anonymous) return unauthorized();
+  if (!token && !options.anonymous) return noSessionResponse();
 
   const headers = new Headers(await getInternalApiHeaders());
   if (token) headers.set("Authorization", `Bearer ${token}`);

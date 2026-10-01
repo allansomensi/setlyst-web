@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { getSession } from "next-auth/react";
 import { secureSignOut } from "@/lib/client-logout";
 import { assertSafeEndpoint, InvalidEndpointError } from "@/lib/api-endpoint";
 import {
@@ -42,6 +43,29 @@ function signOutOnce(): Promise<void> {
     pendingSignOut = null;
   });
   return pendingSignOut;
+}
+
+/**
+ * A "view as" session ran out (`IMPERSONATION_EXPIRED`): reading the
+ * session through `/api/auth/session` runs the `jwt` callback, which
+ * restores the staff member's own session and stores it in the cookie;
+ * the page is then reloaded as the staff member. Shared like the
+ * sign-out, for the same reason.
+ */
+let pendingRestore: Promise<void> | null = null;
+
+function restoreAfterImpersonationOnce(): Promise<void> {
+  pendingRestore ??= (async () => {
+    const session = await getSession().catch(() => null);
+    if (!session || session.error === "TokenExpired") {
+      await signOutOnce();
+      return;
+    }
+    window.location.reload();
+  })().finally(() => {
+    pendingRestore = null;
+  });
+  return pendingRestore;
 }
 
 function localePrefix(): string {
@@ -126,8 +150,23 @@ export function useApi() {
         }
 
         if (res.status === 401) {
-          if (!suppressAuthRedirect) await signOutOnce();
-          throw new ApiError(401, "Session expired. Please sign in again.");
+          let code: string | null = null;
+          try {
+            const body = await res.json();
+            if (typeof body?.code === "string") code = body.code;
+          } catch {
+            // ignore parse errors
+          }
+          if (!suppressAuthRedirect) {
+            await (code === "IMPERSONATION_EXPIRED"
+              ? restoreAfterImpersonationOnce()
+              : signOutOnce());
+          }
+          throw new ApiError(
+            401,
+            "Session expired. Please sign in again.",
+            code,
+          );
         }
 
         if (!res.ok) {

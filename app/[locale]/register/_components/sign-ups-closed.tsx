@@ -76,10 +76,10 @@ export async function SignUpsClosed({
           </Button>
           {reason === "maintenance" && (
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href={STATUS_PATH}>
+              <a href={STATUS_PATH}>
                 <Activity className="mr-2 h-4 w-4" aria-hidden />
                 {tMaintenance("statusLink")}
-              </Link>
+              </a>
             </Button>
           )}
         </div>

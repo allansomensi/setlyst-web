@@ -56,6 +56,28 @@ export function isSessionExpired(
 }
 
 /**
+ * Whether the session is a "view as" whose impersonation token ran out
+ * while the staff member's own session is still good: the next read
+ * through the `jwt` callback (lib/auth.ts) restores the staff session,
+ * so the client should refresh it instead of signing out.
+ */
+export function isImpersonationExpired(
+  token: Pick<
+    JWT,
+    "apiToken" | "apiTokenExpires" | "error" | "impersonator"
+  > | null,
+  now: number = Date.now(),
+): boolean {
+  if (!token?.impersonator || token.error === "TokenExpired") return false;
+  const expires = token.apiTokenExpires;
+  return (
+    typeof expires === "number" &&
+    now >= expires &&
+    !isSessionExpired(token, now)
+  );
+}
+
+/**
  * How old the API token may get before an active session swaps it for a
  * fresh one (`POST /auth/refresh`). The API token lives 30 days; renewing
  * it at most twice a day while the app is in use means a session only

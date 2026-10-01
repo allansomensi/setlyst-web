@@ -369,8 +369,10 @@ export function analysisStats(
   const regions = keyRegions(analysis, chords.length, songKey);
   const analysed = readings.filter((r) => r.degree && !r.inferred).length;
   const inferred = readings.filter((r) => r.inferred).length;
-  const read = readings.filter((r) => r.category).length || 1;
-  const chromatic = read - categories.diatonic;
+  // Chords that got a category; with none, nothing counts as chromatic
+  // (a `|| 1` here made an empty reading look "rich").
+  const read = readings.filter((r) => r.category).length;
+  const chromaticShare = read ? (read - categories.diatonic) / read : 0;
   const total = chords.length || 1;
 
   const distinctDegrees = degreeCount.size;
@@ -380,7 +382,7 @@ export function analysisStats(
     100 *
       Math.min(
         1,
-        0.45 * (chromatic / read) +
+        0.45 * chromaticShare +
           0.15 * Math.min(1, distinctDegrees / 16) +
           0.15 * Math.min(1, Math.max(0, keyChanges) / 3) +
           0.15 * (tensions / total) +
@@ -572,12 +574,27 @@ export function reviewAnalysis(
     .map(Number)
     .filter((i) => degreeIsSet(analysis.entries[String(i)]?.degree))
     .sort((a, b) => a - b);
-  analysedIndexes.forEach((index, i) => {
+  analysedIndexes.forEach((index) => {
     const degree = analysis.entries[String(index)].degree;
     if (!isDominant(degree) || (!degree.target && !degree.sub)) return;
-    const nextIndex = analysedIndexes[i + 1];
-    if (nextIndex === undefined) return;
-    const next = analysis.entries[String(nextIndex)].degree;
+    // The chord that actually follows (skipping what can't be read, like
+    // N.C., and the same dominant held on: A7 A7(b9) Dm7), read by its
+    // written degree or else by the suggestion: the next *analysed* chord
+    // may be several chords later.
+    const root = shapes[index]?.root;
+    let nextIndex = index + 1;
+    while (
+      nextIndex < shapes.length &&
+      (!shapes[nextIndex] || shapes[nextIndex]?.root === root)
+    ) {
+      nextIndex++;
+    }
+    if (nextIndex >= shapes.length) return;
+    const written = analysis.entries[String(nextIndex)]?.degree;
+    const next = degreeIsSet(written)
+      ? written
+      : suggested.get(nextIndex)?.degree;
+    if (!next) return;
     const resolution = resolutionOf(degree);
     const nextRoot = next ? rootOf(next) : null;
     if (resolution === null || nextRoot === null) return;

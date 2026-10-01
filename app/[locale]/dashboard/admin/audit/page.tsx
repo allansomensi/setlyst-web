@@ -33,6 +33,9 @@ const CATEGORIES = [
   "promo.",
   "promotion.",
   "finance.",
+  "support.",
+  "incident.",
+  "email.",
   "staff.",
 ] as const;
 

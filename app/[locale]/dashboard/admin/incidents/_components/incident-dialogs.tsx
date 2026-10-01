@@ -118,8 +118,12 @@ export function IncidentDialog({
   const fromUtc = localInputToUtcNaive(from);
   const untilUtc = localInputToUtcNaive(until);
   const needsWindow = kind === "maintenance";
+  // The window fields only show for maintenance (and when editing): a
+  // window prefilled for maintenance and left behind by switching back to
+  // "incident" must neither be sent nor block the form unseen.
+  const windowShown = needsWindow || editing;
   const windowBackwards = Boolean(
-    fromUtc && untilUtc && !isBeforeUtc(fromUtc, untilUtc),
+    windowShown && fromUtc && untilUtc && !isBeforeUtc(fromUtc, untilUtc),
   );
   const errors: FieldErrors<FieldKey> = {
     title: isValidIncidentTitle(title)
@@ -186,8 +190,8 @@ export function IncidentDialog({
         impact,
         status,
         components,
-        scheduled_for: fromUtc,
-        scheduled_until: untilUtc,
+        scheduled_for: needsWindow ? fromUtc : null,
+        scheduled_until: needsWindow ? untilUtc : null,
         message: message.trim(),
       });
       if (!result.success || !result.data) {
@@ -321,7 +325,7 @@ export function IncidentDialog({
             />
           </div>
 
-          {(kind === "maintenance" || editing) && (
+          {windowShown && (
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium">
                 {t("form.window")}

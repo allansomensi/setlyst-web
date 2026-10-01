@@ -88,6 +88,20 @@ export const AUDIT_ACTIONS = [
   "staff.content_viewed",
   "billing.subscription_withdrawn",
   "billing.subscription_refunded",
+  "settings.platform_updated",
+  "support.ticket_updated",
+  "support.ticket_replied",
+  "user.note_created",
+  "user.note_updated",
+  "user.note_deleted",
+  "incident.created",
+  "incident.updated",
+  "incident.deleted",
+  "email.retried",
+  "email.canceled",
+  "email.test_sent",
+  "staff.data_exported",
+  "user.bulk_action",
 ] as const;
 
 const DESTRUCTIVE = new Set([
@@ -111,6 +125,9 @@ const DESTRUCTIVE = new Set([
   "user.security_reset",
   "user.unverified_purged",
   "billing.subscription_refunded",
+  "user.note_deleted",
+  "incident.deleted",
+  "email.canceled",
 ]);
 
 export function useAuditActionLabel() {
@@ -137,6 +154,10 @@ function targetHref(entry: AuditLogEntry): string | null {
       return `/dashboard/admin/announcements/${entry.target_id}`;
     case "release_note":
       return `/dashboard/admin/release-notes/${entry.target_id}`;
+    case "support_ticket":
+      return `/dashboard/admin/support/${entry.target_id}`;
+    case "incident":
+      return `/dashboard/admin/incidents/${entry.target_id}`;
     default:
       return null;
   }

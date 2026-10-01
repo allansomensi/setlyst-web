@@ -18,6 +18,12 @@ import {
 /** Where staff turn maintenance on and off. */
 export const PLATFORM_SETTINGS_PATH = "/dashboard/admin/platform";
 
+/** Cache tag of `GET /public/platform`, expired when staff save it. */
+export const PLATFORM_STATUS_TAG = "platform-status";
+
+/** Cache tag of `GET /public/incidents`, expired when staff change one. */
+export const PUBLIC_INCIDENTS_TAG = "public-incidents";
+
 /** Longest staff message shown (the API caps it at 500 characters). */
 const MAX_MESSAGE_LENGTH = 500;
 

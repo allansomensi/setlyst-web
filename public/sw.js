@@ -99,6 +99,8 @@ const PRIVATE_PATHS = [
   "/dashboard/profile",
   // Band invite links: the code in the URL is a credential.
   "/dashboard/invite",
+  // Support requests: what the person wrote to the team.
+  "/dashboard/support",
 ];
 
 /**

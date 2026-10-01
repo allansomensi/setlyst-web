@@ -1,11 +1,13 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import {
   guardedAction,
   invalidRequest,
   requireStaff,
 } from "@/lib/action-guard";
 import { fetchServerApi } from "@/lib/api-server";
+import { PUBLIC_INCIDENTS_TAG } from "@/lib/maintenance";
 import type {
   CreateIncidentPayload,
   PostIncidentUpdatePayload,
@@ -24,6 +26,8 @@ import type { Incident } from "@/types/operations";
 const enc = encodeURIComponent;
 
 function revalidateIncidents() {
+  // The status page shows them too (cached for 30 s otherwise).
+  updateTag(PUBLIC_INCIDENTS_TAG);
   revalidateDashboard("/admin/incidents", "layout");
 }
 

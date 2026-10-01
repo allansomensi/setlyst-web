@@ -1,7 +1,9 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import { guardedAction, requireStaff } from "@/lib/action-guard";
 import { fetchServerApi } from "@/lib/api-server";
+import { PLATFORM_STATUS_TAG } from "@/lib/maintenance";
 import { revalidateDashboard } from "@/lib/revalidate";
 import type { PlatformSettings } from "@/types/operations";
 
@@ -19,8 +21,13 @@ export async function savePlatformSettings(settings: PlatformSettings) {
         body: JSON.stringify(settings),
       });
     },
-    // The console overview shows the maintenance mode and the sign-up
-    // switch too.
-    () => revalidateDashboard("/admin", "layout"),
+    () => {
+      // The maintenance screens, banners and the sign-up page read the
+      // cached public status: expire it so they follow at once.
+      updateTag(PLATFORM_STATUS_TAG);
+      // The console overview shows the maintenance mode and the sign-up
+      // switch too.
+      revalidateDashboard("/admin", "layout");
+    },
   );
 }

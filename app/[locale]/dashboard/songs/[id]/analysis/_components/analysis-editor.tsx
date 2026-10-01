@@ -115,7 +115,7 @@ import {
   type ChordSuggestion,
 } from "@/lib/music/analysis-suggest";
 import { chordShape, degreeQuality } from "@/lib/music/analysis-theory";
-import { shouldPreferFlats, transposeKey } from "@/lib/music/chords";
+import { parseKey, shouldPreferFlats, transposeKey } from "@/lib/music/chords";
 import { toast } from "@/lib/toast";
 import { toastActionError } from "@/lib/action-toast";
 import { copyText } from "@/lib/clipboard";
@@ -236,6 +236,12 @@ function historyReducer(state: History, action: HistoryAction): History {
 }
 
 // Saving
+
+/**
+ * The raised III, VI and VII of a minor key (harmonic and melodic minor),
+ * in semitones above the tonic, by scale step (0 = I).
+ */
+const RAISED_MINOR_STEPS: Record<number, number> = { 2: 4, 5: 9, 6: 11 };
 
 type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict";
 const AUTOSAVE_MS = 1200;
@@ -759,7 +765,18 @@ export function AnalysisEditor({
       const minor = isMinorKey(key);
       const shape = chordShape(chords[index] ?? "");
       const numeral = NUMERALS[step];
-      const flat = minor && (step === 2 || step === 5 || step === 6);
+      // In a minor key III, VI and VII are flat (natural minor), unless
+      // the chord sits on the raised one (G#° in A minor is VII°, not
+      // bVII°: harmonic and melodic minor).
+      const tonic = parseKey(key)?.pitchClass;
+      const raised = RAISED_MINOR_STEPS[step];
+      const onRaised =
+        shape !== null &&
+        tonic !== undefined &&
+        raised !== undefined &&
+        (((shape.root - tonic) % 12) + 12) % 12 === raised;
+      const flat =
+        minor && (step === 2 || step === 5 || step === 6) && !onRaised;
       const degree: Degree = {
         sub: false,
         accidental: flat ? "b" : "",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useSession } from "next-auth/react";
 import { offlineDb } from "@/lib/offline/db";
@@ -38,14 +38,19 @@ export function useOfflineSongBundle(
     [songId, impersonating, isOnline],
   );
 
+  // Read when writing, not a dependency: see the same note in
+  // use-offline-setlist-bundle.ts (ending a view-as must not write the
+  // viewed account's song into the staff member's offline copy).
+  const isImpersonating = useEffectEvent(() => impersonating);
+
   useEffect(() => {
-    if (!isOnline || impersonating) return;
+    if (!isOnline || isImpersonating()) return;
     offlineDb.songs
       .put({ id: fallback.id, song: fallback, syncedAt: Date.now() })
       .catch(() => {
         // Best-effort — see the analogous catch in use-offline-setlist-bundle.ts.
       });
-  }, [isOnline, impersonating, fallback]);
+  }, [isOnline, fallback]);
 
   if (!isOnline && cached) {
     return { song: cached.song, syncedAt: cached.syncedAt };

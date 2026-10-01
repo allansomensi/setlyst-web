@@ -5,7 +5,11 @@ import {
   isPublicPath,
   stripLocale,
 } from "@/lib/route-access";
-import { apiTokenOf, isSessionExpired } from "@/lib/session-api-token";
+import {
+  apiTokenOf,
+  isImpersonationExpired,
+  isSessionExpired,
+} from "@/lib/session-api-token";
 
 const LOCALES = ["en", "pt-BR", "es"] as const;
 
@@ -83,5 +87,40 @@ describe("session expiry", () => {
         now,
       ),
     ).toBe(true);
+  });
+
+  it("tells an ended view-as from an ended session", () => {
+    const impersonator = {
+      id: "s",
+      name: "Staff",
+      role: "admin" as const,
+      apiToken: "staff",
+    };
+    const viewAs = {
+      ...base,
+      apiTokenExpires: now - 1,
+      impersonator: { ...impersonator, apiTokenExpires: now + 10 },
+    };
+    // The client refreshes the session (restoring the staff member's)
+    // instead of signing out.
+    expect(isImpersonationExpired(viewAs, now)).toBe(true);
+    // Still running, or no view-as at all.
+    expect(
+      isImpersonationExpired({ ...viewAs, apiTokenExpires: now + 1 }, now),
+    ).toBe(false);
+    expect(
+      isImpersonationExpired({ ...base, apiTokenExpires: now - 1 }, now),
+    ).toBe(false);
+    // The staff session ran out too: a real sign-out.
+    expect(
+      isImpersonationExpired(
+        {
+          ...viewAs,
+          impersonator: { ...impersonator, apiTokenExpires: now - 10 },
+        },
+        now,
+      ),
+    ).toBe(false);
+    expect(isImpersonationExpired(null, now)).toBe(false);
   });
 });

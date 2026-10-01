@@ -397,6 +397,7 @@ describe("/api/client allowlist", () => {
     expect(allowed("GET", ["songs", UUID])).toBe(true);
     expect(allowed("GET", ["setlists", UUID, "items"])).toBe(true);
     expect(allowed("GET", ["bands", UUID, "gigs"])).toBe(true);
+    expect(allowed("GET", ["setlists", "shared"])).toBe(true);
   });
 
   it("refuses other methods on allowed paths", () => {

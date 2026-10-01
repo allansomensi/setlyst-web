@@ -43,6 +43,13 @@ describe("sections", () => {
 });
 
 describe("statistics", () => {
+  it("doesn't call a chart with nothing categorised complex", () => {
+    for (const chords of [[], ["N.C."]]) {
+      const stats = analysisStats(emptyAnalysis(chords), chords, null);
+      expect(stats.complexity.score).toBeLessThan(20);
+    }
+  });
+
   const chords = ["C7M", "A7", "Dm7", "G7", "C7M", "A7", "Dm7", "G7", "C7M"];
 
   it("counts functions, categories and progressions", () => {
@@ -141,6 +148,36 @@ describe("review", () => {
     analysis = addConnection(analysis, 2, 3, "subV", "b");
     const issues = reviewAnalysis(analysis, chords, "C");
     expect(issues.map((i) => i.id)).toEqual(["dominantTarget"]);
+  });
+
+  it("checks a dominant against the chord that follows it", () => {
+    // Only the dominants analysed: A7 does resolve to Dm7, written or not.
+    const chords = ["C", "A7", "Dm7", "G7", "C"];
+    const analysis = analysed(chords, ["", "V7/II", "", "V7", ""]);
+    const suggestions = suggestAnalysis(chords, analysis, "C").chords;
+    expect(reviewAnalysis(analysis, chords, "C", suggestions)).toEqual([]);
+    // A dominant held on for another bar resolves after it.
+    for (const [held, degree] of [
+      [["A7", "A7", "Dm7"], "V7/II"],
+      [["E7", "E7(b9)", "Am"], "V7/VI"],
+    ] as const) {
+      const heldAnalysis = analysed([...held], [degree, "", ""]);
+      const heldSuggestions = suggestAnalysis(
+        [...held],
+        heldAnalysis,
+        "C",
+      ).chords;
+      expect(
+        reviewAnalysis(heldAnalysis, [...held], "C", heldSuggestions).filter(
+          (i) => i.id === "unresolved",
+        ),
+      ).toEqual([]);
+    }
+    // A real non-resolution is still flagged.
+    const wrong = analysed(["A7", "C"], ["V7/II", "I"]);
+    expect(
+      reviewAnalysis(wrong, ["A7", "C"], "C").map((i) => [i.id, i.at]),
+    ).toEqual([["unresolved", 0]]);
   });
 
   it("notices a missing key and empty passages", () => {

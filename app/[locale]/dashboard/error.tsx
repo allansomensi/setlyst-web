@@ -4,6 +4,7 @@ import { useEffect, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { useMaintenanceRecovery } from "@/hooks/use-maintenance-recovery";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
 export default function DashboardError({
@@ -27,6 +28,10 @@ export default function DashboardError({
       router.refresh();
       reset();
     });
+
+  // Full maintenance switched on mid-session: the layout shows the
+  // maintenance screen once it runs again.
+  useMaintenanceRecovery(retry);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {

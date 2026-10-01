@@ -21,6 +21,8 @@ export const CLIENT_API_ROUTES: ReadonlyArray<{
   { method: "PATCH", pattern: /^\/notifications\/read-all$/ },
   { method: "GET", pattern: /^\/users\/me\/preferences$/ },
   { method: "GET", pattern: /^\/(songs|artists|setlists|gigs|bands)$/ },
+  // Setlists shared with the account (the offline sync stores them too).
+  { method: "GET", pattern: /^\/setlists\/shared$/ },
   { method: "GET", pattern: new RegExp(`^/songs/${ID}$`) },
   { method: "GET", pattern: new RegExp(`^/setlists/${ID}/(items|songs)$`) },
   { method: "GET", pattern: new RegExp(`^/bands/${ID}/(gigs|setlists)$`) },

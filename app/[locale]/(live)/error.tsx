@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
+import { useMaintenanceRecovery } from "@/hooks/use-maintenance-recovery";
 
 /**
  * Crash screen for Live Mode. Full screen (there is no dashboard around
@@ -35,6 +36,9 @@ export default function LiveError({
   // instead of looking like the press did nothing on a slow venue network.
   const [isRetrying, startRetry] = useTransition();
   const onRetry = () => startRetry(() => retry());
+  // Full maintenance switched on mid-session: the layout shows the
+  // maintenance screen once it runs again.
+  useMaintenanceRecovery(onRetry);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {

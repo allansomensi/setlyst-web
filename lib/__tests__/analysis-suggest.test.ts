@@ -104,6 +104,15 @@ describe("suggesting degrees in context", () => {
     ]);
   });
 
+  it("keeps a minor tonic vamp on the tonic", () => {
+    // Am7 D7 Am7 (dorian): not a II–V, and Am7 stays the tonic.
+    const vamp = read(["Am7", "D7", "Am7"], "Am");
+    expect(vamp.fns[0]).toBe("T");
+    expect(vamp.connections.filter((c) => c.startsWith("twoFive"))).toEqual([]);
+    // A real II–V out of the tonic still gets its bracket.
+    expect(read(["Am", "D7", "G"], "Am").connections).toContain("twoFive:0-1");
+  });
+
   it("tells diminished chords apart by how they move", () => {
     const { degrees, badges } = read(
       ["C", "C#°", "Dm7", "G7", "C", "C°", "C", "Eb°", "Dm7"],

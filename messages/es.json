@@ -2704,7 +2704,21 @@
         "user_impersonated_read": "Vista por el equipo (como el usuario)",
         "staff_content_viewed": "Contenido privado visto por el equipo",
         "billing_subscription_withdrawn": "Desistimiento de la suscripción (reembolsada)",
-        "billing_subscription_refunded": "Suscripción reembolsada y cancelada"
+        "billing_subscription_refunded": "Suscripción reembolsada y cancelada",
+        "settings_platform_updated": "Configuración de la plataforma cambiada",
+        "support_ticket_updated": "Solicitud de soporte actualizada",
+        "support_ticket_replied": "Solicitud de soporte respondida",
+        "user_note_created": "Nota del equipo añadida",
+        "user_note_updated": "Nota del equipo editada",
+        "user_note_deleted": "Nota del equipo eliminada",
+        "incident_created": "Incidente creado",
+        "incident_updated": "Incidente actualizado",
+        "incident_deleted": "Incidente eliminado",
+        "email_retried": "Correo reenviado",
+        "email_canceled": "Correo cancelado",
+        "email_test_sent": "Correo de prueba enviado",
+        "staff_data_exported": "Datos exportados (CSV)",
+        "user_bulk_action": "Acción en bloque sobre cuentas"
       }
     },
     "lists": {
@@ -2912,6 +2926,9 @@
         "promo": "Códigos promocionales",
         "promotion": "Promociones",
         "finance": "Finanzas",
+        "support": "Soporte",
+        "incident": "Página de estado",
+        "email": "Correos",
         "staff": "Accesos del equipo"
       },
       "empty": "Nada registrado para estos filtros."
@@ -6623,6 +6640,7 @@
         "note": "Nota interna"
       },
       "closedHint": "Esta solicitud está cerrada, así que ya no se puede responder al solicitante desde aquí. Aún puedes dejar notas internas o reabrirla cambiando su estado.",
+      "closedMeanwhile": "Esta solicitud se cerró mientras tanto, así que la respuesta no se envió. Tu texto sigue aquí: déjalo como nota interna o reabre la solicitud primero.",
       "replyLabel": "Tu respuesta",
       "noteLabel": "Nota interna",
       "replyPlaceholder": "Escribe al solicitante…",
@@ -6659,6 +6677,7 @@
       "opened": "Abierta por @{username} el {date}",
       "panel": "Detalles de la solicitud",
       "manage": "Gestión",
+      "ownRequest": "Esta es tu propia solicitud: la responde y gestiona otra persona del equipo.",
       "requester": "Solicitante",
       "openProfile": "Abrir cuenta",
       "allRequests": "Todas sus solicitudes",

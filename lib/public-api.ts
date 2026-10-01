@@ -4,7 +4,11 @@ import { cache } from "react";
 import { assertSafeEndpoint } from "@/lib/api-endpoint";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { isBillingEnforced } from "@/lib/pricing";
-import { parsePlatformStatus } from "@/lib/maintenance";
+import {
+  PLATFORM_STATUS_TAG,
+  PUBLIC_INCIDENTS_TAG,
+  parsePlatformStatus,
+} from "@/lib/maintenance";
 import type { PublicIncidents, PublicPlatformStatus } from "@/types/operations";
 import type {
   PublicBillingMode,
@@ -46,6 +50,8 @@ type PublicFetchOptions = {
   body?: unknown;
   /** Seconds to cache the response for; `false` = never cache. */
   revalidate?: number | false;
+  /** Cache tags, so a change can expire the cached copy at once. */
+  tags?: string[];
   /** Send the visitor's IP to the API (uncached calls only). */
   forwardClientIp?: boolean;
 };
@@ -59,6 +65,7 @@ export async function fetchPublicApi<T>(
     method = "GET",
     body,
     revalidate = false,
+    tags,
     forwardClientIp = false,
   }: PublicFetchOptions = {},
 ): Promise<PublicResult<T>> {
@@ -81,6 +88,7 @@ export async function fetchPublicApi<T>(
     method,
     body,
     revalidate,
+    tags,
     forwardClientIp,
     timeoutMs: cached ? CACHED_TIMEOUT_MS : TIMEOUT_MS,
   });
@@ -95,10 +103,11 @@ async function fetchPublicApiUncached<T>(
     method,
     body,
     revalidate,
+    tags,
     forwardClientIp,
     timeoutMs,
   }: Required<Pick<PublicFetchOptions, "method" | "revalidate">> &
-    Pick<PublicFetchOptions, "body" | "forwardClientIp"> & {
+    Pick<PublicFetchOptions, "body" | "tags" | "forwardClientIp"> & {
       timeoutMs: number;
     },
 ): Promise<PublicResult<T>> {
@@ -119,7 +128,7 @@ async function fetchPublicApiUncached<T>(
       signal: AbortSignal.timeout(timeoutMs),
       ...(revalidate === false
         ? { cache: "no-store" as const }
-        : { next: { revalidate } }),
+        : { next: { revalidate, ...(tags ? { tags } : {}) } }),
     });
     if (!response.ok) return { ok: false, status: response.status };
     return { ok: true, data: (await response.json()) as T };
@@ -197,6 +206,7 @@ export const getPlatformStatus = cache(
   async (): Promise<PublicPlatformStatus | null> => {
     const result = await fetchPublicApi<unknown>("/public/platform", {
       revalidate: 15,
+      tags: [PLATFORM_STATUS_TAG],
     });
     return result.ok ? parsePlatformStatus(result.data) : null;
   },
@@ -211,6 +221,7 @@ export const getPublicIncidents = cache(
   async (): Promise<PublicIncidents | null> => {
     const result = await fetchPublicApi<PublicIncidents>("/public/incidents", {
       revalidate: 30,
+      tags: [PUBLIC_INCIDENTS_TAG],
     });
     if (
       !result.ok ||

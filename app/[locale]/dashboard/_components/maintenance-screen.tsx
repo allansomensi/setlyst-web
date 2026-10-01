@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Activity, Construction } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
-import { Link } from "@/components/nav-link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +29,11 @@ export async function MaintenanceScreen({
   const t = await getTranslations("maintenance");
 
   return (
+    // Marked like an error boundary so the service worker never stores
+    // this screen as the offline copy of the dashboard or Live Mode page
+    // it replaces (public/sw.js, isUsableForCache).
     <main
+      data-error-boundary="maintenance"
       id="main-content"
       className="bg-muted/40 flex min-h-dvh items-center justify-center pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1.5rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]"
     >
@@ -53,10 +56,11 @@ export async function MaintenanceScreen({
         </CardContent>
         <CardFooter className="flex flex-col gap-2 border-t py-4 sm:flex-row sm:justify-center">
           <Button asChild variant="default" className="w-full sm:w-auto">
-            <Link href={STATUS_PATH}>
+            {/* A plain link: /status lives outside the locale segment. */}
+            <a href={STATUS_PATH}>
               <Activity className="mr-2 h-4 w-4" aria-hidden />
               {t("statusLink")}
-            </Link>
+            </a>
           </Button>
           <LogoutButton labelled />
         </CardFooter>

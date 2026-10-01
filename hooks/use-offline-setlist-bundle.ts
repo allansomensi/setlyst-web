@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useSession } from "next-auth/react";
 import { offlineDb } from "@/lib/offline/db";
@@ -77,8 +77,14 @@ export function useOfflineSetlistBundle(
     [setlistId, impersonating, isOnline],
   );
 
+  // Reads `impersonating` when writing without re-running on it: when a
+  // view-as ends, the page still holds the viewed account's setlist, and
+  // re-running then would write it into the staff member's freshly
+  // cleared offline copy.
+  const isImpersonating = useEffectEvent(() => impersonating);
+
   useEffect(() => {
-    if (!isOnline || impersonating) return;
+    if (!isOnline || isImpersonating()) return;
     // Merges rather than replaces: without the running order this screen
     // doesn't know the setlist's block/break markers, and writing the whole
     // row would drop them. See lib/offline/write.ts.
@@ -93,13 +99,7 @@ export function useOfflineSetlistBundle(
     // Re-runs whenever the data this component actually has changes, not on
     // every render (isOnline flips are the only other thing that should
     // re-trigger this, to catch up the moment connectivity returns).
-  }, [
-    isOnline,
-    impersonating,
-    fallback.setlist,
-    fallback.songs,
-    fallback.items,
-  ]);
+  }, [isOnline, fallback.setlist, fallback.songs, fallback.items]);
 
   if (!isOnline && cached) {
     return {

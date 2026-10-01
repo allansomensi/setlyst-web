@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { toastActionError } from "@/lib/action-toast";
 import { defaultStatusAfterSend, type ComposerMode } from "@/lib/support-admin";
 import { toast } from "@/lib/toast";
@@ -33,6 +34,7 @@ export function TicketComposer({
 }) {
   const t = useTranslations("supportAdmin.composer");
   const tStatus = useTranslations("supportAdmin.status");
+  const router = useAppRouter();
   const id = useId();
   const closed = status === "closed";
   const [mode, setMode] = useState<ComposerMode>(closed ? "note" : "reply");
@@ -71,6 +73,13 @@ export function TicketComposer({
         status: after || null,
       });
       if (!result.success) {
+        // Closed by someone else (or the daily job) since this page was
+        // loaded: the API's message is written for the requester.
+        if (result.apiCode === "TICKET_CLOSED") {
+          toast.error(t("closedMeanwhile"));
+          router.refresh();
+          return;
+        }
         toastActionError(result, result.error);
         return;
       }

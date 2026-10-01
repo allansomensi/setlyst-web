@@ -2704,7 +2704,21 @@
         "user_impersonated_read": "Viewed by staff (as the user)",
         "staff_content_viewed": "Private content viewed by staff",
         "billing_subscription_withdrawn": "Subscription withdrawn (refunded)",
-        "billing_subscription_refunded": "Subscription refunded and canceled"
+        "billing_subscription_refunded": "Subscription refunded and canceled",
+        "settings_platform_updated": "Platform settings changed",
+        "support_ticket_updated": "Support request updated",
+        "support_ticket_replied": "Support request answered",
+        "user_note_created": "Staff note added",
+        "user_note_updated": "Staff note edited",
+        "user_note_deleted": "Staff note deleted",
+        "incident_created": "Incident created",
+        "incident_updated": "Incident updated",
+        "incident_deleted": "Incident deleted",
+        "email_retried": "E-mail sent again",
+        "email_canceled": "E-mail canceled",
+        "email_test_sent": "Test e-mail sent",
+        "staff_data_exported": "Data exported (CSV)",
+        "user_bulk_action": "Bulk action on accounts"
       }
     },
     "lists": {
@@ -2912,6 +2926,9 @@
         "promo": "Promo codes",
         "promotion": "Promotions",
         "finance": "Finance",
+        "support": "Support",
+        "incident": "Status page",
+        "email": "E-mails",
         "staff": "Staff access"
       },
       "empty": "Nothing recorded for these filters."
@@ -6623,6 +6640,7 @@
         "note": "Internal note"
       },
       "closedHint": "This request is closed, so the requester can no longer be answered here. You can still leave internal notes, or reopen it by changing its status.",
+      "closedMeanwhile": "This request was closed meanwhile, so the reply wasn't sent. Your text is still here: leave it as an internal note, or reopen the request first.",
       "replyLabel": "Your reply",
       "noteLabel": "Internal note",
       "replyPlaceholder": "Write to the requester…",
@@ -6659,6 +6677,7 @@
       "opened": "Opened by @{username} on {date}",
       "panel": "Request details",
       "manage": "Handling",
+      "ownRequest": "This is your own request: another staff member answers and manages it.",
       "requester": "Requester",
       "openProfile": "Open account",
       "allRequests": "All their requests",

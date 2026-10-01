@@ -74,9 +74,14 @@ const ATTENTION_LINKS: Record<
   incidents: [{ href: "/dashboard/admin/incidents" }],
   supportUrgent: [{ href: "/dashboard/admin/support?priority=urgent" }],
   emailsFailed: [{ href: "/dashboard/admin/emails?status=failed" }],
+  // The counts are of open requests (waiting for staff), not of the
+  // inbox's default tab (open and pending).
   supportOpen: [
-    { href: "/dashboard/admin/support" },
-    { href: "/dashboard/admin/support?assignee=none", label: "unassigned" },
+    { href: "/dashboard/admin/support?status=open" },
+    {
+      href: "/dashboard/admin/support?status=open&assignee=none",
+      label: "unassigned",
+    },
   ],
   moderation: [{ href: "/dashboard/admin/moderation" }],
   emailBacklog: [{ href: "/dashboard/admin/emails?status=pending" }],

@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { Construction } from "lucide-react";
-import { Link } from "@/components/nav-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { STATUS_PATH } from "@/lib/links";
 import type { MaintenanceSettings } from "@/types/operations";
@@ -27,12 +26,12 @@ export async function MaintenanceSignInNotice({
         <p>{t("signIn.description")}</p>
         <MaintenanceDetails maintenance={maintenance} />
         <p>
-          <Link
+          <a
             href={STATUS_PATH}
             className="focus-visible:ring-ring/50 rounded-sm font-medium underline underline-offset-4 outline-none focus-visible:ring-3"
           >
             {t("statusLink")}
-          </Link>
+          </a>
         </p>
       </AlertDescription>
     </Alert>

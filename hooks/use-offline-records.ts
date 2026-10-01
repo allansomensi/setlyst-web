@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useSession } from "next-auth/react";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface OfflineRecordsOptions<TValue> {
@@ -63,6 +64,11 @@ export function useOfflineRecords<TValue>({
   loadError = false,
 }: OfflineRecordsOptions<TValue>): OfflineRecordsResult<TValue> {
   const isOnline = useOnlineStatus();
+  // While staff view the app as someone else, nothing is mirrored (the
+  // viewed account's library must not land in the staff member's offline
+  // copy) and the mirror isn't read either (it isn't that account's).
+  // Same rule as useOfflineSetlistBundle.
+  const impersonating = Boolean(useSession().data?.user?.impersonator);
   const serverDataUsable = isOnline && !loadError;
   // Only read while the mirror is what gets shown. `read` loads a whole
   // table (every song with its lyrics, say), and a live query re-runs on
@@ -70,24 +76,32 @@ export function useOfflineRecords<TValue>({
   // each background sync — so reading it while online meant a full-table
   // read and a re-render of the list for a result that was never used.
   const cached = useLiveQuery(
-    () => (serverDataUsable ? undefined : read()),
-    [serverDataUsable],
+    () => (serverDataUsable || impersonating ? undefined : read()),
+    [serverDataUsable, impersonating],
   );
 
-  useEffect(() => {
-    if (!serverDataUsable) return;
-    write(fallback).catch(() => {
+  // Reads `impersonating` at the time of the write without re-running on
+  // it: when a view-as ends, the page still holds the viewed account's
+  // list until it navigates, and re-running then would write that list
+  // into the staff member's freshly cleared offline copy.
+  const writeThrough = useEffectEvent((records: TValue[]) => {
+    if (impersonating) return;
+    write(records).catch(() => {
       // Best-effort: a write failure (quota, private browsing, IndexedDB
       // disabled) only costs this opportunistic refresh. The full sync and
       // this render's own data are unaffected.
     });
-    // `write` is recreated on every render at most call sites, so keying on
-    // it would write on every render; the data and connectivity are what
-    // should actually trigger a refresh.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
+  // `write` is recreated on every render at most call sites, so keying on
+  // it would write on every render; the data and connectivity are what
+  // should actually trigger a refresh.
+  useEffect(() => {
+    if (!serverDataUsable) return;
+    writeThrough(fallback);
   }, [serverDataUsable, fallback]);
 
-  if (!serverDataUsable && cached && cached.length > 0) {
+  if (!serverDataUsable && !impersonating && cached && cached.length > 0) {
     return { records: cached, isFromCache: true };
   }
 

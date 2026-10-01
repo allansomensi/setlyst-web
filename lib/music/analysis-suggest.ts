@@ -738,8 +738,16 @@ export function suggestAnalysis(
         break;
     }
     const family = shapes[suggestion.index]?.family;
+    // The minor tonic going to a dominant that doesn't resolve is a vamp
+    // (Am7 D7 Am7, dorian), not a II–V: it stays the tonic.
+    const tonicVamp =
+      to?.reason === "unresolvedDominant" &&
+      !suggestion.degree.target &&
+      suggestion.degree.numeral === "I" &&
+      suggestion.degree.accidental === "";
     if (
       (family === "minor" || family === "halfDiminished") &&
+      !tonicVamp &&
       to &&
       (to.reason === "dominant" ||
         to.reason === "secondaryDominant" ||
