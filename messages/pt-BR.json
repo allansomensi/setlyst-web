@@ -2191,7 +2191,18 @@
     "PAYMENT_ACTION_REQUIRED": "Seu banco pediu para você confirmar este pagamento. Vamos abrir a página de confirmação; o novo plano vale assim que ele for confirmado.",
     "USER_NOT_FOUND": "Nenhuma conta com esse nome de usuário.",
     "COLLABORATION_UNAVAILABLE": "Só setlists pessoais podem ter colaboradores. Numa banda, os integrantes já compartilham as setlists.",
-    "SONG_ALREADY_IN_LIBRARY": "Esta música já está na sua biblioteca."
+    "SONG_ALREADY_IN_LIBRARY": "Esta música já está na sua biblioteca.",
+    "MAINTENANCE_MODE": "O Setlyst está em manutenção. Volte em alguns minutos.",
+    "MAINTENANCE_MODE_READ_ONLY": "O Setlyst está em modo somente leitura para manutenção. Você pode navegar, mas as alterações estão pausadas por enquanto.",
+    "REGISTRATION_CLOSED": "Novos cadastros estão fechados no momento. Tente novamente mais tarde.",
+    "EMAIL_DOMAIN_BLOCKED": "Endereços deste provedor de e-mail não podem ser usados. Use outro endereço.",
+    "SUPPORT_TICKET_LIMIT": "Você tem muitos chamados abertos. Responda a um deles ou aguarde uma resposta.",
+    "SUPPORT_TICKET_LIMIT_OPEN": "Você já tem {limit} chamados abertos. Responda a um deles ou aguarde uma resposta antes de abrir outro.",
+    "SUPPORT_TICKET_LIMIT_DAILY": "Você pode abrir no máximo {limit} chamados por dia. Tente novamente amanhã.",
+    "TICKET_CLOSED": "Este chamado está encerrado. Abra um novo se ainda precisar de ajuda.",
+    "TICKET_NOT_RATEABLE": "Só é possível avaliar um chamado resolvido, e apenas uma vez.",
+    "EMAIL_NOT_RETRYABLE": "Este e-mail não pode ser enviado novamente.",
+    "EMAIL_NOT_CONFIGURED": "Nenhum servidor de e-mail está configurado, então nada seria entregue."
   },
   "downloads": {
     "failed": "Não foi possível baixar o arquivo. Tente novamente.",
@@ -2893,6 +2904,7 @@
     },
     "nav": {
       "groups": {
+        "console": "Console",
         "people": "Usuários e moderação",
         "communication": "Comunicação",
         "subscriptions": "Assinaturas",
@@ -2913,9 +2925,15 @@
         "setlists": "Setlists",
         "links": "Links públicos",
         "limits": "Limites",
-        "finance": "Financeiro"
+        "finance": "Financeiro",
+        "overview": "Visão geral",
+        "support": "Suporte",
+        "platform": "Configurações da plataforma",
+        "incidents": "Incidentes",
+        "emails": "E-mails"
       },
-      "openFlags": "{count, plural, =0 {Nenhum ponto aberto} =1 {# ponto aberto} other {# pontos abertos}}"
+      "openFlags": "{count, plural, =0 {Nenhum ponto aberto} =1 {# ponto aberto} other {# pontos abertos}}",
+      "openRequests": "{count, plural, =0 {Nenhum chamado aguardando} one {# chamado aguardando} other {# chamados aguardando}}"
     },
     "dateRange": {
       "label": "Filtrar por período",

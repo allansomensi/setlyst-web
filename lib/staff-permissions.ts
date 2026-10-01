@@ -77,6 +77,12 @@ export function assignableRoles(actor: UserRole): UserRole[] {
  * billing settings, the finance report, promo codes, promotions,
  * publishing announcements or e-mailing them, release-note edits, limit
  * edits, rescans) is admin-only.
+ *
+ * Both roles work the support inbox, leave staff notes, publish status
+ * incidents and read the console overview, the platform switches and the
+ * e-mail console. Changing the switches, retrying or canceling e-mails,
+ * deleting incidents, CSV exports and other accounts' sign-in activity
+ * (network addresses) are admin-only.
  */
 export type StaffCapability =
   | "users"
@@ -95,7 +101,18 @@ export type StaffCapability =
   | "content"
   | "content.write"
   | "limits"
-  | "limits.write";
+  | "limits.write"
+  | "console"
+  | "support"
+  | "notes"
+  | "platform"
+  | "platform.write"
+  | "incidents"
+  | "incidents.delete"
+  | "emails"
+  | "emails.write"
+  | "exports"
+  | "signIns";
 
 const ADMIN_ONLY: ReadonlySet<StaffCapability> = new Set<StaffCapability>([
   "moderation.rescan",
@@ -108,6 +125,11 @@ const ADMIN_ONLY: ReadonlySet<StaffCapability> = new Set<StaffCapability>([
   "promotions",
   "content.write",
   "limits.write",
+  "platform.write",
+  "incidents.delete",
+  "emails.write",
+  "exports",
+  "signIns",
 ]);
 
 export function hasStaffCapability(

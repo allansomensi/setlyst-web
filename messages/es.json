@@ -2191,7 +2191,18 @@
     "PAYMENT_ACTION_REQUIRED": "Tu banco necesita que confirmes este pago. Te llevaremos a la página de confirmación; el nuevo plan se aplica en cuanto se confirme.",
     "USER_NOT_FOUND": "Ninguna cuenta con ese nombre de usuario.",
     "COLLABORATION_UNAVAILABLE": "Solo las setlists personales pueden tener colaboradores. En una banda, los integrantes ya comparten sus setlists.",
-    "SONG_ALREADY_IN_LIBRARY": "Esta canción ya está en tu biblioteca."
+    "SONG_ALREADY_IN_LIBRARY": "Esta canción ya está en tu biblioteca.",
+    "MAINTENANCE_MODE": "Setlyst está en mantenimiento. Vuelve en unos minutos.",
+    "MAINTENANCE_MODE_READ_ONLY": "Setlyst está en modo solo lectura por mantenimiento. Puedes navegar, pero los cambios están en pausa por ahora.",
+    "REGISTRATION_CLOSED": "Los nuevos registros están cerrados por ahora. Inténtalo más tarde.",
+    "EMAIL_DOMAIN_BLOCKED": "No se pueden usar direcciones de este proveedor de correo. Usa otra dirección.",
+    "SUPPORT_TICKET_LIMIT": "Tienes demasiadas solicitudes abiertas. Responde a una de ellas o espera una respuesta.",
+    "SUPPORT_TICKET_LIMIT_OPEN": "Ya tienes {limit} solicitudes abiertas. Responde a una o espera una respuesta antes de abrir otra.",
+    "SUPPORT_TICKET_LIMIT_DAILY": "Puedes abrir como máximo {limit} solicitudes al día. Inténtalo de nuevo mañana.",
+    "TICKET_CLOSED": "Esta solicitud está cerrada. Abre una nueva si todavía necesitas ayuda.",
+    "TICKET_NOT_RATEABLE": "Solo se puede calificar una solicitud resuelta, y una sola vez.",
+    "EMAIL_NOT_RETRYABLE": "Este correo no se puede volver a enviar.",
+    "EMAIL_NOT_CONFIGURED": "No hay ningún servidor de correo configurado, así que no se entregaría nada."
   },
   "downloads": {
     "failed": "No se pudo descargar el archivo. Inténtalo de nuevo.",
@@ -2893,6 +2904,7 @@
     },
     "nav": {
       "groups": {
+        "console": "Consola",
         "people": "Usuarios y moderación",
         "communication": "Comunicación",
         "subscriptions": "Suscripciones",
@@ -2913,9 +2925,15 @@
         "setlists": "Setlists",
         "links": "Enlaces públicos",
         "limits": "Límites",
-        "finance": "Finanzas"
+        "finance": "Finanzas",
+        "overview": "Resumen",
+        "support": "Soporte",
+        "platform": "Configuración de la plataforma",
+        "incidents": "Incidentes",
+        "emails": "Correos"
       },
-      "openFlags": "{count, plural, =0 {Ningún punto abierto} one {# punto abierto} other {# puntos abiertos}}"
+      "openFlags": "{count, plural, =0 {Ningún punto abierto} one {# punto abierto} other {# puntos abiertos}}",
+      "openRequests": "{count, plural, =0 {Ninguna solicitud en espera} one {# solicitud en espera} other {# solicitudes en espera}}"
     },
     "dateRange": {
       "label": "Filtrar por período",

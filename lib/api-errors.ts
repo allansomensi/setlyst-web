@@ -141,6 +141,15 @@ export const TRANSLATED_CODES = [
   // Moderation
   "FLAG_ALREADY_RESOLVED",
   "TWO_FACTOR_UNAVAILABLE",
+  // Platform operations
+  "MAINTENANCE_MODE",
+  "REGISTRATION_CLOSED",
+  "EMAIL_DOMAIN_BLOCKED",
+  "SUPPORT_TICKET_LIMIT",
+  "TICKET_CLOSED",
+  "TICKET_NOT_RATEABLE",
+  "EMAIL_NOT_RETRYABLE",
+  "EMAIL_NOT_CONFIGURED",
   // Generic
   "ALREADY_EXISTS",
   "NOT_FOUND",
@@ -304,6 +313,19 @@ export function describeApiError(
         : meta?.method === "password"
           ? t("REAUTH_REQUIRED_PASSWORD")
           : t(code);
+    }
+    case "MAINTENANCE_MODE":
+      // Read-only maintenance still lets people read: say why their
+      // change was refused rather than that the whole app is down.
+      return meta?.mode === "read_only"
+        ? t("MAINTENANCE_MODE_READ_ONLY")
+        : t(code);
+    case "SUPPORT_TICKET_LIMIT": {
+      const limit = positiveNumber(meta?.limit);
+      if (!limit) return t(code);
+      return meta?.reason === "daily"
+        ? t("SUPPORT_TICKET_LIMIT_DAILY", { limit })
+        : t("SUPPORT_TICKET_LIMIT_OPEN", { limit });
     }
     case "WITHDRAWAL_NOT_ELIGIBLE":
       // Past the yearly allowance of self-service withdrawals: support

@@ -13,6 +13,11 @@ import {
   Flag,
   Gauge,
   Guitar,
+  LayoutDashboard,
+  LifeBuoy,
+  Mail,
+  Activity,
+  SlidersHorizontal,
   Landmark,
   Home,
   Link2,
@@ -30,7 +35,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROLE_TEXT_STYLES } from "@/components/role-badge";
-import { getModerationOpenCount } from "@/lib/actions/staff";
+import {
+  getModerationOpenCount,
+  getSupportOpenCount,
+} from "@/lib/actions/staff";
 import { MODERATION_CHANGED_EVENT } from "@/lib/moderation";
 import {
   hasStaffCapability,
@@ -45,14 +53,21 @@ interface NavItem {
   icon: LucideIcon;
   /** Label namespace when it isn't `nav` (content pages own theirs). */
   ns?: "tours" | "trash";
+  /** Active only on `href` itself, not on the pages below it. */
+  exact?: boolean;
 }
 
 interface StaffNavItem extends NavItem {
   /** Needed to see the entry at all (see lib/staff-permissions.ts). */
   capability: StaffCapability;
-  /** Shows the open moderation flags next to the label. */
-  badge?: "moderation";
+  /**
+   * Shows a count next to the label: open moderation flags, or support
+   * requests waiting for the staff.
+   */
+  badge?: StaffBadge;
 }
+
+type StaffBadge = "moderation" | "support";
 
 interface StaffNavGroup {
   key: string;
@@ -72,6 +87,25 @@ const MAIN_LINKS: NavItem[] = [
 ];
 
 export const STAFF_NAV: StaffNavGroup[] = [
+  {
+    key: "console",
+    items: [
+      {
+        key: "overview",
+        href: "/dashboard/admin",
+        icon: LayoutDashboard,
+        capability: "console",
+        exact: true,
+      },
+      {
+        key: "support",
+        href: "/dashboard/admin/support",
+        icon: LifeBuoy,
+        capability: "support",
+        badge: "support",
+      },
+    ],
+  },
   {
     key: "people",
     items: [
@@ -175,6 +209,24 @@ export const STAFF_NAV: StaffNavGroup[] = [
     key: "platform",
     items: [
       {
+        key: "platform",
+        href: "/dashboard/admin/platform",
+        icon: SlidersHorizontal,
+        capability: "platform",
+      },
+      {
+        key: "incidents",
+        href: "/dashboard/admin/incidents",
+        icon: Activity,
+        capability: "incidents",
+      },
+      {
+        key: "emails",
+        href: "/dashboard/admin/emails",
+        icon: Mail,
+        capability: "emails",
+      },
+      {
         key: "limits",
         href: "/dashboard/admin/limits",
         icon: Gauge,
@@ -189,41 +241,49 @@ interface SidebarLinksProps {
   userRole?: UserRole;
 }
 
-export function isActive(pathname: string, href: string) {
-  return href === "/dashboard"
-    ? pathname === "/dashboard"
+export function isActive(pathname: string, href: string, exact = false) {
+  return href === "/dashboard" || exact
+    ? pathname === href
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /** Navigations within this long of the last count reuse it. */
-const MODERATION_COUNT_TTL_MS = 60_000;
+const STAFF_COUNT_TTL_MS = 60_000;
+
+const STAFF_COUNT_LOADERS: Record<StaffBadge, () => Promise<number | null>> = {
+  moderation: getModerationOpenCount,
+  support: getSupportOpenCount,
+};
 
 /**
- * The last count fetched, shared by every mounted link list (the sidebar
- * and the mobile menu both render one).
+ * The last count fetched per badge, shared by every mounted link list
+ * (the sidebar and the mobile menu both render one).
  */
-let moderationCountCache: {
-  at: number;
-  value: Promise<number | null>;
-} | null = null;
+const staffCountCache: Partial<
+  Record<StaffBadge, { at: number; value: Promise<number | null> }>
+> = {};
 
-function loadModerationCount(force: boolean): Promise<number | null> {
+function loadStaffCount(
+  badge: StaffBadge,
+  force: boolean,
+): Promise<number | null> {
   const now = Date.now();
-  if (
-    force ||
-    !moderationCountCache ||
-    now - moderationCountCache.at > MODERATION_COUNT_TTL_MS
-  ) {
-    moderationCountCache = { at: now, value: getModerationOpenCount() };
+  const cached = staffCountCache[badge];
+  if (force || !cached || now - cached.at > STAFF_COUNT_TTL_MS) {
+    staffCountCache[badge] = {
+      at: now,
+      value: STAFF_COUNT_LOADERS[badge](),
+    };
   }
-  return moderationCountCache.value;
+  return staffCountCache[badge]!.value;
 }
 
 /**
- * Open moderation flags (staff only), refreshed on navigation (at most
- * once a minute) and whenever the queue reports a change.
+ * A staff badge's count (staff only), refreshed on navigation (at most
+ * once a minute) and, for moderation, whenever the queue reports a
+ * change.
  */
-function useModerationCount(enabled: boolean): number | null {
+function useStaffCount(badge: StaffBadge, enabled: boolean): number | null {
   const pathname = usePathname();
   const [count, setCount] = useState<number | null>(null);
 
@@ -231,22 +291,24 @@ function useModerationCount(enabled: boolean): number | null {
     if (!enabled) return;
     let cancelled = false;
     const load = (force: boolean) => {
-      loadModerationCount(force)
+      loadStaffCount(badge, force)
         .then((value) => {
           if (!cancelled) setCount(value);
         })
         .catch(() => {
-          moderationCountCache = null;
+          delete staffCountCache[badge];
         });
     };
     const onChanged = () => load(true);
     load(false);
-    window.addEventListener(MODERATION_CHANGED_EVENT, onChanged);
+    if (badge === "moderation") {
+      window.addEventListener(MODERATION_CHANGED_EVENT, onChanged);
+    }
     return () => {
       cancelled = true;
       window.removeEventListener(MODERATION_CHANGED_EVENT, onChanged);
     };
-  }, [enabled, pathname]);
+  }, [badge, enabled, pathname]);
 
   return enabled ? count : null;
 }
@@ -256,8 +318,13 @@ export function SidebarLinks({ isCollapsed, userRole }: SidebarLinksProps) {
   const t = useTranslations("nav");
   const tStaff = useTranslations("staff.nav");
   const isStaff = isStaffRole(userRole);
-  const moderationCount = useModerationCount(
+  const moderationCount = useStaffCount(
+    "moderation",
     isStaff && hasStaffCapability(userRole, "moderation"),
+  );
+  const supportCount = useStaffCount(
+    "support",
+    isStaff && hasStaffCapability(userRole, "support"),
   );
   const tTours = useTranslations("tours");
   const tTrash = useTranslations("trash");
@@ -266,12 +333,15 @@ export function SidebarLinks({ isCollapsed, userRole }: SidebarLinksProps) {
     link: NavItem,
     label: string,
     badge: number | null = null,
+    badgeKind: StaffBadge = "moderation",
   ) => {
     const Icon = link.icon;
-    const active = isActive(pathname, link.href);
+    const active = isActive(pathname, link.href, link.exact);
     const badgeLabel =
       badge !== null && badge > 0
-        ? tStaff("openFlags", { count: badge })
+        ? tStaff(badgeKind === "support" ? "openRequests" : "openFlags", {
+            count: badge,
+          })
         : null;
 
     return (
@@ -382,7 +452,12 @@ export function SidebarLinks({ isCollapsed, userRole }: SidebarLinksProps) {
                   renderLink(
                     item,
                     tStaff(`items.${item.key}`),
-                    item.badge === "moderation" ? moderationCount : null,
+                    item.badge === "moderation"
+                      ? moderationCount
+                      : item.badge === "support"
+                        ? supportCount
+                        : null,
+                    item.badge,
                   ),
                 )}
               </div>

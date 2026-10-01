@@ -46,7 +46,9 @@ Setlyst was built to be fast, responsive, and reliable enough for professional u
 - ✅ **Tags** — Tag songs by vibe ("ballad", "opener"…), filter by tag and manage your tag vocabulary.
 - ✅ **Customizable PDF** — Presets, compact and two-column layouts, text size, paper, margins, songbook with chords above the lyrics, optional watermark; save your favourite setup as the default.
 - ✅ **Synced preferences** — Live Mode, list and PDF defaults follow you to every device.
-- ✅ **Staff console** — Admins and moderators manage users (suspend, deactivate, temporary passwords, per-user limits, "view as"), bands, songs, setlists and public links, with a full audit log.
+- ✅ **Staff console** — Admins and moderators manage users (suspend, deactivate, temporary passwords, per-user limits, "view as", filters, bulk actions, CSV export, internal notes, sign-in activity), bands, songs, setlists and public links, with a full audit log (exportable as CSV), an overview of what needs attention and a search across the whole platform.
+- ✅ **Help center** — People open support requests from the app and follow the conversation; staff work them from an inbox with assignment, priorities, internal notes and satisfaction ratings.
+- ✅ **Platform operations** — Maintenance mode (read-only or full, with banners and a maintenance screen), closing sign-ups, blocked e-mail domains, status-page incidents and scheduled maintenance, and an e-mail delivery console.
 - ✅ **Strong account security** — Enforced password policy, username rules, instant sign-out on password change or suspension.
 - ✅ **What's new, status page and legal texts** — Built in, in every language.
 
