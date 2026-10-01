@@ -3197,6 +3197,17 @@
         "payments": "Payments",
         "exports": "Exports"
       }
+    },
+    "maintenance": {
+      "read_only": {
+        "title": "Maintenance: read-only mode",
+        "hint": "You can sign in and see everything, but changes are paused until the maintenance ends."
+      },
+      "full": {
+        "title": "Maintenance in progress",
+        "hint": "Setlyst is temporarily unavailable while the team works on the platform. Songs saved for offline use still work in Live Mode."
+      },
+      "until": "Expected back by {date}."
     }
   },
   "audit": {

@@ -3197,6 +3197,17 @@
         "payments": "Pagos",
         "exports": "Exportaciones"
       }
+    },
+    "maintenance": {
+      "read_only": {
+        "title": "Mantenimiento: modo solo lectura",
+        "hint": "Puedes iniciar sesión y ver todo, pero los cambios están en pausa hasta que termine el mantenimiento."
+      },
+      "full": {
+        "title": "Mantenimiento en curso",
+        "hint": "Setlyst no está disponible temporalmente mientras el equipo trabaja en la plataforma. Las canciones guardadas para usar sin conexión siguen funcionando en el Modo en vivo."
+      },
+      "until": "Regreso previsto: {date}."
     }
   },
   "audit": {

@@ -3197,6 +3197,17 @@
         "payments": "Pagamentos",
         "exports": "Exportações"
       }
+    },
+    "maintenance": {
+      "read_only": {
+        "title": "Manutenção: modo somente leitura",
+        "hint": "Você pode entrar e ver tudo, mas as alterações estão pausadas até o fim da manutenção."
+      },
+      "full": {
+        "title": "Manutenção em andamento",
+        "hint": "O Setlyst está temporariamente indisponível enquanto a equipe trabalha na plataforma. As músicas salvas para uso offline continuam funcionando no Modo Ao Vivo."
+      },
+      "until": "Previsão de retorno: {date}."
     }
   },
   "audit": {

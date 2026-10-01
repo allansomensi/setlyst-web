@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  Construction,
   Database,
   Server,
   XCircle,
@@ -15,8 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 import { fetchServerApi, getApiBaseUrl } from "@/lib/api-server";
-import { parseApiTimestamp } from "@/lib/dates";
-import { getPublicIncidents } from "@/lib/public-api";
+import { formatApiDateTime, parseApiTimestamp } from "@/lib/dates";
+import { expectedEnd } from "@/lib/maintenance";
+import { getPlatformStatus, getPublicIncidents } from "@/lib/public-api";
 import { buildInternalHeaders } from "@/lib/server/client-ip";
 import { getSession } from "@/lib/server/session";
 import { getRequestTimeZone } from "@/lib/server/time-zone";
@@ -188,12 +190,21 @@ export default async function StatusPage({
     namespace: "status.incidents",
   }) as unknown as typeof t;
 
-  const [publicStatus, staffDetails, timeZone, incidents] = await Promise.all([
-    fetchSystemStatus(),
-    fetchStaffStatusDetails(),
-    getRequestTimeZone(),
-    getPublicIncidents(),
-  ]);
+  const [publicStatus, staffDetails, timeZone, incidents, platform] =
+    await Promise.all([
+      fetchSystemStatus(),
+      fetchStaffStatusDetails(),
+      getRequestTimeZone(),
+      getPublicIncidents(),
+      getPlatformStatus(),
+    ]);
+  // Maintenance mode is reported on its own: the services can be perfectly
+  // healthy while the platform is closed (or read-only) on purpose.
+  const maintenance =
+    platform && platform.maintenance.mode !== "off"
+      ? platform.maintenance
+      : null;
+  const maintenanceEnd = expectedEnd(maintenance);
   const status = staffDetails ?? publicStatus;
   const overall: ServiceHealth = status?.status ?? "down";
   const apiHealth: ServiceHealth = status ? "operational" : "down";
@@ -304,6 +315,35 @@ export default async function StatusPage({
               </p>
             </div>
           </div>
+
+          {maintenance && (
+            <div
+              className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-amber-900 dark:text-amber-200"
+              role="status"
+            >
+              <Construction className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />
+              <div className="space-y-1">
+                <p className="font-semibold">
+                  {t(`maintenance.${maintenance.mode}.title`)}
+                </p>
+                <p className="text-sm opacity-90">
+                  {t(`maintenance.${maintenance.mode}.hint`)}
+                </p>
+                {maintenance.message && (
+                  <p className="text-sm whitespace-pre-line">
+                    {maintenance.message}
+                  </p>
+                )}
+                {maintenanceEnd && (
+                  <p className="text-sm font-medium">
+                    {t("maintenance.until", {
+                      date: formatApiDateTime(maintenanceEnd, locale, timeZone),
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <ActiveIncidents
             incidents={incidents}
