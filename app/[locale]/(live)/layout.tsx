@@ -6,6 +6,9 @@ import { DEFAULT_UI_SETTINGS, normalizeUiSettings } from "@/lib/ui-settings";
 import { getSession } from "@/lib/server/session";
 import { ScopedMessages } from "@/components/providers/scoped-messages";
 import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
+import { getPlatformStatus } from "@/lib/public-api";
+import { isStaffRole, maintenanceView } from "@/lib/maintenance";
+import { MaintenanceScreen } from "@/app/[locale]/dashboard/_components/maintenance-screen";
 
 /**
  * The bare shell Live Mode renders in (both the setlist and the single-song
@@ -20,7 +23,9 @@ import { OfflineSyncProvider } from "@/components/providers/offline-sync-provide
  * performer leaves Live Mode for any dashboard page.
  *
  * Only what the viewers read is kept: the account's UI settings (the Live
- * Mode display defaults) and the same session check as the dashboard.
+ * Mode display defaults) and the same session check as the dashboard,
+ * maintenance screen included (the API refuses everyone but staff during
+ * full maintenance, which would otherwise end on the crash screen).
  */
 export default async function LiveLayout({
   children,
@@ -35,9 +40,24 @@ export default async function LiveLayout({
     redirect(`/${locale}/login?reason=expired`);
   }
 
-  const uiSettings = await getMyPreferences()
-    .then((prefs) => normalizeUiSettings(prefs?.ui_settings))
-    .catch(() => DEFAULT_UI_SETTINGS);
+  const [uiSettings, platform] = await Promise.all([
+    getMyPreferences()
+      .then((prefs) => normalizeUiSettings(prefs?.ui_settings))
+      .catch(() => DEFAULT_UI_SETTINGS),
+    getPlatformStatus(),
+  ]);
+
+  const view = maintenanceView(
+    platform?.maintenance.mode,
+    isStaffRole(session.user?.role) || Boolean(session.user?.impersonator),
+  );
+  if (platform && view === "screen") {
+    return (
+      <ScopedMessages area="live">
+        <MaintenanceScreen maintenance={platform.maintenance} />
+      </ScopedMessages>
+    );
+  }
 
   return (
     <ScopedMessages area="live">

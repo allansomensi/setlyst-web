@@ -140,6 +140,8 @@ export const CLIENT_NAMESPACES = {
     "error",
     "liveMode",
     "lyrics",
+    // The maintenance screen's sign-out button.
+    "nav",
     "notFound",
     "offlineSync",
     "setlists.repertoire",
