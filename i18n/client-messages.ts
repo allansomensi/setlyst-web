@@ -129,6 +129,7 @@ export const CLIENT_NAMESPACES = {
     "setlists.collaborators.roles",
     "songExport",
     "staff",
+    "supportAdmin",
     "tags",
     "usernamePolicy",
   ],

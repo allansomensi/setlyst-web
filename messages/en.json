@@ -6407,5 +6407,177 @@
       "diminished": "diminished (whole–half)",
       "wholeTone": "whole tone"
     }
+  },
+  "supportAdmin": {
+    "title": "Support inbox",
+    "description": "Requests from people using Setlyst. Answer them, leave notes for the team and keep track of who is handling what.",
+    "status": {
+      "open": "Waiting on staff",
+      "pending": "Waiting on requester",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "priorityLabel": "Priority: {priority}",
+    "category": {
+      "account": "Account",
+      "billing": "Billing",
+      "bug": "Bug",
+      "feature": "Feature request",
+      "content": "Content",
+      "other": "Other"
+    },
+    "tabs": {
+      "active": "Active",
+      "open": "Waiting on staff",
+      "pending": "Waiting on requester",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "all": "All"
+    },
+    "tabsLabel": "Filter requests by status",
+    "awaitingReply": "Awaiting a reply",
+    "search": "Search by #number, subject, username or e-mail",
+    "filters": {
+      "priority": "Priority",
+      "anyPriority": "Any priority",
+      "category": "Category",
+      "anyCategory": "Any category",
+      "assignee": "Assignment",
+      "assigneeOptions": {
+        "me": "Assigned to me",
+        "none": "Unassigned"
+      },
+      "oneRequester": "One requester"
+    },
+    "columns": {
+      "request": "Request",
+      "requester": "Requester",
+      "category": "Category",
+      "priority": "Priority",
+      "status": "Status",
+      "assignee": "Assignee",
+      "lastActivity": "Last activity"
+    },
+    "empty": {
+      "active": "No active requests. The inbox is clear.",
+      "open": "No requests are waiting on the staff.",
+      "pending": "No requests are waiting on a requester.",
+      "resolved": "No resolved requests.",
+      "closed": "No closed requests.",
+      "all": "No support requests yet."
+    },
+    "unassigned": "Unassigned",
+    "messageCount": "{count, plural, =0 {No messages} one {# message} other {# messages}}",
+    "kpis": {
+      "open": "Waiting on staff",
+      "openHint": "Requests that need an answer",
+      "pending": "Waiting on requester",
+      "pendingHint": "Answered, waiting for them to reply",
+      "unassigned": "Unassigned",
+      "unassignedHint": "Waiting on staff with nobody on them",
+      "urgent": "Urgent",
+      "urgentHint": "Active requests marked urgent",
+      "mine": "Assigned to me",
+      "mineHint": "Your active requests",
+      "rating": "Satisfaction",
+      "ratingValue": "{rating} / 5",
+      "ratingHint": "{count, plural, =0 {No ratings in the last 90 days} one {# rating in the last 90 days} other {# ratings in the last 90 days}}",
+      "firstResponse": "First response",
+      "firstResponseHint": "Median over the last 30 days",
+      "resolved": "Resolved",
+      "resolvedHint": "{closed, plural, =0 {None closed yet} one {# closed} other {# closed}}"
+    },
+    "duration": {
+      "lessThanMinute": "Under 1 min",
+      "minutes": "{value} min",
+      "hours": "{value} h",
+      "days": "{count, plural, one {{value} day} other {{value} days}}"
+    },
+    "thread": {
+      "title": "Conversation",
+      "empty": "No messages yet.",
+      "formerStaff": "former staff",
+      "internalNote": "Internal note — not visible to the requester",
+      "label": {
+        "requester": "Message from @{username}",
+        "staff": "Reply from @{username}",
+        "note": "Internal note by @{username}"
+      },
+      "role": {
+        "requester": "Requester",
+        "staff": "Staff reply",
+        "note": "Staff only"
+      }
+    },
+    "composer": {
+      "title": "Respond",
+      "modeLabel": "Message type",
+      "mode": {
+        "reply": "Reply",
+        "note": "Internal note"
+      },
+      "closedHint": "This request is closed, so the requester can no longer be answered here. You can still leave internal notes, or reopen it by changing its status.",
+      "replyLabel": "Your reply",
+      "noteLabel": "Internal note",
+      "replyPlaceholder": "Write to the requester…",
+      "notePlaceholder": "Context, findings or next steps for the team…",
+      "replyHint": "The requester is notified in the app and by e-mail. Press Ctrl+Enter to send.",
+      "noteHint": "Only staff can see notes. The requester is not notified.",
+      "statusAfter": "Status after sending",
+      "unchanged": "Leave as is ({status})",
+      "sendReply": "Send reply",
+      "addNote": "Add note",
+      "replySent": "Reply sent",
+      "noteAdded": "Note added"
+    },
+    "controls": {
+      "status": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "assignee": "Assignee",
+      "staffGroups": {
+        "admin": "Admins",
+        "moderator": "Moderators"
+      },
+      "you": "you",
+      "assignToMe": "Assign to me",
+      "unassign": "Unassign",
+      "assignedToYou": "Assigned to you",
+      "assigned": "Assigned to @{username}",
+      "unassigned": "Request unassigned",
+      "statusChanged": "Status changed to “{status}”",
+      "priorityChanged": "Priority changed to {priority}",
+      "categoryChanged": "Category changed to {category}"
+    },
+    "detail": {
+      "opened": "Opened by @{username} on {date}",
+      "panel": "Request details",
+      "manage": "Handling",
+      "requester": "Requester",
+      "openProfile": "Open account",
+      "allRequests": "All their requests",
+      "facts": "Details",
+      "otherRequests": "Other requests from this person",
+      "noOtherRequests": "This is their only request."
+    },
+    "facts": {
+      "created": "Opened",
+      "lastActivity": "Last message",
+      "firstResponse": "First response",
+      "noResponse": "No staff reply yet",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "rating": "Rating",
+      "notRated": "Not rated",
+      "ratingValue": "{rating} out of 5",
+      "context": "Context sent with the request",
+      "noContext": "Nothing was attached."
+    }
   }
 }

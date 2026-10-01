@@ -6407,5 +6407,177 @@
       "diminished": "disminuida (tono–semitono)",
       "wholeTone": "de tonos enteros"
     }
+  },
+  "supportAdmin": {
+    "title": "Soporte",
+    "description": "Solicitudes de quienes usan Setlyst. Respóndelas, deja notas para el equipo y controla quién se encarga de cada una.",
+    "status": {
+      "open": "Esperando al equipo",
+      "pending": "Esperando al solicitante",
+      "resolved": "Resuelta",
+      "closed": "Cerrada"
+    },
+    "priority": {
+      "low": "Baja",
+      "normal": "Normal",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "priorityLabel": "Prioridad: {priority}",
+    "category": {
+      "account": "Cuenta",
+      "billing": "Facturación",
+      "bug": "Error",
+      "feature": "Sugerencia de función",
+      "content": "Contenido",
+      "other": "Otro"
+    },
+    "tabs": {
+      "active": "En curso",
+      "open": "Esperando al equipo",
+      "pending": "Esperando al solicitante",
+      "resolved": "Resueltas",
+      "closed": "Cerradas",
+      "all": "Todas"
+    },
+    "tabsLabel": "Filtrar solicitudes por estado",
+    "awaitingReply": "Espera respuesta",
+    "search": "Busca por #número, asunto, usuario o correo",
+    "filters": {
+      "priority": "Prioridad",
+      "anyPriority": "Cualquier prioridad",
+      "category": "Categoría",
+      "anyCategory": "Cualquier categoría",
+      "assignee": "Asignación",
+      "assigneeOptions": {
+        "me": "Asignadas a mí",
+        "none": "Sin asignar"
+      },
+      "oneRequester": "Un solicitante"
+    },
+    "columns": {
+      "request": "Solicitud",
+      "requester": "Solicitante",
+      "category": "Categoría",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "assignee": "Responsable",
+      "lastActivity": "Última actividad"
+    },
+    "empty": {
+      "active": "No hay solicitudes en curso. Todo al día.",
+      "open": "Ninguna solicitud está esperando al equipo.",
+      "pending": "Ninguna solicitud está esperando al solicitante.",
+      "resolved": "No hay solicitudes resueltas.",
+      "closed": "No hay solicitudes cerradas.",
+      "all": "Todavía no ha llegado ninguna solicitud de soporte."
+    },
+    "unassigned": "Sin asignar",
+    "messageCount": "{count, plural, =0 {Sin mensajes} one {# mensaje} other {# mensajes}}",
+    "kpis": {
+      "open": "Esperando al equipo",
+      "openHint": "Solicitudes que necesitan respuesta",
+      "pending": "Esperando al solicitante",
+      "pendingHint": "Respondidas, a la espera de su respuesta",
+      "unassigned": "Sin asignar",
+      "unassignedHint": "Esperando al equipo y sin nadie a cargo",
+      "urgent": "Urgentes",
+      "urgentHint": "En curso y marcadas como urgentes",
+      "mine": "Asignadas a mí",
+      "mineHint": "Tus solicitudes en curso",
+      "rating": "Satisfacción",
+      "ratingValue": "{rating} / 5",
+      "ratingHint": "{count, plural, =0 {Sin valoraciones en los últimos 90 días} one {# valoración en los últimos 90 días} other {# valoraciones en los últimos 90 días}}",
+      "firstResponse": "Primera respuesta",
+      "firstResponseHint": "Mediana de los últimos 30 días",
+      "resolved": "Resueltas",
+      "resolvedHint": "{closed, plural, =0 {Ninguna cerrada todavía} one {# cerrada} other {# cerradas}}"
+    },
+    "duration": {
+      "lessThanMinute": "Menos de 1 min",
+      "minutes": "{value} min",
+      "hours": "{value} h",
+      "days": "{count, plural, one {{value} día} other {{value} días}}"
+    },
+    "thread": {
+      "title": "Conversación",
+      "empty": "Todavía no hay mensajes.",
+      "formerStaff": "antiguo miembro del equipo",
+      "internalNote": "Nota interna — el solicitante no la ve",
+      "label": {
+        "requester": "Mensaje de @{username}",
+        "staff": "Respuesta de @{username}",
+        "note": "Nota interna de @{username}"
+      },
+      "role": {
+        "requester": "Solicitante",
+        "staff": "Respuesta del equipo",
+        "note": "Solo para el equipo"
+      }
+    },
+    "composer": {
+      "title": "Responder",
+      "modeLabel": "Tipo de mensaje",
+      "mode": {
+        "reply": "Respuesta",
+        "note": "Nota interna"
+      },
+      "closedHint": "Esta solicitud está cerrada, así que ya no se puede responder al solicitante desde aquí. Aún puedes dejar notas internas o reabrirla cambiando su estado.",
+      "replyLabel": "Tu respuesta",
+      "noteLabel": "Nota interna",
+      "replyPlaceholder": "Escribe al solicitante…",
+      "notePlaceholder": "Contexto, hallazgos o próximos pasos para el equipo…",
+      "replyHint": "El solicitante recibe un aviso en la app y por correo. Pulsa Ctrl+Enter para enviar.",
+      "noteHint": "Solo el equipo ve las notas. El solicitante no recibe ningún aviso.",
+      "statusAfter": "Estado después de enviar",
+      "unchanged": "Dejar como está ({status})",
+      "sendReply": "Enviar respuesta",
+      "addNote": "Añadir nota",
+      "replySent": "Respuesta enviada",
+      "noteAdded": "Nota añadida"
+    },
+    "controls": {
+      "status": "Estado",
+      "priority": "Prioridad",
+      "category": "Categoría",
+      "assignee": "Responsable",
+      "staffGroups": {
+        "admin": "Administradores",
+        "moderator": "Moderadores"
+      },
+      "you": "tú",
+      "assignToMe": "Asignarme",
+      "unassign": "Quitar responsable",
+      "assignedToYou": "Solicitud asignada a ti",
+      "assigned": "Solicitud asignada a @{username}",
+      "unassigned": "Solicitud sin asignar",
+      "statusChanged": "Estado cambiado a «{status}»",
+      "priorityChanged": "Prioridad cambiada a {priority}",
+      "categoryChanged": "Categoría cambiada a {category}"
+    },
+    "detail": {
+      "opened": "Abierta por @{username} el {date}",
+      "panel": "Detalles de la solicitud",
+      "manage": "Gestión",
+      "requester": "Solicitante",
+      "openProfile": "Abrir cuenta",
+      "allRequests": "Todas sus solicitudes",
+      "facts": "Detalles",
+      "otherRequests": "Otras solicitudes de esta persona",
+      "noOtherRequests": "Es su única solicitud."
+    },
+    "facts": {
+      "created": "Abierta",
+      "lastActivity": "Último mensaje",
+      "firstResponse": "Primera respuesta",
+      "noResponse": "El equipo aún no ha respondido",
+      "resolved": "Resuelta",
+      "closed": "Cerrada",
+      "rating": "Valoración",
+      "notRated": "Sin valorar",
+      "ratingValue": "{rating} de 5",
+      "context": "Contexto enviado con la solicitud",
+      "noContext": "No se adjuntó nada."
+    }
   }
 }
