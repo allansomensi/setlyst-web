@@ -16,12 +16,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolvePublicLocale } from "@/components/public/resolve-public-locale";
 import { fetchServerApi, getApiBaseUrl } from "@/lib/api-server";
 import { parseApiTimestamp } from "@/lib/dates";
+import { getPublicIncidents } from "@/lib/public-api";
 import { buildInternalHeaders } from "@/lib/server/client-ip";
 import { getSession } from "@/lib/server/session";
 import { getRequestTimeZone } from "@/lib/server/time-zone";
 import { cn } from "@/lib/utils";
 import type { ApiStatus, ServiceHealth } from "@/types/api";
 import { AutoRefresh } from "./_components/auto-refresh";
+import {
+  ActiveIncidents,
+  PastIncidents,
+} from "./_components/incidents-section";
 import { RefreshStatusButton } from "./_components/refresh-button";
 
 export async function generateMetadata({
@@ -177,10 +182,17 @@ export default async function StatusPage({
     values?: Record<string, string | number>,
   ) => string;
 
-  const [publicStatus, staffDetails, timeZone] = await Promise.all([
+  const tIncidents = createTranslator({
+    locale,
+    messages,
+    namespace: "status.incidents",
+  }) as unknown as typeof t;
+
+  const [publicStatus, staffDetails, timeZone, incidents] = await Promise.all([
     fetchSystemStatus(),
     fetchStaffStatusDetails(),
     getRequestTimeZone(),
+    getPublicIncidents(),
   ]);
   const status = staffDetails ?? publicStatus;
   const overall: ServiceHealth = status?.status ?? "down";
@@ -293,6 +305,13 @@ export default async function StatusPage({
             </div>
           </div>
 
+          <ActiveIncidents
+            incidents={incidents}
+            t={tIncidents}
+            locale={locale}
+            timeZone={timeZone}
+          />
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("servicesTitle")}</CardTitle>
@@ -354,6 +373,13 @@ export default async function StatusPage({
               )}
             </CardContent>
           </Card>
+
+          <PastIncidents
+            incidents={incidents}
+            t={tIncidents}
+            locale={locale}
+            timeZone={timeZone}
+          />
         </main>
 
         <footer className="text-muted-foreground flex flex-col items-center gap-2 text-center text-xs">

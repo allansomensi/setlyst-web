@@ -3142,7 +3142,41 @@
     },
     "connections": "Conexiones a la base de datos",
     "checkedAt": "Comprobado el {date} · se actualiza cada {seconds}s",
-    "backToApp": "Volver a Setlyst"
+    "backToApp": "Volver a Setlyst",
+    "incidents": {
+      "activeTitle": "Incidentes y mantenimientos en curso",
+      "pastTitle": "Incidentes anteriores (últimos 30 días) · {count}",
+      "none": "No hubo incidentes en los últimos 30 días.",
+      "timeline": "Actualizaciones",
+      "affects": "Afecta a: {components}",
+      "window": "Programado: {from} – {until}",
+      "resolved": "Resuelto el {date}",
+      "kinds": {
+        "incident": "Incidente",
+        "maintenance": "Mantenimiento programado"
+      },
+      "impacts": {
+        "none": "Sin impacto",
+        "minor": "Impacto leve",
+        "major": "Impacto grave",
+        "critical": "Impacto crítico"
+      },
+      "statuses": {
+        "scheduled": "Programado",
+        "investigating": "Investigando",
+        "identified": "Identificado",
+        "monitoring": "En observación",
+        "resolved": "Resuelto"
+      },
+      "components": {
+        "web": "App web",
+        "api": "API",
+        "sync": "Sincronización y modo sin conexión",
+        "email": "Correo",
+        "payments": "Pagos",
+        "exports": "Exportaciones"
+      }
+    }
   },
   "audit": {
     "modified": "Modificado el {date}",
@@ -6735,6 +6769,265 @@
       "maintenanceDescription": "No se pueden crear cuentas mientras Setlyst está en mantenimiento. Vuelve en un rato.",
       "haveAccount": "¿Ya tienes una cuenta?",
       "signIn": "Entrar"
+    }
+  },
+  "emailsAdmin": {
+    "title": "Correos",
+    "description": "Cómo va el envío de correos y todos los mensajes que la plataforma envió o intentó enviar.",
+    "summary": {
+      "title": "Resumen de envíos",
+      "smtp": "Servidor de correo",
+      "smtpOn": "Configurado",
+      "smtpOff": "Sin configurar",
+      "from": "Enviado como {from}",
+      "smtpOffHint": "No se entrega nada hasta que se configure un servidor SMTP.",
+      "lastHour": "Enviados en la última hora",
+      "ofCap": "{sent} / {cap}",
+      "capReached": "Límite por hora alcanzado: solo salen códigos y avisos de seguridad hasta que se libere.",
+      "capHint": "Por encima del límite por hora, solo se envían códigos y avisos de seguridad.",
+      "oldestPending": "Más antiguo en cola",
+      "queueEmpty": "Cola vacía",
+      "pendingNow": "{count, plural, =0 {Nada en cola} one {# pendiente de envío} other {# pendientes de envío}}",
+      "failed24h": "Fallidos en 24 h",
+      "sent24h": "{count, plural, =0 {Ninguno enviado} one {# enviado} other {# enviados}} en el mismo periodo",
+      "byStatus": "Por estado",
+      "last24h": "24 h",
+      "last7d": "7 días",
+      "byTemplate": "Por plantilla (7 días)",
+      "noTemplates": "No hay correos en los últimos 7 días."
+    },
+    "outbox": {
+      "title": "Bandeja de salida",
+      "retention": "Los más recientes primero. Los mensajes enviados, omitidos y fallidos se guardan 30 días. Su contenido nunca se muestra.",
+      "empty": "No hay correos aquí"
+    },
+    "filters": {
+      "search": "Buscar por dirección o nombre de usuario…",
+      "template": "Plantilla",
+      "allTemplates": "Todas las plantillas",
+      "status": "Filtrar por estado",
+      "allStatuses": "Todos"
+    },
+    "statuses": {
+      "pending": "En cola",
+      "sending": "Enviando",
+      "sent": "Enviado",
+      "failed": "Fallido",
+      "skipped": "Omitido"
+    },
+    "table": {
+      "created": "Creado",
+      "recipient": "Destinatario",
+      "template": "Plantilla",
+      "status": "Estado",
+      "attempts": "Intentos",
+      "lastError": "Último error",
+      "actions": "Acciones",
+      "unknownUser": "cuenta eliminada",
+      "showMore": "Ver más",
+      "showLess": "Ver menos",
+      "retry": "Reintentar",
+      "retryFor": "Reintentar el correo a {to}",
+      "retried": "Correo a {to} puesto de nuevo en cola.",
+      "cancel": "Cancelar",
+      "cancelFor": "Cancelar el correo a {to}",
+      "canceled": "Correo cancelado.",
+      "cancelTitle": "¿Cancelar este correo?",
+      "cancelDescription": "El correo {template} a {to} no se enviará y quedará marcado como omitido. Podrás ponerlo de nuevo en cola más tarde, salvo que lleve un código de un solo uso.",
+      "cancelConfirm": "Cancelar correo"
+    },
+    "test": {
+      "button": "Enviar correo de prueba",
+      "queued": "Correo de prueba en cola para {to}. Síguelo en la lista de abajo.",
+      "failed": "No se pudo enviar el correo de prueba. Inténtalo de nuevo.",
+      "notConfigured": "No hay ningún servidor de correo configurado."
+    }
+  },
+  "incidentsAdmin": {
+    "title": "Incidentes",
+    "description": "Incidentes y mantenimientos programados publicados en la página pública de estado. Lo que publiques aquí lo ve todo el mundo al instante.",
+    "new": "Nuevo incidente",
+    "viewStatusPage": "Ver página pública de estado",
+    "opensInNewTab": "se abre en una pestaña nueva",
+    "emptyTitle": "Aún no hay incidentes",
+    "emptyDescription": "Cuando algo falle o haya un mantenimiento previsto, publícalo aquí para que la gente sepa qué está pasando.",
+    "groups": {
+      "active": "En curso y próximos",
+      "resolved": "Resueltos"
+    },
+    "window": "Ventana",
+    "startedAt": "Inicio",
+    "resolvedAt": "Resuelto",
+    "lastUpdate": "Última actualización: {status}",
+    "noComponents": "Ningún componente indicado",
+    "impactLabel": "Impacto: {impact}",
+    "kinds": {
+      "incident": "Incidente",
+      "maintenance": "Mantenimiento"
+    },
+    "impacts": {
+      "none": "Ninguno",
+      "minor": "Leve",
+      "major": "Grave",
+      "critical": "Crítico"
+    },
+    "statuses": {
+      "scheduled": "Programado",
+      "investigating": "Investigando",
+      "identified": "Identificado",
+      "monitoring": "En observación",
+      "resolved": "Resuelto"
+    },
+    "statusHints": {
+      "scheduled": "Anunciado con antelación; el trabajo aún no ha empezado.",
+      "investigating": "Algo falla y lo estamos revisando.",
+      "identified": "Ya conocemos la causa y la solución está en marcha.",
+      "monitoring": "La solución está aplicada y estamos vigilando los resultados.",
+      "resolved": "Lo cierra. Sigue en la página de estado durante 30 días."
+    },
+    "components": {
+      "web": "App web",
+      "api": "API",
+      "sync": "Sincronización y modo sin conexión",
+      "email": "Correo",
+      "payments": "Pagos",
+      "exports": "Exportaciones"
+    },
+    "updated": "Incidente actualizado.",
+    "saveFailed": "No se pudo guardar el incidente. Inténtalo de nuevo.",
+    "published": "Incidente publicado en la página de estado.",
+    "scheduled": "Mantenimiento programado en la página de estado.",
+    "deleted": "Incidente eliminado.",
+    "deleteTitle": "¿Eliminar este incidente?",
+    "deleteDescription": "«{title}» y toda su cronología desaparecerán de la página de estado. Hazlo solo con algo publicado por error; para cerrar un incidente, publica una actualización como Resuelto.",
+    "deleteConfirm": "Eliminar incidente",
+    "form": {
+      "createTitle": "Nuevo incidente",
+      "editTitle": "Editar incidente",
+      "createDescription": "Se publica en la página pública de estado en cuanto confirmes.",
+      "editDescription": "Corrige el título, el impacto, los componentes o la ventana. Para cambiar el estado, publica una actualización.",
+      "kind": "Tipo",
+      "kindHints": {
+        "incident": "Algo está roto o va lento ahora mismo.",
+        "maintenance": "Trabajo planificado, anunciado con antelación y con su ventana."
+      },
+      "title": "Título",
+      "titlePlaceholders": {
+        "incident": "Las canciones no se sincronizan",
+        "maintenance": "Actualización de la base de datos"
+      },
+      "titleError": "Usa entre {min} y {max} caracteres.",
+      "impact": "Impacto",
+      "impactHints": {
+        "none": "Nada que la gente vaya a notar (solo informativo).",
+        "minor": "Algunas funciones van más lentas o están parcialmente caídas.",
+        "major": "Una función importante no está disponible para mucha gente.",
+        "critical": "Setlyst está caído o no se puede usar para la mayoría."
+      },
+      "status": "Estado",
+      "components": "Componentes afectados",
+      "componentsEmpty": "Ninguno seleccionado: no se mostrará ningún componente concreto.",
+      "window": "Ventana de mantenimiento",
+      "windowFrom": "Empieza",
+      "windowUntil": "Termina",
+      "windowHint": "En tu zona horaria. Los visitantes la ven en la suya.",
+      "windowRequired": "El mantenimiento necesita un inicio y un final.",
+      "windowOrder": "El final debe ser posterior al inicio.",
+      "message": "Primera actualización",
+      "messagePlaceholders": {
+        "incident": "Estamos revisando avisos de canciones que no se sincronizan entre dispositivos.",
+        "maintenance": "Vamos a actualizar la base de datos. Setlyst podría no estar disponible durante unos minutos."
+      },
+      "messageHint": "La primera entrada de la cronología pública.",
+      "messageError": "Escribe entre 1 y {max} caracteres.",
+      "schedule": "Programar mantenimiento",
+      "publish": "Publicar incidente"
+    },
+    "details": {
+      "title": "Detalles",
+      "kind": "Tipo",
+      "status": "Estado",
+      "impact": "Impacto",
+      "components": "Componentes",
+      "created": "Publicado"
+    },
+    "timeline": {
+      "title": "Cronología",
+      "empty": "Aún no hay actualizaciones."
+    },
+    "update": {
+      "title": "Publicar una actualización",
+      "description": "Las actualizaciones aparecen en la página pública de estado, de la más reciente a la más antigua.",
+      "message": "Mensaje",
+      "placeholder": "Qué ha cambiado y qué puede esperar la gente a continuación.",
+      "hint": "Lo ve todo el mundo. No incluyas detalles internos.",
+      "submit": "Publicar actualización",
+      "posted": "Actualización publicada.",
+      "resolved": "Incidente resuelto.",
+      "reopens": "Este incidente está resuelto: publicar otro estado lo reabre."
+    }
+  },
+  "platformAdmin": {
+    "title": "Configuración de la plataforma",
+    "description": "Modo de mantenimiento, registros y dominios de correo bloqueados. Los cambios se aplican a toda la plataforma en pocos segundos.",
+    "readOnly": "Puedes ver esta configuración, pero solo los administradores pueden cambiarla.",
+    "saved": "Configuración de la plataforma guardada.",
+    "invalid": "Algunos ajustes no son válidos. Revisa los campos marcados.",
+    "reset": "Descartar cambios",
+    "save": "Guardar configuración",
+    "maintenance": {
+      "title": "Modo de mantenimiento",
+      "description": "Bloquea los cambios o cierra la app mientras trabajas en la plataforma.",
+      "since": "{mode} desde <date></date>",
+      "modes": {
+        "off": {
+          "label": "Desactivado",
+          "hint": "Setlyst funciona con normalidad para todos."
+        },
+        "read_only": {
+          "label": "Solo lectura",
+          "hint": "La gente puede iniciar sesión y ver sus datos, pero cualquier acción que guarde algo se rechaza. Los registros nuevos quedan cerrados."
+        },
+        "full": {
+          "label": "Mantenimiento total",
+          "hint": "Solo el equipo puede iniciar sesión y usar la app. Los demás, incluso quienes ya tienen la sesión iniciada, ven el aviso de mantenimiento. Los registros nuevos quedan cerrados."
+        }
+      },
+      "staffNote": "Las cuentas del equipo nunca se ven afectadas, así puedes comprobarlo todo antes de reabrir.",
+      "message": "Mensaje para los usuarios",
+      "messagePlaceholder": "Estamos actualizando nuestros servidores. ¡Gracias por tu paciencia!",
+      "messageHint": "Se muestra junto al aviso de mantenimiento. Déjalo vacío para usar el texto estándar.",
+      "endsAt": "Vuelta prevista",
+      "endsAtHint": "Solo informativo: el mantenimiento no termina por sí solo."
+    },
+    "signups": {
+      "title": "Registros",
+      "label": "Aceptar cuentas nuevas",
+      "openHint": "Cualquiera puede crear una cuenta, con contraseña o con Google.",
+      "closedHint": "Las personas nuevas no pueden registrarse. Las cuentas existentes inician sesión con normalidad y el equipo aún puede crear cuentas desde la consola.",
+      "maintenanceNote": "Mientras el modo de mantenimiento esté activo, los registros se rechazan diga lo que diga esta opción."
+    },
+    "domains": {
+      "title": "Dominios de correo bloqueados",
+      "description": "Las direcciones de estos dominios no se pueden usar para registrarse ni como nuevo correo. Útil contra servicios de correo desechable y oleadas de abuso.",
+      "label": "Dominios, uno por línea",
+      "count": "{count, plural, =0 {Ningún dominio} one {# dominio} other {# dominios}} (máx. {max})",
+      "placeholder": "mailinator.com\ntempmail.io",
+      "hint": "Los subdominios también se bloquean: bloquear example.com bloquea mail.example.com. Las cuentas que ya usan un dominio bloqueado no se ven afectadas.",
+      "invalid": "{count, plural, one {Este no es un dominio válido} other {Estos no son dominios válidos}}: {domains}",
+      "tooMany": "Se pueden bloquear como máximo {max} dominios.",
+      "serverInvalid": "El servidor rechazó uno de estos dominios. Revisa la lista e inténtalo de nuevo."
+    },
+    "confirmFull": {
+      "title": "¿Activar el mantenimiento total?",
+      "lead": "Setlyst quedará cerrado para todos menos el equipo en cuanto guardes.",
+      "consequences": {
+        "signedOut": "Quienes estén usando la app ahora pierden el acceso al instante y ven el aviso de mantenimiento.",
+        "signIn": "Se rechaza el inicio de sesión para todos menos el equipo.",
+        "signUp": "No se podrán crear cuentas nuevas.",
+        "staff": "El equipo conserva el acceso completo para comprobar la plataforma antes de desactivarlo."
+      },
+      "confirm": "Activar mantenimiento total"
     }
   }
 }

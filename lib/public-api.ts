@@ -5,7 +5,7 @@ import { assertSafeEndpoint } from "@/lib/api-endpoint";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { isBillingEnforced } from "@/lib/pricing";
 import { parsePlatformStatus } from "@/lib/maintenance";
-import type { PublicPlatformStatus } from "@/types/operations";
+import type { PublicIncidents, PublicPlatformStatus } from "@/types/operations";
 import type {
   PublicBillingMode,
   PublicPlan,
@@ -199,6 +199,27 @@ export const getPlatformStatus = cache(
       revalidate: 15,
     });
     return result.ok ? parsePlatformStatus(result.data) : null;
+  },
+);
+
+/**
+ * Active and recently resolved incidents for the status page, or `null`
+ * when the API can't be reached (the page then just leaves them out).
+ * Cached as long as the API caches them.
+ */
+export const getPublicIncidents = cache(
+  async (): Promise<PublicIncidents | null> => {
+    const result = await fetchPublicApi<PublicIncidents>("/public/incidents", {
+      revalidate: 30,
+    });
+    if (
+      !result.ok ||
+      !Array.isArray(result.data?.active) ||
+      !Array.isArray(result.data?.recent)
+    ) {
+      return null;
+    }
+    return result.data;
   },
 );
 

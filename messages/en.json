@@ -3142,7 +3142,41 @@
     },
     "connections": "Database connections",
     "checkedAt": "Checked {date} · refreshes every {seconds}s",
-    "backToApp": "Back to Setlyst"
+    "backToApp": "Back to Setlyst",
+    "incidents": {
+      "activeTitle": "Current incidents and maintenance",
+      "pastTitle": "Past incidents (last 30 days) · {count}",
+      "none": "No incidents in the last 30 days.",
+      "timeline": "Updates",
+      "affects": "Affects: {components}",
+      "window": "Scheduled: {from} – {until}",
+      "resolved": "Resolved {date}",
+      "kinds": {
+        "incident": "Incident",
+        "maintenance": "Scheduled maintenance"
+      },
+      "impacts": {
+        "none": "No impact",
+        "minor": "Minor impact",
+        "major": "Major impact",
+        "critical": "Critical impact"
+      },
+      "statuses": {
+        "scheduled": "Scheduled",
+        "investigating": "Investigating",
+        "identified": "Identified",
+        "monitoring": "Monitoring",
+        "resolved": "Resolved"
+      },
+      "components": {
+        "web": "Web app",
+        "api": "API",
+        "sync": "Sync and offline",
+        "email": "E-mail",
+        "payments": "Payments",
+        "exports": "Exports"
+      }
+    }
   },
   "audit": {
     "modified": "Last modified {date}",
@@ -6735,6 +6769,265 @@
       "maintenanceDescription": "New accounts can't be created while Setlyst is under maintenance. Please come back soon.",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
+    }
+  },
+  "emailsAdmin": {
+    "title": "E-mails",
+    "description": "How e-mail delivery is going, and every message the platform sent or tried to send.",
+    "summary": {
+      "title": "Delivery overview",
+      "smtp": "E-mail server",
+      "smtpOn": "Configured",
+      "smtpOff": "Not configured",
+      "from": "Sent as {from}",
+      "smtpOffHint": "Nothing is delivered until an SMTP server is configured.",
+      "lastHour": "Sent in the last hour",
+      "ofCap": "{sent} / {cap}",
+      "capReached": "Hourly cap reached: only codes and security notices go out until it frees up.",
+      "capHint": "Past the hourly cap, only codes and security notices go out.",
+      "oldestPending": "Oldest waiting",
+      "queueEmpty": "Queue empty",
+      "pendingNow": "{count, plural, =0 {Nothing waiting} one {# waiting to be sent} other {# waiting to be sent}}",
+      "failed24h": "Failed in 24 h",
+      "sent24h": "{count, plural, =0 {None sent} one {# sent} other {# sent}} in the same period",
+      "byStatus": "By status",
+      "last24h": "24 h",
+      "last7d": "7 days",
+      "byTemplate": "By template (7 days)",
+      "noTemplates": "No e-mails in the last 7 days."
+    },
+    "outbox": {
+      "title": "Outbox",
+      "retention": "Newest first. Sent, skipped and failed messages are kept for 30 days. Their contents are never shown.",
+      "empty": "No e-mails here"
+    },
+    "filters": {
+      "search": "Search by address or username…",
+      "template": "Template",
+      "allTemplates": "All templates",
+      "status": "Filter by status",
+      "allStatuses": "All"
+    },
+    "statuses": {
+      "pending": "Waiting",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "table": {
+      "created": "Created",
+      "recipient": "Recipient",
+      "template": "Template",
+      "status": "Status",
+      "attempts": "Attempts",
+      "lastError": "Last error",
+      "actions": "Actions",
+      "unknownUser": "deleted account",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "retry": "Retry",
+      "retryFor": "Retry the e-mail to {to}",
+      "retried": "E-mail to {to} queued again.",
+      "cancel": "Cancel",
+      "cancelFor": "Cancel the e-mail to {to}",
+      "canceled": "E-mail canceled.",
+      "cancelTitle": "Cancel this e-mail?",
+      "cancelDescription": "The {template} e-mail to {to} won't be sent and is marked as skipped. You can queue it again later, unless it carries a one-time code.",
+      "cancelConfirm": "Cancel e-mail"
+    },
+    "test": {
+      "button": "Send test e-mail",
+      "queued": "Test e-mail queued to {to}. Follow it in the list below.",
+      "failed": "Couldn't send the test e-mail. Try again.",
+      "notConfigured": "No e-mail server is configured."
+    }
+  },
+  "incidentsAdmin": {
+    "title": "Incidents",
+    "description": "Incidents and scheduled maintenance published on the public status page. What you publish here is visible to everyone at once.",
+    "new": "New incident",
+    "viewStatusPage": "View public status page",
+    "opensInNewTab": "opens in a new tab",
+    "emptyTitle": "No incidents yet",
+    "emptyDescription": "When something goes wrong or maintenance is planned, publish it here so people know what's going on.",
+    "groups": {
+      "active": "In progress and upcoming",
+      "resolved": "Resolved"
+    },
+    "window": "Window",
+    "startedAt": "Started",
+    "resolvedAt": "Resolved",
+    "lastUpdate": "Last update: {status}",
+    "noComponents": "No component specified",
+    "impactLabel": "Impact: {impact}",
+    "kinds": {
+      "incident": "Incident",
+      "maintenance": "Maintenance"
+    },
+    "impacts": {
+      "none": "None",
+      "minor": "Minor",
+      "major": "Major",
+      "critical": "Critical"
+    },
+    "statuses": {
+      "scheduled": "Scheduled",
+      "investigating": "Investigating",
+      "identified": "Identified",
+      "monitoring": "Monitoring",
+      "resolved": "Resolved"
+    },
+    "statusHints": {
+      "scheduled": "Announced ahead of time; the work hasn't started.",
+      "investigating": "Something is wrong and we're looking into it.",
+      "identified": "The cause is known and a fix is underway.",
+      "monitoring": "A fix is in place and we're watching the results.",
+      "resolved": "Closes it. It stays on the status page for 30 days."
+    },
+    "components": {
+      "web": "Web app",
+      "api": "API",
+      "sync": "Sync and offline",
+      "email": "E-mail",
+      "payments": "Payments",
+      "exports": "Exports"
+    },
+    "updated": "Incident updated.",
+    "saveFailed": "Couldn't save the incident. Try again.",
+    "published": "Incident published on the status page.",
+    "scheduled": "Maintenance scheduled on the status page.",
+    "deleted": "Incident deleted.",
+    "deleteTitle": "Delete this incident?",
+    "deleteDescription": "“{title}” and its whole timeline will disappear from the status page. Only do this for something published by mistake; to close an incident, post a Resolved update instead.",
+    "deleteConfirm": "Delete incident",
+    "form": {
+      "createTitle": "New incident",
+      "editTitle": "Edit incident",
+      "createDescription": "It is published on the public status page as soon as you confirm.",
+      "editDescription": "Fix the title, impact, components or window. To change the status, post an update instead.",
+      "kind": "Type",
+      "kindHints": {
+        "incident": "Something is broken or slow right now.",
+        "maintenance": "Planned work, announced ahead of time with its window."
+      },
+      "title": "Title",
+      "titlePlaceholders": {
+        "incident": "Songs are not syncing",
+        "maintenance": "Database upgrade"
+      },
+      "titleError": "Use {min} to {max} characters.",
+      "impact": "Impact",
+      "impactHints": {
+        "none": "Nothing people would notice (informative only).",
+        "minor": "Some features are slower or partly unavailable.",
+        "major": "An important feature is unavailable for many people.",
+        "critical": "Setlyst is down or unusable for most people."
+      },
+      "status": "Status",
+      "components": "Affected components",
+      "componentsEmpty": "None selected: no specific component will be listed.",
+      "window": "Maintenance window",
+      "windowFrom": "Starts",
+      "windowUntil": "Ends",
+      "windowHint": "In your time zone. Visitors see it in theirs.",
+      "windowRequired": "Maintenance needs a start and an end.",
+      "windowOrder": "The end must be after the start.",
+      "message": "First update",
+      "messagePlaceholders": {
+        "incident": "We're investigating reports of songs not syncing between devices.",
+        "maintenance": "We'll upgrade the database. Setlyst may be unavailable for a few minutes."
+      },
+      "messageHint": "The first entry of the public timeline.",
+      "messageError": "Write between 1 and {max} characters.",
+      "schedule": "Schedule maintenance",
+      "publish": "Publish incident"
+    },
+    "details": {
+      "title": "Details",
+      "kind": "Type",
+      "status": "Status",
+      "impact": "Impact",
+      "components": "Components",
+      "created": "Published"
+    },
+    "timeline": {
+      "title": "Timeline",
+      "empty": "No updates yet."
+    },
+    "update": {
+      "title": "Post an update",
+      "description": "Updates appear on the public status page, newest first.",
+      "message": "Message",
+      "placeholder": "What changed, what people should expect next.",
+      "hint": "Visible to everyone. Don't include internal details.",
+      "submit": "Post update",
+      "posted": "Update posted.",
+      "resolved": "Incident resolved.",
+      "reopens": "This incident is resolved: posting another status reopens it."
+    }
+  },
+  "platformAdmin": {
+    "title": "Platform settings",
+    "description": "Maintenance mode, sign-ups and blocked e-mail domains. Changes apply to the whole platform within a few seconds.",
+    "readOnly": "You can see these settings, but only admins can change them.",
+    "saved": "Platform settings saved.",
+    "invalid": "Some settings aren't valid. Check the highlighted fields.",
+    "reset": "Discard changes",
+    "save": "Save settings",
+    "maintenance": {
+      "title": "Maintenance mode",
+      "description": "Stop changes or close the app while you work on the platform.",
+      "since": "{mode} since <date></date>",
+      "modes": {
+        "off": {
+          "label": "Off",
+          "hint": "Setlyst works normally for everyone."
+        },
+        "read_only": {
+          "label": "Read-only",
+          "hint": "People can sign in and see their data, but anything that saves a change is refused. New sign-ups are closed."
+        },
+        "full": {
+          "label": "Full maintenance",
+          "hint": "Only staff can sign in or use the app. Everyone else, including people already signed in, sees the maintenance notice. New sign-ups are closed."
+        }
+      },
+      "staffNote": "Staff accounts are never affected, so you can check everything before reopening.",
+      "message": "Message for users",
+      "messagePlaceholder": "We're upgrading our servers. Thanks for your patience!",
+      "messageHint": "Shown with the maintenance notice. Leave it empty for the standard text.",
+      "endsAt": "Expected back at",
+      "endsAtHint": "Only informative: maintenance doesn't end on its own."
+    },
+    "signups": {
+      "title": "Sign-ups",
+      "label": "Accept new accounts",
+      "openHint": "Anyone can create an account, with a password or with Google.",
+      "closedHint": "Sign-up is refused for new people. Existing accounts sign in normally, and staff can still create accounts from the console.",
+      "maintenanceNote": "While maintenance mode is on, sign-ups are refused whatever this switch says."
+    },
+    "domains": {
+      "title": "Blocked e-mail domains",
+      "description": "Addresses at these domains can't be used to sign up or as a new e-mail address. Useful against disposable e-mail services and abuse waves.",
+      "label": "Domains, one per line",
+      "count": "{count, plural, =0 {No domains} one {# domain} other {# domains}} (max. {max})",
+      "placeholder": "mailinator.com\ntempmail.io",
+      "hint": "Subdomains are included: blocking example.com also blocks mail.example.com. Accounts that already use a blocked domain are not affected.",
+      "invalid": "{count, plural, one {This isn't a valid domain} other {These aren't valid domains}}: {domains}",
+      "tooMany": "At most {max} domains can be blocked.",
+      "serverInvalid": "The server refused one of these domains. Check the list and try again."
+    },
+    "confirmFull": {
+      "title": "Turn on full maintenance?",
+      "lead": "Setlyst will be closed to everyone but staff as soon as you save.",
+      "consequences": {
+        "signedOut": "People using the app right now lose access at once and see the maintenance notice.",
+        "signIn": "Signing in is refused for everyone but staff.",
+        "signUp": "New accounts can't be created.",
+        "staff": "Staff keep full access, so you can check the platform before turning it off."
+      },
+      "confirm": "Turn on full maintenance"
     }
   }
 }
