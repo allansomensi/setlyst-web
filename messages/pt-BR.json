@@ -89,7 +89,9 @@
     "profile": "Minha conta",
     "breadcrumb": "Caminho da página",
     "contactSupport": "Falar com o suporte",
-    "more": "Mais"
+    "more": "Mais",
+    "supportRequestsHint": "Envie uma solicitação e acompanhe as respostas",
+    "emailSupport": "Suporte por e-mail"
   },
   "auth": {
     "login": {
@@ -1602,7 +1604,9 @@
       "whatsNewHint": "Mudanças recentes no Setlyst",
       "status": "Status do serviço",
       "statusHint": "Está tudo funcionando?",
-      "support": "Falar com o suporte"
+      "support": "Falar com o suporte",
+      "supportHint": "Envie uma solicitação e acompanhe as respostas",
+      "emailSupport": "Suporte por e-mail"
     },
     "backupTooLarge": "O arquivo tem mais de {size} MB. Use um backup exportado pelo Setlyst.",
     "backupImportFailed": "Não foi possível importar o backup. Tente novamente.",
@@ -1954,7 +1958,9 @@
       "reauth_sessions_revoked": "Muitas confirmações erradas: desconectamos sua conta de todos os dispositivos. Se não foi você, troque sua senha.",
       "other": "Houve uma alteração de segurança na sua conta."
     },
-    "setlistInvitation": "@{user} convidou você para a setlist \"{title}\" como {role}."
+    "setlistInvitation": "@{user} convidou você para a setlist \"{title}\" como {role}.",
+    "supportReply": "Nova resposta na sua solicitação de suporte #{number}",
+    "supportReplyUnnumbered": "Nova resposta na sua solicitação de suporte"
   },
   "rateLimit": {
     "message": "Muitas ações em pouco tempo. Aguarde um instante e tente de novo.",
@@ -2272,7 +2278,9 @@
     "band": "{name}",
     "bandGigs": "{name} · Shows",
     "bandSetlists": "{name} · Setlists",
-    "harmonicAnalysis": "{name} · Análise harmônica"
+    "harmonicAnalysis": "{name} · Análise harmônica",
+    "supportRequests": "Suporte",
+    "supportRequest": "{name} · Suporte"
   },
   "usernamePolicy": {
     "rules": "3 a 20 caracteres: letras, números, pontos, hífens ou underlines. Deve começar com uma letra.",
@@ -6578,6 +6586,96 @@
       "ratingValue": "{rating} de 5",
       "context": "Contexto enviado com a solicitação",
       "noContext": "Nada foi anexado."
+    }
+  },
+  "support": {
+    "title": "Suporte",
+    "description": "Peça ajuda à equipe do Setlyst e acompanhe suas solicitações por aqui.",
+    "listTitle": "Suas solicitações",
+    "newRequest": "Nova solicitação",
+    "emptyTitle": "Nenhuma solicitação ainda",
+    "emptyDescription": "Travou em alguma coisa, achou um bug ou teve uma ideia? Mande uma solicitação e a equipe responde por aqui.",
+    "unread": "Nova resposta",
+    "messageCount": "{count, plural, one {# mensagem} other {# mensagens}}",
+    "lastActivity": "Última atividade",
+    "emailAlternative": "Prefere e-mail? Escreva para <email>{address}</email>.",
+    "created": "Solicitação #{number} enviada. A equipe vai responder por aqui.",
+    "sent": "Solicitação enviada.",
+    "openedOn": "Aberta em",
+    "conversation": "Conversa",
+    "team": "Equipe Setlyst",
+    "you": "Você",
+    "status": {
+      "open": "Aguardando a equipe",
+      "pending": "Aguardando você",
+      "resolved": "Resolvida",
+      "closed": "Encerrada"
+    },
+    "category": {
+      "account": "Conta e acesso",
+      "billing": "Planos e pagamentos",
+      "bug": "Algo não está funcionando",
+      "feature": "Ideia ou sugestão",
+      "content": "Músicas, setlists e conteúdo",
+      "other": "Outro assunto"
+    },
+    "statusHint": {
+      "open": "A equipe recebeu sua solicitação e vai responder por aqui. Você recebe uma notificação quando houver resposta.",
+      "pending": "A equipe respondeu e está aguardando o seu retorno.",
+      "resolved": "A equipe marcou esta solicitação como resolvida. Se ainda precisar de ajuda, é só responder que ela é reaberta.",
+      "closed": "Esta solicitação foi encerrada. Se precisar de mais ajuda, abra uma nova."
+    },
+    "form": {
+      "title": "Nova solicitação de suporte",
+      "description": "Conte o que está acontecendo. A equipe responde por aqui e você recebe uma notificação.",
+      "subjectLabel": "Assunto",
+      "subjectPlaceholder": "Resuma em poucas palavras",
+      "categoryLabel": "Tema",
+      "categoryPlaceholder": "Escolha um tema",
+      "messageLabel": "Mensagem",
+      "messagePlaceholder": "O que aconteceu, o que você esperava e como reproduzir…",
+      "privacyHint": "Nunca envie sua senha ou dados do cartão.",
+      "submit": "Enviar solicitação",
+      "failed": "Não foi possível enviar sua solicitação.",
+      "subjectTooShort": "O assunto precisa ter pelo menos {min} caracteres.",
+      "subjectTooLong": "O assunto pode ter no máximo {max} caracteres.",
+      "categoryRequired": "Escolha um tema.",
+      "messageRequired": "Escreva uma mensagem.",
+      "messageTooLong": "A mensagem pode ter no máximo {max} caracteres."
+    },
+    "reply": {
+      "label": "Sua resposta",
+      "placeholder": "Escreva sua resposta…",
+      "hint": "A equipe é notificada da sua resposta.",
+      "reopensHint": "Responder reabre esta solicitação.",
+      "submit": "Enviar resposta",
+      "sent": "Resposta enviada.",
+      "closed": "Esta solicitação foi encerrada e não aceita mais respostas. Se ainda precisar de ajuda, abra uma nova."
+    },
+    "close": {
+      "action": "Encerrar solicitação",
+      "title": "Encerrar esta solicitação?",
+      "description": "Encerre se você não precisa mais de ajuda. Uma solicitação encerrada não aceita mais respostas, mas você pode abrir uma nova quando quiser.",
+      "confirm": "Encerrar solicitação",
+      "done": "Solicitação encerrada."
+    },
+    "rating": {
+      "title": "Como foi o atendimento?",
+      "description": "Avalie como esta solicitação foi tratada. Isso ajuda a equipe a melhorar.",
+      "stars": "{count, plural, one {# estrela} other {# estrelas}}",
+      "labels": {
+        "1": "Muito ruim",
+        "2": "Ruim",
+        "3": "Razoável",
+        "4": "Bom",
+        "5": "Excelente"
+      },
+      "commentLabel": "Comentário",
+      "commentPlaceholder": "Quer dizer algo à equipe?",
+      "submit": "Enviar avaliação",
+      "thanks": "Obrigado pelo retorno!",
+      "given": "Sua avaliação",
+      "outOf": "Nota {rating} de 5"
     }
   }
 }

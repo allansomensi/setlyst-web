@@ -95,6 +95,7 @@ export const CLIENT_NAMESPACES = {
     "songs",
     "staff.nav",
     "suggestions",
+    "support",
     "tags",
     "terms.gate",
     "tours",

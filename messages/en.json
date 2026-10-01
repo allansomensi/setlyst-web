@@ -89,7 +89,9 @@
     "profile": "My account",
     "breadcrumb": "Breadcrumb",
     "contactSupport": "Contact support",
-    "more": "More"
+    "more": "More",
+    "supportRequestsHint": "Send a request and follow the replies",
+    "emailSupport": "E-mail support"
   },
   "auth": {
     "login": {
@@ -1602,7 +1604,9 @@
       "whatsNewHint": "Recent changes to Setlyst",
       "status": "Service status",
       "statusHint": "Is everything running?",
-      "support": "Contact support"
+      "support": "Contact support",
+      "supportHint": "Send a request and follow the replies",
+      "emailSupport": "E-mail support"
     },
     "backupTooLarge": "The file is larger than {size} MB. Use a backup exported by Setlyst.",
     "backupImportFailed": "Couldn't import the backup. Try again.",
@@ -1954,7 +1958,9 @@
       "reauth_sessions_revoked": "Too many wrong confirmations: we signed your account out on every device. If it wasn't you, change your password.",
       "other": "There was a security change on your account."
     },
-    "setlistInvitation": "@{user} invited you to the setlist \"{title}\" as {role}."
+    "setlistInvitation": "@{user} invited you to the setlist \"{title}\" as {role}.",
+    "supportReply": "New reply to your support request #{number}",
+    "supportReplyUnnumbered": "New reply to your support request"
   },
   "rateLimit": {
     "message": "Too many actions in a short time. Wait a moment and try again.",
@@ -2272,7 +2278,9 @@
     "band": "{name}",
     "bandGigs": "{name} · Shows",
     "bandSetlists": "{name} · Setlists",
-    "harmonicAnalysis": "{name} · Harmonic analysis"
+    "harmonicAnalysis": "{name} · Harmonic analysis",
+    "supportRequests": "Support",
+    "supportRequest": "{name} · Support"
   },
   "usernamePolicy": {
     "rules": "3–20 characters: letters, numbers, dots, hyphens or underscores. Must start with a letter.",
@@ -6578,6 +6586,96 @@
       "ratingValue": "{rating} out of 5",
       "context": "Context sent with the request",
       "noContext": "Nothing was attached."
+    }
+  },
+  "support": {
+    "title": "Support",
+    "description": "Ask the Setlyst team for help and follow your requests here.",
+    "listTitle": "Your requests",
+    "newRequest": "New request",
+    "emptyTitle": "No requests yet",
+    "emptyDescription": "Stuck on something, found a bug or have an idea? Send a request and the team will answer you here.",
+    "unread": "New reply",
+    "messageCount": "{count, plural, one {# message} other {# messages}}",
+    "lastActivity": "Last activity",
+    "emailAlternative": "Prefer e-mail? Write to <email>{address}</email>.",
+    "created": "Request #{number} sent. The team will answer you here.",
+    "sent": "Request sent.",
+    "openedOn": "Opened",
+    "conversation": "Conversation",
+    "team": "Setlyst team",
+    "you": "You",
+    "status": {
+      "open": "Waiting for the team",
+      "pending": "Waiting for you",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "category": {
+      "account": "Account and sign-in",
+      "billing": "Plans and billing",
+      "bug": "Something isn't working",
+      "feature": "Idea or suggestion",
+      "content": "Songs, setlists and content",
+      "other": "Something else"
+    },
+    "statusHint": {
+      "open": "The team has your request and will answer here. You'll get a notification when they reply.",
+      "pending": "The team answered and is waiting for your reply.",
+      "resolved": "The team marked this request as resolved. If you still need help, reply and it opens again.",
+      "closed": "This request is closed. If you need more help, open a new one."
+    },
+    "form": {
+      "title": "New support request",
+      "description": "Tell us what's going on. The team answers here, and you'll get a notification.",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Sum it up in a few words",
+      "categoryLabel": "Topic",
+      "categoryPlaceholder": "Choose a topic",
+      "messageLabel": "Message",
+      "messagePlaceholder": "What happened, what you expected, and how to see it…",
+      "privacyHint": "Never include your password or card details.",
+      "submit": "Send request",
+      "failed": "Couldn't send your request.",
+      "subjectTooShort": "The subject needs at least {min} characters.",
+      "subjectTooLong": "The subject can have at most {max} characters.",
+      "categoryRequired": "Choose a topic.",
+      "messageRequired": "Write a message.",
+      "messageTooLong": "The message can have at most {max} characters."
+    },
+    "reply": {
+      "label": "Your reply",
+      "placeholder": "Write your reply…",
+      "hint": "The team gets a notification of your reply.",
+      "reopensHint": "Replying opens this request again.",
+      "submit": "Send reply",
+      "sent": "Reply sent.",
+      "closed": "This request is closed and takes no more replies. If you still need help, open a new one."
+    },
+    "close": {
+      "action": "Close request",
+      "title": "Close this request?",
+      "description": "Close it if you no longer need help. A closed request takes no more replies, but you can always open a new one.",
+      "confirm": "Close request",
+      "done": "Request closed."
+    },
+    "rating": {
+      "title": "How did we do?",
+      "description": "Rate how this request was handled. It helps the team improve.",
+      "stars": "{count, plural, one {# star} other {# stars}}",
+      "labels": {
+        "1": "Very poor",
+        "2": "Poor",
+        "3": "Okay",
+        "4": "Good",
+        "5": "Excellent"
+      },
+      "commentLabel": "Comment",
+      "commentPlaceholder": "Anything you'd like to tell the team?",
+      "submit": "Send rating",
+      "thanks": "Thanks for your feedback!",
+      "given": "Your rating",
+      "outOf": "Rated {rating} out of 5"
     }
   }
 }

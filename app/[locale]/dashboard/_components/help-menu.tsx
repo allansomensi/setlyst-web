@@ -8,6 +8,7 @@ import {
   Info,
   CircleHelp,
   ExternalLink,
+  LifeBuoy,
   Lock,
   Mail,
   Megaphone,
@@ -26,7 +27,8 @@ import {
 import { STATUS_PATH, SUPPORT_EMAIL, WIKI_URL } from "@/lib/links";
 
 /**
- * Everything "about the platform" behind one icon: talking to support,
+ * Everything "about the platform" behind one icon: talking to support
+ * (a request in the app, or e-mail for whoever prefers it),
  * documentation, system status, the legal documents and the About page.
  */
 export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
@@ -60,10 +62,21 @@ export function HelpMenu({ onNavigate }: { onNavigate?: () => void }) {
       >
         <DropdownMenuLabel>{t("help")}</DropdownMenuLabel>
         <DropdownMenuItem asChild>
+          <Link href="/dashboard/support" onClick={onNavigate}>
+            <LifeBuoy className="mr-2 h-4 w-4" aria-hidden />
+            <span className="min-w-0">
+              <span className="block">{t("contactSupport")}</span>
+              <span className="text-muted-foreground block text-xs">
+                {t("supportRequestsHint")}
+              </span>
+            </span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <a href={`mailto:${SUPPORT_EMAIL}`} onClick={onNavigate}>
             <Mail className="mr-2 h-4 w-4" aria-hidden />
             <span className="min-w-0">
-              <span className="block">{t("contactSupport")}</span>
+              <span className="block">{t("emailSupport")}</span>
               <span className="text-muted-foreground block truncate text-xs">
                 {SUPPORT_EMAIL}
               </span>

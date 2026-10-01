@@ -5,6 +5,7 @@ import {
   ExternalLink,
   FileText,
   LifeBuoy,
+  Mail,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -93,6 +94,13 @@ export async function HelpSection() {
     {
       icon: LifeBuoy,
       label: t("support"),
+      hint: t("supportHint"),
+      href: "/dashboard/support",
+    },
+    // The same help by e-mail, for whoever prefers it.
+    {
+      icon: Mail,
+      label: t("emailSupport"),
       hint: SUPPORT_EMAIL,
       href: `mailto:${SUPPORT_EMAIL}`,
       raw: true,

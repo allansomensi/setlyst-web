@@ -21,8 +21,10 @@ import type {
   SetlistInvitationData,
   ShareLinkRevokedData,
   SubscriptionChangedData,
+  SupportReplyData,
   TrialEndingData,
 } from "@/types/api";
+import { SUPPORT_HREF, supportTicketHref } from "@/lib/support";
 
 export type NotificationIcon =
   | "bell"
@@ -41,7 +43,8 @@ export type NotificationIcon =
   | "trial"
   | "credits"
   | "security"
-  | "setlistInvite";
+  | "setlistInvite"
+  | "support";
 
 export type NotificationTone =
   "default" | "info" | "success" | "warning" | "critical";
@@ -364,6 +367,23 @@ export function describeNotification(
         SETTINGS_SECURITY_HREF,
         "security",
         "critical",
+      );
+    }
+    case "support_reply": {
+      const d = data as unknown as SupportReplyData;
+      const id = typeof d.ticket_id === "string" ? d.ticket_id : "";
+      const number = Number(d.ticket_number);
+      // As a string: ICU would format a number argument ("#1,042").
+      const values = { number: number > 0 ? String(number) : "" };
+      return view(
+        number > 0 ? "supportReply" : "supportReplyUnnumbered",
+        values,
+        id ? supportTicketHref(id) : SUPPORT_HREF,
+        "support",
+        "info",
+        typeof d.subject === "string" && d.subject.trim()
+          ? d.subject.trim()
+          : null,
       );
     }
     default:

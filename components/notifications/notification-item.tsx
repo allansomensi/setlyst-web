@@ -6,6 +6,7 @@ import {
   Coins,
   CreditCard,
   Hourglass,
+  LifeBuoy,
   Lightbulb,
   Link2Off,
   Megaphone,
@@ -50,6 +51,7 @@ const ICONS: Record<NotificationIcon, LucideIcon> = {
   credits: Coins,
   security: ShieldCheck,
   setlistInvite: UsersRound,
+  support: LifeBuoy,
 };
 
 /** Icon circle colors per tone, unread / read. */

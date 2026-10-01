@@ -1181,7 +1181,15 @@ export type NotificationType =
   | "trial_ending"
   | "credits_granted"
   | "security_alert"
-  | "setlist_invitation";
+  | "setlist_invitation"
+  | "support_reply";
+
+/** The support team answered one of the caller's requests. */
+export interface SupportReplyData {
+  ticket_id: string;
+  ticket_number: number;
+  subject: string;
+}
 
 export interface SetlistInvitationData {
   setlist_id: string;
@@ -1305,7 +1313,8 @@ export interface Notification {
     | TrialEndingData
     | CreditsGrantedData
     | SecurityAlertData
-    | SetlistInvitationData;
+    | SetlistInvitationData
+    | SupportReplyData;
   read_at: string | null;
   created_at: string;
 }
