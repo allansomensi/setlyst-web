@@ -5581,7 +5581,7 @@
     "undoShortcut": "Desfazer (Ctrl+Z)",
     "redoShortcut": "Refazer (Ctrl+Shift+Z)",
     "deleted": "Análise removida.",
-    "shortcuts": "Atalhos: ← → percorrem os acordes · Delete limpa o acorde · Esc cancela · Ctrl+Z desfaz",
+    "shortcuts": "Atalhos: ← → percorrem os acordes · Shift seleciona vários · 1–7 grau diatônico · T/S/D função · G aceita a sugestão · Ctrl+Z desfaz.",
     "mode": {
       "label": "Modo",
       "edit": "Editar",
@@ -5605,7 +5605,13 @@
       "twoFive": "II–V cadencial",
       "bracket": "Colchete",
       "dottedArrow": "Seta pontilhada",
-      "readOnlyHint": "Só nesta visualização: você não pode editar esta análise."
+      "readOnlyHint": "Só nesta visualização: você não pode editar esta análise.",
+      "notation": "Notação das qualidades",
+      "notationBr": "Brasileira (7M, m7(b5), °)",
+      "notationIntl": "Internacional (maj7, m7b5, °7)",
+      "device": "Neste dispositivo",
+      "timeline": "Mapa harmônico",
+      "ghosts": "Sugestões do assistente na cifra"
     },
     "delete": {
       "action": "Remover análise",
@@ -5624,7 +5630,8 @@
     },
     "start": {
       "title": "Comece por um acorde",
-      "description": "Toque em um acorde para escrever o grau, a função e as marcações, desenhar as setas de resolução e anotar trechos."
+      "description": "Toque em um acorde para escrever o grau, a função e as marcações, desenhar as setas de resolução e anotar trechos.",
+      "assistant": "Analisar com o assistente"
     },
     "noChords": {
       "title": "Esta música ainda não tem acordes",
@@ -5639,7 +5646,8 @@
       "cancel": "Cancelar"
     },
     "sheet": {
-      "chordLabel": "Acorde {chord}"
+      "chordLabel": "Acorde {chord}",
+      "suggested": "Sugestão do assistente — selecione o acorde e pressione G para aceitar"
     },
     "overview": {
       "progress": "Progresso",
@@ -5650,7 +5658,9 @@
       "notes": "Anotações",
       "noNotes": "Notas de acordes e de trechos aparecem aqui, numeradas.",
       "legend": "Legenda",
-      "nothingYet": "Nenhuma seta ou marcação ainda."
+      "nothingYet": "Nenhuma seta ou marcação ainda.",
+      "assistantCta": "{count, plural, =1 {Completar # acorde com o assistente} other {Completar # acordes com o assistente}}",
+      "noSummary": "Sem comentários gerais."
     },
     "footnotes": {
       "chord": "{chord}",
@@ -5726,7 +5736,15 @@
       "passagePlaceholder": "Ex.: cadência II–V–I no tom da subdominante",
       "passageText": "Texto do trecho",
       "removePassage": "Remover trecho",
-      "clearChord": "Limpar tudo deste acorde"
+      "clearChord": "Limpar tudo deste acorde",
+      "field": "Campo",
+      "fieldHint": "Escolher o grau no campo harmônico do tom",
+      "suggestion": "Sugestão do assistente",
+      "accept": "Aceitar",
+      "acceptShortcut": "Aceitar a sugestão (G)",
+      "accepted": "{count, plural, =1 {# sugestão aceita} other {# sugestões aceitas}}.",
+      "facts": "Notas e escala",
+      "factsHint": "As notas do acorde e a escala que ele sugere neste contexto."
     },
     "functions": {
       "T": {
@@ -5831,7 +5849,13 @@
       "notes": "Anotações",
       "summary": "Comentários",
       "byline": "Análise de {author}",
-      "bylineAnonymous": "Análise harmônica"
+      "bylineAnonymous": "Análise harmônica",
+      "sections": "Progressão por seção",
+      "insights": "Resumo harmônico",
+      "sectionsOption": "Progressão por seção",
+      "insightsOption": "Resumo estatístico",
+      "pdf": "Baixar PDF",
+      "pdfDone": "PDF baixado."
     },
     "concepts": {
       "tonic": {
@@ -5970,6 +5994,18 @@
       "backdoorCadence": {
         "name": "Cadência backdoor (bVII7 → I)",
         "hint": "Dominante \"pela porta dos fundos\": o bVII7 resolve na tônica, um tom acima."
+      },
+      "minorPlagalCadence": {
+        "name": "Cadência plagal menor (IVm → I)",
+        "hint": "A subdominante menor, emprestada do tom homônimo, resolve direto na tônica maior."
+      },
+      "turnaround": {
+        "name": "Turnaround (I – VI – II – V)",
+        "hint": "O ciclo que devolve a harmonia à tônica; o VI e o II costumam virar dominantes secundárias."
+      },
+      "andalusian": {
+        "name": "Cadência andaluza (Im – bVII – bVI – V)",
+        "hint": "O baixo desce o tetracorde menor até a dominante."
       }
     },
     "reading": {
@@ -5984,6 +6020,374 @@
       "occurrences": "{count}×",
       "occurrencesTitle": "Aparece {count} vezes",
       "occurrence": "Ir para a ocorrência {n} de {count}"
+    },
+    "allShortcuts": "Ver todos",
+    "detectedKey": {
+      "text": "Esta música não tem tom definido. Pelos acordes, parece estar em {key} ({confidence}% de confiança).",
+      "use": "Marcar {key} como tom inicial"
+    },
+    "side": {
+      "overview": "Visão geral",
+      "reading": "Leitura harmônica",
+      "insights": "Estatísticas",
+      "review": "Revisão",
+      "field": "Campo harmônico"
+    },
+    "viewTabs": {
+      "reading": "Cadências",
+      "sections": "Progressão por seção",
+      "insights": "Estatísticas",
+      "notes": "Legenda e anotações"
+    },
+    "exportMenu": {
+      "title": "Exportar",
+      "image": "Imagem ou PDF…",
+      "copyText": "Copiar como texto",
+      "markdown": "Baixar Markdown (.md)"
+    },
+    "textExport": {
+      "copied": "Análise copiada como texto.",
+      "failed": "Não foi possível copiar.",
+      "downloaded": "Arquivo Markdown baixado."
+    },
+    "transpose": {
+      "label": "Ver em outro tom",
+      "down": "Meio tom abaixo",
+      "up": "Meio tom acima",
+      "reset": "Voltar ao tom original",
+      "key": "Tom: {key}",
+      "original": "Tom original",
+      "semitones": "{shift} st",
+      "notice": "Visualizando a cifra transposta ({shift} st). Os graus não mudam — é isso que os torna úteis.",
+      "noticeKey": "Visualizando a cifra em {key} ({shift} st). Os graus não mudam — é isso que os torna úteis."
+    },
+    "timeline": {
+      "title": "Mapa harmônico",
+      "inferred": "lido pelo assistente",
+      "region": "Tom de {key}",
+      "none": "Sem função",
+      "inferredLegend": "Lido pelo assistente"
+    },
+    "bulk": {
+      "title": "{count} acordes selecionados",
+      "close": "Desfazer a seleção",
+      "hint": "Shift + clique ou Shift + setas ampliam a seleção. Toque em um acorde para ir até ele.",
+      "assistant": "Assistente",
+      "fill": "{count, plural, =1 {Preencher # acorde sem grau} other {Preencher # acordes sem grau}}",
+      "filled": "Todos já têm grau",
+      "openAssistant": "Abrir o assistente para a seleção…",
+      "function": "Função de todos",
+      "noFunction": "Sem função",
+      "marks": "Marcações",
+      "more": "Mais",
+      "annotate": "Anotar este trecho",
+      "copy": "Copiar os graus",
+      "clear": "Limpar tudo da seleção",
+      "copied": "Graus copiados.",
+      "copyFailed": "Não foi possível copiar."
+    },
+    "assistant": {
+      "title": "Assistente de análise",
+      "description": "Uma primeira leitura da cifra, como um professor faria: tom, modulações e, para cada acorde, o grau, a função, as marcações e as setas. Revise antes de aplicar.",
+      "button": "Assistente",
+      "shortcut": "Assistente de análise (Shift+A)",
+      "key": "Tonalidade",
+      "keyHintSong": "Tom da música: {key}.",
+      "keyHintNone": "A música não tem tom definido: escolha o tom inicial.",
+      "keyOption": "Tom de {key}",
+      "detected": "Detectado nos acordes",
+      "keyMismatch": "A cifra parece estar em {detected}, não em {key}. Confira o tom da música.",
+      "keyWillMark": "{key} será marcado como tom no primeiro acorde.",
+      "modulations": "Modulações",
+      "modulationsHint": "Seções que parecem estar em outro tom.",
+      "noModulations": "Nenhuma modulação evidente entre as seções.",
+      "atChord": "a partir de {chord}",
+      "fill": "Preencher",
+      "fields": {
+        "degrees": "Graus",
+        "functions": "Funções",
+        "marks": "Marcações",
+        "connections": "Setas e colchetes"
+      },
+      "fieldHints": {
+        "degrees": "IIm7, V7/II, SubV7, bVII7…",
+        "functions": "T, SD e D de cada acorde",
+        "marks": "AEM, diminutos, pedal, clichê, aproximação",
+        "connections": "Resoluções, SubV, II–V e cadências de engano"
+      },
+      "scope": "O que já está escrito",
+      "scopeEmpty": "Manter",
+      "scopeAll": "Substituir",
+      "overwriteWarning": "{count, plural, =1 {# grau já escrito será substituído} other {# graus já escritos serão substituídos}} (dá para desfazer).",
+      "onlyRange": "Só a seleção ({from} → {to}, {count} acordes)",
+      "writing": "Escrita dos graus",
+      "writingHint": "Como as qualidades aparecem nos graus.",
+      "modes": {
+        "written": "Como na cifra",
+        "tetrads": "Tétrades",
+        "triads": "Tríades"
+      },
+      "tensions": "Incluir tensões (7(9), 7(b13)…)",
+      "counts": {
+        "degrees": "{count, plural, =0 {Nenhum grau} =1 {# grau} other {# graus}}",
+        "functions": "{count, plural, =0 {Nenhuma função} =1 {# função} other {# funções}}",
+        "marks": "{count, plural, =0 {Nenhuma marcação} =1 {# marcação} other {# marcações}}",
+        "connections": "{count, plural, =0 {Nenhuma seta} =1 {# seta} other {# setas}}",
+        "keys": "{count, plural, =0 {Nenhum tom} =1 {# tom} other {# tons}}"
+      },
+      "preview": {
+        "chord": "Acorde",
+        "degree": "Grau",
+        "reason": "Leitura",
+        "nothing": "Nada a preencher com estas opções.",
+        "linesOnly": "Só setas e tons serão acrescentados."
+      },
+      "confidence": {
+        "high": "Leitura segura",
+        "medium": "Provável",
+        "low": "Confira"
+      },
+      "lowHint": "{count, plural, =1 {# leitura merece} other {# leituras merecem}} conferência: acordes cromáticos podem ter mais de uma interpretação.",
+      "undoHint": "Tudo é aplicado em um passo só: Ctrl+Z desfaz.",
+      "cancel": "Cancelar",
+      "apply": "Aplicar",
+      "applied": "Assistente aplicado: {degrees} graus · {functions} funções · {marks} marcações · {connections} setas · {keys} tons.",
+      "reasons": {
+        "diatonic": "Diatônico",
+        "dominant": "Dominante primária",
+        "secondaryDominant": "Dominante secundária",
+        "unresolvedDominant": "Dominante secundária (sem resolução)",
+        "substitute": "Dominante substituta",
+        "backdoor": "Cadência backdoor",
+        "relatedTwo": "II relativo (II–V secundário)",
+        "borrowed": "Empréstimo modal",
+        "neapolitan": "Napolitano",
+        "diminishedAscending": "Diminuto ascendente",
+        "diminishedDescending": "Diminuto descendente",
+        "diminishedAuxiliary": "Diminuto auxiliar",
+        "diminished": "Diminuto",
+        "approach": "Aproximação cromática",
+        "chromatic": "Cromático"
+      }
+    },
+    "shortcutsDialog": {
+      "title": "Atalhos de teclado",
+      "description": "Analise sem tirar as mãos do teclado.",
+      "groups": {
+        "navigate": "Navegar",
+        "write": "Escrever",
+        "document": "Documento"
+      },
+      "keys": {
+        "move": "Acorde anterior / próximo",
+        "extend": "Ampliar a seleção",
+        "extendClick": "Selecionar vários acordes",
+        "escape": "Cancelar / desfazer a seleção",
+        "degree": "Ir ao campo do grau",
+        "diatonic": "Grau diatônico (com a qualidade do acorde)",
+        "suggestion": "Aceitar a sugestão do assistente",
+        "functions": "Tônica, subdominante, dominante",
+        "aem": "Marcar empréstimo modal (AEM)",
+        "clear": "Limpar o acorde (ou a seleção)",
+        "undo": "Desfazer",
+        "redo": "Refazer",
+        "save": "Salvar agora",
+        "assistant": "Abrir o assistente",
+        "help": "Mostrar estes atalhos"
+      }
+    },
+    "review": {
+      "clean": "Nada a revisar",
+      "cleanHint": "Graus, setas e funções estão coerentes com a cifra.",
+      "count": "{warnings, plural, =0 {Nenhum alerta} =1 {# alerta} other {# alertas}} · {notes, plural, =0 {nenhuma observação} =1 {# observação} other {# observações}}",
+      "warning": "Alerta",
+      "info": "Observação",
+      "goTo": "Ir para {chord}",
+      "use": "Usar {value}",
+      "removeLine": "Remover a linha",
+      "removePassage": "Remover o trecho",
+      "setKey": "Definir o tom",
+      "items": {
+        "rootMismatch": {
+          "title": "O grau de {chord} não corresponde à fundamental",
+          "description": "No tom em vigor, a fundamental de {chord} (acorde {position}) cai em outro grau."
+        },
+        "qualityMismatch": {
+          "title": "A qualidade do grau não bate com {chord}",
+          "description": "O grau escrito é de outra família (maior, menor ou diminuto) que o acorde {position}."
+        },
+        "dominantTarget": {
+          "title": "A seta de {chord} não resolve uma quinta abaixo",
+          "description": "Uma resolução de dominante vai uma quinta justa abaixo. Talvez seja uma resolução deceptiva ou uma relação livre."
+        },
+        "subVTarget": {
+          "title": "O SubV {chord} não resolve meio tom abaixo",
+          "description": "A dominante substituta resolve descendo meio tom. Confira o destino da seta tracejada."
+        },
+        "twoFiveShape": {
+          "title": "O II–V a partir de {chord} não é um II–V",
+          "description": "O colchete liga um acorde menor (ou meio-diminuto) ao dominante uma quarta acima."
+        },
+        "unresolved": {
+          "title": "{chord} não vai para onde o grau indica",
+          "description": "O dominante secundário segue para outro acorde. Se for intencional, marque uma resolução deceptiva ou anote o efeito."
+        },
+        "functionConflict": {
+          "title": "A função de {chord} difere da leitura do grau",
+          "description": "Pelo grau escrito, a função esperada seria {expected}. Pode ser intencional — vale uma nota."
+        },
+        "emptyPassage": {
+          "title": "Trecho sem texto a partir de {chord}",
+          "description": "Este trecho destacado ainda não tem anotação."
+        },
+        "noKey": {
+          "title": "A análise não tem tonalidade",
+          "description": "Sem um tom, graus não podem ser conferidos com os acordes. Defina o tom da música ou marque o tom no primeiro acorde."
+        }
+      }
+    },
+    "insights": {
+      "empty": "Sem acordes para analisar.",
+      "complexity": "Complexidade harmônica",
+      "complexityValue": "Índice {score} de 100",
+      "levels": {
+        "simple": "Simples",
+        "moderate": "Moderada",
+        "rich": "Rica",
+        "advanced": "Avançada"
+      },
+      "levelHints": {
+        "simple": "Harmonia essencialmente diatônica.",
+        "moderate": "Diatônica com algumas cores fora do tom.",
+        "rich": "Uso frequente de dominantes secundárias, empréstimos e tensões.",
+        "advanced": "Cromatismo intenso, modulações e vocabulário amplo."
+      },
+      "vocabulary": "{chords, plural, =1 {# acorde diferente} other {# acordes diferentes}} · {degrees, plural, =1 {# grau} other {# graus}}",
+      "coverage": "{analysed} escritos · {inferred} lidos pelo assistente",
+      "functions": "Funções harmônicas",
+      "functionsHint": "Quanto da música é repouso, afastamento e tensão.",
+      "noFunction": "Sem função",
+      "categories": "Tipos de acorde",
+      "categoriesHint": "Dentro do tom e fora dele.",
+      "categoryNames": {
+        "diatonic": "Diatônicos",
+        "secondaryDominant": "Dominantes secundárias",
+        "substitute": "Dominantes substitutas",
+        "relatedTwo": "II relativos",
+        "borrowed": "Empréstimos modais",
+        "diminished": "Diminutos",
+        "chromatic": "Outros cromáticos"
+      },
+      "degrees": "Graus mais usados",
+      "flow": "Fluxo funcional",
+      "flowHint": "Quantas vezes cada função (linha) segue para outra (coluna).",
+      "flowFrom": "De → para",
+      "flowCell": "{from} → {to}: {count}",
+      "motion": "Movimento das fundamentais",
+      "motionHint": "Quartas acima (quintas abaixo) são o movimento cadencial por excelência.",
+      "motions": {
+        "fourthUp": "Quarta acima (quinta abaixo)",
+        "fifthUp": "Quinta acima",
+        "stepUp": "Tom acima",
+        "stepDown": "Tom abaixo",
+        "halfUp": "Semitom acima",
+        "halfDown": "Semitom abaixo",
+        "thirdUp": "Terça acima",
+        "thirdDown": "Terça abaixo",
+        "tritone": "Trítono"
+      },
+      "progressions": "Progressões recorrentes",
+      "progressionsHint": "Sequências de graus que a música repete.",
+      "noProgressions": "Nenhuma sequência de graus se repete ainda.",
+      "regions": "Regiões tonais",
+      "regionsHint": "Os tons que a música percorre, em ordem.",
+      "regionRange": "{key}: acordes {from}–{to}",
+      "regionCount": "{count, plural, =1 {Um único centro tonal.} other {# centros tonais.}}"
+    },
+    "sections": {
+      "title": "Progressão por seção",
+      "hint": "A cifra em graus, seção por seção — como se lê para transpor ou ensinar.",
+      "untitled": "Início",
+      "empty": "A cifra não tem seções com acordes.",
+      "inferredHint": "Em itálico: leitura do assistente para acordes ainda sem grau."
+    },
+    "field": {
+      "key": "Tom do campo harmônico",
+      "keyOption": "Tom de {key}",
+      "set": "Tríades ou tétrades",
+      "tetrads": "Tétrades",
+      "triads": "Tríades",
+      "fields": "Campos",
+      "names": {
+        "major": "Maior",
+        "naturalMinor": "Menor natural",
+        "harmonicMinor": "Menor harmônica",
+        "melodicMinor": "Menor melódica",
+        "secondaryDominants": "Dominantes secundárias",
+        "relatedTwos": "II relativos",
+        "substitutes": "SubV",
+        "borrowed": "Empréstimos (AEM)",
+        "diminished": "Diminutos"
+      },
+      "hints": {
+        "major": "Os acordes do tom maior, com função e escala de cada grau.",
+        "naturalMinor": "O campo do modo eólio: o tom menor sem alterações.",
+        "harmonicMinor": "Com a sensível: dá o V7 e o VII° que resolvem na tônica menor.",
+        "melodicMinor": "Sexto e sétimo graus elevados: IV7, V7 e cores do jazz.",
+        "secondaryDominants": "O V7 de cada grau: tonicizam um acorde por um instante.",
+        "relatedTwos": "O II cadencial de cada dominante secundária (II–V secundário).",
+        "substitutes": "Mesmo trítono do V7, resolvendo meio tom abaixo.",
+        "borrowed": "Acordes do tom homônimo que colorem a harmonia sem modular.",
+        "diminished": "Passagens cromáticas: ascendentes (♯), descendentes (♭) e auxiliares."
+      },
+      "inSong": "Usado nesta música",
+      "inSongHint": "Acordes que aparecem nesta música.",
+      "pick": "Usar {degree} neste acorde",
+      "overviewHint": "Referência do tom: escolha um campo para ver os acordes, funções e escalas. Com um acorde selecionado, o campo também aparece no inspetor e escreve o grau com um toque."
+    },
+    "chordFacts": {
+      "notes": "Notas do acorde",
+      "inversion": {
+        "first": "1ª inversão: baixo na terça ({bass}).",
+        "second": "2ª inversão: baixo na quinta ({bass}).",
+        "third": "3ª inversão: baixo na sétima ({bass}).",
+        "foreign": "Baixo em {bass}, nota estranha ao acorde (baixo pedal ou linha de baixo)."
+      },
+      "scale": "Escala sugerida",
+      "noKey": "sem tom: escala genérica",
+      "customScale": "(escala própria)",
+      "scaleTones": "Notas da escala",
+      "roles": {
+        "chord": "Nota do acorde",
+        "tension": "Tensão disponível",
+        "avoid": "Nota a evitar"
+      },
+      "keyboard": "Teclado com as notas {notes}",
+      "alternatives": "Também funcionam: {scales}."
+    },
+    "scales": {
+      "ionian": "jônio",
+      "dorian": "dórico",
+      "phrygian": "frígio",
+      "lydian": "lídio",
+      "mixolydian": "mixolídio",
+      "aeolian": "eólio",
+      "locrian": "lócrio",
+      "locrianNat2": "lócrio ♮2",
+      "harmonicMinor": "menor harmônica",
+      "melodicMinor": "menor melódica",
+      "mixolydianB13": "mixolídio ♭13",
+      "mixolydianB9B13": "mixolídio ♭9 ♭13",
+      "lydianDominant": "lídio ♭7",
+      "lydianAugmented": "lídio aumentado",
+      "ionianAugmented": "jônio aumentado",
+      "locrianNat6": "lócrio ♮6",
+      "dorianSharp4": "dórico ♯4",
+      "altered": "alterada (superlócria)",
+      "dorianB2": "dórico ♭2",
+      "dominantDiminished": "dominante diminuta (semitom–tom)",
+      "diminished": "diminuta (tom–semitom)",
+      "wholeTone": "tons inteiros"
     }
   }
 }

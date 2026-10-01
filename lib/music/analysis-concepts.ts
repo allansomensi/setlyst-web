@@ -364,7 +364,10 @@ export type PatternId =
   | "perfectCadence"
   | "deceptiveCadence"
   | "plagalCadence"
-  | "backdoorCadence";
+  | "minorPlagalCadence"
+  | "backdoorCadence"
+  | "turnaround"
+  | "andalusian";
 
 export interface Pattern {
   id: PatternId;
@@ -495,7 +498,13 @@ export function findPatterns(
     } else if (aFive && !b.degree.target && (bRoot === 9 || bRoot === 8)) {
       patterns.push({ id: "deceptiveCadence", chords: [a.index, b.index] });
     } else if (aPlain && aRoot === 5 && bOnTonic) {
-      patterns.push({ id: "plagalCadence", chords: [a.index, b.index] });
+      patterns.push({
+        id:
+          aQuality === "minor" && qualityOf(b.degree.quality) !== "minor"
+            ? "minorPlagalCadence"
+            : "plagalCadence",
+        chords: [a.index, b.index],
+      });
     } else if (
       aPlain &&
       aRoot === 10 &&
@@ -503,6 +512,27 @@ export function findPatterns(
       bOnTonic
     ) {
       patterns.push({ id: "backdoorCadence", chords: [a.index, b.index] });
+    }
+  }
+
+  // Four-chord formulas: the turnaround (I – VI – II – V, however the VI
+  // and the II are coloured) and the Andalusian cadence (Im – bVII – bVI
+  // – V, a bass walking down the minor tetrachord).
+  for (let i = 0; i + 3 < chords.length; i++) {
+    const run = [chords[i], next(i), next(i + 1), next(i + 2)];
+    if (run.some((c) => !c)) continue;
+    const four = run as { index: number; degree: Degree }[];
+    // A turnaround spelled with secondaries (I – V7/II – IIm7 – V7) is
+    // still one: the roots decide.
+    const roots = four.map((c) => rootOf(c.degree)).join();
+    if (roots === "0,9,2,7" || roots === "4,9,2,7") {
+      patterns.push({ id: "turnaround", chords: four.map((c) => c.index) });
+    } else if (
+      roots === "0,10,8,7" &&
+      four.every((c) => !c.degree.target && !c.degree.sub) &&
+      qualityOf(four[0].degree.quality) === "minor"
+    ) {
+      patterns.push({ id: "andalusian", chords: four.map((c) => c.index) });
     }
   }
 

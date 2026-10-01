@@ -5581,7 +5581,7 @@
     "undoShortcut": "Undo (Ctrl+Z)",
     "redoShortcut": "Redo (Ctrl+Shift+Z)",
     "deleted": "Analysis removed.",
-    "shortcuts": "Shortcuts: ← → move between chords · Delete clears a chord · Esc cancels · Ctrl+Z undoes",
+    "shortcuts": "Shortcuts: ← → move between chords · Shift selects several · 1–7 diatonic degree · T/S/D function · G accepts the suggestion · Ctrl+Z undoes.",
     "mode": {
       "label": "Mode",
       "edit": "Edit",
@@ -5605,7 +5605,13 @@
       "twoFive": "Cadential II–V",
       "bracket": "Bracket",
       "dottedArrow": "Dotted arrow",
-      "readOnlyHint": "In this view only: you can't edit this analysis."
+      "readOnlyHint": "In this view only: you can't edit this analysis.",
+      "notation": "Quality notation",
+      "notationBr": "Brazilian (7M, m7(b5), °)",
+      "notationIntl": "International (maj7, m7b5, °7)",
+      "device": "On this device",
+      "timeline": "Harmonic map",
+      "ghosts": "Assistant suggestions on the chart"
     },
     "delete": {
       "action": "Remove analysis",
@@ -5624,7 +5630,8 @@
     },
     "start": {
       "title": "Start with a chord",
-      "description": "Tap a chord to write its degree, function and marks, draw resolution arrows and annotate passages."
+      "description": "Tap a chord to write its degree, function and marks, draw resolution arrows and annotate passages.",
+      "assistant": "Analyse with the assistant"
     },
     "noChords": {
       "title": "This song has no chords yet",
@@ -5639,7 +5646,8 @@
       "cancel": "Cancel"
     },
     "sheet": {
-      "chordLabel": "Chord {chord}"
+      "chordLabel": "Chord {chord}",
+      "suggested": "Assistant suggestion — select the chord and press G to accept"
     },
     "overview": {
       "progress": "Progress",
@@ -5650,7 +5658,9 @@
       "notes": "Notes",
       "noNotes": "Chord and passage notes show up here, numbered.",
       "legend": "Legend",
-      "nothingYet": "No arrows or marks yet."
+      "nothingYet": "No arrows or marks yet.",
+      "assistantCta": "{count, plural, =1 {Fill # chord with the assistant} other {Fill # chords with the assistant}}",
+      "noSummary": "No general remarks."
     },
     "footnotes": {
       "chord": "{chord}",
@@ -5726,7 +5736,15 @@
       "passagePlaceholder": "E.g. II–V–I in the key of the subdominant",
       "passageText": "Passage text",
       "removePassage": "Remove passage",
-      "clearChord": "Clear everything on this chord"
+      "clearChord": "Clear everything on this chord",
+      "field": "Field",
+      "fieldHint": "Pick the degree from the key's harmonic field",
+      "suggestion": "Assistant suggestion",
+      "accept": "Accept",
+      "acceptShortcut": "Accept the suggestion (G)",
+      "accepted": "{count, plural, =1 {# suggestion accepted} other {# suggestions accepted}}.",
+      "facts": "Notes and scale",
+      "factsHint": "The chord's notes and the scale it implies here."
     },
     "functions": {
       "T": {
@@ -5831,7 +5849,13 @@
       "notes": "Notes",
       "summary": "Remarks",
       "byline": "Analysis by {author}",
-      "bylineAnonymous": "Harmonic analysis"
+      "bylineAnonymous": "Harmonic analysis",
+      "sections": "Progression by section",
+      "insights": "Harmonic summary",
+      "sectionsOption": "Progression by section",
+      "insightsOption": "Statistical summary",
+      "pdf": "Download PDF",
+      "pdfDone": "PDF downloaded."
     },
     "concepts": {
       "tonic": {
@@ -5970,6 +5994,18 @@
       "backdoorCadence": {
         "name": "Backdoor cadence (bVII7 → I)",
         "hint": "The dominant \"through the back door\": the bVII7 resolves on the tonic, a whole step up."
+      },
+      "minorPlagalCadence": {
+        "name": "Minor plagal cadence (IVm → I)",
+        "hint": "The minor subdominant, borrowed from the parallel key, resolves straight to the major tonic."
+      },
+      "turnaround": {
+        "name": "Turnaround (I – VI – II – V)",
+        "hint": "The cycle that brings the harmony back to the tonic; the VI and II often become secondary dominants."
+      },
+      "andalusian": {
+        "name": "Andalusian cadence (Im – bVII – bVI – V)",
+        "hint": "The bass walks down the minor tetrachord to the dominant."
       }
     },
     "reading": {
@@ -5984,6 +6020,374 @@
       "occurrences": "{count}×",
       "occurrencesTitle": "Occurs {count} times",
       "occurrence": "Go to occurrence {n} of {count}"
+    },
+    "allShortcuts": "See all",
+    "detectedKey": {
+      "text": "This song has no key set. From its chords, it seems to be in {key} ({confidence}% confidence).",
+      "use": "Mark {key} as the starting key"
+    },
+    "side": {
+      "overview": "Overview",
+      "reading": "Harmonic reading",
+      "insights": "Statistics",
+      "review": "Review",
+      "field": "Harmonic field"
+    },
+    "viewTabs": {
+      "reading": "Cadences",
+      "sections": "Progression by section",
+      "insights": "Statistics",
+      "notes": "Legend and notes"
+    },
+    "exportMenu": {
+      "title": "Export",
+      "image": "Image or PDF…",
+      "copyText": "Copy as text",
+      "markdown": "Download Markdown (.md)"
+    },
+    "textExport": {
+      "copied": "Analysis copied as text.",
+      "failed": "Couldn't copy.",
+      "downloaded": "Markdown file downloaded."
+    },
+    "transpose": {
+      "label": "View in another key",
+      "down": "Half step down",
+      "up": "Half step up",
+      "reset": "Back to the original key",
+      "key": "Key: {key}",
+      "original": "Original key",
+      "semitones": "{shift} st",
+      "notice": "Viewing the chart transposed ({shift} st). The degrees don't change — that's what makes them useful.",
+      "noticeKey": "Viewing the chart in {key} ({shift} st). The degrees don't change — that's what makes them useful."
+    },
+    "timeline": {
+      "title": "Harmonic map",
+      "inferred": "read by the assistant",
+      "region": "Key of {key}",
+      "none": "No function",
+      "inferredLegend": "Read by the assistant"
+    },
+    "bulk": {
+      "title": "{count} chords selected",
+      "close": "Clear the selection",
+      "hint": "Shift + click or Shift + arrows extend the selection. Tap a chord to go to it.",
+      "assistant": "Assistant",
+      "fill": "{count, plural, =1 {Fill # chord with no degree} other {Fill # chords with no degree}}",
+      "filled": "They all have a degree",
+      "openAssistant": "Open the assistant for the selection…",
+      "function": "Function for all",
+      "noFunction": "No function",
+      "marks": "Marks",
+      "more": "More",
+      "annotate": "Annotate this passage",
+      "copy": "Copy the degrees",
+      "clear": "Clear everything in the selection",
+      "copied": "Degrees copied.",
+      "copyFailed": "Couldn't copy."
+    },
+    "assistant": {
+      "title": "Analysis assistant",
+      "description": "A first reading of the chart, the way a teacher would do it: the key, the modulations and, for each chord, its degree, function, marks and arrows. Review before applying.",
+      "button": "Assistant",
+      "shortcut": "Analysis assistant (Shift+A)",
+      "key": "Key",
+      "keyHintSong": "The song's key: {key}.",
+      "keyHintNone": "The song has no key set: pick the starting key.",
+      "keyOption": "Key of {key}",
+      "detected": "Detected from the chords",
+      "keyMismatch": "The chart seems to be in {detected}, not {key}. Check the song's key.",
+      "keyWillMark": "{key} will be marked as the key on the first chord.",
+      "modulations": "Modulations",
+      "modulationsHint": "Sections that seem to be in another key.",
+      "noModulations": "No clear modulation between sections.",
+      "atChord": "from {chord}",
+      "fill": "Fill in",
+      "fields": {
+        "degrees": "Degrees",
+        "functions": "Functions",
+        "marks": "Marks",
+        "connections": "Arrows and brackets"
+      },
+      "fieldHints": {
+        "degrees": "IIm7, V7/II, SubV7, bVII7…",
+        "functions": "T, SD and D for each chord",
+        "marks": "Borrowed, diminished, pedal, cliché, approach",
+        "connections": "Resolutions, SubV, II–V and deceptive cadences"
+      },
+      "scope": "What's already written",
+      "scopeEmpty": "Keep",
+      "scopeAll": "Replace",
+      "overwriteWarning": "{count, plural, =1 {# degree already written will be replaced} other {# degrees already written will be replaced}} (you can undo it).",
+      "onlyRange": "Only the selection ({from} → {to}, {count} chords)",
+      "writing": "Writing the degrees",
+      "writingHint": "How qualities appear in the degrees.",
+      "modes": {
+        "written": "As charted",
+        "tetrads": "Sevenths",
+        "triads": "Triads"
+      },
+      "tensions": "Include tensions (7(9), 7(b13)…)",
+      "counts": {
+        "degrees": "{count, plural, =0 {No degrees} =1 {# degree} other {# degrees}}",
+        "functions": "{count, plural, =0 {No functions} =1 {# function} other {# functions}}",
+        "marks": "{count, plural, =0 {No marks} =1 {# mark} other {# marks}}",
+        "connections": "{count, plural, =0 {No arrows} =1 {# arrow} other {# arrows}}",
+        "keys": "{count, plural, =0 {No keys} =1 {# key} other {# keys}}"
+      },
+      "preview": {
+        "chord": "Chord",
+        "degree": "Degree",
+        "reason": "Reading",
+        "nothing": "Nothing to fill in with these options.",
+        "linesOnly": "Only arrows and keys will be added."
+      },
+      "confidence": {
+        "high": "Sure reading",
+        "medium": "Likely",
+        "low": "Check it"
+      },
+      "lowHint": "{count, plural, =1 {# reading is} other {# readings are}} worth checking: chromatic chords can be read more than one way.",
+      "undoHint": "Everything is applied in one step: Ctrl+Z undoes it.",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "applied": "Assistant applied: {degrees} degrees · {functions} functions · {marks} marks · {connections} arrows · {keys} keys.",
+      "reasons": {
+        "diatonic": "Diatonic",
+        "dominant": "Primary dominant",
+        "secondaryDominant": "Secondary dominant",
+        "unresolvedDominant": "Secondary dominant (unresolved)",
+        "substitute": "Tritone substitute",
+        "backdoor": "Backdoor cadence",
+        "relatedTwo": "Related II (secondary II–V)",
+        "borrowed": "Modal interchange",
+        "neapolitan": "Neapolitan",
+        "diminishedAscending": "Ascending diminished",
+        "diminishedDescending": "Descending diminished",
+        "diminishedAuxiliary": "Auxiliary diminished",
+        "diminished": "Diminished",
+        "approach": "Chromatic approach",
+        "chromatic": "Chromatic"
+      }
+    },
+    "shortcutsDialog": {
+      "title": "Keyboard shortcuts",
+      "description": "Analyse without leaving the keyboard.",
+      "groups": {
+        "navigate": "Navigate",
+        "write": "Write",
+        "document": "Document"
+      },
+      "keys": {
+        "move": "Previous / next chord",
+        "extend": "Extend the selection",
+        "extendClick": "Select several chords",
+        "escape": "Cancel / clear the selection",
+        "degree": "Go to the degree field",
+        "diatonic": "Diatonic degree (with the chord's quality)",
+        "suggestion": "Accept the assistant's suggestion",
+        "functions": "Tonic, subdominant, dominant",
+        "aem": "Mark modal interchange",
+        "clear": "Clear the chord (or the selection)",
+        "undo": "Undo",
+        "redo": "Redo",
+        "save": "Save now",
+        "assistant": "Open the assistant",
+        "help": "Show these shortcuts"
+      }
+    },
+    "review": {
+      "clean": "Nothing to review",
+      "cleanHint": "Degrees, arrows and functions agree with the chart.",
+      "count": "{warnings, plural, =0 {No warnings} =1 {# warning} other {# warnings}} · {notes, plural, =0 {no remarks} =1 {# remark} other {# remarks}}",
+      "warning": "Warning",
+      "info": "Remark",
+      "goTo": "Go to {chord}",
+      "use": "Use {value}",
+      "removeLine": "Remove the line",
+      "removePassage": "Remove the passage",
+      "setKey": "Set the key",
+      "items": {
+        "rootMismatch": {
+          "title": "The degree of {chord} doesn't match its root",
+          "description": "In the key in force, the root of {chord} (chord {position}) falls on another degree."
+        },
+        "qualityMismatch": {
+          "title": "The degree's quality doesn't match {chord}",
+          "description": "The written degree belongs to another family (major, minor or diminished) than chord {position}."
+        },
+        "dominantTarget": {
+          "title": "The arrow from {chord} doesn't resolve a fifth down",
+          "description": "A dominant resolution falls a perfect fifth. It may be a deceptive resolution or a free relation."
+        },
+        "subVTarget": {
+          "title": "The SubV {chord} doesn't resolve a half step down",
+          "description": "A tritone substitute resolves down a half step. Check where the dashed arrow lands."
+        },
+        "twoFiveShape": {
+          "title": "The II–V from {chord} isn't a II–V",
+          "description": "The bracket joins a minor (or half-diminished) chord to the dominant a fourth above."
+        },
+        "unresolved": {
+          "title": "{chord} doesn't go where its degree says",
+          "description": "The secondary dominant moves to another chord. If that's intended, mark a deceptive resolution or note the effect."
+        },
+        "functionConflict": {
+          "title": "The function of {chord} differs from its degree",
+          "description": "From the written degree, the expected function would be {expected}. It may be deliberate — worth a note."
+        },
+        "emptyPassage": {
+          "title": "Passage from {chord} has no text",
+          "description": "This highlighted passage has no annotation yet."
+        },
+        "noKey": {
+          "title": "The analysis has no key",
+          "description": "Without a key, degrees can't be checked against the chords. Set the song's key or mark the key on the first chord."
+        }
+      }
+    },
+    "insights": {
+      "empty": "No chords to analyse.",
+      "complexity": "Harmonic complexity",
+      "complexityValue": "Score {score} out of 100",
+      "levels": {
+        "simple": "Simple",
+        "moderate": "Moderate",
+        "rich": "Rich",
+        "advanced": "Advanced"
+      },
+      "levelHints": {
+        "simple": "Essentially diatonic harmony.",
+        "moderate": "Diatonic with a few colours from outside the key.",
+        "rich": "Frequent secondary dominants, borrowed chords and tensions.",
+        "advanced": "Heavy chromaticism, modulations and a wide vocabulary."
+      },
+      "vocabulary": "{chords, plural, =1 {# distinct chord} other {# distinct chords}} · {degrees, plural, =1 {# degree} other {# degrees}}",
+      "coverage": "{analysed} written · {inferred} read by the assistant",
+      "functions": "Harmonic functions",
+      "functionsHint": "How much of the song is rest, departure and tension.",
+      "noFunction": "No function",
+      "categories": "Kinds of chords",
+      "categoriesHint": "Inside the key and outside it.",
+      "categoryNames": {
+        "diatonic": "Diatonic",
+        "secondaryDominant": "Secondary dominants",
+        "substitute": "Tritone substitutes",
+        "relatedTwo": "Related IIs",
+        "borrowed": "Borrowed chords",
+        "diminished": "Diminished",
+        "chromatic": "Other chromatic"
+      },
+      "degrees": "Most used degrees",
+      "flow": "Functional flow",
+      "flowHint": "How often each function (row) moves to another (column).",
+      "flowFrom": "From → to",
+      "flowCell": "{from} → {to}: {count}",
+      "motion": "Root motion",
+      "motionHint": "Fourths up (fifths down) are the cadential motion par excellence.",
+      "motions": {
+        "fourthUp": "Fourth up (fifth down)",
+        "fifthUp": "Fifth up",
+        "stepUp": "Whole step up",
+        "stepDown": "Whole step down",
+        "halfUp": "Half step up",
+        "halfDown": "Half step down",
+        "thirdUp": "Third up",
+        "thirdDown": "Third down",
+        "tritone": "Tritone"
+      },
+      "progressions": "Recurring progressions",
+      "progressionsHint": "Runs of degrees the song repeats.",
+      "noProgressions": "No run of degrees repeats yet.",
+      "regions": "Key areas",
+      "regionsHint": "The keys the song goes through, in order.",
+      "regionRange": "{key}: chords {from}–{to}",
+      "regionCount": "{count, plural, =1 {A single tonal centre.} other {# tonal centres.}}"
+    },
+    "sections": {
+      "title": "Progression by section",
+      "hint": "The chart in degrees, section by section — how it's read to transpose or teach it.",
+      "untitled": "Start",
+      "empty": "The chart has no sections with chords.",
+      "inferredHint": "In italics: the assistant's reading of chords with no degree yet."
+    },
+    "field": {
+      "key": "Key of the harmonic field",
+      "keyOption": "Key of {key}",
+      "set": "Triads or sevenths",
+      "tetrads": "Sevenths",
+      "triads": "Triads",
+      "fields": "Fields",
+      "names": {
+        "major": "Major",
+        "naturalMinor": "Natural minor",
+        "harmonicMinor": "Harmonic minor",
+        "melodicMinor": "Melodic minor",
+        "secondaryDominants": "Secondary dominants",
+        "relatedTwos": "Related IIs",
+        "substitutes": "SubV",
+        "borrowed": "Borrowed",
+        "diminished": "Diminished"
+      },
+      "hints": {
+        "major": "The chords of the major key, with each degree's function and scale.",
+        "naturalMinor": "The Aeolian field: the minor key with no alterations.",
+        "harmonicMinor": "With the leading tone: gives the V7 and VII° that resolve to the minor tonic.",
+        "melodicMinor": "Raised sixth and seventh: IV7, V7 and jazz colours.",
+        "secondaryDominants": "The V7 of each degree: they tonicise a chord for a moment.",
+        "relatedTwos": "The II of each secondary dominant (secondary II–V).",
+        "substitutes": "Same tritone as the V7, resolving a half step down.",
+        "borrowed": "Chords from the parallel key that colour the harmony without modulating.",
+        "diminished": "Chromatic passing chords: ascending (♯), descending (♭) and auxiliary."
+      },
+      "inSong": "Used in this song",
+      "inSongHint": "Chords that appear in this song.",
+      "pick": "Use {degree} on this chord",
+      "overviewHint": "A reference for the key: pick a field to see its chords, functions and scales. With a chord selected, the field also shows in the inspector and writes the degree in one tap."
+    },
+    "chordFacts": {
+      "notes": "Chord notes",
+      "inversion": {
+        "first": "First inversion: third in the bass ({bass}).",
+        "second": "Second inversion: fifth in the bass ({bass}).",
+        "third": "Third inversion: seventh in the bass ({bass}).",
+        "foreign": "{bass} in the bass, outside the chord (a pedal or a bass line)."
+      },
+      "scale": "Suggested scale",
+      "noKey": "no key: a generic scale",
+      "customScale": "(its own scale)",
+      "scaleTones": "Scale notes",
+      "roles": {
+        "chord": "Chord tone",
+        "tension": "Available tension",
+        "avoid": "Avoid note"
+      },
+      "keyboard": "Keyboard with the notes {notes}",
+      "alternatives": "Also work: {scales}."
+    },
+    "scales": {
+      "ionian": "Ionian",
+      "dorian": "Dorian",
+      "phrygian": "Phrygian",
+      "lydian": "Lydian",
+      "mixolydian": "Mixolydian",
+      "aeolian": "Aeolian",
+      "locrian": "Locrian",
+      "locrianNat2": "Locrian ♮2",
+      "harmonicMinor": "harmonic minor",
+      "melodicMinor": "melodic minor",
+      "mixolydianB13": "Mixolydian ♭13",
+      "mixolydianB9B13": "Mixolydian ♭9 ♭13",
+      "lydianDominant": "Lydian ♭7",
+      "lydianAugmented": "Lydian augmented",
+      "ionianAugmented": "Ionian augmented",
+      "locrianNat6": "Locrian ♮6",
+      "dorianSharp4": "Dorian ♯4",
+      "altered": "altered (super Locrian)",
+      "dorianB2": "Dorian ♭2",
+      "dominantDiminished": "dominant diminished (half–whole)",
+      "diminished": "diminished (whole–half)",
+      "wholeTone": "whole tone"
     }
   }
 }

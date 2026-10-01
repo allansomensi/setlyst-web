@@ -17,6 +17,7 @@ import {
   sameChordTargets,
   setEntry,
   setKeyMark,
+  transposeLines,
 } from "@/lib/music/analysis";
 
 const chart = [
@@ -124,6 +125,7 @@ describe("normalizeAnalysis", () => {
       showChords: true,
       showFunctions: false,
       twoFiveStyle: "bracket",
+      qualityStyle: "br",
     });
     expect(normalizeAnalysis("nope")).toEqual(emptyAnalysis());
   });
@@ -218,5 +220,22 @@ describe("reconcile", () => {
     const result = reconcile(a, ["C", "G"]);
     expect(result).toMatchObject({ changed: false, lost: 0 });
     expect(result.analysis.entries).toEqual(a.entries);
+  });
+});
+
+describe("transposeLines", () => {
+  it("moves the chords and leaves everything else", () => {
+    const { lines } = sheetOf("[Verse]\n[Dm7]Hello [(G7)]old [C7M]friend");
+    const moved = transposeLines(lines, 2, false);
+    const symbols = moved.flatMap((line) =>
+      line.kind === "chords"
+        ? line.words
+            .flat()
+            .flatMap((c) => (c.kind === "chord" ? [c.symbol] : []))
+        : [],
+    );
+    expect(symbols).toEqual(["Em7", "(A7)", "D7M"]);
+    expect(moved[0]).toBe(lines[0]);
+    expect(transposeLines(lines, 0, false)).toBe(lines);
   });
 });

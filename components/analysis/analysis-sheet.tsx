@@ -16,6 +16,7 @@ import {
   type Cell,
   type ChordEntry,
   type Connection,
+  type Degree,
   type HarmonicAnalysis,
   type SheetLine,
 } from "@/lib/music/analysis";
@@ -466,7 +467,15 @@ export interface AnalysisSheetProps {
   pending?: PendingPick | null;
   /** A connection to draw emphasised (hovered in the inspector). */
   highlightConnection?: string | null;
-  onChordClick?: (index: number) => void;
+  /** A run of chords selected together (Shift + click). */
+  range?: [number, number] | null;
+  /**
+   * The assistant's reading of chords not analysed yet, drawn faintly
+   * where their degree will go.
+   */
+  ghosts?: ReadonlyMap<number, Degree> | null;
+  /** `extend`: Shift was held, to select a run of chords. */
+  onChordClick?: (index: number, extend: boolean) => void;
   /** In `view` mode, chords carry `data-chord-symbol` for diagrams. */
   interactiveChords?: boolean;
   className?: string;
@@ -490,6 +499,8 @@ export function AnalysisSheet({
   selected = null,
   pending = null,
   highlightConnection = null,
+  range = null,
+  ghosts = null,
   onChordClick,
   interactiveChords = false,
   className,
@@ -536,6 +547,7 @@ export function AnalysisSheet({
     songKey,
     mode,
     selected,
+    ghosts,
   ]);
 
   const headingLabel = (line: Extract<SheetLine, { kind: "heading" }>) => {
@@ -584,6 +596,9 @@ export function AnalysisSheet({
       pendingRange !== null &&
       cell.index >= pendingRange[0] &&
       cell.index <= pendingRange[1];
+    const inRange =
+      range !== null && cell.index >= range[0] && cell.index <= range[1];
+    const ghost = !hasDegree ? (ghosts?.get(cell.index) ?? null) : null;
     const analysable = isAnalysableChord(cell.symbol);
     const fnColor =
       showFunctions && entry?.fn
@@ -603,6 +618,7 @@ export function AnalysisSheet({
       clickable &&
         "hover:bg-primary/10 focus-visible:ring-ring cursor-pointer outline-none focus-visible:ring-2",
       isSelected && "bg-primary/15 ring-primary ring-2",
+      inRange && !isSelected && "bg-primary/10 ring-primary/60 ring-1",
       isSource &&
         "outline-2 outline-offset-2 outline-dashed outline-[var(--an-dominant)]",
       inPendingRange && !isSelected && "bg-primary/10",
@@ -615,10 +631,20 @@ export function AnalysisSheet({
       </sup>
     );
 
+    const ghostContent = ghost && (
+      <span
+        className="italic opacity-45"
+        title={t("sheet.suggested")}
+        data-an-ghost=""
+      >
+        <DegreeText degree={ghost} />
+      </span>
+    );
+
     const degreeContent = (
       <>
         {keyName && <KeyFlag keyName={keyName} />}
-        <DegreeText degree={degree} />
+        {hasDegree ? <DegreeText degree={degree} /> : ghostContent}
       </>
     );
 
@@ -632,7 +658,9 @@ export function AnalysisSheet({
         ) : (
           <>
             {keyName && <KeyFlag keyName={keyName} />}
-            {clickable || !analysable ? (
+            {ghostContent ? (
+              ghostContent
+            ) : clickable || !analysable ? (
               <span className="text-muted-foreground font-mono text-[0.8em] font-semibold">
                 {cell.symbol}
               </span>
@@ -671,7 +699,7 @@ export function AnalysisSheet({
             aria-pressed={isSelected}
             aria-label={t("sheet.chordLabel", { chord: cell.symbol })}
             title={degreeHead ? cell.symbol : undefined}
-            onClick={() => onChordClick(cell.index)}
+            onClick={(event) => onChordClick(cell.index, event.shiftKey)}
             // Scrolled to above the inspector docked at the bottom of a
             // phone's screen.
             className={cn(

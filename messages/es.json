@@ -5581,7 +5581,7 @@
     "undoShortcut": "Deshacer (Ctrl+Z)",
     "redoShortcut": "Rehacer (Ctrl+Shift+Z)",
     "deleted": "Análisis eliminado.",
-    "shortcuts": "Atajos: ← → recorren los acordes · Supr limpia el acorde · Esc cancela · Ctrl+Z deshace",
+    "shortcuts": "Atajos: ← → recorren los acordes · Shift selecciona varios · 1–7 grado diatónico · T/S/D función · G acepta la sugerencia · Ctrl+Z deshace.",
     "mode": {
       "label": "Modo",
       "edit": "Editar",
@@ -5605,7 +5605,13 @@
       "twoFive": "II–V cadencial",
       "bracket": "Corchete",
       "dottedArrow": "Flecha punteada",
-      "readOnlyHint": "Solo en esta vista: no puedes editar este análisis."
+      "readOnlyHint": "Solo en esta vista: no puedes editar este análisis.",
+      "notation": "Notación de las cualidades",
+      "notationBr": "Brasileña (7M, m7(b5), °)",
+      "notationIntl": "Internacional (maj7, m7b5, °7)",
+      "device": "En este dispositivo",
+      "timeline": "Mapa armónico",
+      "ghosts": "Sugerencias del asistente en la partitura"
     },
     "delete": {
       "action": "Eliminar análisis",
@@ -5624,7 +5630,8 @@
     },
     "start": {
       "title": "Empieza por un acorde",
-      "description": "Toca un acorde para escribir su grado, función y marcas, dibujar las flechas de resolución y anotar pasajes."
+      "description": "Toca un acorde para escribir su grado, función y marcas, dibujar las flechas de resolución y anotar pasajes.",
+      "assistant": "Analizar con el asistente"
     },
     "noChords": {
       "title": "Esta canción aún no tiene acordes",
@@ -5639,7 +5646,8 @@
       "cancel": "Cancelar"
     },
     "sheet": {
-      "chordLabel": "Acorde {chord}"
+      "chordLabel": "Acorde {chord}",
+      "suggested": "Sugerencia del asistente: selecciona el acorde y pulsa G para aceptarla"
     },
     "overview": {
       "progress": "Progreso",
@@ -5650,7 +5658,9 @@
       "notes": "Notas",
       "noNotes": "Las notas de acordes y pasajes aparecen aquí, numeradas.",
       "legend": "Leyenda",
-      "nothingYet": "Aún no hay flechas ni marcas."
+      "nothingYet": "Aún no hay flechas ni marcas.",
+      "assistantCta": "{count, plural, =1 {Completar # acorde con el asistente} other {Completar # acordes con el asistente}}",
+      "noSummary": "Sin comentarios generales."
     },
     "footnotes": {
       "chord": "{chord}",
@@ -5726,7 +5736,15 @@
       "passagePlaceholder": "Ej.: cadencia II–V–I en el tono de la subdominante",
       "passageText": "Texto del pasaje",
       "removePassage": "Eliminar pasaje",
-      "clearChord": "Borrar todo de este acorde"
+      "clearChord": "Borrar todo de este acorde",
+      "field": "Campo",
+      "fieldHint": "Elegir el grado en el campo armónico de la tonalidad",
+      "suggestion": "Sugerencia del asistente",
+      "accept": "Aceptar",
+      "acceptShortcut": "Aceptar la sugerencia (G)",
+      "accepted": "{count, plural, =1 {# sugerencia aceptada} other {# sugerencias aceptadas}}.",
+      "facts": "Notas y escala",
+      "factsHint": "Las notas del acorde y la escala que sugiere en este contexto."
     },
     "functions": {
       "T": {
@@ -5831,7 +5849,13 @@
       "notes": "Notas",
       "summary": "Comentarios",
       "byline": "Análisis de {author}",
-      "bylineAnonymous": "Análisis armónico"
+      "bylineAnonymous": "Análisis armónico",
+      "sections": "Progresión por sección",
+      "insights": "Resumen armónico",
+      "sectionsOption": "Progresión por sección",
+      "insightsOption": "Resumen estadístico",
+      "pdf": "Descargar PDF",
+      "pdfDone": "PDF descargado."
     },
     "concepts": {
       "tonic": {
@@ -5970,6 +5994,18 @@
       "backdoorCadence": {
         "name": "Cadencia backdoor (bVII7 → I)",
         "hint": "La dominante \"por la puerta trasera\": el bVII7 resuelve en la tónica, un tono arriba."
+      },
+      "minorPlagalCadence": {
+        "name": "Cadencia plagal menor (IVm → I)",
+        "hint": "La subdominante menor, prestada de la tonalidad homónima, resuelve directo en la tónica mayor."
+      },
+      "turnaround": {
+        "name": "Turnaround (I – VI – II – V)",
+        "hint": "El ciclo que devuelve la armonía a la tónica; el VI y el II suelen volverse dominantes secundarias."
+      },
+      "andalusian": {
+        "name": "Cadencia andaluza (Im – bVII – bVI – V)",
+        "hint": "El bajo desciende el tetracordo menor hasta la dominante."
       }
     },
     "reading": {
@@ -5984,6 +6020,374 @@
       "occurrences": "{count}×",
       "occurrencesTitle": "Aparece {count} veces",
       "occurrence": "Ir a la aparición {n} de {count}"
+    },
+    "allShortcuts": "Ver todos",
+    "detectedKey": {
+      "text": "Esta canción no tiene tonalidad definida. Por sus acordes, parece estar en {key} ({confidence}% de confianza).",
+      "use": "Marcar {key} como tonalidad inicial"
+    },
+    "side": {
+      "overview": "Resumen",
+      "reading": "Lectura armónica",
+      "insights": "Estadísticas",
+      "review": "Revisión",
+      "field": "Campo armónico"
+    },
+    "viewTabs": {
+      "reading": "Cadencias",
+      "sections": "Progresión por sección",
+      "insights": "Estadísticas",
+      "notes": "Leyenda y notas"
+    },
+    "exportMenu": {
+      "title": "Exportar",
+      "image": "Imagen o PDF…",
+      "copyText": "Copiar como texto",
+      "markdown": "Descargar Markdown (.md)"
+    },
+    "textExport": {
+      "copied": "Análisis copiado como texto.",
+      "failed": "No se pudo copiar.",
+      "downloaded": "Archivo Markdown descargado."
+    },
+    "transpose": {
+      "label": "Ver en otra tonalidad",
+      "down": "Medio tono abajo",
+      "up": "Medio tono arriba",
+      "reset": "Volver a la tonalidad original",
+      "key": "Tono: {key}",
+      "original": "Tonalidad original",
+      "semitones": "{shift} st",
+      "notice": "Viendo la partitura transportada ({shift} st). Los grados no cambian: eso es lo que los hace útiles.",
+      "noticeKey": "Viendo la partitura en {key} ({shift} st). Los grados no cambian: eso es lo que los hace útiles."
+    },
+    "timeline": {
+      "title": "Mapa armónico",
+      "inferred": "leído por el asistente",
+      "region": "Tonalidad de {key}",
+      "none": "Sin función",
+      "inferredLegend": "Leído por el asistente"
+    },
+    "bulk": {
+      "title": "{count} acordes seleccionados",
+      "close": "Quitar la selección",
+      "hint": "Shift + clic o Shift + flechas amplían la selección. Toca un acorde para ir a él.",
+      "assistant": "Asistente",
+      "fill": "{count, plural, =1 {Completar # acorde sin grado} other {Completar # acordes sin grado}}",
+      "filled": "Todos tienen grado",
+      "openAssistant": "Abrir el asistente para la selección…",
+      "function": "Función de todos",
+      "noFunction": "Sin función",
+      "marks": "Marcas",
+      "more": "Más",
+      "annotate": "Anotar este pasaje",
+      "copy": "Copiar los grados",
+      "clear": "Limpiar todo en la selección",
+      "copied": "Grados copiados.",
+      "copyFailed": "No se pudo copiar."
+    },
+    "assistant": {
+      "title": "Asistente de análisis",
+      "description": "Una primera lectura de la partitura, como la haría un profesor: tonalidad, modulaciones y, para cada acorde, su grado, función, marcas y flechas. Revisa antes de aplicar.",
+      "button": "Asistente",
+      "shortcut": "Asistente de análisis (Shift+A)",
+      "key": "Tonalidad",
+      "keyHintSong": "Tonalidad de la canción: {key}.",
+      "keyHintNone": "La canción no tiene tonalidad: elige la tonalidad inicial.",
+      "keyOption": "Tonalidad de {key}",
+      "detected": "Detectada en los acordes",
+      "keyMismatch": "La partitura parece estar en {detected}, no en {key}. Revisa la tonalidad de la canción.",
+      "keyWillMark": "{key} se marcará como tonalidad en el primer acorde.",
+      "modulations": "Modulaciones",
+      "modulationsHint": "Secciones que parecen estar en otra tonalidad.",
+      "noModulations": "No hay modulaciones evidentes entre secciones.",
+      "atChord": "desde {chord}",
+      "fill": "Completar",
+      "fields": {
+        "degrees": "Grados",
+        "functions": "Funciones",
+        "marks": "Marcas",
+        "connections": "Flechas y corchetes"
+      },
+      "fieldHints": {
+        "degrees": "IIm7, V7/II, SubV7, bVII7…",
+        "functions": "T, SD y D de cada acorde",
+        "marks": "Intercambio modal, disminuidos, pedal, cliché, aproximación",
+        "connections": "Resoluciones, SubV, II–V y cadencias rotas"
+      },
+      "scope": "Lo ya escrito",
+      "scopeEmpty": "Mantener",
+      "scopeAll": "Reemplazar",
+      "overwriteWarning": "{count, plural, =1 {# grado ya escrito se reemplazará} other {# grados ya escritos se reemplazarán}} (se puede deshacer).",
+      "onlyRange": "Solo la selección ({from} → {to}, {count} acordes)",
+      "writing": "Escritura de los grados",
+      "writingHint": "Cómo aparecen las cualidades en los grados.",
+      "modes": {
+        "written": "Como en la partitura",
+        "tetrads": "Cuatríadas",
+        "triads": "Tríadas"
+      },
+      "tensions": "Incluir tensiones (7(9), 7(b13)…)",
+      "counts": {
+        "degrees": "{count, plural, =0 {Ningún grado} =1 {# grado} other {# grados}}",
+        "functions": "{count, plural, =0 {Ninguna función} =1 {# función} other {# funciones}}",
+        "marks": "{count, plural, =0 {Ninguna marca} =1 {# marca} other {# marcas}}",
+        "connections": "{count, plural, =0 {Ninguna flecha} =1 {# flecha} other {# flechas}}",
+        "keys": "{count, plural, =0 {Ninguna tonalidad} =1 {# tonalidad} other {# tonalidades}}"
+      },
+      "preview": {
+        "chord": "Acorde",
+        "degree": "Grado",
+        "reason": "Lectura",
+        "nothing": "Nada que completar con estas opciones.",
+        "linesOnly": "Solo se añadirán flechas y tonalidades."
+      },
+      "confidence": {
+        "high": "Lectura segura",
+        "medium": "Probable",
+        "low": "Revísala"
+      },
+      "lowHint": "{count, plural, =1 {# lectura merece} other {# lecturas merecen}} revisión: los acordes cromáticos admiten más de una interpretación.",
+      "undoHint": "Todo se aplica en un solo paso: Ctrl+Z lo deshace.",
+      "cancel": "Cancelar",
+      "apply": "Aplicar",
+      "applied": "Asistente aplicado: {degrees} grados · {functions} funciones · {marks} marcas · {connections} flechas · {keys} tonalidades.",
+      "reasons": {
+        "diatonic": "Diatónico",
+        "dominant": "Dominante primaria",
+        "secondaryDominant": "Dominante secundaria",
+        "unresolvedDominant": "Dominante secundaria (sin resolver)",
+        "substitute": "Sustituto tritonal",
+        "backdoor": "Cadencia backdoor",
+        "relatedTwo": "II relativo (II–V secundario)",
+        "borrowed": "Intercambio modal",
+        "neapolitan": "Napolitano",
+        "diminishedAscending": "Disminuido ascendente",
+        "diminishedDescending": "Disminuido descendente",
+        "diminishedAuxiliary": "Disminuido auxiliar",
+        "diminished": "Disminuido",
+        "approach": "Aproximación cromática",
+        "chromatic": "Cromático"
+      }
+    },
+    "shortcutsDialog": {
+      "title": "Atajos de teclado",
+      "description": "Analiza sin soltar el teclado.",
+      "groups": {
+        "navigate": "Navegar",
+        "write": "Escribir",
+        "document": "Documento"
+      },
+      "keys": {
+        "move": "Acorde anterior / siguiente",
+        "extend": "Ampliar la selección",
+        "extendClick": "Seleccionar varios acordes",
+        "escape": "Cancelar / quitar la selección",
+        "degree": "Ir al campo del grado",
+        "diatonic": "Grado diatónico (con la cualidad del acorde)",
+        "suggestion": "Aceptar la sugerencia del asistente",
+        "functions": "Tónica, subdominante, dominante",
+        "aem": "Marcar intercambio modal",
+        "clear": "Limpiar el acorde (o la selección)",
+        "undo": "Deshacer",
+        "redo": "Rehacer",
+        "save": "Guardar ahora",
+        "assistant": "Abrir el asistente",
+        "help": "Mostrar estos atajos"
+      }
+    },
+    "review": {
+      "clean": "Nada que revisar",
+      "cleanHint": "Grados, flechas y funciones concuerdan con la partitura.",
+      "count": "{warnings, plural, =0 {Ninguna alerta} =1 {# alerta} other {# alertas}} · {notes, plural, =0 {ninguna observación} =1 {# observación} other {# observaciones}}",
+      "warning": "Alerta",
+      "info": "Observación",
+      "goTo": "Ir a {chord}",
+      "use": "Usar {value}",
+      "removeLine": "Quitar la línea",
+      "removePassage": "Quitar el pasaje",
+      "setKey": "Definir la tonalidad",
+      "items": {
+        "rootMismatch": {
+          "title": "El grado de {chord} no corresponde a su fundamental",
+          "description": "En la tonalidad vigente, la fundamental de {chord} (acorde {position}) cae en otro grado."
+        },
+        "qualityMismatch": {
+          "title": "La cualidad del grado no coincide con {chord}",
+          "description": "El grado escrito es de otra familia (mayor, menor o disminuido) que el acorde {position}."
+        },
+        "dominantTarget": {
+          "title": "La flecha de {chord} no resuelve una quinta abajo",
+          "description": "Una resolución de dominante baja una quinta justa. Quizá sea una resolución rota o una relación libre."
+        },
+        "subVTarget": {
+          "title": "El SubV {chord} no resuelve medio tono abajo",
+          "description": "El sustituto tritonal resuelve bajando medio tono. Revisa el destino de la flecha discontinua."
+        },
+        "twoFiveShape": {
+          "title": "El II–V desde {chord} no es un II–V",
+          "description": "El corchete une un acorde menor (o semidisminuido) con la dominante una cuarta arriba."
+        },
+        "unresolved": {
+          "title": "{chord} no va adonde indica su grado",
+          "description": "La dominante secundaria sigue a otro acorde. Si es intencional, marca una resolución rota o anota el efecto."
+        },
+        "functionConflict": {
+          "title": "La función de {chord} difiere de la lectura del grado",
+          "description": "Por el grado escrito, la función esperada sería {expected}. Puede ser intencional: vale una nota."
+        },
+        "emptyPassage": {
+          "title": "Pasaje sin texto desde {chord}",
+          "description": "Este pasaje resaltado aún no tiene anotación."
+        },
+        "noKey": {
+          "title": "El análisis no tiene tonalidad",
+          "description": "Sin tonalidad, los grados no pueden compararse con los acordes. Define la tonalidad de la canción o márcala en el primer acorde."
+        }
+      }
+    },
+    "insights": {
+      "empty": "No hay acordes que analizar.",
+      "complexity": "Complejidad armónica",
+      "complexityValue": "Índice {score} de 100",
+      "levels": {
+        "simple": "Sencilla",
+        "moderate": "Moderada",
+        "rich": "Rica",
+        "advanced": "Avanzada"
+      },
+      "levelHints": {
+        "simple": "Armonía esencialmente diatónica.",
+        "moderate": "Diatónica con algunos colores fuera de la tonalidad.",
+        "rich": "Uso frecuente de dominantes secundarias, préstamos y tensiones.",
+        "advanced": "Cromatismo intenso, modulaciones y vocabulario amplio."
+      },
+      "vocabulary": "{chords, plural, =1 {# acorde distinto} other {# acordes distintos}} · {degrees, plural, =1 {# grado} other {# grados}}",
+      "coverage": "{analysed} escritos · {inferred} leídos por el asistente",
+      "functions": "Funciones armónicas",
+      "functionsHint": "Cuánto de la canción es reposo, alejamiento y tensión.",
+      "noFunction": "Sin función",
+      "categories": "Tipos de acorde",
+      "categoriesHint": "Dentro de la tonalidad y fuera de ella.",
+      "categoryNames": {
+        "diatonic": "Diatónicos",
+        "secondaryDominant": "Dominantes secundarias",
+        "substitute": "Sustitutos tritonales",
+        "relatedTwo": "II relativos",
+        "borrowed": "Intercambio modal",
+        "diminished": "Disminuidos",
+        "chromatic": "Otros cromáticos"
+      },
+      "degrees": "Grados más usados",
+      "flow": "Flujo funcional",
+      "flowHint": "Cuántas veces cada función (fila) va a otra (columna).",
+      "flowFrom": "De → a",
+      "flowCell": "{from} → {to}: {count}",
+      "motion": "Movimiento de las fundamentales",
+      "motionHint": "Las cuartas arriba (quintas abajo) son el movimiento cadencial por excelencia.",
+      "motions": {
+        "fourthUp": "Cuarta arriba (quinta abajo)",
+        "fifthUp": "Quinta arriba",
+        "stepUp": "Tono arriba",
+        "stepDown": "Tono abajo",
+        "halfUp": "Semitono arriba",
+        "halfDown": "Semitono abajo",
+        "thirdUp": "Tercera arriba",
+        "thirdDown": "Tercera abajo",
+        "tritone": "Tritono"
+      },
+      "progressions": "Progresiones recurrentes",
+      "progressionsHint": "Secuencias de grados que la canción repite.",
+      "noProgressions": "Ninguna secuencia de grados se repite aún.",
+      "regions": "Regiones tonales",
+      "regionsHint": "Las tonalidades que recorre la canción, en orden.",
+      "regionRange": "{key}: acordes {from}–{to}",
+      "regionCount": "{count, plural, =1 {Un único centro tonal.} other {# centros tonales.}}"
+    },
+    "sections": {
+      "title": "Progresión por sección",
+      "hint": "La partitura en grados, sección por sección: como se lee para transportar o enseñar.",
+      "untitled": "Inicio",
+      "empty": "La partitura no tiene secciones con acordes.",
+      "inferredHint": "En cursiva: la lectura del asistente para acordes aún sin grado."
+    },
+    "field": {
+      "key": "Tonalidad del campo armónico",
+      "keyOption": "Tonalidad de {key}",
+      "set": "Tríadas o cuatríadas",
+      "tetrads": "Cuatríadas",
+      "triads": "Tríadas",
+      "fields": "Campos",
+      "names": {
+        "major": "Mayor",
+        "naturalMinor": "Menor natural",
+        "harmonicMinor": "Menor armónica",
+        "melodicMinor": "Menor melódica",
+        "secondaryDominants": "Dominantes secundarias",
+        "relatedTwos": "II relativos",
+        "substitutes": "SubV",
+        "borrowed": "Intercambio modal",
+        "diminished": "Disminuidos"
+      },
+      "hints": {
+        "major": "Los acordes de la tonalidad mayor, con la función y la escala de cada grado.",
+        "naturalMinor": "El campo del modo eólico: la tonalidad menor sin alteraciones.",
+        "harmonicMinor": "Con la sensible: da el V7 y el VII° que resuelven en la tónica menor.",
+        "melodicMinor": "Sexto y séptimo grados elevados: IV7, V7 y colores del jazz.",
+        "secondaryDominants": "El V7 de cada grado: tonicizan un acorde por un instante.",
+        "relatedTwos": "El II de cada dominante secundaria (II–V secundario).",
+        "substitutes": "Mismo tritono que el V7, resolviendo medio tono abajo.",
+        "borrowed": "Acordes de la tonalidad homónima que colorean la armonía sin modular.",
+        "diminished": "Acordes de paso cromáticos: ascendentes (♯), descendentes (♭) y auxiliares."
+      },
+      "inSong": "Usado en esta canción",
+      "inSongHint": "Acordes que aparecen en esta canción.",
+      "pick": "Usar {degree} en este acorde",
+      "overviewHint": "Referencia de la tonalidad: elige un campo para ver sus acordes, funciones y escalas. Con un acorde seleccionado, el campo también aparece en el inspector y escribe el grado con un toque."
+    },
+    "chordFacts": {
+      "notes": "Notas del acorde",
+      "inversion": {
+        "first": "Primera inversión: la tercera en el bajo ({bass}).",
+        "second": "Segunda inversión: la quinta en el bajo ({bass}).",
+        "third": "Tercera inversión: la séptima en el bajo ({bass}).",
+        "foreign": "{bass} en el bajo, fuera del acorde (pedal o línea de bajo)."
+      },
+      "scale": "Escala sugerida",
+      "noKey": "sin tonalidad: escala genérica",
+      "customScale": "(escala propia)",
+      "scaleTones": "Notas de la escala",
+      "roles": {
+        "chord": "Nota del acorde",
+        "tension": "Tensión disponible",
+        "avoid": "Nota a evitar"
+      },
+      "keyboard": "Teclado con las notas {notes}",
+      "alternatives": "También funcionan: {scales}."
+    },
+    "scales": {
+      "ionian": "jónica",
+      "dorian": "dórica",
+      "phrygian": "frigia",
+      "lydian": "lidia",
+      "mixolydian": "mixolidia",
+      "aeolian": "eólica",
+      "locrian": "locria",
+      "locrianNat2": "locria ♮2",
+      "harmonicMinor": "menor armónica",
+      "melodicMinor": "menor melódica",
+      "mixolydianB13": "mixolidia ♭13",
+      "mixolydianB9B13": "mixolidia ♭9 ♭13",
+      "lydianDominant": "lidia ♭7",
+      "lydianAugmented": "lidia aumentada",
+      "ionianAugmented": "jónica aumentada",
+      "locrianNat6": "locria ♮6",
+      "dorianSharp4": "dórica ♯4",
+      "altered": "alterada (superlocria)",
+      "dorianB2": "dórica ♭2",
+      "dominantDiminished": "disminuida dominante (semitono–tono)",
+      "diminished": "disminuida (tono–semitono)",
+      "wholeTone": "de tonos enteros"
     }
   }
 }

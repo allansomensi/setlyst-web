@@ -1,13 +1,18 @@
+"use client";
+
 /**
  * The small typographic pieces of an analysis — a degree, a badge, a key
  * flag, a connection's line style — shared by the sheet, the inspector,
  * the legend and the export, so each is drawn the same way everywhere.
  */
 
+import { createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
 import {
   degreeIsSet,
+  styleQuality,
   type ChordBadge,
+  type QualityStyle,
   type ConnectionKind,
   type Degree,
   type HarmonicFunction,
@@ -79,6 +84,19 @@ export function arrowHead(
   };
 }
 
+/**
+ * How degree qualities are printed below it ("7M" or "maj7"): the
+ * analysis's own setting, handed down so every degree on the page — the
+ * sheet, the inspector, the legend, the export — reads the same.
+ */
+const QualityStyleContext = createContext<QualityStyle>("br");
+
+export const QualityStyleProvider = QualityStyleContext.Provider;
+
+export function useQualityStyle(): QualityStyle {
+  return useContext(QualityStyleContext);
+}
+
 /** "b" and "#" as ♭ and ♯ inside degree text ("7(b9)", "bVI"). */
 function accidentals(value: string): string {
   return value.replace(/b(?=[IV\d])/g, "♭").replace(/#/g, "♯");
@@ -97,7 +115,9 @@ export function DegreeText({
   degree: Degree | null;
   className?: string;
 }) {
+  const style = useQualityStyle();
   if (!degreeIsSet(degree)) return null;
+  const quality = styleQuality(degree.quality, style);
   return (
     <span
       className={cn("inline-flex items-baseline whitespace-nowrap", className)}
@@ -121,9 +141,9 @@ export function DegreeText({
       <span className="font-serif font-bold tracking-[0.02em]">
         {degree.numeral}
       </span>
-      {degree.quality && (
+      {quality && (
         <span className="text-[0.82em] font-semibold">
-          {accidentals(degree.quality)}
+          {accidentals(quality)}
         </span>
       )}
       {degree.target && (

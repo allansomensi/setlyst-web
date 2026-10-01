@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Copy, Download, Loader2, Share2 } from "lucide-react";
+import { Copy, Download, FileText, Loader2, Share2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { onRadioGroupKeyDown } from "@/hooks/radio-group-keys";
@@ -17,9 +17,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import type { HarmonicAnalysis, SheetLine } from "@/lib/music/analysis";
+import {
+  HARMONIC_FUNCTIONS,
+  type HarmonicAnalysis,
+  type SheetLine,
+} from "@/lib/music/analysis";
+import {
+  CHORD_CATEGORIES,
+  type AnalysisStats,
+  type SectionProgression,
+} from "@/lib/music/analysis-insights";
 import { AnalysisSheet } from "./analysis-sheet";
 import { AnalysisFootnotes, AnalysisLegend } from "./analysis-legend";
+import { SectionProgressions } from "./analysis-insights";
+import { FUNCTION_COLOR } from "./analysis-marks";
 
 export interface ExportSong {
   title: string;
@@ -37,6 +48,8 @@ interface ExportOptions {
   legend: boolean;
   notes: boolean;
   summary: boolean;
+  sections: boolean;
+  insights: boolean;
 }
 
 const WIDTH = { portrait: 900, wide: 1280 } as const;
@@ -60,6 +73,56 @@ function slug(value: string): string {
  * commentary. Rendered at a fixed width in a fixed palette, so the image
  * looks the same whatever screen and theme it was made on.
  */
+/** The functions and kinds of chords, as a short printed summary. */
+function ExportStats({ stats }: { stats: AnalysisStats }) {
+  const t = useTranslations("analysis");
+  const total = stats.total || 1;
+  const categories = CHORD_CATEGORIES.filter((c) => stats.categories[c] > 0);
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="bg-muted flex h-3 overflow-hidden rounded-full">
+          {HARMONIC_FUNCTIONS.map((fn) =>
+            stats.functions[fn] ? (
+              <span
+                key={fn}
+                style={{
+                  width: `${(stats.functions[fn] / total) * 100}%`,
+                  backgroundColor: FUNCTION_COLOR[fn],
+                }}
+              />
+            ) : null,
+          )}
+        </div>
+        <p className="text-[14px]">
+          {HARMONIC_FUNCTIONS.map((fn) => (
+            <span key={fn} className="mr-4 inline-flex items-center gap-1.5">
+              <span
+                className="inline-block size-2.5 rounded-full"
+                style={{ backgroundColor: FUNCTION_COLOR[fn] }}
+              />
+              {t(`functions.${fn}.name`)}{" "}
+              {Math.round((stats.functions[fn] / total) * 100)}%
+            </span>
+          ))}
+        </p>
+      </div>
+      <p className="text-[14px]">
+        {categories
+          .map(
+            (c) =>
+              `${t(`insights.categoryNames.${c}`)}: ${stats.categories[c]}`,
+          )
+          .join(" · ")}
+      </p>
+      <p className="text-muted-foreground text-[13px]">
+        {t("insights.levels." + stats.complexity.level)} ·{" "}
+        {t("insights.complexityValue", { score: stats.complexity.score })}
+      </p>
+    </div>
+  );
+}
+
 function ExportSheet({
   song,
   analysis,
@@ -67,6 +130,8 @@ function ExportSheet({
   chords,
   options,
   author,
+  sections,
+  stats,
 }: {
   song: ExportSong;
   analysis: HarmonicAnalysis;
@@ -74,6 +139,8 @@ function ExportSheet({
   chords: readonly string[];
   options: ExportOptions;
   author: string | null;
+  sections: readonly SectionProgression[];
+  stats: AnalysisStats | null;
 }) {
   const t = useTranslations("analysis");
   const shown: HarmonicAnalysis = {
@@ -95,6 +162,9 @@ function ExportSheet({
     (analysis.notes.length > 0 ||
       Object.values(analysis.entries).some((e) => e.note.trim()));
   const hasSummary = options.summary && analysis.summary.trim().length > 0;
+  const hasSections =
+    options.sections && sections.some((s) => s.chords.some((c) => c.degree));
+  const hasStats = options.insights && !!stats && stats.analysed > 0;
   const facts = [
     song.tonality && t("export.key", { key: song.tonality }),
     song.tempo && t("export.bpm", { bpm: song.tempo }),
@@ -195,6 +265,45 @@ function ExportSheet({
         </div>
       )}
 
+      {(hasSections || hasStats) && (
+        <div
+          className={cn(
+            "mt-10 grid gap-8 border-t pt-7",
+            options.width === "wide" &&
+              hasSections &&
+              hasStats &&
+              "grid-cols-[2fr_1fr]",
+          )}
+        >
+          {hasSections && (
+            <section>
+              <h2 className="text-muted-foreground mb-3 text-[12px] font-bold tracking-[0.18em] uppercase">
+                {t("export.sections")}
+              </h2>
+              <SectionProgressions
+                sections={sections.map((s) => ({
+                  ...s,
+                  // Printed as written: the assistant's guesses stay out.
+                  chords: s.chords.map((c) =>
+                    c.inferred ? { ...c, degree: null, fn: null } : c,
+                  ),
+                }))}
+                showChords={options.chords}
+                className="text-[15px]"
+              />
+            </section>
+          )}
+          {hasStats && stats && (
+            <section>
+              <h2 className="text-muted-foreground mb-3 text-[12px] font-bold tracking-[0.18em] uppercase">
+                {t("export.insights")}
+              </h2>
+              <ExportStats stats={stats} />
+            </section>
+          )}
+        </div>
+      )}
+
       <footer className="text-muted-foreground mt-10 flex items-center justify-between border-t pt-4 text-[12px]">
         <span>
           {author
@@ -266,6 +375,62 @@ function Segmented<T extends string>({
   );
 }
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+/**
+ * The rendered sheet as an A4 PDF (landscape for the wide format), cut
+ * into pages at the margins, on the sheet's own background.
+ */
+async function buildPdf(
+  png: string,
+  wide: boolean,
+  background: string,
+): Promise<Blob> {
+  const { jsPDF } = await import("jspdf");
+  const pdf = new jsPDF({
+    unit: "mm",
+    format: "a4",
+    orientation: wide ? "landscape" : "portrait",
+  });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 8;
+  const contentWidth = pageWidth - margin * 2;
+  const img = await loadImage(png);
+  const mmPerPx = contentWidth / img.width;
+  const slice = Math.floor((pageHeight - margin * 2) / mmPerPx);
+  for (let offset = 0, page = 0; offset < img.height; offset += slice, page++) {
+    const height = Math.min(slice, img.height - offset);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) break;
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, offset, img.width, height, 0, 0, img.width, height);
+    if (page > 0) pdf.addPage();
+    pdf.setFillColor(background);
+    pdf.rect(0, 0, pageWidth, pageHeight, "F");
+    pdf.addImage(
+      canvas.toDataURL("image/png"),
+      "PNG",
+      margin,
+      margin,
+      contentWidth,
+      height * mmPerPx,
+    );
+  }
+  return pdf.output("blob");
+}
+
 export function AnalysisExportDialog({
   open,
   onOpenChange,
@@ -274,6 +439,8 @@ export function AnalysisExportDialog({
   lines,
   chords,
   author,
+  sections = [],
+  stats = null,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -282,6 +449,9 @@ export function AnalysisExportDialog({
   lines: SheetLine[];
   chords: readonly string[];
   author: string | null;
+  /** The progression by section (see `progressionBySection`). */
+  sections?: readonly SectionProgression[];
+  stats?: AnalysisStats | null;
 }) {
   const t = useTranslations("analysis.export");
   const [options, setOptions] = useState<ExportOptions>({
@@ -292,8 +462,12 @@ export function AnalysisExportDialog({
     legend: true,
     notes: true,
     summary: true,
+    sections: false,
+    insights: false,
   });
-  const [busy, setBusy] = useState<null | "download" | "copy" | "share">(null);
+  const [busy, setBusy] = useState<
+    null | "download" | "copy" | "share" | "pdf"
+  >(null);
   const nodeRef = useRef<HTMLDivElement>(null);
   // The preview frame, as state: it only exists once the dialog's content
   // has mounted, which is after `open` turns true.
@@ -346,9 +520,28 @@ export function AnalysisExportDialog({
 
   const filename = `${slug(song.title)}-${slug(t("fileSuffix"))}.png`;
 
-  const run = async (kind: "download" | "copy" | "share") => {
+  const run = async (kind: "download" | "copy" | "share" | "pdf") => {
     setBusy(kind);
     try {
+      if (kind === "pdf") {
+        const node = nodeRef.current?.firstElementChild as HTMLElement | null;
+        if (!node) throw new Error("Nothing to export");
+        const { toPng } = await import("html-to-image");
+        await document.fonts?.ready;
+        const png = await toPng(node, {
+          pixelRatio: 2,
+          cacheBust: true,
+          backgroundColor: BACKGROUND[options.theme],
+        });
+        const blob = await buildPdf(
+          png,
+          options.width === "wide",
+          BACKGROUND[options.theme],
+        );
+        saveBlob(blob, filename.replace(/\.png$/, ".pdf"));
+        toast.success(t("pdfDone"));
+        return;
+      }
       if (kind === "copy") {
         // Safari only lets the clipboard be written during the click
         // itself; by the time the image is rendered that's over. Handing
@@ -441,6 +634,16 @@ export function AnalysisExportDialog({
                 checked={options.summary}
                 onChange={(summary) => set({ summary })}
               />
+              <Option
+                label={t("sectionsOption")}
+                checked={options.sections}
+                onChange={(sections) => set({ sections })}
+              />
+              <Option
+                label={t("insightsOption")}
+                checked={options.insights}
+                onChange={(insights) => set({ insights })}
+              />
             </div>
           </div>
 
@@ -475,6 +678,8 @@ export function AnalysisExportDialog({
                   chords={chords}
                   options={options}
                   author={author}
+                  sections={sections}
+                  stats={stats}
                 />
               </div>
             </div>
@@ -512,6 +717,19 @@ export function AnalysisExportDialog({
               {t("copy")}
             </Button>
           )}
+          <Button
+            variant="outline"
+            onClick={() => run("pdf")}
+            disabled={busy !== null}
+            className="gap-2"
+          >
+            {busy === "pdf" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            {t("pdf")}
+          </Button>
           <Button
             onClick={() => run("download")}
             disabled={busy !== null}

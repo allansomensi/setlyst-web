@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import {
   ArrowRight,
+  Check,
   ChevronLeft,
   ChevronRight,
   CopyCheck,
@@ -11,6 +12,8 @@ import {
   KeyRound,
   Music2,
   Plus,
+  Sparkles,
+  Table2,
   Trash2,
   X,
 } from "lucide-react";
@@ -39,19 +42,30 @@ import {
   LIMITS,
   NOTE_COLORS,
   emptyEntry,
+  formatDegree,
   isAnalysableChord,
   isMinorKey,
   keyAt,
   type ChordEntry,
+  type Degree,
   type ConnectionKind,
   type HarmonicAnalysis,
   type NoteColor,
   type RangeNote,
 } from "@/lib/music/analysis";
 import type { Pattern } from "@/lib/music/analysis-concepts";
+import type { ChordSuggestion } from "@/lib/music/analysis-suggest";
+import type { Issue } from "@/lib/music/analysis-insights";
 import { DegreeBuilder } from "./degree-builder";
 import { ChordReading } from "./analysis-reading";
-import { ConnectionSample, FUNCTION_COLOR, NOTE_COLOR } from "./analysis-marks";
+import { ChordFacts } from "./chord-scale";
+import { HarmonicField } from "./harmonic-field";
+import {
+  ConnectionSample,
+  DegreeText,
+  FUNCTION_COLOR,
+  NOTE_COLOR,
+} from "./analysis-marks";
 
 export interface InspectorActions {
   setEntry: (patch: Partial<ChordEntry>, group?: string) => void;
@@ -68,6 +82,8 @@ export interface InspectorActions {
   ) => void;
   removeNote: (id: string) => void;
   copyToSame: () => void;
+  /** Writes the assistant's reading of this chord. */
+  acceptSuggestion: () => void;
   select: (index: number) => void;
   highlight: (connectionId: string | null) => void;
   close: () => void;
@@ -143,6 +159,8 @@ export function AnalysisInspector({
   sameCount,
   patterns,
   actions,
+  suggestion = null,
+  issues = [],
   focusNote = null,
   className,
 }: {
@@ -150,7 +168,12 @@ export function AnalysisInspector({
   /** The chart's chord symbols, by index. */
   chords: readonly string[];
   index: number;
+  /** The song's key, or the one the assistant detected for it. */
   songKey: string | null;
+  /** The assistant's reading of this chord. */
+  suggestion?: ChordSuggestion | null;
+  /** What the review found on this chord. */
+  issues?: readonly Issue[];
   /** How many identical chords "copy degree" would fill. */
   sameCount: number;
   /** The cadences the analysis forms (see `findPatterns`). */
@@ -163,6 +186,8 @@ export function AnalysisInspector({
   const t = useTranslations("analysis");
   const tBadge = useTranslations("analysis.badges");
   const tKind = useTranslations("analysis.connections");
+  const tReview = useTranslations("analysis.review");
+  const tAssistant = useTranslations("analysis.assistant");
   const symbol = chords[index] ?? "";
   const entry = analysis.entries[String(index)] ?? emptyEntry();
   const keyHere = keyAt(analysis, index, songKey);
@@ -254,7 +279,86 @@ export function AnalysisInspector({
         </p>
       )}
 
-      <Section title={t("inspector.degree")} hint={t("inspector.degreeHint")}>
+      {issues.length > 0 && (
+        <div className="border-b px-4 py-3">
+          <ul className="space-y-1">
+            {issues.map((issue, i) => (
+              <li
+                key={`${issue.id}-${i}`}
+                className={cn(
+                  "text-xs",
+                  issue.severity === "warning"
+                    ? "text-destructive"
+                    : "text-muted-foreground",
+                )}
+              >
+                {tReview(`items.${issue.id}.title`, {
+                  chord: symbol,
+                  position: index + 1,
+                  expected: issue.expected ?? "",
+                })}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <Section
+        title={t("inspector.degree")}
+        hint={t("inspector.degreeHint")}
+        action={
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5"
+                title={t("inspector.fieldHint")}
+              >
+                <Table2 className="h-3.5 w-3.5" aria-hidden />
+                {t("inspector.field")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="max-h-[70dvh] w-[22rem] overflow-y-auto p-3"
+              align="end"
+            >
+              <HarmonicField
+                defaultKey={keyHere}
+                songChords={chords}
+                current={symbol}
+                onPick={(degree: Degree) => actions.setEntry({ degree })}
+              />
+            </PopoverContent>
+          </Popover>
+        }
+      >
+        {suggestion &&
+          formatDegree(suggestion.degree) !== formatDegree(entry.degree) && (
+            <div className="border-primary/30 bg-primary/[0.04] flex items-center gap-2.5 rounded-lg border border-dashed px-3 py-2">
+              <Sparkles className="text-primary h-4 w-4 shrink-0" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground text-[0.65rem] font-semibold tracking-wide uppercase">
+                  {t("inspector.suggestion")}
+                </p>
+                <p className="flex flex-wrap items-baseline gap-x-2 text-base">
+                  <DegreeText degree={suggestion.degree} />
+                  <span className="text-muted-foreground text-xs">
+                    {tAssistant(`reasons.${suggestion.reason}`)}
+                  </span>
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="h-8 shrink-0 gap-1.5"
+                onClick={actions.acceptSuggestion}
+                title={t("inspector.acceptShortcut")}
+              >
+                <Check className="h-3.5 w-3.5" aria-hidden />
+                {t("inspector.accept")}
+              </Button>
+            </div>
+          )}
         <DegreeBuilder
           value={entry.degree}
           minor={isMinorKey(keyHere)}
@@ -543,6 +647,16 @@ export function AnalysisInspector({
           </ul>
         )}
       </Section>
+
+      {analysable && (
+        <Section title={t("inspector.facts")} hint={t("inspector.factsHint")}>
+          <ChordFacts
+            symbol={symbol}
+            degree={entry.degree ?? suggestion?.degree ?? null}
+            keyName={keyHere}
+          />
+        </Section>
+      )}
 
       <div className="border-t px-4 py-4">
         <Button

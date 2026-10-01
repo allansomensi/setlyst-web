@@ -20,7 +20,7 @@ import {
   type SectionHeading,
   type SectionKey,
 } from "./chordpro";
-import { parseChord } from "./chords";
+import { parseChord, transposeChord } from "./chords";
 
 // Vocabulary
 
@@ -166,7 +166,16 @@ export interface AnalysisDisplay {
   showFunctions: boolean;
   /** II–V drawn as a bracket or as a dotted arrow. */
   twoFiveStyle: "bracket" | "arrow";
+  /**
+   * How qualities are printed: the Brazilian way ("7M", "m7(b5)", "°")
+   * or the international one ("maj7", "m7b5", "°7"). Display only — the
+   * degrees are stored one way.
+   */
+  qualityStyle: QualityStyle;
 }
+
+export const QUALITY_STYLES = ["br", "intl"] as const;
+export type QualityStyle = (typeof QUALITY_STYLES)[number];
 
 export interface HarmonicAnalysis {
   schema: 1;
@@ -203,6 +212,7 @@ export const DEFAULT_DISPLAY: AnalysisDisplay = {
   showChords: true,
   showFunctions: false,
   twoFiveStyle: "bracket",
+  qualityStyle: "br",
 };
 
 export function emptyAnalysis(chords: string[] = []): HarmonicAnalysis {
@@ -418,6 +428,7 @@ export function normalizeAnalysis(raw: unknown): HarmonicAnalysis {
       ["bracket", "arrow"] as const,
       "bracket",
     ),
+    qualityStyle: oneOf(display.qualityStyle, QUALITY_STYLES, "br"),
   };
 
   return analysis;
@@ -465,6 +476,22 @@ export function formatDegree(degree: Degree | null): string {
   if (!degreeIsSet(degree)) return "";
   const head = `${degree.sub ? "Sub" : ""}${degree.accidental}${degree.numeral}${degree.quality}`;
   return degree.target ? `${head}/${degree.target}` : head;
+}
+
+/**
+ * A degree's quality in the chosen notation. The Brazilian forms are the
+ * stored ones; the international ones are how the same chords are written
+ * in most English and Spanish material.
+ */
+export function styleQuality(quality: string, style: QualityStyle): string {
+  if (style === "br" || !quality) return quality;
+  return quality
+    .replace(/^m7M/, "m(maj7)")
+    .replace(/^7M/, "maj7")
+    .replace(/^m7\(b5\)$/, "m7b5")
+    .replace(/^m7\(b5,/, "m7b5(")
+    .replace(/^°$/, "°7")
+    .replace(/^7sus4/, "7sus4");
 }
 
 /** Accidentals as music symbols: "b" → ♭, "#" → ♯ (for display only). */
@@ -656,6 +683,80 @@ export function buildSheet(blocks: readonly Block[]): {
   while (tidy.length && tidy[tidy.length - 1].kind === "gap") tidy.pop();
 
   return { lines: tidy, chords };
+}
+
+export interface SheetSection {
+  section: SectionKey | null;
+  heading: SectionHeading | null;
+  /** The heading as written, when it isn't a known section. */
+  raw: string;
+  /** Its chords, by index, in order. */
+  chords: number[];
+}
+
+/**
+ * The chart's sections (verse, chorus...) with the chords in each — what
+ * the progression-by-section view and the search for modulations read.
+ * Chords before the first heading make a section of their own.
+ */
+export function sheetSections(lines: readonly SheetLine[]): SheetSection[] {
+  const sections: SheetSection[] = [];
+  let current: SheetSection | null = null;
+  for (const line of lines) {
+    if (line.kind === "heading") {
+      current = {
+        section: line.section,
+        heading: line.heading,
+        raw: line.raw,
+        chords: [],
+      };
+      sections.push(current);
+      continue;
+    }
+    if (line.kind !== "chords") continue;
+    if (!current) {
+      current = { section: null, heading: null, raw: "", chords: [] };
+      sections.push(current);
+    }
+    for (const word of line.words) {
+      for (const cell of word) {
+        if (cell.kind === "chord") current.chords.push(cell.index);
+      }
+    }
+  }
+  return sections.filter((s) => s.chords.length > 0);
+}
+
+/**
+ * The sheet with its chords moved by `semitones` — to read (or print) an
+ * analysis in another key. Degrees don't move: that's the point of them.
+ */
+export function transposeLines(
+  lines: readonly SheetLine[],
+  semitones: number,
+  preferFlats: boolean,
+): SheetLine[] {
+  if (!semitones) return lines as SheetLine[];
+  const move = (symbol: string) => {
+    const inner = /^\((.+)\)$/.exec(symbol);
+    return inner
+      ? `(${transposeChord(inner[1], semitones, preferFlats)})`
+      : transposeChord(symbol, semitones, preferFlats);
+  };
+  return lines.map((line) =>
+    line.kind !== "chords"
+      ? line
+      : {
+          ...line,
+          words: line.words.map((word) =>
+            word.map((cell) =>
+              cell.kind === "chord"
+                ? { ...cell, symbol: move(cell.symbol) }
+                : cell,
+            ),
+          ),
+        },
+  );
 }
 
 /** Whether a chord symbol can carry a degree ("N.C." cannot). */

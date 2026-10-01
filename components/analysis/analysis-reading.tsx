@@ -30,7 +30,7 @@ function useConceptText() {
   };
 }
 
-function usePatternName() {
+export function usePatternName() {
   const t = useTranslations("analysis.patterns");
   return (pattern: Pattern) => {
     const values = { target: prettyAccidentals(pattern.target ?? "") };

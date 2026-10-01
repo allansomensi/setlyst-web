@@ -284,6 +284,8 @@ export function DegreeBuilder({
             }}
             placeholder={t("placeholder")}
             aria-label={t("input")}
+            // Enter on a selected chord jumps here (see the editor).
+            data-degree-input=""
             aria-invalid={invalid || undefined}
             spellCheck={false}
             autoCapitalize="off"

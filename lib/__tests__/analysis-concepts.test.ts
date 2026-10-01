@@ -170,7 +170,7 @@ describe("naming passages", () => {
       findPatterns(analysed(degrees), degrees.length).map((p) => p.id);
     expect(ids(["V7", "VIm7"])).toEqual(["deceptiveCadence"]);
     expect(ids(["IV7M", "I7M"])).toEqual(["plagalCadence"]);
-    expect(ids(["IVm6", "I7M"])).toEqual(["plagalCadence"]);
+    expect(ids(["IVm6", "I7M"])).toEqual(["minorPlagalCadence"]);
     expect(ids(["bVII7", "I7M"])).toEqual(["backdoorCadence"]);
   });
 
