@@ -58,6 +58,12 @@ interface RegisterFormProps {
    * through sign-up and back to the login page, so it isn't lost.
    */
   callbackPath: string | null;
+  /**
+   * Rendered by the page, shown in place of the form when the API
+   * refuses the sign-up because sign-ups closed (`REGISTRATION_CLOSED`)
+   * or maintenance started (`MAINTENANCE_MODE`) after the page loaded.
+   */
+  closedNotices?: { closed: React.ReactNode; maintenance: React.ReactNode };
 }
 
 export function RegisterForm({
@@ -68,6 +74,7 @@ export function RegisterForm({
   billingEnforced,
   trialDays,
   callbackPath,
+  closedNotices,
 }: RegisterFormProps) {
   const t = useTranslations("auth.register");
   const locale = useLocale();
@@ -90,6 +97,11 @@ export function RegisterForm({
   const [attempted, setAttempted] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The API refused the address's provider (EMAIL_DOMAIN_BLOCKED): said
+  // under the e-mail field, until the address changes.
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [closed, setClosed] = useState<"closed" | "maintenance" | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   // `pending` only blocks a second submit once it has re-rendered: a
   // double click could otherwise create the account and then fail the
   // second request as "username taken", hiding the success.
@@ -110,8 +122,10 @@ export function RegisterForm({
   }, [referralFromLink]);
 
   const set =
-    (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (key === "email") setEmailError(null);
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
+    };
 
   const username = form.username.trim();
   const email = form.email.trim();
@@ -123,7 +137,8 @@ export function RegisterForm({
   // Validation appears once a field was left (or a submit was tried), not
   // while the address is still being typed.
   const [emailTouched, setEmailTouched] = useState(false);
-  const showEmailError = (attempted || emailTouched) && !emailValid;
+  const showEmailError =
+    ((attempted || emailTouched) && !emailValid) || Boolean(emailError);
 
   const canSubmit =
     usernameValid &&
@@ -175,8 +190,25 @@ export function RegisterForm({
     inFlight.current = false;
 
     if (!result?.success) {
-      setError(result ? result.error : tLogin("connectionError"));
       setPending(false);
+      switch (result?.apiCode) {
+        case "REGISTRATION_CLOSED":
+        case "MAINTENANCE_MODE": {
+          const kind =
+            result.apiCode === "MAINTENANCE_MODE" ? "maintenance" : "closed";
+          if (closedNotices) {
+            setClosed(kind);
+            return;
+          }
+          break;
+        }
+        case "EMAIL_DOMAIN_BLOCKED":
+          setEmailError(result.error);
+          // Once re-enabled (the field is disabled while pending).
+          requestAnimationFrame(() => emailRef.current?.focus());
+          return;
+      }
+      setError(result ? result.error : tLogin("connectionError"));
       return;
     }
 
@@ -209,6 +241,8 @@ export function RegisterForm({
     );
     router.refresh();
   };
+
+  if (closed && closedNotices) return closedNotices[closed];
 
   return (
     <Card size="lg" className="w-full max-w-md">
@@ -284,6 +318,7 @@ export function RegisterForm({
               </span>
             </Label>
             <Input
+              ref={emailRef}
               id="email"
               name="email"
               type="email"
@@ -303,12 +338,14 @@ export function RegisterForm({
             />
             <p
               id="email-hint"
+              role={emailError ? "alert" : undefined}
               className={cn(
                 "text-xs",
                 showEmailError ? "text-destructive" : "text-muted-foreground",
               )}
             >
-              {showEmailError ? t("errors.email") : t("emailHint")}
+              {emailError ??
+                (showEmailError ? t("errors.email") : t("emailHint"))}
             </p>
           </div>
 

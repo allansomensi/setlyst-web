@@ -3,11 +3,17 @@ import { cookies } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
-import { getBillingMode, getPublicPlans } from "@/lib/public-api";
+import {
+  getBillingMode,
+  getPlatformStatus,
+  getPublicPlans,
+} from "@/lib/public-api";
+import { signUpState } from "@/lib/maintenance";
 import { pickLocalized } from "@/lib/localized";
 import { REFERRAL_COOKIE, normalizeReferralCode } from "@/lib/auth-flow";
 import { safeCallbackPath } from "@/lib/links";
 import { RegisterForm } from "./_components/register-form";
+import { SignUpsClosed } from "./_components/sign-ups-closed";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -33,12 +39,31 @@ export default async function RegisterPage({
   const planCode = planCodeOf(firstParam(params.plan));
 
   // Independent reads, side by side rather than one after the other.
-  const [locale, cookieStore, billingMode, plans] = await Promise.all([
-    getLocale(),
-    cookies(),
-    getBillingMode(),
-    planCode ? getPublicPlans() : null,
-  ]);
+  const [locale, cookieStore, billingMode, plans, platform] = await Promise.all(
+    [
+      getLocale(),
+      cookies(),
+      getBillingMode(),
+      planCode ? getPublicPlans() : null,
+      getPlatformStatus(),
+    ],
+  );
+  const callbackPath = safeCallbackPath(firstParam(params.callbackUrl));
+
+  // Sign-ups closed or the platform in maintenance: the API would refuse
+  // the account, so the page says so instead of offering the form.
+  const state = signUpState(platform);
+  if (state !== "open") {
+    return (
+      <AuthShell>
+        <SignUpsClosed
+          reason={state}
+          maintenance={platform?.maintenance}
+          callbackPath={callbackPath}
+        />
+      </AuthShell>
+    );
+  }
 
   // `?ref=` wins; otherwise a code remembered from an earlier visit.
   const fromLink = normalizeReferralCode(firstParam(params.ref));
@@ -58,7 +83,15 @@ export default async function RegisterPage({
         planName={planName}
         billingEnforced={!billingMode.beta}
         trialDays={billingMode.trialDays}
-        callbackPath={safeCallbackPath(firstParam(params.callbackUrl))}
+        callbackPath={callbackPath}
+        closedNotices={{
+          // When the API refuses the sign-up itself (the switch changed
+          // after this page was rendered).
+          closed: <SignUpsClosed reason="closed" callbackPath={callbackPath} />,
+          maintenance: (
+            <SignUpsClosed reason="maintenance" callbackPath={callbackPath} />
+          ),
+        }}
       />
     </AuthShell>
   );

@@ -56,6 +56,8 @@ import { toastActionError } from "@/lib/action-toast";
 import { formatApiDate, formatApiDateTime } from "@/lib/dates";
 import { toast } from "@/lib/toast";
 import type { LinkedIdentity, SecurityOverview } from "@/types/account";
+import type { SignInEvent } from "@/types/operations";
+import { SignInActivityCard } from "./sign-in-activity-card";
 import { TwoFactorCard } from "./two-factor-card";
 
 /** Outcome of a "link Google" round trip (`?google=` on return). */
@@ -77,6 +79,11 @@ interface SecuritySectionProps {
   googleEnabled: boolean;
   googleStatus: GoogleLinkStatus | null;
   readOnly: boolean;
+  /**
+   * Recent sign-in attempts; `null` when they couldn't be loaded,
+   * `undefined` when not shown (while viewing as someone else).
+   */
+  signIns?: SignInEvent[] | null;
 }
 
 export function SecuritySection({
@@ -88,6 +95,7 @@ export function SecuritySection({
   googleEnabled,
   googleStatus,
   readOnly,
+  signIns,
 }: SecuritySectionProps) {
   const t = useTranslations("security");
 
@@ -141,6 +149,8 @@ export function SecuritySection({
           readOnly={readOnly}
         />
       )}
+      {/* Right above the sessions card its hint points to. */}
+      {signIns !== undefined && <SignInActivityCard events={signIns} />}
       {/* The last sign-in sits with the sessions: it's what tells you
           whether to sign out everywhere. (It used to be a card of its
           own, beside a "password changed on" the password card already

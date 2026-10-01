@@ -37,7 +37,16 @@ export type SignInErrorCode =
    * not the address's own Workspace): sign in with the password, then
    * link Google from the settings.
    */
-  | "ACCOUNT_LINK_REQUIRED";
+  | "ACCOUNT_LINK_REQUIRED"
+  /**
+   * Platform switches (lib/maintenance.ts): maintenance mode lets only
+   * staff sign in (`meta.mode`), and a new account (a first Google
+   * sign-in) is refused while sign-ups are closed or for a blocked
+   * e-mail provider.
+   */
+  | "MAINTENANCE_MODE"
+  | "REGISTRATION_CLOSED"
+  | "EMAIL_DOMAIN_BLOCKED";
 
 export interface SignInError {
   code: SignInErrorCode;
@@ -63,6 +72,9 @@ const KNOWN: readonly SignInErrorCode[] = [
   "TERMS_NOT_ACCEPTED",
   "AGE_CONFIRMATION_REQUIRED",
   "ACCOUNT_LINK_REQUIRED",
+  "MAINTENANCE_MODE",
+  "REGISTRATION_CLOSED",
+  "EMAIL_DOMAIN_BLOCKED",
 ];
 
 export function isSignInErrorCode(value: unknown): value is SignInErrorCode {
@@ -104,6 +116,11 @@ export function sanitizeSignInMeta(
   if (typeof reason === "string" && reason.trim()) {
     clean.reason = reason.trim().slice(0, MAX_REASON_LENGTH);
   }
+  // Maintenance: which mode, so the message says whether reading still
+  // works (lib/api-errors.ts). Never the staff message: the login page
+  // shows that from the public status instead.
+  const mode = source.mode;
+  if (mode === "read_only" || mode === "full") clean.mode = mode;
   for (const key of ["challenge_token", "challenge_expires_at"] as const) {
     const value = source[key];
     if (typeof value === "string" && value.length <= 256) clean[key] = value;

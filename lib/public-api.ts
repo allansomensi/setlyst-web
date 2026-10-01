@@ -4,6 +4,8 @@ import { cache } from "react";
 import { assertSafeEndpoint } from "@/lib/api-endpoint";
 import { getInternalApiHeaders } from "@/lib/server/internal-api";
 import { isBillingEnforced } from "@/lib/pricing";
+import { parsePlatformStatus } from "@/lib/maintenance";
+import type { PublicPlatformStatus } from "@/types/operations";
 import type {
   PublicBillingMode,
   PublicPlan,
@@ -181,6 +183,22 @@ export const getPublicReleaseNotes = cache(
       },
     );
     return result.ok && Array.isArray(result.data) ? result.data : null;
+  },
+);
+
+/**
+ * Maintenance mode and the sign-up switch (`GET /public/platform`), or
+ * `null` when the API can't be reached or answers something malformed.
+ * Kept short: the dashboard, the sign-in and the sign-up pages must
+ * notice a change within seconds (the API itself caches it for 5 s and
+ * enforces it whatever this says).
+ */
+export const getPlatformStatus = cache(
+  async (): Promise<PublicPlatformStatus | null> => {
+    const result = await fetchPublicApi<unknown>("/public/platform", {
+      revalidate: 15,
+    });
+    return result.ok ? parsePlatformStatus(result.data) : null;
   },
 );
 

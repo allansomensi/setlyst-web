@@ -3870,6 +3870,32 @@
     "staff2fa": {
       "title": "Two-step verification is required for staff accounts",
       "description": "Your account has access to the staff console, so it must be protected with two-step verification. Turn it on below to use the rest of Setlyst."
+    },
+    "signIns": {
+      "title": "Recent sign-in activity",
+      "description": "Sign-ins, failed attempts and lockouts on your account over the last 90 days, newest first.",
+      "unavailable": "Your sign-in activity couldn't be loaded right now. Please try again in a moment.",
+      "empty": {
+        "title": "No sign-in activity yet",
+        "description": "Sign-ins and failed attempts from the last 90 days will show up here."
+      },
+      "failedSummary": "{count, plural, one {# failed attempt} other {# failed attempts}} in this period.",
+      "outcome": {
+        "succeeded": "Signed in",
+        "failed": "Failed",
+        "locked": "Locked"
+      },
+      "method": {
+        "password": "Password",
+        "google": "Google",
+        "two_factor": "Two-factor code"
+      },
+      "wrongSecondFactor": "Wrong second factor",
+      "ipAddress": "IP address",
+      "unknownAddress": "Unknown address",
+      "showAll": "Show all ({count})",
+      "showLess": "Show less",
+      "hint": "Don't recognize an attempt? <password>Change your password</password> and <sessions>sign out of all devices</sessions>."
     }
   },
   "communication": {
@@ -6676,6 +6702,39 @@
       "thanks": "Thanks for your feedback!",
       "given": "Your rating",
       "outOf": "Rated {rating} out of 5"
+    }
+  },
+  "maintenance": {
+    "expectedBack": "Expected back around {time}.",
+    "teamMessage": "Message from the team",
+    "statusLink": "System status",
+    "readOnly": {
+      "label": "Maintenance",
+      "title": "Read-only mode for maintenance: changes are paused.",
+      "description": "You can still open and read everything; saving will work again as soon as we're done."
+    },
+    "staff": {
+      "label": "Maintenance mode",
+      "full": "Maintenance is ON: Setlyst is closed to everyone but staff.",
+      "readOnly": "Maintenance is ON: everyone but staff is in read-only mode.",
+      "note": "Your staff account isn't affected.",
+      "manage": "Platform settings"
+    },
+    "screen": {
+      "title": "Setlyst is down for maintenance",
+      "description": "We're doing some work behind the scenes. Your data is safe, and everything will be back shortly."
+    },
+    "signIn": {
+      "title": "Maintenance in progress",
+      "description": "Only staff accounts can sign in right now. Please come back soon."
+    },
+    "signUp": {
+      "closedTitle": "Sign-ups are closed for now",
+      "closedDescription": "We're not accepting new accounts at the moment. Please check back later.",
+      "maintenanceTitle": "Sign-ups are paused for maintenance",
+      "maintenanceDescription": "New accounts can't be created while Setlyst is under maintenance. Please come back soon.",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
     }
   }
 }

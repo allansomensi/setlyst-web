@@ -25,6 +25,15 @@ import { ActionToastSetup } from "./_components/action-toast-setup";
 import { getSession } from "@/lib/server/session";
 import { ScopedMessages } from "@/components/providers/scoped-messages";
 import { OfflineSyncProvider } from "@/components/providers/offline-sync-provider";
+import { getPlatformStatus } from "@/lib/public-api";
+import {
+  isStaffRole,
+  maintenanceFromError,
+  maintenanceView,
+  resolveMaintenance,
+} from "@/lib/maintenance";
+import { MaintenanceBanner } from "./_components/maintenance-banner";
+import { MaintenanceScreen } from "./_components/maintenance-screen";
 
 export default async function DashboardLayout({
   children,
@@ -46,7 +55,7 @@ export default async function DashboardLayout({
     redirect(`/${locale}/login?reason=expired`);
   }
 
-  // Both reads are independent, so they run in parallel. Neither may take
+  // These reads are independent, so they run in parallel. None may take
   // the dashboard down when it fails (offline, an API blip):
   // - account-level UI settings (live/PDF defaults, list size, "what's
   //   new" state) fall back to the defaults;
@@ -55,14 +64,41 @@ export default async function DashboardLayout({
   //   it, no e-mail prompt (nothing reliable to show) and the terms flag
   //   from the session.
   // - the running trial (if any), shown in the navigation so it's always
-  //   clear why every feature is unlocked and until when.
-  const [uiSettings, me, billing] = await Promise.all([
+  //   clear why every feature is unlocked and until when;
+  // - maintenance mode (the public status, cached for a few seconds).
+  const [uiSettings, meResult, billing, platform] = await Promise.all([
     getMyPreferences()
       .then((prefs) => normalizeUiSettings(prefs?.ui_settings))
       .catch(() => DEFAULT_UI_SETTINGS),
-    getMe().catch(() => null),
+    getMe().then(
+      (me) => ({ me, error: null }),
+      (error: unknown) => ({ me: null, error }),
+    ),
     getMyBilling().catch(() => null),
+    getPlatformStatus(),
   ]);
+  const me = meResult.me;
+
+  // Maintenance: the API refusing to load the account (MAINTENANCE_MODE)
+  // is fresher than the cached status, and either one closes the
+  // dashboard to everyone but staff during full maintenance. Staff, and
+  // staff viewing as someone else, are never affected: they get a
+  // reminder instead. See lib/maintenance.ts.
+  const maintenance = resolveMaintenance(
+    platform?.maintenance,
+    maintenanceFromError(meResult.error),
+  );
+  const view = maintenanceView(
+    maintenance?.mode,
+    isStaffRole(session.user?.role) || Boolean(session.user?.impersonator),
+  );
+  if (maintenance && view === "screen") {
+    return (
+      <ScopedMessages area="dashboard">
+        <MaintenanceScreen maintenance={maintenance} />
+      </ScopedMessages>
+    );
+  }
 
   const planName = billing?.plan
     ? pickLocalized(billing.plan.name, locale)
@@ -136,6 +172,9 @@ export default async function DashboardLayout({
                 tabIndex={-1}
                 className="dashboard-clip flex min-h-0 flex-1 flex-col outline-none"
               >
+                {maintenance && (view === "readOnly" || view === "staff") && (
+                  <MaintenanceBanner view={view} maintenance={maintenance} />
+                )}
                 <ImpersonationBanner />
                 <PlanStatusBanner
                   status={planStatus}

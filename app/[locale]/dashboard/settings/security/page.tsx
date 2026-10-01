@@ -5,6 +5,7 @@ import { isGoogleSignInEnabled } from "@/lib/server/google-auth";
 import { readPendingGoogleLink } from "@/lib/server/google-link";
 import { getSession } from "@/lib/server/session";
 import type { LinkedIdentity, SecurityOverview } from "@/types/account";
+import type { SignInEvent } from "@/types/operations";
 import {
   SecuritySection,
   type GoogleLinkStatus,
@@ -37,10 +38,18 @@ export default async function SecuritySettingsPage({
   const session = await getSession();
   const readOnly = Boolean(session?.user.impersonator);
 
-  const [me, security, identities] = await Promise.all([
+  // Sign-in activity carries network addresses: not shown to staff
+  // viewing as someone (only admins may see another account's, from the
+  // console).
+  const [me, security, identities, signIns] = await Promise.all([
     orNull(getMe()),
     orNull(fetchServerApi<SecurityOverview>("/users/me/security")),
     orNull(fetchServerApi<LinkedIdentity[]>("/users/me/identities")),
+    readOnly
+      ? undefined
+      : orNull(fetchServerApi<SignInEvent[]>("/users/me/sign-ins")).then(
+          (events) => (Array.isArray(events) ? events : null),
+        ),
   ]);
 
   const googleParam = Array.isArray(params.google)
@@ -70,6 +79,7 @@ export default async function SecuritySettingsPage({
         googleEnabled={isGoogleSignInEnabled()}
         googleStatus={googleStatus}
         readOnly={readOnly}
+        signIns={signIns}
       />
     </SettingsPage>
   );

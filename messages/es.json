@@ -3870,6 +3870,32 @@
     "staff2fa": {
       "title": "La verificación en dos pasos es obligatoria para las cuentas del equipo",
       "description": "Tu cuenta tiene acceso a la consola del equipo, por eso debe estar protegida con la verificación en dos pasos. Actívala abajo para volver a usar el resto de Setlyst."
+    },
+    "signIns": {
+      "title": "Actividad de inicio de sesión reciente",
+      "description": "Inicios de sesión, intentos fallidos y bloqueos de tu cuenta en los últimos 90 días, de los más recientes a los más antiguos.",
+      "unavailable": "No pudimos cargar tu actividad de inicio de sesión ahora. Vuelve a intentarlo en un momento.",
+      "empty": {
+        "title": "Todavía no hay actividad de inicio de sesión",
+        "description": "Aquí aparecerán los inicios de sesión y los intentos fallidos de los últimos 90 días."
+      },
+      "failedSummary": "{count, plural, one {# intento fallido} other {# intentos fallidos}} en este período.",
+      "outcome": {
+        "succeeded": "Entró",
+        "failed": "Fallido",
+        "locked": "Bloqueado"
+      },
+      "method": {
+        "password": "Contraseña",
+        "google": "Google",
+        "two_factor": "Código de verificación en dos pasos"
+      },
+      "wrongSecondFactor": "Código del segundo paso incorrecto",
+      "ipAddress": "Dirección IP",
+      "unknownAddress": "Dirección desconocida",
+      "showAll": "Mostrar todo ({count})",
+      "showLess": "Mostrar menos",
+      "hint": "¿No reconoces algún intento? <password>Cambia tu contraseña</password> y <sessions>cierra sesión en todos los dispositivos</sessions>."
     }
   },
   "communication": {
@@ -6676,6 +6702,39 @@
       "thanks": "¡Gracias por tu opinión!",
       "given": "Tu valoración",
       "outOf": "Valoración: {rating} de 5"
+    }
+  },
+  "maintenance": {
+    "expectedBack": "Regreso previsto: {time}.",
+    "teamMessage": "Mensaje del equipo",
+    "statusLink": "Estado del sistema",
+    "readOnly": {
+      "label": "Mantenimiento",
+      "title": "Modo de solo lectura por mantenimiento: los cambios están en pausa.",
+      "description": "Puedes seguir abriendo y consultando todo; guardar volverá a funcionar en cuanto terminemos."
+    },
+    "staff": {
+      "label": "Modo de mantenimiento",
+      "full": "Mantenimiento ACTIVO: Setlyst está cerrado para todos excepto el equipo.",
+      "readOnly": "Mantenimiento ACTIVO: todos excepto el equipo están en modo de solo lectura.",
+      "note": "Tu cuenta del equipo no se ve afectada.",
+      "manage": "Configuración de la plataforma"
+    },
+    "screen": {
+      "title": "Setlyst está en mantenimiento",
+      "description": "Estamos haciendo algunos ajustes internos. Tus datos están a salvo y todo volverá pronto."
+    },
+    "signIn": {
+      "title": "Mantenimiento en curso",
+      "description": "Por ahora solo las cuentas del equipo pueden entrar. Vuelve en un rato."
+    },
+    "signUp": {
+      "closedTitle": "Los registros están cerrados por ahora",
+      "closedDescription": "En este momento no estamos aceptando cuentas nuevas. Vuelve a intentarlo más tarde.",
+      "maintenanceTitle": "Registros en pausa por mantenimiento",
+      "maintenanceDescription": "No se pueden crear cuentas mientras Setlyst está en mantenimiento. Vuelve en un rato.",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Entrar"
     }
   }
 }

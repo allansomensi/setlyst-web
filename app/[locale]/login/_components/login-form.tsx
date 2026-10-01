@@ -105,7 +105,17 @@ function readInitialState(params: URLSearchParams): InitialState {
   };
 }
 
-export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
+export function LoginForm({
+  googleEnabled,
+  platformNotice = null,
+}: {
+  googleEnabled: boolean;
+  /**
+   * Rendered by the page above the form: during full maintenance, that
+   * only staff can sign in right now (components/maintenance).
+   */
+  platformNotice?: React.ReactNode;
+}) {
   const t = useTranslations("auth.login");
   const tTwo = useTranslations("twoFactor");
   const tGoogle = useTranslations("googleAuth");
@@ -577,6 +587,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {platformNotice}
         {notice && (
           <Alert
             variant={SUCCESS_NOTICES.includes(notice) ? "success" : "info"}
