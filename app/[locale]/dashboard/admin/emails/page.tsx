@@ -20,6 +20,7 @@ import {
   ListEmptyState,
 } from "@/components/staff/list-empty-state";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
+import { ActiveFilters } from "@/components/staff/active-filters";
 import { fetchServerApi } from "@/lib/api-server";
 import { hourlyCapUsage, OUTBOX_STATUS_TONES } from "@/lib/platform-admin";
 import { requireStaffPage } from "@/lib/staff-guard";
@@ -70,7 +71,7 @@ export default async function EmailsPage({
     : null;
   const { query, page } = adminListQuery(
     { ...params, status: status ?? undefined },
-    ["q", "status", "template"],
+    ["q", "status", "template", "user_id"],
   );
 
   const [summary, result] = await Promise.all([
@@ -298,6 +299,15 @@ export default async function EmailsPage({
           ]}
         />
         <EmailStatusFilter current={status} />
+        <ActiveFilters
+          basePath={BASE_PATH}
+          params={params}
+          labels={{
+            user_id: emails[0]?.username
+              ? `@${emails[0].username}`
+              : t("filters.account"),
+          }}
+        />
 
         {result === null ? (
           <LoadErrorNotice />

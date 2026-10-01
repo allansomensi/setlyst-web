@@ -18,8 +18,8 @@ import type { User } from "@/types/api";
 import { banUser } from "../actions";
 
 /** Preset suspension lengths, in hours. `0` means permanent. */
-const DURATIONS = [1, 24, 72, 168, 720, 2160, 0] as const;
-const REASON_MAX = 500;
+export const BAN_DURATIONS = [1, 24, 72, 168, 720, 2160, 0] as const;
+export const BAN_REASON_MAX = 500;
 
 interface BanDialogProps {
   user: Pick<User, "id" | "username"> | null;
@@ -84,7 +84,7 @@ export function BanDialog({ user, onOpenChange, onDone }: BanDialogProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {DURATIONS.map((hours) => (
+              {BAN_DURATIONS.map((hours) => (
                 <SelectItem key={hours} value={String(hours)}>
                   {t(`durations.${hours}`)}
                 </SelectItem>
@@ -97,13 +97,13 @@ export function BanDialog({ user, onOpenChange, onDone }: BanDialogProps) {
           <Textarea
             id="ban-reason"
             value={reason}
-            onChange={(e) => setReason(e.target.value.slice(0, REASON_MAX))}
+            onChange={(e) => setReason(e.target.value.slice(0, BAN_REASON_MAX))}
             placeholder={t("reasonPlaceholder")}
             rows={3}
             disabled={isPending}
           />
           <p className="text-muted-foreground text-xs">
-            {t("reasonHint")} · {reason.length}/{REASON_MAX}
+            {t("reasonHint")} · {reason.length}/{BAN_REASON_MAX}
           </p>
         </div>
       </div>

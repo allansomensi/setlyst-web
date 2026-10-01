@@ -18,11 +18,13 @@ function first(value: string | string[] | undefined): string | undefined {
 /**
  * Builds the API query string from the page's search params, keeping only
  * the known filters (and only well-formed ones), so a hand-edited URL can
- * never smuggle anything else upstream.
+ * never smuggle anything else upstream. A key listed in `choices` keeps
+ * only one of its listed values (`?role=admin`, `?verified=true`).
  */
 export function adminListQuery(
   raw: Record<string, string | string[] | undefined>,
   allowed: readonly string[] = ["q"],
+  choices: Readonly<Record<string, readonly string[]>> = {},
 ): { query: string; page: number } {
   const params = new URLSearchParams();
   const page = Math.max(1, Number.parseInt(first(raw.page) ?? "1", 10) || 1);
@@ -34,6 +36,7 @@ export function adminListQuery(
     if (!value) continue;
     if ((key.endsWith("_id") || key === "user_id") && !isUuid(value)) continue;
     if (key === "shared" && value !== "true" && value !== "false") continue;
+    if (Object.hasOwn(choices, key) && !choices[key].includes(value)) continue;
     params.set(key, value.slice(0, 100));
   }
   return { query: params.toString(), page };

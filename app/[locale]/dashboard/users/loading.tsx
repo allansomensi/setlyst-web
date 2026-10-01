@@ -20,8 +20,15 @@ export default function UsersLoading() {
         <Skeleton className="h-10 w-32" /> {/* Add User Button */}
       </div>
 
-      {/* Search Input Skeleton */}
-      <Skeleton className="h-10 w-full max-w-sm" />
+      {/* Search box and filters */}
+      <div className="space-y-2">
+        <Skeleton className="h-9 w-full max-w-sm" />
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-9 w-full sm:w-44" />
+          ))}
+        </div>
+      </div>
 
       {/* Table Skeleton */}
       <div className="bg-card overflow-hidden rounded-xl border shadow-(--shadow-surface)">

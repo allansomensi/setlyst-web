@@ -112,6 +112,8 @@ export const CLIENT_NAMESPACES = {
     "bands.roles",
     "billingAdmin",
     "common",
+    "console",
+    "downloads",
     "emailsAdmin",
     "error",
     "finance",
@@ -135,6 +137,7 @@ export const CLIENT_NAMESPACES = {
     "staff",
     "supportAdmin",
     "tags",
+    "userNotes",
     "usernamePolicy",
   ],
   live: [

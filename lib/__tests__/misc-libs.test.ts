@@ -107,6 +107,24 @@ describe("adminListQuery", () => {
     expect(params.has("evil")).toBe(false);
   });
 
+  it("keeps only listed values for enumerated filters", () => {
+    const { query } = adminListQuery(
+      { role: "admin", sort: "random", verified: "true", two_factor: "yes" },
+      ["role", "sort", "verified", "two_factor"],
+      {
+        role: ["user", "admin"],
+        sort: ["newest"],
+        verified: ["true", "false"],
+        two_factor: ["true", "false"],
+      },
+    );
+    const params = new URLSearchParams(query);
+    expect(params.get("role")).toBe("admin");
+    expect(params.has("sort")).toBe(false);
+    expect(params.get("verified")).toBe("true");
+    expect(params.has("two_factor")).toBe(false);
+  });
+
   it("never requests a page below 1", () => {
     expect(adminListQuery({ page: "-4" }).page).toBe(1);
     expect(adminListQuery({ page: "abc" }).page).toBe(1);

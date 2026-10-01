@@ -2410,7 +2410,6 @@
     },
     "users": {
       "title": "Usuarios",
-      "subtitle": "{total, plural, one {# cuenta} other {# cuentas}} · {banned, plural, one {# suspendida} other {# suspendidas}} · {inactive, plural, one {# desactivada} other {# desactivadas}}",
       "add": "Nuevo usuario",
       "searchPlaceholder": "Buscar por usuario, nombre o correo…",
       "filterRole": "Filtrar por rol",
@@ -2425,8 +2424,7 @@
         "all": "Cualquier estado",
         "active": "Activas",
         "inactive": "Desactivadas",
-        "banned": "Suspendidas",
-        "mustChange": "Cambio de contraseña pendiente"
+        "banned": "Suspendidas"
       },
       "columns": {
         "user": "Usuario",
@@ -2438,7 +2436,30 @@
       },
       "empty": "Ninguna cuenta coincide con estos filtros.",
       "you": "tú",
-      "neverSignedIn": "Nunca"
+      "neverSignedIn": "Nunca",
+      "description": "Todas las cuentas de la plataforma. Filtra, exporta o actúa sobre varias a la vez.",
+      "filters": {
+        "verified": {
+          "label": "Filtrar por verificación de correo",
+          "all": "Cualquier correo",
+          "true": "Correo verificado",
+          "false": "Correo sin verificar"
+        },
+        "twoFactor": {
+          "label": "Filtrar por verificación en dos pasos",
+          "all": "Cualquier 2FA",
+          "true": "Con 2FA",
+          "false": "Sin 2FA"
+        },
+        "created": "Creada",
+        "sort": {
+          "label": "Ordenar por",
+          "username": "Usuario (A–Z)",
+          "newest": "Más recientes",
+          "oldest": "Más antiguas",
+          "last_login": "Último acceso"
+        }
+      }
     },
     "userForm": {
       "createTitle": "Nuevo usuario",
@@ -6806,7 +6827,8 @@
       "template": "Plantilla",
       "allTemplates": "Todas las plantillas",
       "status": "Filtrar por estado",
-      "allStatuses": "Todos"
+      "allStatuses": "Todos",
+      "account": "Esta cuenta"
     },
     "statuses": {
       "pending": "En cola",
@@ -7028,6 +7050,216 @@
         "staff": "El equipo conserva el acceso completo para comprobar la plataforma antes de desactivarlo."
       },
       "confirm": "Activar mantenimiento total"
+    }
+  },
+  "console": {
+    "title": "Consola",
+    "description": "Lo que necesita atención en la plataforma ahora mismo y el acceso a todas las herramientas del equipo.",
+    "updatedAt": "Actualizado a las",
+    "sections": "Secciones de la consola",
+    "attention": {
+      "title": "Necesita atención",
+      "clear": "Todo en orden",
+      "clearHint": "No hay solicitudes abiertas, fallos ni alertas en este momento.",
+      "maintenance": {
+        "read_only": "Modo de mantenimiento activo: solo lectura",
+        "read_onlyHint": "Se puede navegar, pero solo el equipo puede cambiar algo.",
+        "full": "Modo de mantenimiento activo: completo",
+        "fullHint": "Solo el equipo puede iniciar sesión y usar Setlyst."
+      },
+      "incidents": "{count, plural, one {# incidente activo} other {# incidentes activos}}",
+      "incidentsHint": "Mantén la página de estado al día hasta que se resuelva.",
+      "supportUrgent": "{count, plural, one {# solicitud de soporte urgente} other {# solicitudes de soporte urgentes}}",
+      "supportUrgentHint": "Marcadas como urgentes y todavía sin respuesta.",
+      "emailsFailed": "{count, plural, one {# correo falló} other {# correos fallaron}} en las últimas 24 horas",
+      "emailsFailedHint": "Revisa el error y reinténtalo, o corrige la configuración del servidor de correo.",
+      "supportOpen": "{count, plural, one {# solicitud de soporte espera} other {# solicitudes de soporte esperan}} al equipo",
+      "supportUnassigned": "{count, plural, one {# todavía no tiene responsable.} other {# todavía no tienen responsable.}}",
+      "supportAssigned": "Todas tienen responsable.",
+      "moderation": "{count, plural, one {# punto de atención abierto} other {# puntos de atención abiertos}}",
+      "moderationHint": "Denuncias y alertas automáticas pendientes de revisión.",
+      "emailBacklog": "{count, plural, one {# correo pendiente} other {# correos pendientes}} de envío",
+      "oldestMinutes": "El más antiguo lleva {minutes, plural, one {# minuto} other {# minutos}} esperando.",
+      "oldestHours": "El más antiguo lleva {hours, plural, one {# hora} other {# horas}} esperando.",
+      "registrationsClosed": "Los registros están cerrados",
+      "registrationsClosedHint": "Nadie puede crear una cuenta hasta que se vuelvan a abrir.",
+      "staffTwoFactor": "{count, plural, one {# cuenta del equipo} other {# cuentas del equipo}} sin verificación en dos pasos",
+      "staffTwoFactorHint": "No pueden usar la consola hasta que la activen.",
+      "links": {
+        "unassigned": "Ver sin responsable",
+        "moderators": "Moderadores",
+        "admins": "Administradores"
+      }
+    },
+    "accounts": {
+      "title": "Cuentas",
+      "all": "Todas las cuentas",
+      "total": "Total de cuentas",
+      "newToday": "{count, plural, =0 {Ningún registro hoy} one {# nueva hoy} other {# nuevas hoy}}",
+      "new7d": "Nuevas en 7 días",
+      "in30d": "{count, plural, one {# en 30 días} other {# en 30 días}}",
+      "active7d": "Entraron en los últimos 7 días",
+      "unverified": "Correo sin verificar",
+      "suspended": "Suspendidas",
+      "deactivated": "Desactivadas"
+    },
+    "chart": {
+      "title": "Registros en los últimos 30 días",
+      "total": "{count, plural, =0 {Ninguna cuenta nueva en este período.} one {# cuenta nueva en este período.} other {# cuentas nuevas en este período.}}",
+      "signups": "Registros",
+      "empty": "Ningún registro en este período.",
+      "tooltip": "{count, plural, =0 {Ningún registro} one {# registro} other {# registros}}"
+    },
+    "search": {
+      "title": "Búsqueda",
+      "description": "Encuentra cuentas, bandas, canciones, setlists y solicitudes de soporte en un solo lugar.",
+      "label": "Buscar en la plataforma",
+      "placeholder": "Usuario, correo, banda, canción, setlist o #solicitud…",
+      "submit": "Buscar",
+      "emptyTitle": "¿Qué estás buscando?",
+      "emptyHint": "Escribe un nombre de usuario, un correo, un nombre o el número de una solicitud, como #1042.",
+      "tooShort": "Escribe al menos {min} caracteres para buscar.",
+      "noResults": "No se encontró nada para «{q}»",
+      "noResultsHint": "Revisa cómo está escrito o prueba con parte de un nombre o correo.",
+      "resultCount": "{count, plural, one {# resultado} other {# resultados}}",
+      "seeAll": "Ver todos",
+      "groups": {
+        "users": "Cuentas",
+        "tickets": "Solicitudes de soporte",
+        "bands": "Bandas",
+        "songs": "Canciones",
+        "setlists": "Setlists"
+      },
+      "ticketStatus": {
+        "open": "Esperando al equipo",
+        "pending": "Esperando respuesta",
+        "resolved": "Resuelta",
+        "closed": "Cerrada"
+      },
+      "priority": {
+        "low": "Baja",
+        "normal": "Normal",
+        "high": "Alta",
+        "urgent": "Urgente"
+      }
+    },
+    "export": {
+      "button": "Exportar CSV",
+      "hint": "Descarga todo lo que coincide con los filtros actuales como hoja de cálculo (CSV). La exportación queda registrada en la auditoría.",
+      "done": "Guardado como {file}."
+    },
+    "bulk": {
+      "label": "Acciones sobre las cuentas seleccionadas",
+      "selected": "{count, plural, one {# cuenta seleccionada} other {# cuentas seleccionadas}}",
+      "actions": "Acciones",
+      "clear": "Quitar selección",
+      "selectPage": "Seleccionar todas las cuentas de esta página que puedes gestionar",
+      "selectOne": "Seleccionar a @{username}",
+      "action": {
+        "revoke_sessions": "Cerrar sesión en todas partes",
+        "ban": "Suspender…",
+        "unban": "Levantar suspensión",
+        "deactivate": "Desactivar",
+        "activate": "Reactivar"
+      },
+      "confirm": {
+        "revoke_sessions": {
+          "title": "¿Cerrar la sesión de {count, plural, one {# cuenta} other {# cuentas}} en todas partes?",
+          "description": "Todas las sesiones, en todos los dispositivos, terminan al instante. Las contraseñas no cambian.",
+          "button": "Cerrar sesión de {count, plural, one {# cuenta} other {# cuentas}}"
+        },
+        "ban": {
+          "title": "¿Suspender {count, plural, one {# cuenta} other {# cuentas}}?",
+          "description": "Se cierra su sesión en todas partes al instante y no podrán entrar hasta que termine la suspensión. No se elimina nada.",
+          "button": "Suspender {count, plural, one {# cuenta} other {# cuentas}}"
+        },
+        "unban": {
+          "title": "¿Levantar la suspensión de {count, plural, one {# cuenta} other {# cuentas}}?",
+          "description": "Podrán entrar de inmediato.",
+          "button": "Levantar {count, plural, one {# suspensión} other {# suspensiones}}"
+        },
+        "deactivate": {
+          "title": "¿Desactivar {count, plural, one {# cuenta} other {# cuentas}}?",
+          "description": "Se cierra su sesión y no podrán entrar hasta ser reactivadas. Sus canciones, setlists y bandas se conservan.",
+          "button": "Desactivar {count, plural, one {# cuenta} other {# cuentas}}"
+        },
+        "activate": {
+          "title": "¿Reactivar {count, plural, one {# cuenta} other {# cuentas}}?",
+          "description": "Podrán volver a iniciar sesión.",
+          "button": "Reactivar {count, plural, one {# cuenta} other {# cuentas}}"
+        }
+      },
+      "skipped": {
+        "unban": "{count, plural, one {# cuenta seleccionada no está suspendida y quedará igual.} other {# cuentas seleccionadas no están suspendidas y quedarán igual.}}",
+        "deactivate": "{count, plural, one {# cuenta seleccionada ya está desactivada.} other {# cuentas seleccionadas ya están desactivadas.}}",
+        "activate": "{count, plural, one {# cuenta seleccionada ya está activa.} other {# cuentas seleccionadas ya están activas.}}"
+      },
+      "done": {
+        "revoke_sessions": "{count, plural, one {Se cerró la sesión de # cuenta en todas partes.} other {Se cerró la sesión de # cuentas en todas partes.}}",
+        "ban": "{count, plural, one {# cuenta fue suspendida.} other {# cuentas fueron suspendidas.}}",
+        "unban": "{count, plural, one {Suspensión levantada para # cuenta.} other {Suspensión levantada para # cuentas.}}",
+        "deactivate": "{count, plural, one {# cuenta fue desactivada.} other {# cuentas fueron desactivadas.}}",
+        "activate": "{count, plural, one {# cuenta fue reactivada.} other {# cuentas fueron reactivadas.}}"
+      },
+      "partial": "Hecho en {done, plural, one {# cuenta} other {# cuentas}}; {failed, plural, one {# fue rechazada} other {# fueron rechazadas}}.",
+      "allFailed": "{count, plural, one {La cuenta fue rechazada.} other {Las # cuentas fueron rechazadas.}}",
+      "namesMore": "{names} y {count, plural, one {# más} other {# más}}"
+    }
+  },
+  "userNotes": {
+    "title": "Notas del equipo",
+    "description": "Contexto interno sobre esta cuenta para el resto del equipo. La persona nunca ve estas notas.",
+    "newLabel": "Nueva nota",
+    "placeholder": "Ej.: Advertido el 12/09 por spam en setlists públicas.",
+    "pinOnAdd": "Fijar arriba",
+    "count": "{count} / {max}",
+    "add": "Añadir nota",
+    "added": "Nota añadida.",
+    "updated": "Nota actualizada.",
+    "deleted": "Nota eliminada.",
+    "pinnedDone": "Nota fijada.",
+    "unpinned": "Nota desfijada.",
+    "loadFailed": "No se pudieron cargar las notas. Recarga la página para intentarlo de nuevo.",
+    "empty": "Todavía no hay notas sobre esta cuenta.",
+    "pinned": "Fijada",
+    "unknownAuthor": "Cuenta eliminada",
+    "edited": "editada",
+    "pin": "Fijar nota",
+    "unpin": "Desfijar nota",
+    "edit": "Editar nota",
+    "editLabel": "Texto de la nota",
+    "delete": "Eliminar nota",
+    "deleteTitle": "¿Eliminar esta nota?",
+    "deleteDescription": "Desaparece para todo el equipo. No se puede deshacer.",
+    "signIns": {
+      "title": "Actividad de acceso",
+      "description": "Inicios de sesión, intentos fallidos y bloqueos de los últimos 90 días, de los más recientes a los más antiguos, con la dirección de red de origen.",
+      "loadFailed": "No se pudo cargar la actividad de acceso.",
+      "empty": "Ningún intento de acceso en los últimos 90 días.",
+      "secondFactor": "Código del segundo paso incorrecto",
+      "showMore": "Mostrar {count} más",
+      "columns": {
+        "outcome": "Resultado",
+        "method": "Método",
+        "ip": "Dirección de red",
+        "date": "Cuándo"
+      },
+      "outcomes": {
+        "succeeded": "Entró",
+        "failed": "Fallido",
+        "locked": "Bloqueado"
+      },
+      "methods": {
+        "password": "Contraseña",
+        "google": "Google",
+        "two_factor": "verificación en dos pasos"
+      }
+    },
+    "contact": {
+      "title": "Soporte y correos",
+      "description": "Las solicitudes de soporte de esta persona y los correos que la plataforma le envió.",
+      "support": "Solicitudes de soporte",
+      "emails": "Correos"
     }
   }
 }

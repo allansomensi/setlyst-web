@@ -2410,7 +2410,6 @@
     },
     "users": {
       "title": "Users",
-      "subtitle": "{total, plural, one {# account} other {# accounts}} · {banned} suspended · {inactive} deactivated",
       "add": "New user",
       "searchPlaceholder": "Search by username, name or email…",
       "filterRole": "Filter by role",
@@ -2425,8 +2424,7 @@
         "all": "Any status",
         "active": "Active",
         "inactive": "Deactivated",
-        "banned": "Suspended",
-        "mustChange": "Password change pending"
+        "banned": "Suspended"
       },
       "columns": {
         "user": "User",
@@ -2438,7 +2436,30 @@
       },
       "empty": "No accounts match these filters.",
       "you": "you",
-      "neverSignedIn": "Never"
+      "neverSignedIn": "Never",
+      "description": "Every account on the platform. Filter, export, or act on several at once.",
+      "filters": {
+        "verified": {
+          "label": "Filter by e-mail verification",
+          "all": "Any e-mail",
+          "true": "E-mail verified",
+          "false": "E-mail not verified"
+        },
+        "twoFactor": {
+          "label": "Filter by two-step verification",
+          "all": "Any 2FA",
+          "true": "2FA on",
+          "false": "2FA off"
+        },
+        "created": "Created",
+        "sort": {
+          "label": "Sort by",
+          "username": "Username (A–Z)",
+          "newest": "Newest first",
+          "oldest": "Oldest first",
+          "last_login": "Last sign-in"
+        }
+      }
     },
     "userForm": {
       "createTitle": "New user",
@@ -6806,7 +6827,8 @@
       "template": "Template",
       "allTemplates": "All templates",
       "status": "Filter by status",
-      "allStatuses": "All"
+      "allStatuses": "All",
+      "account": "This account"
     },
     "statuses": {
       "pending": "Waiting",
@@ -7028,6 +7050,216 @@
         "staff": "Staff keep full access, so you can check the platform before turning it off."
       },
       "confirm": "Turn on full maintenance"
+    }
+  },
+  "console": {
+    "title": "Console",
+    "description": "What needs attention on the platform right now, and the way into every staff tool.",
+    "updatedAt": "Updated at",
+    "sections": "Console sections",
+    "attention": {
+      "title": "Needs attention",
+      "clear": "All clear",
+      "clearHint": "No open requests, failures or alerts right now.",
+      "maintenance": {
+        "read_only": "Maintenance mode is on: read-only",
+        "read_onlyHint": "People can browse, but only the staff can change anything.",
+        "full": "Maintenance mode is on: full",
+        "fullHint": "Only the staff can sign in and use Setlyst."
+      },
+      "incidents": "{count, plural, one {# active incident} other {# active incidents}}",
+      "incidentsHint": "Keep the status page up to date until it's resolved.",
+      "supportUrgent": "{count, plural, one {# urgent support request} other {# urgent support requests}}",
+      "supportUrgentHint": "Marked urgent and still waiting for an answer.",
+      "emailsFailed": "{count, plural, one {# e-mail failed} other {# e-mails failed}} in the last 24 hours",
+      "emailsFailedHint": "Check the error and retry, or fix the e-mail server settings.",
+      "supportOpen": "{count, plural, one {# support request waiting} other {# support requests waiting}} for the staff",
+      "supportUnassigned": "{count, plural, one {# isn't assigned to anyone yet.} other {# aren't assigned to anyone yet.}}",
+      "supportAssigned": "All of them are assigned.",
+      "moderation": "{count, plural, one {# open attention point} other {# open attention points}}",
+      "moderationHint": "Reports and automatic flags waiting for a review.",
+      "emailBacklog": "{count, plural, one {# e-mail waiting} other {# e-mails waiting}} to be sent",
+      "oldestMinutes": "The oldest has been waiting {minutes, plural, one {# minute} other {# minutes}}.",
+      "oldestHours": "The oldest has been waiting {hours, plural, one {# hour} other {# hours}}.",
+      "registrationsClosed": "Sign-ups are closed",
+      "registrationsClosedHint": "Nobody can create a new account until they're opened again.",
+      "staffTwoFactor": "{count, plural, one {# staff account} other {# staff accounts}} without two-factor authentication",
+      "staffTwoFactorHint": "They can't use the console until they turn it on.",
+      "links": {
+        "unassigned": "See unassigned",
+        "moderators": "Moderators",
+        "admins": "Admins"
+      }
+    },
+    "accounts": {
+      "title": "Accounts",
+      "all": "All accounts",
+      "total": "Total accounts",
+      "newToday": "{count, plural, =0 {No sign-ups today} one {# new today} other {# new today}}",
+      "new7d": "New in 7 days",
+      "in30d": "{count, plural, one {# in 30 days} other {# in 30 days}}",
+      "active7d": "Signed in within 7 days",
+      "unverified": "E-mail not verified",
+      "suspended": "Suspended",
+      "deactivated": "Deactivated"
+    },
+    "chart": {
+      "title": "Sign-ups in the last 30 days",
+      "total": "{count, plural, =0 {No new accounts in this period.} one {# new account in this period.} other {# new accounts in this period.}}",
+      "signups": "Sign-ups",
+      "empty": "No sign-ups in this period.",
+      "tooltip": "{count, plural, =0 {No sign-ups} one {# sign-up} other {# sign-ups}}"
+    },
+    "search": {
+      "title": "Search",
+      "description": "Find accounts, bands, songs, setlists and support requests in one place.",
+      "label": "Search the platform",
+      "placeholder": "Username, e-mail, band, song, setlist or #request…",
+      "submit": "Search",
+      "emptyTitle": "What are you looking for?",
+      "emptyHint": "Type a username, an e-mail address, a name or a support request number such as #1042.",
+      "tooShort": "Type at least {min} characters to search.",
+      "noResults": "Nothing found for “{q}”",
+      "noResultsHint": "Check the spelling, or try part of a name or e-mail address.",
+      "resultCount": "{count, plural, one {# result} other {# results}}",
+      "seeAll": "See all",
+      "groups": {
+        "users": "Accounts",
+        "tickets": "Support requests",
+        "bands": "Bands",
+        "songs": "Songs",
+        "setlists": "Setlists"
+      },
+      "ticketStatus": {
+        "open": "Waiting for staff",
+        "pending": "Waiting for reply",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "priority": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High",
+        "urgent": "Urgent"
+      }
+    },
+    "export": {
+      "button": "Export CSV",
+      "hint": "Download everything that matches the current filters as a spreadsheet (CSV). The export is recorded in the audit log.",
+      "done": "Saved as {file}."
+    },
+    "bulk": {
+      "label": "Actions on the selected accounts",
+      "selected": "{count, plural, one {# account selected} other {# accounts selected}}",
+      "actions": "Actions",
+      "clear": "Clear selection",
+      "selectPage": "Select every account on this page you can manage",
+      "selectOne": "Select @{username}",
+      "action": {
+        "revoke_sessions": "Sign out everywhere",
+        "ban": "Suspend…",
+        "unban": "Lift suspension",
+        "deactivate": "Deactivate",
+        "activate": "Reactivate"
+      },
+      "confirm": {
+        "revoke_sessions": {
+          "title": "Sign {count, plural, one {# account} other {# accounts}} out everywhere?",
+          "description": "Every session on every device ends right away. Passwords don't change.",
+          "button": "Sign out {count, plural, one {# account} other {# accounts}}"
+        },
+        "ban": {
+          "title": "Suspend {count, plural, one {# account} other {# accounts}}?",
+          "description": "They're signed out everywhere right away and can't sign in until the suspension ends. Nothing is deleted.",
+          "button": "Suspend {count, plural, one {# account} other {# accounts}}"
+        },
+        "unban": {
+          "title": "Lift the suspension of {count, plural, one {# account} other {# accounts}}?",
+          "description": "They'll be able to sign in right away.",
+          "button": "Lift {count, plural, one {# suspension} other {# suspensions}}"
+        },
+        "deactivate": {
+          "title": "Deactivate {count, plural, one {# account} other {# accounts}}?",
+          "description": "They're signed out and can't sign in until reactivated. Their songs, setlists and band memberships are kept.",
+          "button": "Deactivate {count, plural, one {# account} other {# accounts}}"
+        },
+        "activate": {
+          "title": "Reactivate {count, plural, one {# account} other {# accounts}}?",
+          "description": "They'll be able to sign in again.",
+          "button": "Reactivate {count, plural, one {# account} other {# accounts}}"
+        }
+      },
+      "skipped": {
+        "unban": "{count, plural, one {# selected account isn't suspended and will be left as is.} other {# selected accounts aren't suspended and will be left as they are.}}",
+        "deactivate": "{count, plural, one {# selected account is already deactivated.} other {# selected accounts are already deactivated.}}",
+        "activate": "{count, plural, one {# selected account is already active.} other {# selected accounts are already active.}}"
+      },
+      "done": {
+        "revoke_sessions": "{count, plural, one {# account was signed out everywhere.} other {# accounts were signed out everywhere.}}",
+        "ban": "{count, plural, one {# account was suspended.} other {# accounts were suspended.}}",
+        "unban": "{count, plural, one {Suspension lifted for # account.} other {Suspension lifted for # accounts.}}",
+        "deactivate": "{count, plural, one {# account was deactivated.} other {# accounts were deactivated.}}",
+        "activate": "{count, plural, one {# account was reactivated.} other {# accounts were reactivated.}}"
+      },
+      "partial": "Done for {done, plural, one {# account} other {# accounts}}; {failed, plural, one {# was refused} other {# were refused}}.",
+      "allFailed": "{count, plural, one {The account was refused.} other {All # accounts were refused.}}",
+      "namesMore": "{names} and {count, plural, one {# other} other {# others}}"
+    }
+  },
+  "userNotes": {
+    "title": "Staff notes",
+    "description": "Internal context about this account for the rest of the staff. The person never sees these notes.",
+    "newLabel": "New note",
+    "placeholder": "e.g. Warned on Sep 12 about spam in public setlists.",
+    "pinOnAdd": "Pin to the top",
+    "count": "{count} / {max}",
+    "add": "Add note",
+    "added": "Note added.",
+    "updated": "Note updated.",
+    "deleted": "Note deleted.",
+    "pinnedDone": "Note pinned.",
+    "unpinned": "Note unpinned.",
+    "loadFailed": "Couldn't load the notes. Reload the page to try again.",
+    "empty": "No notes about this account yet.",
+    "pinned": "Pinned",
+    "unknownAuthor": "Deleted account",
+    "edited": "edited",
+    "pin": "Pin note",
+    "unpin": "Unpin note",
+    "edit": "Edit note",
+    "editLabel": "Note text",
+    "delete": "Delete note",
+    "deleteTitle": "Delete this note?",
+    "deleteDescription": "It's removed for the whole staff. This can't be undone.",
+    "signIns": {
+      "title": "Sign-in activity",
+      "description": "Sign-ins, failed attempts and lockouts of the last 90 days, newest first, with the network address they came from.",
+      "loadFailed": "Couldn't load the sign-in activity.",
+      "empty": "No sign-in attempts in the last 90 days.",
+      "secondFactor": "Wrong second-step code",
+      "showMore": "Show {count} more",
+      "columns": {
+        "outcome": "Result",
+        "method": "Method",
+        "ip": "Network address",
+        "date": "When"
+      },
+      "outcomes": {
+        "succeeded": "Signed in",
+        "failed": "Failed",
+        "locked": "Locked out"
+      },
+      "methods": {
+        "password": "Password",
+        "google": "Google",
+        "two_factor": "two-step verification"
+      }
+    },
+    "contact": {
+      "title": "Support and e-mails",
+      "description": "This person's support requests and the e-mails the platform sent them.",
+      "support": "Support requests",
+      "emails": "E-mails"
     }
   }
 }

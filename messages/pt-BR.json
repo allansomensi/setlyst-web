@@ -2410,7 +2410,6 @@
     },
     "users": {
       "title": "Usuários",
-      "subtitle": "{total, plural, =1 {# conta} other {# contas}} · {banned, plural, =1 {# suspensa} other {# suspensas}} · {inactive, plural, =1 {# desativada} other {# desativadas}}",
       "add": "Novo usuário",
       "searchPlaceholder": "Buscar por usuário, nome ou e-mail…",
       "filterRole": "Filtrar por papel",
@@ -2425,8 +2424,7 @@
         "all": "Qualquer situação",
         "active": "Ativas",
         "inactive": "Desativadas",
-        "banned": "Suspensas",
-        "mustChange": "Troca de senha pendente"
+        "banned": "Suspensas"
       },
       "columns": {
         "user": "Usuário",
@@ -2438,7 +2436,30 @@
       },
       "empty": "Nenhuma conta corresponde a esses filtros.",
       "you": "você",
-      "neverSignedIn": "Nunca"
+      "neverSignedIn": "Nunca",
+      "description": "Todas as contas da plataforma. Filtre, exporte ou aja em várias de uma vez.",
+      "filters": {
+        "verified": {
+          "label": "Filtrar por verificação de e-mail",
+          "all": "Qualquer e-mail",
+          "true": "E-mail verificado",
+          "false": "E-mail não verificado"
+        },
+        "twoFactor": {
+          "label": "Filtrar por verificação em duas etapas",
+          "all": "Qualquer 2FA",
+          "true": "Com 2FA",
+          "false": "Sem 2FA"
+        },
+        "created": "Criada em",
+        "sort": {
+          "label": "Ordenar por",
+          "username": "Usuário (A–Z)",
+          "newest": "Mais recentes",
+          "oldest": "Mais antigas",
+          "last_login": "Último acesso"
+        }
+      }
     },
     "userForm": {
       "createTitle": "Novo usuário",
@@ -6806,7 +6827,8 @@
       "template": "Modelo",
       "allTemplates": "Todos os modelos",
       "status": "Filtrar por status",
-      "allStatuses": "Todos"
+      "allStatuses": "Todos",
+      "account": "Esta conta"
     },
     "statuses": {
       "pending": "Na fila",
@@ -7028,6 +7050,216 @@
         "staff": "A equipe mantém acesso total, para conferir a plataforma antes de desligar a manutenção."
       },
       "confirm": "Ligar manutenção total"
+    }
+  },
+  "console": {
+    "title": "Console",
+    "description": "O que precisa de atenção na plataforma agora e o acesso a todas as ferramentas da equipe.",
+    "updatedAt": "Atualizado às",
+    "sections": "Seções do console",
+    "attention": {
+      "title": "Precisa de atenção",
+      "clear": "Tudo em ordem",
+      "clearHint": "Nenhum chamado em aberto, falha ou alerta no momento.",
+      "maintenance": {
+        "read_only": "Modo de manutenção ativo: somente leitura",
+        "read_onlyHint": "As pessoas podem navegar, mas só a equipe consegue alterar algo.",
+        "full": "Modo de manutenção ativo: completo",
+        "fullHint": "Só a equipe consegue entrar e usar o Setlyst."
+      },
+      "incidents": "{count, plural, one {# incidente ativo} other {# incidentes ativos}}",
+      "incidentsHint": "Mantenha a página de status atualizada até a resolução.",
+      "supportUrgent": "{count, plural, one {# chamado urgente} other {# chamados urgentes}}",
+      "supportUrgentHint": "Marcados como urgentes e ainda sem resposta.",
+      "emailsFailed": "{count, plural, one {# e-mail falhou} other {# e-mails falharam}} nas últimas 24 horas",
+      "emailsFailedHint": "Veja o erro e tente de novo, ou corrija a configuração do servidor de e-mail.",
+      "supportOpen": "{count, plural, one {# chamado aguardando} other {# chamados aguardando}} a equipe",
+      "supportUnassigned": "{count, plural, one {# ainda não tem responsável.} other {# ainda não têm responsável.}}",
+      "supportAssigned": "Todos já têm responsável.",
+      "moderation": "{count, plural, one {# ponto de atenção aberto} other {# pontos de atenção abertos}}",
+      "moderationHint": "Denúncias e sinalizações automáticas aguardando revisão.",
+      "emailBacklog": "{count, plural, one {# e-mail aguardando} other {# e-mails aguardando}} envio",
+      "oldestMinutes": "O mais antigo está esperando há {minutes, plural, one {# minuto} other {# minutos}}.",
+      "oldestHours": "O mais antigo está esperando há {hours, plural, one {# hora} other {# horas}}.",
+      "registrationsClosed": "Cadastros fechados",
+      "registrationsClosedHint": "Ninguém consegue criar conta até que sejam reabertos.",
+      "staffTwoFactor": "{count, plural, one {# conta da equipe} other {# contas da equipe}} sem verificação em duas etapas",
+      "staffTwoFactorHint": "Elas não conseguem usar o console até ativá-la.",
+      "links": {
+        "unassigned": "Ver sem responsável",
+        "moderators": "Moderadores",
+        "admins": "Administradores"
+      }
+    },
+    "accounts": {
+      "title": "Contas",
+      "all": "Todas as contas",
+      "total": "Total de contas",
+      "newToday": "{count, plural, =0 {Nenhum cadastro hoje} one {# nova hoje} other {# novas hoje}}",
+      "new7d": "Novas em 7 dias",
+      "in30d": "{count, plural, one {# em 30 dias} other {# em 30 dias}}",
+      "active7d": "Entraram nos últimos 7 dias",
+      "unverified": "E-mail não verificado",
+      "suspended": "Suspensas",
+      "deactivated": "Desativadas"
+    },
+    "chart": {
+      "title": "Cadastros nos últimos 30 dias",
+      "total": "{count, plural, =0 {Nenhuma conta nova no período.} one {# conta nova no período.} other {# contas novas no período.}}",
+      "signups": "Cadastros",
+      "empty": "Nenhum cadastro no período.",
+      "tooltip": "{count, plural, =0 {Nenhum cadastro} one {# cadastro} other {# cadastros}}"
+    },
+    "search": {
+      "title": "Busca",
+      "description": "Encontre contas, bandas, músicas, setlists e chamados de suporte em um só lugar.",
+      "label": "Buscar na plataforma",
+      "placeholder": "Usuário, e-mail, banda, música, setlist ou #chamado…",
+      "submit": "Buscar",
+      "emptyTitle": "O que você está procurando?",
+      "emptyHint": "Digite um nome de usuário, um e-mail, um nome ou o número de um chamado, como #1042.",
+      "tooShort": "Digite pelo menos {min} caracteres para buscar.",
+      "noResults": "Nada encontrado para “{q}”",
+      "noResultsHint": "Confira a grafia ou tente só parte de um nome ou e-mail.",
+      "resultCount": "{count, plural, one {# resultado} other {# resultados}}",
+      "seeAll": "Ver todos",
+      "groups": {
+        "users": "Contas",
+        "tickets": "Chamados de suporte",
+        "bands": "Bandas",
+        "songs": "Músicas",
+        "setlists": "Setlists"
+      },
+      "ticketStatus": {
+        "open": "Aguardando a equipe",
+        "pending": "Aguardando resposta",
+        "resolved": "Resolvido",
+        "closed": "Encerrado"
+      },
+      "priority": {
+        "low": "Baixa",
+        "normal": "Normal",
+        "high": "Alta",
+        "urgent": "Urgente"
+      }
+    },
+    "export": {
+      "button": "Exportar CSV",
+      "hint": "Baixe tudo o que corresponde aos filtros atuais como planilha (CSV). A exportação fica registrada na auditoria.",
+      "done": "Salvo como {file}."
+    },
+    "bulk": {
+      "label": "Ações nas contas selecionadas",
+      "selected": "{count, plural, one {# conta selecionada} other {# contas selecionadas}}",
+      "actions": "Ações",
+      "clear": "Limpar seleção",
+      "selectPage": "Selecionar todas as contas desta página que você pode gerenciar",
+      "selectOne": "Selecionar @{username}",
+      "action": {
+        "revoke_sessions": "Desconectar de todos os dispositivos",
+        "ban": "Suspender…",
+        "unban": "Remover suspensão",
+        "deactivate": "Desativar",
+        "activate": "Reativar"
+      },
+      "confirm": {
+        "revoke_sessions": {
+          "title": "Desconectar {count, plural, one {# conta} other {# contas}} de todos os dispositivos?",
+          "description": "Todas as sessões, em todos os aparelhos, terminam na hora. As senhas não mudam.",
+          "button": "Desconectar {count, plural, one {# conta} other {# contas}}"
+        },
+        "ban": {
+          "title": "Suspender {count, plural, one {# conta} other {# contas}}?",
+          "description": "As pessoas são desconectadas na hora e não conseguem entrar até a suspensão acabar. Nada é excluído.",
+          "button": "Suspender {count, plural, one {# conta} other {# contas}}"
+        },
+        "unban": {
+          "title": "Remover a suspensão de {count, plural, one {# conta} other {# contas}}?",
+          "description": "As pessoas poderão entrar na hora.",
+          "button": "Remover {count, plural, one {# suspensão} other {# suspensões}}"
+        },
+        "deactivate": {
+          "title": "Desativar {count, plural, one {# conta} other {# contas}}?",
+          "description": "As pessoas são desconectadas e não conseguem entrar até serem reativadas. Músicas, setlists e participações em bandas são mantidos.",
+          "button": "Desativar {count, plural, one {# conta} other {# contas}}"
+        },
+        "activate": {
+          "title": "Reativar {count, plural, one {# conta} other {# contas}}?",
+          "description": "As pessoas poderão entrar novamente.",
+          "button": "Reativar {count, plural, one {# conta} other {# contas}}"
+        }
+      },
+      "skipped": {
+        "unban": "{count, plural, one {# conta selecionada não está suspensa e fica como está.} other {# contas selecionadas não estão suspensas e ficam como estão.}}",
+        "deactivate": "{count, plural, one {# conta selecionada já está desativada.} other {# contas selecionadas já estão desativadas.}}",
+        "activate": "{count, plural, one {# conta selecionada já está ativa.} other {# contas selecionadas já estão ativas.}}"
+      },
+      "done": {
+        "revoke_sessions": "{count, plural, one {# conta foi desconectada de todos os dispositivos.} other {# contas foram desconectadas de todos os dispositivos.}}",
+        "ban": "{count, plural, one {# conta foi suspensa.} other {# contas foram suspensas.}}",
+        "unban": "{count, plural, one {Suspensão removida de # conta.} other {Suspensão removida de # contas.}}",
+        "deactivate": "{count, plural, one {# conta foi desativada.} other {# contas foram desativadas.}}",
+        "activate": "{count, plural, one {# conta foi reativada.} other {# contas foram reativadas.}}"
+      },
+      "partial": "Feito em {done, plural, one {# conta} other {# contas}}; {failed, plural, one {# foi recusada} other {# foram recusadas}}.",
+      "allFailed": "{count, plural, one {A conta foi recusada.} other {As # contas foram recusadas.}}",
+      "namesMore": "{names} e mais {count, plural, one {# outra} other {# outras}}"
+    }
+  },
+  "userNotes": {
+    "title": "Notas da equipe",
+    "description": "Contexto interno sobre esta conta para o resto da equipe. A pessoa nunca vê estas notas.",
+    "newLabel": "Nova nota",
+    "placeholder": "Ex.: Advertido(a) em 12/09 por spam em setlists públicas.",
+    "pinOnAdd": "Fixar no topo",
+    "count": "{count} / {max}",
+    "add": "Adicionar nota",
+    "added": "Nota adicionada.",
+    "updated": "Nota atualizada.",
+    "deleted": "Nota excluída.",
+    "pinnedDone": "Nota fixada.",
+    "unpinned": "Nota desafixada.",
+    "loadFailed": "Não foi possível carregar as notas. Recarregue a página para tentar de novo.",
+    "empty": "Ainda não há notas sobre esta conta.",
+    "pinned": "Fixada",
+    "unknownAuthor": "Conta excluída",
+    "edited": "editada",
+    "pin": "Fixar nota",
+    "unpin": "Desafixar nota",
+    "edit": "Editar nota",
+    "editLabel": "Texto da nota",
+    "delete": "Excluir nota",
+    "deleteTitle": "Excluir esta nota?",
+    "deleteDescription": "Ela some para toda a equipe. Não dá para desfazer.",
+    "signIns": {
+      "title": "Atividade de acesso",
+      "description": "Entradas, tentativas que falharam e bloqueios dos últimos 90 dias, das mais recentes para as mais antigas, com o endereço de rede de origem.",
+      "loadFailed": "Não foi possível carregar a atividade de acesso.",
+      "empty": "Nenhuma tentativa de acesso nos últimos 90 dias.",
+      "secondFactor": "Código da segunda etapa incorreto",
+      "showMore": "Mostrar mais {count}",
+      "columns": {
+        "outcome": "Resultado",
+        "method": "Método",
+        "ip": "Endereço de rede",
+        "date": "Quando"
+      },
+      "outcomes": {
+        "succeeded": "Entrou",
+        "failed": "Falhou",
+        "locked": "Bloqueado"
+      },
+      "methods": {
+        "password": "Senha",
+        "google": "Google",
+        "two_factor": "verificação em duas etapas"
+      }
+    },
+    "contact": {
+      "title": "Suporte e e-mails",
+      "description": "Os chamados de suporte desta pessoa e os e-mails que a plataforma enviou a ela.",
+      "support": "Chamados de suporte",
+      "emails": "E-mails"
     }
   }
 }

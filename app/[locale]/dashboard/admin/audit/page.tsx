@@ -10,8 +10,10 @@ import {
 } from "@/components/staff/list-empty-state";
 import { ListPagination, ListToolbar } from "@/components/staff/list-controls";
 import { DateRangeFilter } from "@/components/staff/date-range-filter";
+import { ExportCsvButton } from "@/components/staff/export-csv-button";
 import { adminListQuery, type ListSearchParams } from "@/lib/admin-list";
 import { fetchServerApi } from "@/lib/api-server";
+import { withoutPaging } from "@/lib/console";
 import { dayRangeToUtc } from "@/lib/date-range";
 import { getRequestTimeZone } from "@/lib/server/time-zone";
 import type { AuditLogEntry, PaginatedResponse } from "@/types/api";
@@ -44,7 +46,7 @@ export default async function AdminAuditPage({
 }: {
   searchParams: ListSearchParams;
 }) {
-  await requireStaffPage("audit");
+  const { can } = await requireStaffPage("audit");
   const t = await getTranslations("staff.auditPage");
   const params = await searchParams;
   const { query, page } = adminListQuery(params, [
@@ -72,7 +74,19 @@ export default async function AdminAuditPage({
 
   return (
     <>
-      <AdminPageHeader title={t("title")} description={t("description")} />
+      <AdminPageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={
+          // The same filters as the list (dates already in UTC), all pages.
+          can("exports") && (
+            <ExportCsvButton
+              kind="audit-logs"
+              query={withoutPaging(apiQuery)}
+            />
+          )
+        }
+      />
       <ListToolbar
         placeholder={t("search")}
         filters={[

@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTimeZone, getTranslations } from "next-intl/server";
-import { Ban, Flag, KeyRound } from "lucide-react";
+import { Ban, Flag, KeyRound, LifeBuoy, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -22,21 +22,29 @@ import { UserStatusBadges } from "@/components/staff/user-status-badges";
 import { UserAvatar } from "@/components/user-avatar";
 import { ViewAsButton } from "@/components/impersonation/view-as-button";
 import { redirect } from "@/i18n/routing";
+import { apiPath } from "@/lib/api-endpoint";
 import { ApiError, fetchServerApi } from "@/lib/api-server";
 import { formatApiDate, formatApiDateTime } from "@/lib/dates";
 import { pickLocalized } from "@/lib/localized";
 import { getPlanOptions } from "@/lib/staff-data";
-import { canAdministerUser, isStaffRole } from "@/lib/staff-permissions";
+import {
+  canAdministerUser,
+  hasStaffCapability,
+  isStaffRole,
+} from "@/lib/staff-permissions";
 import { moderationQueueHref } from "@/lib/moderation";
 import type {
   AdminUserOverview,
   QuotaLimits,
   UserProfileView,
 } from "@/types/api";
+import type { SignInEvent, UserStaffNote } from "@/types/operations";
 import type { AdminSubscriptionView } from "@/types/staff";
 import { getUserAuditTrail, getUsernameHistory } from "../actions";
 import { UserActionsMenu } from "../_components/user-actions-menu";
 import { DangerZone } from "./_components/danger-zone";
+import { SignInActivity } from "./_components/sign-in-activity";
+import { StaffNotes } from "./_components/staff-notes";
 import { QuotaEditor } from "./_components/quota-editor";
 import { SubscriptionCard } from "./_components/subscription-card";
 import { UserBandsSection } from "./_components/user-bands-section";
@@ -107,6 +115,11 @@ export default async function UserDetailPage({ params }: { params: Params }) {
   // Deleting and "view as" are admin-only (and so is the audit log); the
   // rest of what staff may do is in UserActionsMenu.
   const administrable = canAdministerUser(actor, user);
+  // Staff notes are about other accounts (the API refuses your own), and
+  // sign-in activity carries network addresses: admins only.
+  const isSelf = actor.id === user.id;
+  const canSeeSignIns = hasStaffCapability(actor.role, "signIns");
+  const tNotes = await getTranslations("userNotes");
 
   const [
     history,
@@ -115,6 +128,8 @@ export default async function UserDetailPage({ params }: { params: Params }) {
     subscription,
     profile,
     planOptions,
+    notes,
+    signIns,
   ] = await Promise.all([
     getUsernameHistory(user.id),
     isAdmin ? getUserAuditTrail(user.id) : Promise.resolve([]),
@@ -128,6 +143,16 @@ export default async function UserDetailPage({ params }: { params: Params }) {
       UserProfileView & { admin_details: { open_flags?: number } | null }
     >(`/users/${encodeURIComponent(user.id)}/profile`).catch(() => null),
     getPlanOptions(),
+    isSelf
+      ? Promise.resolve(null)
+      : fetchServerApi<UserStaffNote[]>(
+          apiPath`/admin/users/${user.id}/notes`,
+        ).catch(() => null),
+    canSeeSignIns
+      ? fetchServerApi<SignInEvent[]>(
+          apiPath`/admin/users/${user.id}/sign-ins`,
+        ).catch(() => null)
+      : Promise.resolve(null),
   ]);
   const openFlags = profile?.admin_details?.open_flags ?? null;
   const tModeration = await getTranslations("moderation.userSummary");
@@ -295,6 +320,12 @@ export default async function UserDetailPage({ params }: { params: Params }) {
             </CardContent>
           </Card>
 
+          {!isSelf && (
+            <StaffNotes userId={user.id} notes={notes} actor={actor} />
+          )}
+
+          {canSeeSignIns && <SignInActivity events={signIns} />}
+
           {isAdmin && (
             <Card>
               <CardHeader>
@@ -389,6 +420,31 @@ export default async function UserDetailPage({ params }: { params: Params }) {
               >
                 <Link href={moderationQueueHref(user.id)}>
                   {tModeration("openQueue")}
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{tNotes("contact.title")}</CardTitle>
+              <CardDescription>{tNotes("contact.description")}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link
+                  href={`/dashboard/admin/support?${new URLSearchParams({ user_id: user.id, status: "all" })}`}
+                >
+                  <LifeBuoy aria-hidden />
+                  {tNotes("contact.support")}
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link
+                  href={`/dashboard/admin/emails?${new URLSearchParams({ user_id: user.id })}`}
+                >
+                  <Mail aria-hidden />
+                  {tNotes("contact.emails")}
                 </Link>
               </Button>
             </CardContent>
